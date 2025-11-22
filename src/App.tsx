@@ -16,6 +16,9 @@ import { SinavAnalizi } from './pages/SinavAnalizi';
 import { Yayinlar } from './pages/Yayinlar';
 import Profil from './pages/Profil';
 import { Blog } from './pages/Blog';
+import { GitHub } from './pages/GitHub';
+import { Facebook } from './pages/Facebook';
+import { LinkedIn } from './pages/LinkedIn';
 import { Toaster } from './components/ui/sonner';
 
 export default function App() {
@@ -78,6 +81,15 @@ export default function App() {
 
       case 'blog':
         return <Blog />;
+
+      case 'github':
+        return <GitHub />;
+
+      case 'facebook':
+        return <Facebook />;
+
+      case 'linkedin':
+        return <LinkedIn />;
 
       case 'home':
       default:

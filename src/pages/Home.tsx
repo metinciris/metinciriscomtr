@@ -1,8 +1,8 @@
 import React from 'react';
 import { PageContainer } from '../components/PageContainer';
 import { MetroTile } from '../components/MetroTile';
-import { 
-  User, MessageSquare, FileText, BookOpen, Stethoscope, 
+import {
+  User, MessageSquare, FileText, BookOpen, Stethoscope,
   Utensils, GraduationCap, Briefcase, Activity, FileBarChart,
   BookMarked, Facebook, Building2, FolderOpen, Linkedin, Github, UserCircle
 } from 'lucide-react';
@@ -17,7 +17,7 @@ export function Home({ onNavigate }: HomeProps) {
       {/* Hero Header */}
       <div className="bg-[#00A6D6] text-white py-16">
         <div className="container mx-auto px-4">
-          <h1 className="text-white mb-2">Prof Dr Metin Çiriş</h1>
+          <h1 className="text-white mb-2">Prof Dr Metin ÇİRİŞ</h1>
           <p className="text-white/90">SDÜ Tıp Fakültesi Tıbbi Patoloji</p>
         </div>
       </div>
@@ -38,7 +38,7 @@ export function Home({ onNavigate }: HomeProps) {
               />
               <MetroTile
                 title="Ziyaret Mesajı"
-                subtitle="Mesajınız buraya"
+                subtitle=""
                 icon={<MessageSquare size={40} />}
                 color="bg-[#FF8C00]"
                 size="medium"
@@ -109,7 +109,7 @@ export function Home({ onNavigate }: HomeProps) {
               />
               <MetroTile
                 title="Patoloji Ders Programları"
-                subtitle="Tıp / Diş / Eczacılık"
+                subtitle=""
                 icon={<GraduationCap size={40} />}
                 color="bg-[#003E7E]"
                 size="medium"
@@ -147,12 +147,12 @@ export function Home({ onNavigate }: HomeProps) {
                 onClick={() => onNavigate('profil')}
               />
               <MetroTile
-                title="Patoloji"
+                title="Facebook"
                 subtitle=""
                 icon={<Facebook size={40} />}
                 color="bg-[#3B5998] text-white"
                 size="medium"
-                onClick={() => window.open('https://fb.com/patoloji', '_blank')}
+                onClick={() => onNavigate('facebook')}
               />
               <MetroTile
                 title="LinkedIn"
@@ -160,7 +160,7 @@ export function Home({ onNavigate }: HomeProps) {
                 icon={<Linkedin size={40} />}
                 color="bg-[#0077B5] text-white"
                 size="medium"
-                onClick={() => window.open('https://www.linkedin.com/in/patoloji/', '_blank')}
+                onClick={() => onNavigate('linkedin')}
               />
               <MetroTile
                 title="GitHub"
@@ -168,7 +168,7 @@ export function Home({ onNavigate }: HomeProps) {
                 icon={<Github size={40} />}
                 color="bg-[#333333] text-white"
                 size="medium"
-                onClick={() => window.open('https://github.com/metinciris', '_blank')}
+                onClick={() => onNavigate('github')}
               />
               <MetroTile
                 title="Sınav Analizi"

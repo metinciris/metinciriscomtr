@@ -43,10 +43,7 @@ export function BiyopsiSonucu() {
             </div>
           </div>
           <p className="text-muted-foreground">
-            Raporunuz onaylandıktan sonra hastane sistemiyle <strong>otomatik SMS</strong> alırsınız.
-          </p>
-          <p className="text-muted-foreground">
-            Patoloji raporunuz çıktı diye otomatik SMS gider.
+            Biyopsiniz için iki kez SMS alırsınız: Patoloji laboratuvarına giriş yapılınca ve raporunuz uzman doktor tarafından onaylanınca hastane sistemiyle otomatik SMS gönderilir.
           </p>
         </div>
       </div>
@@ -151,7 +148,7 @@ export function BiyopsiSonucu() {
           <p className="flex items-start gap-2">
             <span className="text-[#FF8C00] flex-shrink-0">📋</span>
             <span>
-              Rapor almak için SMS'i göstermeniz yeterlidir.
+              Rapor almak için SMS'i göstermeniz gerekmektedir. Sizden kimlik istenebilir.
             </span>
           </p>
           <p className="flex items-start gap-2">
