@@ -39,11 +39,10 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
                 <button
                   key={item.path}
                   onClick={() => onNavigate(item.path)}
-                  className={`px-4 py-2 flex items-center space-x-2 transition-colors ${
-                    currentPage === item.path
+                  className={`px-4 py-2 flex items-center space-x-2 transition-colors ${currentPage === item.path
                       ? 'bg-[#0078D4] text-white'
                       : 'text-white/80 hover:bg-white/10'
-                  }`}
+                    }`}
                 >
                   <item.icon size={18} />
                   <span>{item.name}</span>
@@ -70,11 +69,10 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
                     onNavigate(item.path);
                     setMobileMenuOpen(false);
                   }}
-                  className={`w-full px-4 py-3 flex items-center space-x-2 transition-colors ${
-                    currentPage === item.path
+                  className={`w-full px-4 py-3 flex items-center space-x-2 transition-colors ${currentPage === item.path
                       ? 'bg-[#0078D4] text-white'
                       : 'text-white/80 hover:bg-white/10'
-                  }`}
+                    }`}
                 >
                   <item.icon size={18} />
                   <span>{item.name}</span>
@@ -131,20 +129,29 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
             <div>
               <h4>İletişim Bilgileri</h4>
               <div className="text-white/70 mt-2 space-y-1">
-                <p className="m-0">Dahili: 3660</p>
                 <p className="m-0">
-                  <a href="mailto:metinciris@sdu.edu.tr" className="hover:text-white transition-colors">
-                    metinciris@sdu.edu.tr
+                  <a href="mailto:ibrahimciris@sdu.edu.tr" className="hover:text-white transition-colors">
+                    ibrahimciris@sdu.edu.tr
                   </a>
                 </p>
                 <p className="m-0 mt-4">
+                  <a
+                    href="https://www.linkedin.com/in/patoloji"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-white transition-colors"
+                  >
+                    LinkedIn: linkedin.com/in/patoloji
+                  </a>
+                </p>
+                <p className="m-0">
                   <a
                     href="https://fb.com/patoloji"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="hover:text-white transition-colors"
                   >
-                    Facebook: Patoloji
+                    Facebook: fb.com/patoloji
                   </a>
                 </p>
               </div>
