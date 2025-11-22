@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { PageContainer } from '../components/PageContainer';
-import { Utensils, Star, Sun, Moon, Cloud } from 'lucide-react';
+import { Star } from 'lucide-react';
 
 declare global {
   interface Window {
@@ -17,12 +17,8 @@ export function HastaneYemek() {
   const [dinnerCountdown, setDinnerCountdown] = useState(0);
   const [hoveredLunchStar, setHoveredLunchStar] = useState(0);
   const [hoveredDinnerStar, setHoveredDinnerStar] = useState(0);
-  const [skyState, setSkyState] = useState('day');
-  const [sunPosition, setSunPosition] = useState({ x: 50, y: 50 });
-  const [moonPhase, setMoonPhase] = useState('🌙');
-  const [weather, setWeather] = useState<any>(null);
   const [randomQuote, setRandomQuote] = useState({ text: '', author: '', title: '' });
-  
+
   const headerTableRef = useRef<HTMLDivElement>(null);
   const lunchTableRef = useRef<HTMLDivElement>(null);
   const dinnerTableRef = useRef<HTMLDivElement>(null);
@@ -32,84 +28,16 @@ export function HastaneYemek() {
 
   // Rastgele yemek sözleri
   const foodQuotes = [
-    {
-      text: "Yemek pişirmek, bir hikaye anlatmaktır.",
-      author: "Elena Arzak",
-      title: "İspanyol şef"
-    },
-    {
-      text: "Yemek yalnızca yemek değildir. Sanat, bilim ve hoşgörüdür.",
-      author: "Ferran Adrià",
-      title: "İspanyol şef"
-    },
-    {
-      text: "Yemek pişirmek aşkla ilgilidir. Ya aşkla yaparsınız ya da hiç yapmazsınız.",
-      author: "Thomas Keller",
-      title: "Amerikalı şef"
-    },
-    {
-      text: "İyi yemek, sağlığın temelidir.",
-      author: "James Beard",
-      title: "Amerikalı şef"
-    },
-    {
-      text: "Mutfak, hayatın kalbidir.",
-      author: "Julia Child",
-      title: "Amerikalı şef"
-    },
-    {
-      text: "Yemek, sevgiyi paylaşmanın bir yoludur.",
-      author: "Jamie Oliver",
-      title: "İngiliz şef"
-    },
-    {
-      text: "Basit yemekler genellikle en iyisidir.",
-      author: "Auguste Escoffier",
-      title: "Fransız şef"
-    },
-    {
-      text: "Yemek pişirmek bir sanattır, yemek bir zevktir.",
-      author: "Paul Bocuse",
-      title: "Fransız şef"
-    },
-    {
-      text: "Mutfakta mükemmellik aramak, hayatta mükemmellik aramaktır.",
-      author: "Jiro Ono",
-      title: "Japon sushi ustası"
-    },
-    {
-      text: "Yemek, insanları bir araya getiren evrensel bir dildir.",
-      author: "Massimo Bottura",
-      title: "İtalyan şef"
-    },
-    {
-      text: "İyi bir yemek, ruhun gıdasıdır.",
-      author: "Yotam Ottolenghi",
-      title: "İsrailli-İngiliz şef"
-    },
-    {
-      text: "Mutfak, yaratıcılığın sınırsız olduğu yerdir.",
-      author: "Gordon Ramsay",
-      title: "İskoç şef"
-    },
-    {
-      text: "Yemek pişirmek sabır ve tutku gerektirir.",
-      author: "Heston Blumenthal",
-      title: "İngiliz şef"
-    },
-    {
-      text: "En güzel anılar, bir sofranın etrafında paylaşılır.",
-      author: "Nigella Lawson",
-      title: "İngiliz yemek yazarı"
-    },
-    {
-      text: "Yemek, bir kültürün ruhudur.",
-      author: "Anthony Bourdain",
-      title: "Amerikalı şef ve yazar"
-    }
+    { text: "Yemek pişirmek, bir hikaye anlatmaktır.", author: "Elena Arzak", title: "İspanyol şef" },
+    { text: "Yemek yalnızca yemek değildir. Sanat, bilim ve hoşgörüdür.", author: "Ferran Adrià", title: "İspanyol şef" },
+    { text: "Yemek pişirmek aşkla ilgilidir. Ya aşkla yaparsınız ya da hiç yapmazsınız.", author: "Thomas Keller", title: "Amerikalı şef" },
+    { text: "Yemek, insanların bir araya gelmesi için bir bahane olmalıdır.", author: "Michael Pollan", title: "Amerikalı yazar ve aktivist" },
+    { text: "İyi yemek, sağlığın temelidir.", author: "James Beard", title: "Amerikalı şef" },
+    { text: "Mutfak, hayatın kalbidir.", author: "Julia Child", title: "Amerikalı şef" },
+    { text: "Yemek, sevgiyi paylaşmanın bir yoludur.", author: "Jamie Oliver", title: "İngiliz şef" },
+    { text: "Basit yemekler genellikle en iyisidir.", author: "Auguste Escoffier", title: "Fransız şef" }
   ];
 
-  // Sayfa yüklendiğinde rastgele söz seç
   useEffect(() => {
     const randomIndex = Math.floor(Math.random() * foodQuotes.length);
     setRandomQuote(foodQuotes[randomIndex]);
@@ -127,11 +55,12 @@ export function HastaneYemek() {
     document.body.appendChild(script);
 
     return () => {
-      document.body.removeChild(script);
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
     };
   }, []);
 
-  // Tabloları çiz
   const drawAllTables = () => {
     const timestamp = new Date().getTime();
     drawTable(headerTableRef.current, 'A1:A1', timestamp);
@@ -155,12 +84,12 @@ export function HastaneYemek() {
 
       const data = response.getDataTable();
       const table = new window.google.visualization.Table(element);
-      
+
       table.draw(data, {
         showRowNumber: false,
         width: '100%',
         height: '100%',
-        fontSize: 20,
+        fontSize: 24, // Daha büyük font
         allowHtml: true,
         alternatingRowStyle: false,
         page: 'disable',
@@ -173,6 +102,18 @@ export function HastaneYemek() {
           cells.forEach(cell => {
             (cell as HTMLElement).style.backgroundColor = bgColor;
             (cell as HTMLElement).style.borderColor = bgColor;
+            (cell as HTMLElement).style.padding = '16px'; // Daha büyük padding
+            (cell as HTMLElement).style.fontSize = '24px'; // Daha büyük font
+            (cell as HTMLElement).style.textAlign = 'center';
+          });
+        }, 100);
+      } else {
+        setTimeout(() => {
+          const cells = element.querySelectorAll('td, th');
+          cells.forEach(cell => {
+            (cell as HTMLElement).style.padding = '16px';
+            (cell as HTMLElement).style.fontSize = '24px';
+            (cell as HTMLElement).style.textAlign = 'center';
           });
         }, 100);
       }
@@ -221,70 +162,9 @@ export function HastaneYemek() {
     }
   }, [dinnerCountdown]);
 
-  // Gökyüzü animasyonu
-  useEffect(() => {
-    const updateSky = () => {
-      const now = new Date();
-      const hour = now.getHours();
-      const timeProgress = (hour * 60 + now.getMinutes()) / (24 * 60);
-
-      // Güneş pozisyonu
-      const sunX = timeProgress * 100;
-      const sunY = 30 + Math.sin(timeProgress * Math.PI) * 40;
-      setSunPosition({ x: sunX, y: sunY });
-
-      // Gökyüzü durumu
-      if (hour >= 5 && hour < 7) setSkyState('dawn');
-      else if (hour >= 7 && hour < 18) setSkyState('day');
-      else if (hour >= 18 && hour < 20) setSkyState('dusk');
-      else setSkyState('night');
-
-      // Ay fazı
-      const phase = calculateMoonPhase(now);
-      setMoonPhase(getMoonIcon(phase));
-    };
-
-    updateSky();
-    const interval = setInterval(updateSky, 60000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const calculateMoonPhase = (date: Date) => {
-    let year = date.getFullYear();
-    let month = date.getMonth() + 1;
-    const day = date.getDate();
-    if (month < 3) { year--; month += 12; }
-    const c = 365.25 * year;
-    const e = 30.6 * month;
-    let jd = c + e + day - 694039.09;
-    jd /= 29.5305882;
-    const b = Math.floor(jd);
-    return jd - b;
-  };
-
-  const getMoonIcon = (phase: number) => {
-    const rounded = Math.round(phase * 8) / 8;
-    if (rounded <= 0.0625) return "🌑";
-    if (rounded <= 0.1875) return "🌒";
-    if (rounded <= 0.3125) return "🌓";
-    if (rounded <= 0.4375) return "🌔";
-    if (rounded <= 0.5625) return "🌕";
-    if (rounded <= 0.6875) return "🌖";
-    if (rounded <= 0.8125) return "🌗";
-    return "🌘";
-  };
-
-  // Hava durumu
-  useEffect(() => {
-    fetch('https://wttr.in/Isparta?format=j1')
-      .then(res => res.json())
-      .then(data => setWeather(data.current_condition[0]))
-      .catch(err => console.error('Hava durumu alınamadı:', err));
-  }, []);
-
   const handleSubmit = async (mealType: 'lunch' | 'dinner') => {
     const rating = mealType === 'lunch' ? lunchRating : dinnerRating;
-    
+
     if (rating === 0) {
       alert('Lütfen bir değerlendirme yapınız!');
       return;
@@ -320,7 +200,6 @@ export function HastaneYemek() {
         setDinnerRating(0);
       }
 
-      // Tabloları yenile
       setTimeout(() => drawAllTables(), 1000);
     } catch (error) {
       console.error('Form gönderimi hatası:', error);
@@ -341,7 +220,7 @@ export function HastaneYemek() {
     disabled: boolean
   ) => {
     return (
-      <div className="flex justify-center gap-2 my-4">
+      <div className="flex justify-center gap-3 my-6">
         {[1, 2, 3, 4, 5].map((value) => (
           <button
             key={value}
@@ -350,13 +229,14 @@ export function HastaneYemek() {
             onMouseEnter={() => !disabled && setHovered(value)}
             onMouseLeave={() => !disabled && setHovered(0)}
             disabled={disabled}
-            className="transition-all hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="transition-all hover:scale-125 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Star
-              size={48}
+              size={56}
               fill={(hovered || rating) >= value ? '#FFD700' : 'transparent'}
               stroke={(hovered || rating) >= value ? '#FFD700' : '#ccc'}
-              className="transition-all"
+              strokeWidth={2}
+              className="transition-all drop-shadow-lg"
             />
           </button>
         ))}
@@ -372,7 +252,7 @@ export function HastaneYemek() {
           {[...Array(30)].map((_, i) => (
             <div
               key={i}
-              className="absolute text-[#ffcc00] text-2xl animate-[fly_4s_ease-in-out_infinite]"
+              className="absolute text-[#ffcc00] text-3xl animate-[fly_4s_ease-in-out_infinite]"
               style={{
                 left: `${Math.random() * 100}vw`,
                 animationDelay: `${Math.random() * 2}s`,
@@ -384,46 +264,69 @@ export function HastaneYemek() {
           ))}
         </div>
 
-        {/* Alıntı - Rastgele */}
-        <div className="bg-white p-6 rounded-2xl text-center mb-6 shadow-lg">
+        {/* Alıntı */}
+        <div className="bg-white p-8 rounded-2xl text-center mb-8 shadow-xl border-2 border-gray-100">
           {randomQuote.text && (
-            <p className="italic text-muted-foreground">
-              {randomQuote.text}<br />
-              <strong>{randomQuote.author}</strong><br />
-              {randomQuote.title}
-            </p>
+            <div>
+              <p className="italic text-gray-700 text-lg mb-3">
+                "{randomQuote.text}"
+              </p>
+              <p className="font-bold text-gray-900">{randomQuote.author}</p>
+              <p className="text-gray-600 text-sm">{randomQuote.title}</p>
+            </div>
           )}
         </div>
 
+        {/* Resimler */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="bg-white p-4 rounded-xl shadow-lg">
+            <img
+              src="https://metinciris.com.tr/resim/yemek1.jpg"
+              alt="Yemek 1"
+              className="w-full h-auto rounded-lg"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+            />
+          </div>
+          <div className="bg-white p-4 rounded-xl shadow-lg">
+            <img
+              src="https://metinciris.com.tr/resim/yemek2.jpg"
+              alt="Yemek 2"
+              className="w-full h-auto rounded-lg"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+            />
+          </div>
+        </div>
+
         {/* Başlık Tablosu */}
-        <div ref={headerTableRef} className="mb-6" />
+        <div ref={headerTableRef} className="mb-8 bg-white p-4 rounded-xl shadow-lg" />
 
         {/* Öğle Yemeği Bölümü */}
-        <div className="bg-[#fff9c4] rounded-xl p-6 mb-6 shadow-lg">
-          <div ref={lunchTableRef} className="mb-6" />
-          
-          <div className="border-t border-black/10 pt-6">
+        <div className="bg-[#fff9c4] rounded-2xl p-8 mb-8 shadow-2xl border-4 border-[#f9e79f]">
+          <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">🍽️ Öğle Yemeği Menüsü 🍽️</h2>
+          <div ref={lunchTableRef} className="mb-8 bg-white/50 p-4 rounded-xl" />
+
+          <div className="border-t-4 border-[#f9e79f] pt-8">
             {renderStars(lunchRating, setLunchRating, hoveredLunchStar, setHoveredLunchStar, lunchSubmitted)}
-            
-            <div className="flex justify-center min-h-[60px]">
+
+            <div className="flex justify-center min-h-[70px]">
               {!lunchSubmitted ? (
                 <button
                   onClick={() => handleSubmit('lunch')}
                   disabled={lunchRating === 0}
-                  className="bg-[#FFDB31] text-black px-8 py-3 rounded-lg text-xl font-medium hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="bg-[#FFDB31] text-black px-12 py-4 rounded-xl text-2xl font-bold hover:shadow-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3 hover:scale-105"
                 >
-                  <Star size={20} />
+                  <Star size={28} fill="#000" />
                   Öğle Reyting Gönder
                 </button>
               ) : (
-                <div className="bg-white/70 px-6 py-3 rounded-lg text-[#ff5722] text-xl font-bold shadow">
+                <div className="bg-white px-8 py-4 rounded-xl text-[#ff5722] text-2xl font-bold shadow-xl">
                   {formatCountdown(lunchCountdown)}
                 </div>
               )}
             </div>
-            
+
             {lunchSubmitted && lunchCountdown === WAIT_TIME && (
-              <div className="text-center text-[#27AE60] mt-4">
+              <div className="text-center text-[#27AE60] text-xl mt-6 font-bold">
                 ✓ Oyunuz kaydedildi! 😊
               </div>
             )}
@@ -431,31 +334,32 @@ export function HastaneYemek() {
         </div>
 
         {/* Akşam Yemeği Bölümü */}
-        <div className="bg-[#dceeff] rounded-xl p-6 mb-6 shadow-lg">
-          <div ref={dinnerTableRef} className="mb-6" />
-          
-          <div className="border-t border-black/10 pt-6">
+        <div className="bg-[#dceeff] rounded-2xl p-8 mb-8 shadow-2xl border-4 border-[#a9d4f5]">
+          <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">🌙 Akşam Yemeği Menüsü 🌙</h2>
+          <div ref={dinnerTableRef} className="mb-8 bg-white/50 p-4 rounded-xl" />
+
+          <div className="border-t-4 border-[#a9d4f5] pt-8">
             {renderStars(dinnerRating, setDinnerRating, hoveredDinnerStar, setHoveredDinnerStar, dinnerSubmitted)}
-            
-            <div className="flex justify-center min-h-[60px]">
+
+            <div className="flex justify-center min-h-[70px]">
               {!dinnerSubmitted ? (
                 <button
                   onClick={() => handleSubmit('dinner')}
                   disabled={dinnerRating === 0}
-                  className="bg-[#FFDB31] text-black px-8 py-3 rounded-lg text-xl font-medium hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="bg-[#FFDB31] text-black px-12 py-4 rounded-xl text-2xl font-bold hover:shadow-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3 hover:scale-105"
                 >
-                  <Star size={20} />
+                  <Star size={28} fill="#000" />
                   Akşam Reyting Gönder
                 </button>
               ) : (
-                <div className="bg-white/70 px-6 py-3 rounded-lg text-[#ff5722] text-xl font-bold shadow">
+                <div className="bg-white px-8 py-4 rounded-xl text-[#ff5722] text-2xl font-bold shadow-xl">
                   {formatCountdown(dinnerCountdown)}
                 </div>
               )}
             </div>
-            
+
             {dinnerSubmitted && dinnerCountdown === WAIT_TIME && (
-              <div className="text-center text-[#27AE60] mt-4">
+              <div className="text-center text-[#27AE60] text-xl mt-6 font-bold">
                 ✓ Oyunuz kaydedildi! 😊
               </div>
             )}
@@ -463,102 +367,23 @@ export function HastaneYemek() {
         </div>
 
         {/* Alt Tablo */}
-        <div ref={footerTableRef} className="mb-6" />
+        <div ref={footerTableRef} className="mb-8 bg-white p-4 rounded-xl shadow-lg" />
 
         {/* Bilgilendirme */}
-        <div className="bg-white p-6 rounded-xl mb-6 shadow-lg text-center">
-          <p className="text-muted-foreground mb-2">
-            Bu sayfadaki bilgiler eğlence amaçlıdır. Gerçeği yansıtmayabilir.
+        <div className="bg-gradient-to-r from-[#FFF3E0] to-[#FFE0B2] p-8 rounded-2xl mb-8 shadow-xl border-l-8 border-[#FF8C00]">
+          <p className="text-gray-800 mb-4 text-lg text-center font-medium">
+            ⚠️ Bu sayfadaki bilgiler eğlence amaçlıdır. Gerçeği yansıtmayabilir.
           </p>
-          <a
-            href="https://metinciris.com.tr/pages/ogrenciyemek.php"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[#0066cc] hover:underline"
-          >
-            Üniversite Öğrenci Yemek Menüsü
-          </a>
-        </div>
-
-        {/* Animasyonlu Gökyüzü Footer */}
-        <div className={`relative h-24 overflow-hidden rounded-t-xl transition-all duration-1000 ${
-          skyState === 'night' ? 'bg-gradient-to-b from-[#1e1b4b] to-[#312e81]' :
-          skyState === 'dawn' ? 'bg-gradient-to-b from-[#757F9A] to-[#D7DDE8]' :
-          skyState === 'dusk' ? 'bg-gradient-to-b from-[#e96443] to-[#904e95]' :
-          'bg-gradient-to-b from-[#60a5fa] to-[#93c5fd]'
-        }`}>
-          {/* Yıldızlar */}
-          {skyState === 'night' && (
-            <>
-              {[...Array(20)].map((_, i) => (
-                <div
-                  key={i}
-                  className="absolute text-[#FFD700] animate-[star-twinkle_4s_infinite_ease-in-out]"
-                  style={{
-                    left: `${(i * 5 + 8)}%`,
-                    top: `${15 + (i % 3) * 10}%`,
-                    fontSize: '8px',
-                    animationDelay: `${i * 0.3}s`,
-                    textShadow: '0 0 8px rgba(255, 215, 0, 0.7)'
-                  }}
-                >
-                  ★
-                </div>
-              ))}
-            </>
-          )}
-
-          {/* Güneş */}
-          {(skyState === 'day' || skyState === 'dawn' || skyState === 'dusk') && (
-            <div
-              className="absolute w-6 h-6 bg-[#fbbf24] rounded-full transition-all duration-[2000ms]"
-              style={{
-                left: `${Math.max(5, Math.min(95, sunPosition.x))}%`,
-                top: `${Math.max(10, Math.min(80, sunPosition.y))}%`,
-                boxShadow: '0 0 20px #fbbf24'
-              }}
-            />
-          )}
-
-          {/* Ay */}
-          {skyState === 'night' && (
-            <div
-              className="absolute text-2xl transition-all duration-[2000ms]"
-              style={{
-                left: `${Math.max(5, Math.min(95, (sunPosition.x + 50) % 100))}%`,
-                top: `${Math.max(10, Math.min(80, 30 + Math.sin(((sunPosition.x + 50) / 100) * Math.PI) * 40))}%`,
-                filter: 'drop-shadow(0 0 8px rgba(255, 255, 255, 0.5))'
-              }}
+          <div className="text-center">
+            <a
+              href="https://metinciris.com.tr/pages/ogrenciyemek.php"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block bg-[#0066cc] text-white px-8 py-3 rounded-lg text-lg font-bold hover:bg-[#0052a3] transition-colors shadow-lg"
             >
-              {moonPhase}
-            </div>
-          )}
-
-          {/* Bulutlar */}
-          {weather && parseInt(weather.weatherCode) >= 116 && (
-            <>
-              {[...Array(3)].map((_, i) => (
-                <div
-                  key={i}
-                  className="absolute text-white/50 text-sm animate-[float-cloud_40s_infinite_linear]"
-                  style={{
-                    left: `${i * 30 + 10}%`,
-                    top: `${15 + i * 8}%`,
-                    animationDelay: `${i * 8}s`
-                  }}
-                >
-                  ☁
-                </div>
-              ))}
-            </>
-          )}
-
-          {/* Ufuk çizgisi */}
-          <div className={`absolute bottom-0 left-0 right-0 h-4 transition-all duration-1000 ${
-            skyState === 'night'
-              ? 'bg-gradient-to-t from-[rgba(31,41,55,0.4)] to-transparent'
-              : 'bg-gradient-to-t from-[rgba(139,69,19,0.3)] to-transparent'
-          }`} />
+              📚 Üniversite Öğrenci Yemek Menüsü
+            </a>
+          </div>
         </div>
       </PageContainer>
 
@@ -567,18 +392,6 @@ export function HastaneYemek() {
           0% { transform: translateY(100vh); opacity: 1; }
           50% { opacity: 0.5; }
           100% { transform: translateY(-100vh); opacity: 0; }
-        }
-        
-        @keyframes star-twinkle {
-          0%, 100% { opacity: 0.3; transform: scale(0.8); }
-          25% { opacity: 0.6; transform: scale(0.9); }
-          50% { opacity: 1; transform: scale(1.2); }
-          75% { opacity: 0.7; transform: scale(1.1); }
-        }
-        
-        @keyframes float-cloud {
-          from { transform: translateX(-50px); }
-          to { transform: translateX(calc(100% + 50px)); }
         }
       `}</style>
     </div>
