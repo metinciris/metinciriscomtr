@@ -27,15 +27,6 @@ interface HomeProps {
 
 export function Home({ onNavigate }: HomeProps) {
   return (
-    <div className="min-h-screen bg-[#f0f0f0]">
-      {/* Hero Header */}
-      <div className="bg-[#00A6D6] text-white py-16">
-        <div className="container mx-auto px-4">
-          <h1 className="text-white mb-2">Prof Dr Metin ÇİRİŞ</h1>
-          <p className="text-white/90">SDÜ Tıp Fakültesi Tıbbi Patoloji</p>
-        </div>
-      </div>
-
       <PageContainer>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* HASTA Bölümü */}
