@@ -128,7 +128,7 @@ export function LinkedIn() {
                 </div>
 
                 {/* GitHub Projelerim */}
-                <div className="bg-gradient-to-r from-[#1a1a1a] to-[#0d1117] text-white p-8 rounded-xl shadow-lg mb-8">
+                <div className="bg-[#24292e] text-white p-8 rounded-xl shadow-lg mb-8">
                     <div className="flex items-center gap-3 mb-4">
                         <div className="bg-white/20 w-12 h-12 flex items-center justify-center rounded-lg">
                             <Code size={24} />
