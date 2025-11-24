@@ -35,7 +35,7 @@ export function GitHub() {
     return (
         <PageContainer>
             {/* Header */}
-            <div className="bg-gradient-to-r from-[#333333] to-[#24292e] text-white p-12 mb-8 rounded-xl shadow-lg">
+            <div className="bg-gradient-to-r from-[#1a1a1a] to-[#0d1117] text-white p-12 mb-8 rounded-xl shadow-lg">
                 <div className="flex items-center gap-4 mb-4">
                     <GithubIcon size={48} />
                     <h1 className="text-white text-4xl font-bold">GitHub Açık Kaynak Paylaşımları</h1>
