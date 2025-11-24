@@ -50,7 +50,7 @@ export function GitHub() {
                         href="https://github.com/metinciris"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 bg-white text-[#333333] px-6 py-3 rounded-lg hover:bg-white/90 transition-colors font-medium"
+                        className="inline-flex items-center gap-2 bg-[#00A6D6] text-white px-6 py-3 rounded-lg hover:bg-[#0095c0] transition-colors font-medium shadow-lg"
                     >
                         <GithubIcon size={20} />
                         GitHub Profilimi Ziyaret Et
@@ -60,7 +60,7 @@ export function GitHub() {
                         href="https://github.com/metinciris?tab=repositories"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 bg-white/10 text-white border border-white/30 px-6 py-3 rounded-lg hover:bg-white/20 transition-colors font-medium"
+                        className="inline-flex items-center gap-2 bg-[#27AE60] text-white px-6 py-3 rounded-lg hover:bg-[#229954] transition-colors font-medium shadow-lg"
                     >
                         <Code size={20} />
                         90+ Depo
