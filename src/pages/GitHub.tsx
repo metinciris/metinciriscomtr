@@ -40,7 +40,7 @@ export function GitHub() {
                     <GithubIcon size={48} />
                     <h1 className="text-white text-4xl font-bold">GitHub Açık Kaynak Paylaşımları</h1>
                 </div>
-                <p className="text-white/90 max-w-3xl text-lg mb-6">
+                <p className="text-white text-lg mb-6 leading-relaxed max-w-3xl">
                     Dr. Metin Çiriş — Patoloji Uzmanı olarak teşhis odaklı çalışmalar yürütüyor;
                     aynı zamanda moleküler patoloji, sanal mikroskopi ve vaka paylaşımı alanlarında
                     içerik üretmeyi amaçlıyorum.
