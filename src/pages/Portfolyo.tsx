@@ -144,14 +144,14 @@ export function Portfolyo() {
               <div className="bg-[#00A6D6] w-12 h-12 flex items-center justify-center text-white">
                 <Users size={24} />
               </div>
-              <h3 className="text-left">Baş Boyun Patolojisi</h3>
+              <h3 className="text-left">Baş Boyun Patolojisi (19.186)</h3>
             </div>
             <ChevronDown
               size={24}
-              className={`transition-transform ${isExpanded('basboy un') ? 'rotate-180' : ''}`}
+              className={`transition-transform ${isExpanded('basboyun') ? 'rotate-180' : ''}`}
             />
           </button>
-          {isExpanded('basboy un') && (
+          {isExpanded('basboyun') && (
             <div className="p-6 pt-0 border-t">
               <h4 className="mb-3">Biyopsiler</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-muted-foreground mb-6">
@@ -188,7 +188,7 @@ export function Portfolyo() {
               <div className="bg-[#27AE60] w-12 h-12 flex items-center justify-center text-white">
                 <FileText size={24} />
               </div>
-              <h3 className="text-left">Endokrin Patoloji ve Sitoloji</h3>
+              <h3 className="text-left">Endokrin Patoloji ve Sitoloji (51.566)</h3>
             </div>
             <ChevronDown
               size={24}
@@ -230,7 +230,7 @@ export function Portfolyo() {
               <div className="bg-[#E74C3C] w-12 h-12 flex items-center justify-center text-white">
                 <BarChart3 size={24} />
               </div>
-              <h3 className="text-left">Kemik ve Yumuşak Doku Patolojisi</h3>
+              <h3 className="text-left">Kemik ve Yumuşak Doku Patolojisi (4.268)</h3>
             </div>
             <ChevronDown
               size={24}
@@ -274,7 +274,7 @@ export function Portfolyo() {
               <div className="bg-[#F39C12] w-12 h-12 flex items-center justify-center text-white">
                 <BookOpen size={24} />
               </div>
-              <h3 className="text-left">Santral Sinir Sistemi</h3>
+              <h3 className="text-left">Santral Sinir Sistemi (1.528)</h3>
             </div>
             <ChevronDown
               size={24}
@@ -301,7 +301,7 @@ export function Portfolyo() {
               <div className="bg-[#8E44AD] w-12 h-12 flex items-center justify-center text-white">
                 <FileText size={24} />
               </div>
-              <h3 className="text-left">Gastrointestinal Sistem</h3>
+              <h3 className="text-left">Gastrointestinal Sistem (23.233)</h3>
             </div>
             <ChevronDown
               size={24}
@@ -350,7 +350,7 @@ export function Portfolyo() {
               <div className="bg-[#00A6D6] w-12 h-12 flex items-center justify-center text-white">
                 <FileText size={24} />
               </div>
-              <h3 className="text-left">Akciğer ve Mediastinal Sistem</h3>
+              <h3 className="text-left">Akciğer ve Mediastinal Sistem (715)</h3>
             </div>
             <ChevronDown
               size={24}
@@ -379,7 +379,7 @@ export function Portfolyo() {
               <div className="bg-[#27AE60] w-12 h-12 flex items-center justify-center text-white">
                 <BarChart3 size={24} />
               </div>
-              <h3 className="text-left">Böbrek ve Erkek Genital Sistem</h3>
+              <h3 className="text-left">Böbrek ve Erkek Genital Sistem (4.362)</h3>
             </div>
             <ChevronDown
               size={24}
@@ -419,7 +419,7 @@ export function Portfolyo() {
               <div className="bg-[#E74C3C] w-12 h-12 flex items-center justify-center text-white">
                 <Users size={24} />
               </div>
-              <h3 className="text-left">Kadın Genital Sistem ve Meme</h3>
+              <h3 className="text-left">Kadın Genital Sistem ve Meme (5.264)</h3>
             </div>
             <ChevronDown
               size={24}
@@ -465,7 +465,7 @@ export function Portfolyo() {
               <div className="bg-[#F39C12] w-12 h-12 flex items-center justify-center text-white">
                 <BookOpen size={24} />
               </div>
-              <h3 className="text-left">Konsültasyon, Frozen ve Moleküler İnceleme</h3>
+              <h3 className="text-left">Konsültasyon, Frozen ve Moleküler İnceleme (186.368)</h3>
             </div>
             <ChevronDown
               size={24}
