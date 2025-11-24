@@ -35,7 +35,7 @@ export function LinkedIn() {
     return (
         <PageContainer>
             {/* Header */}
-            <div className="bg-gradient-to-r from-[#005582] to-[#0077B5] text-white p-12 mb-8 rounded-xl shadow-lg">
+            <div className="bg-[#0077B5] text-white p-12 mb-8 rounded-xl shadow-lg">
                 <div className="flex items-center gap-4 mb-4">
                     <LinkedinIcon size={48} className="text-white" />
                     <h1 className="text-white text-4xl font-bold">LinkedIn Profesyonel Profil</h1>
