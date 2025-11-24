@@ -29,22 +29,15 @@ export function Home({ onNavigate }: HomeProps) {
             <h2 className="mb-6">Hasta</h2>
             <div className="grid grid-cols-2 gap-4">
               <MetroTile
-  title="İletişim"
-  subtitle="Hastalarla iletişim"
-  icon={
-    <img
-      src="/img/metinciris.png"
-      alt="Prof. Dr. Metin Çiriş"
-      className="w-16 h-16 rounded-full object-cover border-2 border-white/70 shadow-md"
-    />
-  }
-  color="bg-[#00A6D6]"
-  size="wide"
-  onClick={() => onNavigate('iletisim')}
-/>
-
-}
-
+                title="İletişim"
+                subtitle="Hastalarla iletişim"
+                icon={
+                  <img
+                    src="/img/metinciris.png"
+                    alt="Prof. Dr. Metin Çiriş"
+                    className="w-16 h-16 rounded-full object-cover border-2 border-white/70 shadow-md"
+                  />
+                }
                 color="bg-[#00A6D6]"
                 size="wide"
                 onClick={() => onNavigate('iletisim')}
@@ -110,7 +103,12 @@ export function Home({ onNavigate }: HomeProps) {
                 icon={<FolderOpen size={40} />}
                 color="bg-[#E67E22]"
                 size="medium"
-                onClick={() => window.open('https://www.dropbox.com/scl/fo/ux2nae6xf2vc09m63jwwj/AOfBeT92mkwxHs0wt-VIZDQ/Di%C5%9F%20hekimli%C4%9Fi?dl=0&rlkey=4z1tpnwnam9pxt0vo2no8t8v6&subfolder_nav_tracking=1', '_blank')}
+                onClick={() =>
+                  window.open(
+                    'https://www.dropbox.com/scl/fo/ux2nae6xf2vc09m63jwwj/AOfBeT92mkwxHs0wt-VIZDQ/Di%C5%9F%20hekimli%C4%9Fi?dl=0&rlkey=4z1tpnwnam9pxt0vo2no8t8v6&subfolder_nav_tracking=1',
+                    '_blank'
+                  )
+                }
               />
               <MetroTile
                 title="Eczacılık Notlarım"
@@ -118,7 +116,12 @@ export function Home({ onNavigate }: HomeProps) {
                 icon={<FolderOpen size={40} />}
                 color="bg-[#3498DB]"
                 size="medium"
-                onClick={() => window.open('https://www.dropbox.com/scl/fo/ux2nae6xf2vc09m63jwwj/APcXz0YMCCY2ZVcsb62t80w/Eczac%C4%B1l%C4%B1k?dl=0&rlkey=4z1tpnwnam9pxt0vo2no8t8v6&subfolder_nav_tracking=1', '_blank')}
+                onClick={() =>
+                  window.open(
+                    'https://www.dropbox.com/scl/fo/ux2nae6xf2vc09m63jwwj/APcXz0YMCCY2ZVcsb62t80w/Eczac%C4%B1l%C4%B1k?dl=0&rlkey=4z1tpnwnam9pxt0vo2no8t8v6&subfolder_nav_tracking=1',
+                    '_blank'
+                  )
+                }
               />
               <MetroTile
                 title="Patoloji Ders Programları"
