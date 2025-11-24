@@ -28,16 +28,20 @@ export function Home({ onNavigate }: HomeProps) {
           <div>
             <h2 className="mb-6">Hasta</h2>
             <div className="grid grid-cols-2 gap-4">
-              <MetroTile
-                title="İletişim"
-                subtitle="Hastalarla iletişim"
-icon={
-  <img
-    src="/metinciriscomtr/img/metinciris.png"
-    alt="Prof. Dr. Metin Çiriş"
-    className="w-16 h-16 rounded-full object-cover border-2 border-white/70 shadow-md"
-  />
-}
+             <MetroTile
+  title="İletişim"
+  subtitle="Hastalarla iletişim"
+  icon={
+    <img
+      src="/metinciriscomtr/img/metinciris.png"
+      alt="Prof. Dr. Metin Çiriş"
+      className="w-20 h-20 object-cover border-2 border-white/70 shadow-md"
+    />
+  }
+  color="bg-[#00A6D6]"
+  size="wide"
+  onClick={() => onNavigate('iletisim')}
+/>
                 color="bg-[#00A6D6]"
                 size="wide"
                 onClick={() => onNavigate('iletisim')}
