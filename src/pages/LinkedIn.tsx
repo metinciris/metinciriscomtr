@@ -48,16 +48,22 @@ export function LinkedIn() {
                     href="https://www.linkedin.com/in/patoloji/"
                     target="_blank"
                     rel="noopener noreferrer"
-                   <a
-  className="inline-flex items-center gap-2 mt-4 bg-[#ffffff22] text-white px-6 py-3 rounded-lg
-             hover:bg-[#ffffff44] transition-colors font-medium border border-white/40"
->
+// --- SADECE BUTON KISMI DEĞİŞTİ --- //
 
-                >
-                    <LinkedinIcon size={20} />
-                    LinkedIn Profilimi Ziyaret Et
-                    <ExternalLink size={16} />
-                </a>
+<a
+  href="https://www.linkedin.com/in/patoloji/"
+  target="_blank"
+  rel="noopener noreferrer"
+  className="inline-flex items-center gap-2 
+  bg-white/20 backdrop-blur-sm text-white px-6 py-3 
+  rounded-lg border border-white/30 hover:bg-white/30 
+  transition-colors font-medium shadow-lg"
+>
+    <LinkedinIcon size={20} />
+    LinkedIn Profilimi Ziyaret Et
+    <ExternalLink size={16} />
+</a>
+
             </div>
 
             {/* Tanıtım Bölümü */}
