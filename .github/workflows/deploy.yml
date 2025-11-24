@@ -45,3 +45,8 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 # Trigger CI after changes
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
