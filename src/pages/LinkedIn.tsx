@@ -48,8 +48,6 @@ export function LinkedIn() {
                     href="https://www.linkedin.com/in/patoloji/"
                     target="_blank"
                     rel="noopener noreferrer"
-// --- SADECE BUTON KISMI DEĞİŞTİ --- //
-
 <a
   href="https://www.linkedin.com/in/patoloji/"
   target="_blank"
