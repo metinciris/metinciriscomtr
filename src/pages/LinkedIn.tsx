@@ -146,24 +146,6 @@ export function LinkedIn() {
                         <div className="bg-white/20 w-12 h-12 flex items-center justify-center rounded-lg">
                             <Code size={24} />
                         </div>
-                        <h3 className="text-xl font-bold">GitHub Açık Kaynak Projelerim</h3>
-                    </div>
-                    <p className="text-white/90 mb-4 leading-relaxed">
-                        GitHub üzerinde yürüttüğüm açık kaynak projelerde moleküler patoloji raporlama,
-                        dijital / sanal mikroskopi vaka paylaşımları, patolojiye yönelik veri işleme araçları
-                        ve literatür takip otomasyonları gibi çalışmalara yer veriyorum.
-                    </p>
-                    <a
-                        href="https://github.com/metinciris"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 bg-white text-[#333333] px-4 py-2 rounded-lg hover:bg-white/90 transition-colors font-medium text-sm"
-                    >
-                        GitHub Profilim
-                        <ExternalLink size={14} />
-                    </a>
-                </div>
-
                 {/* İşbirliği */}
                 <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-8 rounded-xl border border-gray-200">
                     <div className="flex items-center gap-3 mb-4">
