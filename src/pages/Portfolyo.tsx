@@ -639,7 +639,7 @@ export function Portfolyo() {
               <div className="bg-[#16A085] w-12 h-12 flex items-center justify-center text-white">
                 <GraduationCap size={24} />
               </div>
-              <h2>Katılım ve Kurslar (50+)</h2>
+              <h2>Katılım ve Kurslar (60+)</h2>
             </div>
             <ChevronDown
               size={24}
@@ -677,37 +677,10 @@ export function Portfolyo() {
                 <p>• XIV. Ulusal Patoloji Kongresi (1999, Kuşadası)</p>
                 <p>• Deri eki tümörleri kursu (1998, İzmir)</p>
                 <p>• XIII. Ulusal Patoloji Kongresi (1997, İstanbul)</p>
-                <p className="mt-4 italic">...ve 10+ ek kurs ve kongre katılımı</p>
+                <p className="mt-4 italic">...ve 20+ ek kurs ve kongre katılımı</p>
               </div>
             </div>
           )}
-        </div>
-      </div>
-
-      {/* İletişim */}
-      <div className="bg-gradient-to-r from-[#8E44AD] to-[#9B59B6] text-white p-8">
-        <h2 className="text-white mb-4">İletişim</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div>
-            <h4 className="text-white mb-2">E-posta</h4>
-            <a href="mailto:metinciris@sdu.edu.tr" className="text-white/90 hover:text-white hover:underline">
-              metinciris@sdu.edu.tr
-            </a>
-          </div>
-          <div>
-            <h4 className="text-white mb-2">Telefon</h4>
-            <p className="text-white/90 m-0">
-              Dahili: 3660<br />
-              Santral: +90 246 211 38 38
-            </p>
-          </div>
-          <div>
-            <h4 className="text-white mb-2">Adres</h4>
-            <p className="text-white/90 m-0">
-              SDÜ Tıp Fakültesi<br />
-              Tıbbi Patoloji A.D.
-            </p>
-          </div>
         </div>
       </div>
     </PageContainer>
