@@ -42,6 +42,7 @@ export function Home({ onNavigate }: HomeProps) {
   size="wide"
   onClick={() => onNavigate('iletisim')}
 />
+              }
                 color="bg-[#00A6D6]"
                 size="wide"
                 onClick={() => onNavigate('iletisim')}
