@@ -2,9 +2,23 @@ import React from 'react';
 import { PageContainer } from '../components/PageContainer';
 import { MetroTile } from '../components/MetroTile';
 import {
-  User, MessageSquare, FileText, BookOpen, Stethoscope,
-  Utensils, GraduationCap, Briefcase, Activity, FileBarChart,
-  BookMarked, Facebook, Building2, FolderOpen, Linkedin, Github, UserCircle
+  User,
+  MessageSquare,
+  FileText,
+  BookOpen,
+  Stethoscope,
+  Utensils,
+  GraduationCap,
+  Briefcase,
+  Activity,
+  FileBarChart,
+  BookMarked,
+  Facebook,
+  Building2,
+  FolderOpen,
+  Linkedin,
+  Github,
+  UserCircle,
 } from 'lucide-react';
 
 interface HomeProps {
@@ -28,21 +42,16 @@ export function Home({ onNavigate }: HomeProps) {
           <div>
             <h2 className="mb-6">Hasta</h2>
             <div className="grid grid-cols-2 gap-4">
-             <MetroTile
-  title="İletişim"
-  subtitle="Hastalarla iletişim"
-  icon={
-    <img
-      src="/metinciriscomtr/img/metinciris.png"
-      alt="Prof. Dr. Metin Çiriş"
-      className="w-20 h-20 object-cover border-2 border-white/70 shadow-md"
-    />
-  }
-  color="bg-[#00A6D6]"
-  size="wide"
-  onClick={() => onNavigate('iletisim')}
-/>
-              }
+              <MetroTile
+                title="İletişim"
+                subtitle="Hastalarla iletişim"
+                icon={
+                  <img
+                    src="/metinciriscomtr/img/metinciris.png"
+                    alt="Prof. Dr. Metin Çiriş"
+                    className="w-20 h-20 object-cover border-2 border-white/70 shadow-md"
+                  />
+                }
                 color="bg-[#00A6D6]"
                 size="wide"
                 onClick={() => onNavigate('iletisim')}
@@ -111,7 +120,7 @@ export function Home({ onNavigate }: HomeProps) {
                 onClick={() =>
                   window.open(
                     'https://www.dropbox.com/scl/fo/ux2nae6xf2vc09m63jwwj/AOfBeT92mkwxHs0wt-VIZDQ/Di%C5%9F%20hekimli%C4%9Fi?dl=0&rlkey=4z1tpnwnam9pxt0vo2no8t8v6&subfolder_nav_tracking=1',
-                    '_blank'
+                    '_blank',
                   )
                 }
               />
@@ -124,7 +133,7 @@ export function Home({ onNavigate }: HomeProps) {
                 onClick={() =>
                   window.open(
                     'https://www.dropbox.com/scl/fo/ux2nae6xf2vc09m63jwwj/APcXz0YMCCY2ZVcsb62t80w/Eczac%C4%B1l%C4%B1k?dl=0&rlkey=4z1tpnwnam9pxt0vo2no8t8v6&subfolder_nav_tracking=1',
-                    '_blank'
+                    '_blank',
                   )
                 }
               />
