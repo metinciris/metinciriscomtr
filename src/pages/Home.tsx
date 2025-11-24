@@ -31,13 +31,13 @@ export function Home({ onNavigate }: HomeProps) {
               <MetroTile
                 title="İletişim"
                 subtitle="Hastalarla iletişim"
-                icon={
-                  <img
-                    <img src="/metinciriscomtr/img/metinciris.png" />
-                    alt="Prof. Dr. Metin Çiriş"
-                    className="w-16 h-16 rounded-full object-cover border-2 border-white/70 shadow-md"
-                  />
-                }
+icon={
+  <img
+    src="/metinciriscomtr/img/metinciris.png"
+    alt="Prof. Dr. Metin Çiriş"
+    className="w-16 h-16 rounded-full object-cover border-2 border-white/70 shadow-md"
+  />
+}
                 color="bg-[#00A6D6]"
                 size="wide"
                 onClick={() => onNavigate('iletisim')}
