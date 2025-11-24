@@ -33,7 +33,7 @@ export function Home({ onNavigate }: HomeProps) {
                 subtitle="Hastalarla iletişim"
                 icon={
                   <img
-                    src="/img/metinciris.png"
+                    <img src="/metinciriscomtr/img/metinciris.png" />
                     alt="Prof. Dr. Metin Çiriş"
                     className="w-16 h-16 rounded-full object-cover border-2 border-white/70 shadow-md"
                   />
