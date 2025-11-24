@@ -1,11 +1,11 @@
 import React from 'react';
 import { PageContainer } from '../components/PageContainer';
-import { 
-  Award, 
-  BookOpen, 
-  Briefcase, 
-  GraduationCap, 
-  TrendingUp, 
+import {
+  Award,
+  BookOpen,
+  Briefcase,
+  GraduationCap,
+  TrendingUp,
   FileText,
   Calendar,
   Users,
@@ -18,8 +18,8 @@ export function Portfolyo() {
   const [expandedSections, setExpandedSections] = React.useState<string[]>([]);
 
   const toggleSection = (section: string) => {
-    setExpandedSections(prev => 
-      prev.includes(section) 
+    setExpandedSections(prev =>
+      prev.includes(section)
         ? prev.filter(s => s !== section)
         : [...prev, section]
     );
@@ -48,7 +48,7 @@ export function Portfolyo() {
           </div>
           <h3 className="mb-2">H-Index</h3>
           <p className="text-muted-foreground mb-3">24</p>
-          <a 
+          <a
             href="https://scholar.google.com.tr/citations?user=zEF_KLsAAAAJ&hl=tr"
             target="_blank"
             rel="noopener noreferrer"
@@ -64,7 +64,7 @@ export function Portfolyo() {
           </div>
           <h3 className="mb-2">Atıf Sayısı</h3>
           <p className="text-muted-foreground mb-3">2000+</p>
-          <a 
+          <a
             href="https://scholar.google.com.tr/citations?user=zEF_KLsAAAAJ&hl=tr"
             target="_blank"
             rel="noopener noreferrer"
@@ -94,7 +94,7 @@ export function Portfolyo() {
           <div className="bg-white p-6">
             <h3 className="mb-3 text-[#00A6D6]">Endokrin Patoloji</h3>
             <p className="text-muted-foreground">
-              Tiroid İnce İğne Aspirasyon Biyopsisi, Tiroid ameliyat materyalleri, 
+              Tiroid İnce İğne Aspirasyon Biyopsisi, Tiroid ameliyat materyalleri,
               Paratiroid, Adrenal gland, Hipofiz.
             </p>
           </div>
@@ -102,7 +102,7 @@ export function Portfolyo() {
           <div className="bg-white p-6">
             <h3 className="mb-3 text-[#27AE60]">Karaciğer ve Pankreatikobiliyer Patoloji</h3>
             <p className="text-muted-foreground">
-              Hepatitler, siroz. Karaciğer, safra yolları, pankreas hastalıkları ve 
+              Hepatitler, siroz. Karaciğer, safra yolları, pankreas hastalıkları ve
               tümör patolojileri, karaciğer transplant patolojisi.
             </p>
           </div>
@@ -117,8 +117,8 @@ export function Portfolyo() {
           <div className="bg-white p-6">
             <h3 className="mb-3 text-[#F39C12]">Diğer Uzmanlık Alanları</h3>
             <p className="text-muted-foreground">
-              Baş boyun patolojisi, merkezi sinir sistemi patolojisi, tümör dışı böbrek 
-              patolojileri, böbrek transplant patolojisi, dermatopatoloji, erkek genital 
+              Baş boyun patolojisi, merkezi sinir sistemi patolojisi, tümör dışı böbrek
+              patolojileri, böbrek transplant patolojisi, dermatopatoloji, erkek genital
               sistem ve ürogenital sistem.
             </p>
           </div>
@@ -129,8 +129,8 @@ export function Portfolyo() {
       <div className="mb-8">
         <h2 className="mb-4">10 Yıllık Patoloji İstatistikleri (Giderek Artmakta)</h2>
         <p className="text-muted-foreground mb-6">
-          Baş Boyun Patolojisi, Endokrin patoloji ve sitoloji, Kemik ve yumuşak doku patolojisi, 
-          Santral sinir sistemi patolojisi, Gastrointestinal sistem patolojisi, Konsültasyon, 
+          Baş Boyun Patolojisi, Endokrin patoloji ve sitoloji, Kemik ve yumuşak doku patolojisi,
+          Santral sinir sistemi patolojisi, Gastrointestinal sistem patolojisi, Konsültasyon,
           otopsi, frozen ve ileri inceleme, Diğer alanlar.
         </p>
 
@@ -146,32 +146,33 @@ export function Portfolyo() {
               </div>
               <h3 className="text-left">Baş Boyun Patolojisi</h3>
             </div>
-            <ChevronDown 
-              size={24} 
+            <ChevronDown
+              size={24}
               className={`transition-transform ${isExpanded('basboy un') ? 'rotate-180' : ''}`}
             />
           </button>
           {isExpanded('basboy un') && (
             <div className="p-6 pt-0 border-t">
-              <p className="text-muted-foreground mb-4">
-                Dudak, ağız içi, dil, tonsiller, nazofarinks, nazal mukoza, kafa kemikleri, 
-                üst solunum yolu, baş boyun lenf nodları, tükrük bezi patolojileri.
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-muted-foreground">
-                <div>• Tonsil ve/veya adenoidler: 5014</div>
-                <div>• Tükrük bezi, biyopsi: 1538</div>
-                <div>• Larinks, biyopsi: 1422</div>
-                <div>• Burun, sinüs polipleri: 1013</div>
-                <div>• Diş (odontojenik kist): 537</div>
-                <div>• Ağız mukozası/gingiva: 515</div>
-                <div>• Kolesteatoma: 502</div>
-                <div>• Nazofarinks/orofarinks: 441</div>
-                <div>• Tükrük bezi (tümör dahil): 327</div>
-                <div>• Dudak, biyopsi: 255</div>
-                <div>• Dil, biyopsi: 237</div>
-                <div>• Burun mukozası, biyopsi: 194</div>
-                <div>• Tiroglossal/brankial kist: 85</div>
-                <div>• Larinks rezeksiyon: 79</div>
+              <h4 className="mb-3">Biyopsiler</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-muted-foreground mb-6">
+                <div>• Larinks biyopsisi: 2202</div>
+                <div>• Dil biyopsisi: 459</div>
+                <div>• Burun mukozası biyopsisi: 498</div>
+                <div>• Sinüs–paranazal biyopsi: 92</div>
+                <div>• Ağız mukozası / gingiva biyopsisi: 1851</div>
+                <div>• Nazofarenks / orofarenks biyopsisi: 765</div>
+                <div>• Tükürük bezi biyopsisi: 2865</div>
+                <div>• Konjonktiva biyopsisi / pterygium: 224</div>
+                <div>• Göz biyopsileri: 91</div>
+              </div>
+              <h4 className="mb-3">Ameliyat Materyali / Rezeksiyon</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-muted-foreground">
+                <div>• Larinks parsiyel/total rezeksiyon: 109</div>
+                <div>• Mandibulektomi: 48</div>
+                <div>• Dudak wedge rezeksiyon: 360</div>
+                <div>• Burun–sinüs inflamatuvar polipler: 1725</div>
+                <div>• Tonsil ve/veya adenoid: 7666</div>
+                <div>• Tiroglossal kanal kisti: 171</div>
               </div>
             </div>
           )}
@@ -189,28 +190,31 @@ export function Portfolyo() {
               </div>
               <h3 className="text-left">Endokrin Patoloji ve Sitoloji</h3>
             </div>
-            <ChevronDown 
-              size={24} 
+            <ChevronDown
+              size={24}
               className={`transition-transform ${isExpanded('endokrin') ? 'rotate-180' : ''}`}
             />
           </button>
           {isExpanded('endokrin') && (
             <div className="p-6 pt-0 border-t">
-              <p className="text-muted-foreground mb-4">
-                Tiroid, paratiroid, hipofiz, adrenal gland patoloji ve sitolojisi.
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-muted-foreground">
-                <div>• Sıvı bazlı sitoloji: 15204</div>
-                <div>• İnce iğne aspirasyonu: 13921</div>
-                <div>• Tiroid total/lobektomi: 1953</div>
-                <div>• Vücut sıvıları: 1890</div>
-                <div>• Hücre bloğu: 1660</div>
-                <div>• İmprint: 424</div>
-                <div>• Paratiroid bezi: 399</div>
-                <div>• Sıvı bazlı ince tabaka: 402</div>
-                <div>• Filtre preparatı: 222</div>
-                <div>• Adrenal rezeksiyon: 49</div>
-                <div>• Hipofiz tümörü: 17</div>
+              <h4 className="mb-3">Biyopsiler ve Ameliyat Materyali</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-muted-foreground mb-6">
+                <div>• Tiroid total/lobektomi: 2728</div>
+                <div>• Paratiroid bezi: 674</div>
+                <div>• Adrenal rezeksiyon: 87</div>
+                <div>• Hipofiz tümörü: 28</div>
+                <div>• Sinir biyopsisi: 71</div>
+              </div>
+              <h4 className="mb-3">Sitoloji</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-muted-foreground">
+                <div>• Hücre bloğu hazırlanması: 7724</div>
+                <div>• Servikal/vajinal sitoloji: 6423</div>
+                <div>• Sıvı bazlı sitoloji: 27801</div>
+                <div>• İnce iğne aspirasyonu: 22988</div>
+                <div>• Filtre preparatı: 978</div>
+                <div>• İmprint: 1003</div>
+                <div>• İnce tabaka teknolojisi: 402</div>
+                <div>• Vücut sıvıları (liste dışı): 2692</div>
               </div>
             </div>
           )}
@@ -228,28 +232,33 @@ export function Portfolyo() {
               </div>
               <h3 className="text-left">Kemik ve Yumuşak Doku Patolojisi</h3>
             </div>
-            <ChevronDown 
-              size={24} 
+            <ChevronDown
+              size={24}
               className={`transition-transform ${isExpanded('kemik') ? 'rotate-180' : ''}`}
             />
           </button>
           {isExpanded('kemik') && (
             <div className="p-6 pt-0 border-t">
-              <p className="text-muted-foreground mb-4">
-                Kemik, kıkırdak, yumuşak doku, damar, sinir patolojisi.
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-muted-foreground">
-                <div>• Yumuşak doku basit eksizyon: 1808</div>
-                <div>• Yumuşak doku tümörü: 1484</div>
-                <div>• Yumuşak doku, lipom: 691</div>
-                <div>• Herni kesesi: 547</div>
-                <div>• Kemik biyopsi/küretaj: 373</div>
-                <div>• Kemik rezeksiyon: 204</div>
-                <div>• Yumuşak doku debridman: 62</div>
-                <div>• Ekstremite amputasyon: 60</div>
-                <div>• Kas biyopsi: 59</div>
-                <div>• Arter biyopsi: 37</div>
-                <div>• Sinir biyopsi: 34</div>
+              <h4 className="mb-3">Biyopsiler</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-muted-foreground mb-6">
+                <div>• Kemik biyopsileri / ekzostoz: 138</div>
+                <div>• Kemik iliği biyopsisi: 317</div>
+                <div>• Yumuşak doku biyopsisi: 1092</div>
+                <div>• Kas biyopsisi: 118</div>
+                <div>• Synovium biyopsisi: 48</div>
+                <div>• Bursa/sinovyal kist: 20</div>
+                <div>• Ganglion kisti: 131</div>
+              </div>
+              <h4 className="mb-3">Ameliyat Materyali / Rezeksiyon</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-muted-foreground">
+                <div>• Yumuşak doku tümörü (geniş rezeksiyon): 1877</div>
+                <div>• Ekstremite amputasyon (travmatik): 98</div>
+                <div>• Ekstremite amputasyon (travma dışı): 119</div>
+                <div>• Intervertebral disk: 49</div>
+                <div>• Kemik rezeksiyonu: 321</div>
+                <div>• Kemik fragmanları/patolojik kırık: 28</div>
+                <div>• Eklem gevşek cisim: 38</div>
+                <div>• Eklem rezeksiyon: 32</div>
               </div>
             </div>
           )}
@@ -267,23 +276,16 @@ export function Portfolyo() {
               </div>
               <h3 className="text-left">Santral Sinir Sistemi</h3>
             </div>
-            <ChevronDown 
-              size={24} 
+            <ChevronDown
+              size={24}
               className={`transition-transform ${isExpanded('cns') ? 'rotate-180' : ''}`}
             />
           </button>
           {isExpanded('cns') && (
             <div className="p-6 pt-0 border-t">
-              <p className="text-muted-foreground mb-4">
-                Beyin tümörleri, tümör dışı patolojiler ve göz patolojisi.
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-muted-foreground">
-                <div>• Beyin meninksler, tümör: 771</div>
-                <div>• Konjonktiva/pterygium: 161</div>
-                <div>• Göz, enükleasyon: 57</div>
-                <div>• Beyin, biyopsi: 27</div>
-                <div>• Beyin meninksler (tümör dışı): 15</div>
-                <div>• Göz, eksentrasyon: 8</div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-muted-foreground">
+                <div>• Beyin / meninks tümör rezeksiyonu: 1473</div>
+                <div>• Beyin meninks (tümör dışı): 55</div>
               </div>
             </div>
           )}
@@ -301,31 +303,191 @@ export function Portfolyo() {
               </div>
               <h3 className="text-left">Gastrointestinal Sistem</h3>
             </div>
-            <ChevronDown 
-              size={24} 
+            <ChevronDown
+              size={24}
               className={`transition-transform ${isExpanded('gis') ? 'rotate-180' : ''}`}
             />
           </button>
           {isExpanded('gis') && (
             <div className="p-6 pt-0 border-t">
-              <p className="text-muted-foreground mb-4">
-                Karaciğer, safra yolları, pankreas patolojileri primer ilgi alanlarım.
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-muted-foreground">
-                <div>• Mide, biyopsi: 3875</div>
-                <div>• Safra kesesi: 2904</div>
-                <div>• Karaciğer, biyopsi: 1495</div>
-                <div>• Kolon, biyopsi tek: 1253</div>
-                <div>• Mide, çoklu biyopsi: 1252</div>
-                <div>• Duodenum, biyopsi: 1112</div>
-                <div>• Polip, kolorektal: 764</div>
-                <div>• Özofagus, biyopsi: 416</div>
-                <div>• İnce barsak biyopsi: 410</div>
-                <div>• Karaciğer, parsiyel: 304</div>
-                <div>• Kolon, segmental: 272</div>
-                <div>• Apendiks: 257</div>
-                <div>• Pankreas, biyopsi: 142</div>
-                <div>• Pankreas rezeksiyon: 133</div>
+              <h4 className="mb-3">Biyopsiler</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-muted-foreground mb-6">
+                <div>• Mide biyopsisi (tekli ve çoklu lokasyon): 9741</div>
+                <div>• Duodenum biyopsisi: 3153</div>
+                <div>• İnce barsak biyopsisi: 1199</div>
+                <div>• Kolon biyopsisi (tek): 3221</div>
+                <div>• Kolon biyopsisi (çoklu): 47</div>
+                <div>• Kolorektal polip: 361</div>
+                <div>• Rektal polipoid oluşum: 42</div>
+                <div>• Safra kesesi: 4427</div>
+                <div>• Herni kesesi: 876</div>
+              </div>
+              <h4 className="mb-3">Ameliyat Materyali / Rezeksiyon</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-muted-foreground">
+                <div>• Mide subtotal/total rezeksiyon (tümör dışı): 41</div>
+                <div>• Mide subtotal/total rezeksiyon (tümör): 137</div>
+                <div>• İnce barsak tümör rezeksiyonu: 150</div>
+                <div>• İnce barsak rezeksiyonu (tümör dışı): 162</div>
+                <div>• Kolon segmental rezeksiyon (tümör): 384</div>
+                <div>• Kolon segmental rezeksiyon (tümör dışı): 107</div>
+                <div>• Kolon total rezeksiyon: 39</div>
+                <div>• Kolostomi stoma: 36</div>
+                <div>• Apendiks insidental: 108</div>
+                <div>• Apendiks patolojili: 501</div>
+                <div>• Özefagus biyopsisi ve rezeksiyon: 1137</div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Akciğer ve Mediastinal Sistem */}
+        <div className="bg-white mb-4">
+          <button
+            onClick={() => toggleSection('lung')}
+            className="w-full p-6 flex items-center justify-between hover:bg-gray-50 transition-colors"
+          >
+            <div className="flex items-center gap-4">
+              <div className="bg-[#00A6D6] w-12 h-12 flex items-center justify-center text-white">
+                <FileText size={24} />
+              </div>
+              <h3 className="text-left">Akciğer ve Mediastinal Sistem</h3>
+            </div>
+            <ChevronDown
+              size={24}
+              className={`transition-transform ${isExpanded('lung') ? 'rotate-180' : ''}`}
+            />
+          </button>
+          {isExpanded('lung') && (
+            <div className="p-6 pt-0 border-t">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-muted-foreground">
+                <div>• Akciğer kama biyopsisi: 144</div>
+                <div>• Akciğer total/lob/segment rezeksiyon: 44</div>
+                <div>• Bronş biyopsisi: 396</div>
+                <div>• Mediastinal lenf nodu biyopsisi: 131</div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Böbrek ve Erkek Genital Sistem */}
+        <div className="bg-white mb-4">
+          <button
+            onClick={() => toggleSection('kidney')}
+            className="w-full p-6 flex items-center justify-between hover:bg-gray-50 transition-colors"
+          >
+            <div className="flex items-center gap-4">
+              <div className="bg-[#27AE60] w-12 h-12 flex items-center justify-center text-white">
+                <BarChart3 size={24} />
+              </div>
+              <h3 className="text-left">Böbrek ve Erkek Genital Sistem</h3>
+            </div>
+            <ChevronDown
+              size={24}
+              className={`transition-transform ${isExpanded('kidney') ? 'rotate-180' : ''}`}
+            />
+          </button>
+          {isExpanded('kidney') && (
+            <div className="p-6 pt-0 border-t">
+              <h4 className="mb-3">Biyopsiler</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-muted-foreground mb-6">
+                <div>• Böbrek iğne biyopsisi: 543</div>
+                <div>• Üreter biyopsisi: 52</div>
+                <div>• Mesane biyopsisi: 106</div>
+                <div>• Prostat iğne biyopsisi: 2291</div>
+                <div>• Testis biyopsisi / testis tümörü: 54</div>
+              </div>
+              <h4 className="mb-3">Ameliyat Materyali</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-muted-foreground">
+                <div>• Böbrek parsiyel/total nefrektomi: 169</div>
+                <div>• Mesane TUR: 315</div>
+                <div>• Mesane parsiyel/total rezeksiyon: 52</div>
+                <div>• Prostat radikal rezeksiyon: 128</div>
+                <div>• Prostat TUR: 810</div>
+                <div>• Üreter rezeksiyon: 42</div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Kadın Genital Sistem ve Meme */}
+        <div className="bg-white mb-4">
+          <button
+            onClick={() => toggleSection('gynecology')}
+            className="w-full p-6 flex items-center justify-between hover:bg-gray-50 transition-colors"
+          >
+            <div className="flex items-center gap-4">
+              <div className="bg-[#E74C3C] w-12 h-12 flex items-center justify-center text-white">
+                <Users size={24} />
+              </div>
+              <h3 className="text-left">Kadın Genital Sistem ve Meme</h3>
+            </div>
+            <ChevronDown
+              size={24}
+              className={`transition-transform ${isExpanded('gynecology') ? 'rotate-180' : ''}`}
+            />
+          </button>
+          {isExpanded('gynecology') && (
+            <div className="p-6 pt-0 border-t">
+              <h4 className="mb-3">Biyopsiler</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-muted-foreground mb-6">
+                <div>• Serviks biyopsisi: 489</div>
+                <div>• Endometrium biyopsisi/kürtaj: 2060</div>
+                <div>• Vulva/labia biyopsisi: 261</div>
+                <div>• Over wedge / biyopsi: 160</div>
+                <div>• Over biyopsisi (neoplastik olmayan): 267</div>
+                <div>• Uterus biyopsisi (neoplastik): 630</div>
+                <div>• Plasenta: 252</div>
+                <div>• Aborte materyali: 305</div>
+                <div>• Adli/medikal otopsi: 139</div>
+                <div>• Fetus otopsisi: 46</div>
+              </div>
+              <h4 className="mb-3">Ameliyat Materyali</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-muted-foreground">
+                <div>• Meme biyopsisi: 500</div>
+                <div>• Meme mastektomi + aksilla: 117</div>
+                <div>• Meme parsiyel/basit rezeksiyon: 135</div>
+                <div>• Uterus (+/- adneks) tümör rezeksiyon: 329</div>
+                <div>• Uterus prolapsus cerrahisi: 35</div>
+                <div>• Over (+/- tuba) neoplastik: 43</div>
+                <div>• Tuba uterina sterilizasyon: 41</div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Konsültasyon, Frozen ve Moleküler İnceleme */}
+        <div className="bg-white mb-4">
+          <button
+            onClick={() => toggleSection('molecular')}
+            className="w-full p-6 flex items-center justify-between hover:bg-gray-50 transition-colors"
+          >
+            <div className="flex items-center gap-4">
+              <div className="bg-[#F39C12] w-12 h-12 flex items-center justify-center text-white">
+                <BookOpen size={24} />
+              </div>
+              <h3 className="text-left">Konsültasyon, Frozen ve Moleküler İnceleme</h3>
+            </div>
+            <ChevronDown
+              size={24}
+              className={`transition-transform ${isExpanded('molecular') ? 'rotate-180' : ''}`}
+            />
+          </button>
+          {isExpanded('molecular') && (
+            <div className="p-6 pt-0 border-t">
+              <h4 className="mb-3">Frozen ve Konsültasyon</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-muted-foreground mb-6">
+                <div>• Frozen incelemesi: 2334</div>
+                <div>• Konsültasyon patolojisi + hazır boyalı preparatlar/parafin blok: 4283</div>
+              </div>
+              <h4 className="mb-3">Moleküler Testler</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-muted-foreground">
+                <div>• Histokimyasal boyamalar: 118660</div>
+                <div>• İmmünohistokimya: 55677</div>
+                <div>• İmmünfloresan mikroskopi: 5142</div>
+                <div>• Kromojenik in situ hibridizasyon: 122</div>
+                <div>• İn situ hibridizasyon için doku hazırlama: 95</div>
+                <div>• Moleküler panel testleri: 255</div>
+                <div>• Yeni nesil dizileme panelleri: 50+</div>
               </div>
             </div>
           )}
@@ -374,14 +536,14 @@ export function Portfolyo() {
             <div className="flex items-start gap-3">
               <Award className="text-[#F39C12] flex-shrink-0 mt-1" size={24} />
               <p className="text-muted-foreground m-0">
-                <strong>1997:</strong> XIII. Ulusal Patoloji Kongresinde "Meme karsinomlarında C-erbB-2 ve p53'ün yeri" 
+                <strong>1997:</strong> XIII. Ulusal Patoloji Kongresinde "Meme karsinomlarında C-erbB-2 ve p53'ün yeri"
                 çalışması, poster bildirisi birincilik ödülü
               </p>
             </div>
             <div className="flex items-start gap-3">
               <Award className="text-[#F39C12] flex-shrink-0 mt-1" size={24} />
               <p className="text-muted-foreground m-0">
-                <strong>2006:</strong> XIII. Ulusal Gastroentoroloji kongresinde "Sıçanlarda aspirin ile uyarılan 
+                <strong>2006:</strong> XIII. Ulusal Gastroentoroloji kongresinde "Sıçanlarda aspirin ile uyarılan
                 mide mukoza lezyonlarının önlenmesinde probiyotiklerin rolü", Gastritler kategorisinde birincilik ödülü
               </p>
             </div>
@@ -394,7 +556,7 @@ export function Portfolyo() {
             <div className="flex items-start gap-3">
               <Award className="text-[#F39C12] flex-shrink-0 mt-1" size={24} />
               <p className="text-muted-foreground m-0">
-                <strong>2018:</strong> 28. Ulusal Patoloji Kongresinde "Meme Karsinomlarında Doku Mikroarray" 
+                <strong>2018:</strong> 28. Ulusal Patoloji Kongresinde "Meme Karsinomlarında Doku Mikroarray"
                 ile poster bildiri ikincilik ödülü
               </p>
             </div>
@@ -460,7 +622,7 @@ export function Portfolyo() {
 
         <div className="bg-[#E3F2FD] border-l-4 border-[#00A6D6] p-6 mt-6">
           <p className="text-muted-foreground m-0">
-            <strong>Not:</strong> Güncel ve detaylı yayın listesi için üniversite web sayfamı ziyaret edebilirsiniz. 
+            <strong>Not:</strong> Güncel ve detaylı yayın listesi için üniversite web sayfamı ziyaret edebilirsiniz.
             Tüm yayınlar Google Scholar profilimde mevcuttur.
           </p>
         </div>
@@ -479,8 +641,8 @@ export function Portfolyo() {
               </div>
               <h2>Katılım ve Kurslar (40+)</h2>
             </div>
-            <ChevronDown 
-              size={24} 
+            <ChevronDown
+              size={24}
               className={`transition-transform ${isExpanded('kurslar') ? 'rotate-180' : ''}`}
             />
           </button>
