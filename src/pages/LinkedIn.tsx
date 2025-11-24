@@ -48,7 +48,11 @@ export function LinkedIn() {
                     href="https://www.linkedin.com/in/patoloji/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 bg-white text-[#0077B5] px-6 py-3 rounded-lg hover:bg-white/90 transition-colors font-medium shadow-lg"
+                   <a
+  className="inline-flex items-center gap-2 mt-4 bg-[#ffffff22] text-white px-6 py-3 rounded-lg
+             hover:bg-[#ffffff44] transition-colors font-medium border border-white/40"
+>
+
                 >
                     <LinkedinIcon size={20} />
                     LinkedIn Profilimi Ziyaret Et
