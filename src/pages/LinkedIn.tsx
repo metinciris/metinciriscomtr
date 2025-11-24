@@ -1,6 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { PageContainer } from '../components/PageContainer';
-import { Calendar, ExternalLink, Tag, Linkedin as LinkedinIcon, Microscope, Code, Users, BookOpen, Briefcase } from 'lucide-react';
+import {
+    Calendar,
+    ExternalLink,
+    Tag,
+    Linkedin as LinkedinIcon,
+    Microscope,
+    Code,
+    Users,
+    BookOpen,
+    Briefcase
+} from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -48,20 +58,15 @@ export function LinkedIn() {
                     href="https://www.linkedin.com/in/patoloji/"
                     target="_blank"
                     rel="noopener noreferrer"
-<a
-  href="https://www.linkedin.com/in/patoloji/"
-  target="_blank"
-  rel="noopener noreferrer"
-  className="inline-flex items-center gap-2 
-  bg-white/20 backdrop-blur-sm text-white px-6 py-3 
-  rounded-lg border border-white/30 hover:bg-white/30 
-  transition-colors font-medium shadow-lg"
->
-    <LinkedinIcon size={20} />
-    LinkedIn Profilimi Ziyaret Et
-    <ExternalLink size={16} />
-</a>
-
+                    className="inline-flex items-center gap-2
+                               bg-white/20 backdrop-blur-sm text-white
+                               px-6 py-3 rounded-lg border border-white/30
+                               hover:bg-white/30 transition-colors font-medium shadow-lg"
+                >
+                    <LinkedinIcon size={20} />
+                    LinkedIn Profilimi Ziyaret Et
+                    <ExternalLink size={16} />
+                </a>
             </div>
 
             {/* Tanıtım Bölümü */}
