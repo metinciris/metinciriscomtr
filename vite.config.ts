@@ -9,7 +9,7 @@ const __dirname = path.dirname(__filename);
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-    base: '/metinciriscomtr/', 
+    base: '/' 
   resolve: {
     alias: {
       'vaul@1.1.2': 'vaul',
