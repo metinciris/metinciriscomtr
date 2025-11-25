@@ -158,7 +158,7 @@ export function GitHub() {
                             </div>
                             <h3 className="text-xl font-bold">Platforma Genel Bakış</h3>
                         </div>
-                        <p className="text-white/90 mb-4">
+                        <p className="text-white mb-4">
                             GitHub profilimde toplam <strong>90'dan fazla depo (repository)</strong> yer almakta;
                             bu içeriklerin bir kısmı hâlihazırda klinik uygulamalara, bir kısmı da eğitim-araştırma
                             dünyasına yönelik olarak tasarlanmıştır.
