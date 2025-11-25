@@ -21,8 +21,7 @@ assignees: ''
 
 ## Resim (Opsiyonel)
 <!-- Resim URL'sini buraya yapıştırın -->
-<!-- Örnek: https://example.com/image.jpg -->
-
+![Patoloji Kariyer Görselleştirici](https://metinciris.github.io/metinciriscomtr/img/gorsellestirici.jpg)
 ---
 
 **Not:** Bu issue yalnızca site sahibi tarafından oluşturulmalıdır. Diğer katkılar için lütfen e-posta ile iletişime geçin.
