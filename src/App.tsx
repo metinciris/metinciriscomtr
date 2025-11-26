@@ -21,6 +21,7 @@ import { Facebook } from './pages/Facebook';
 import { LinkedIn } from './pages/LinkedIn';
 import { DigerCalismalar } from './pages/DigerCalismalar';
 import { FetusUzunluklari } from './pages/FetusUzunluklari';
+import { RcbCalculator } from './pages/RcbCalculator';
 import { Toaster } from './components/ui/sonner';
 
 export default function App() {
@@ -98,6 +99,9 @@ export default function App() {
 
       case 'fetus-uzunluklari':
         return <FetusUzunluklari />;
+
+      case 'rcb-calculator':
+        return <RcbCalculator />;
 
       case 'home':
       default:

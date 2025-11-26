@@ -43,6 +43,14 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
                     size="medium"
                     onClick={() => handleNavigate('fetus-uzunluklari')}
                 />
+                <MetroTile
+                    title="RCB Hesaplayıcı"
+                    subtitle="Rezidüel Kanser Yükü"
+                    icon={<FileBarChart size={40} />}
+                    color="bg-[#E74C3C]"
+                    size="medium"
+                    onClick={() => handleNavigate('rcb-calculator')}
+                />
             </div>
         </PageContainer>
     );
