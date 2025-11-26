@@ -20,6 +20,7 @@ import { GitHub } from './pages/GitHub';
 import { Facebook } from './pages/Facebook';
 import { LinkedIn } from './pages/LinkedIn';
 import { DigerCalismalar } from './pages/DigerCalismalar';
+import { FetusUzunluklari } from './pages/FetusUzunluklari';
 import { Toaster } from './components/ui/sonner';
 
 export default function App() {
@@ -94,6 +95,9 @@ export default function App() {
 
       case 'diger-calismalar':
         return <DigerCalismalar onNavigate={navigate} />;
+
+      case 'fetus-uzunluklari':
+        return <FetusUzunluklari />;
 
       case 'home':
       default:
