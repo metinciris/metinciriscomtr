@@ -194,12 +194,12 @@ export function RcbCalculator() {
                 </div>
 
                 {/* Results Section */}
-                <div className="lg:col-span-1">
-                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 sticky top-24">
+                <div className="lg:col-span-1 flex flex-col">
+                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 sticky top-24 flex flex-col h-[calc(100vh-8rem)] lg:h-auto lg:min-h-[600px]">
                         <h2 className="text-xl font-bold mb-6 text-gray-800">Sonuçlar</h2>
 
                         {rcbResult ? (
-                            <div className="space-y-6">
+                            <div className="space-y-6 flex-1 flex flex-col">
                                 <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 text-center">
                                     <p className="text-gray-500 text-sm mb-1">Rezidüel Kanser Yükü (RCB)</p>
                                     <p className="text-4xl font-bold text-[#E74C3C]">{rcbResult}</p>
@@ -210,25 +210,25 @@ export function RcbCalculator() {
                                     <p className="text-xl font-bold text-gray-800">{rcbCategory}</p>
                                 </div>
 
-                                <div>
+                                <div className="flex-1 flex flex-col">
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
                                         Detaylı Çıktı
                                     </label>
                                     <textarea
                                         value={output}
                                         readOnly
-                                        className="w-full h-60 p-3 text-sm bg-gray-50 border border-gray-200 rounded-lg resize-none font-mono focus:outline-none"
+                                        className="w-full flex-1 p-3 text-sm bg-gray-50 border border-gray-200 rounded-lg resize-none font-mono focus:outline-none min-h-[200px]"
                                     />
                                 </div>
                             </div>
                         ) : (
-                            <div className="text-center py-12 text-gray-400">
+                            <div className="text-center py-12 text-gray-400 flex-1 flex flex-col justify-center">
                                 <Info size={48} className="mx-auto mb-4 opacity-50" />
                                 <p>Hesaplama yapmak için soldaki formu doldurun ve "Hesapla" butonuna basın.</p>
                             </div>
                         )}
 
-                        <div className="mt-8 pt-6 border-t border-gray-100 text-xs text-center text-gray-500">
+                        <div className="mt-auto pt-6 border-t border-gray-100 text-xs text-center text-gray-500">
                             <p>
                                 Bu hesaplama,{' '}
                                 <a
