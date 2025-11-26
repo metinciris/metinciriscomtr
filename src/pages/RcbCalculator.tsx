@@ -217,7 +217,7 @@ export function RcbCalculator() {
                                     <textarea
                                         value={output}
                                         readOnly
-                                        className="w-full h-80 p-3 text-sm bg-gray-50 border border-gray-200 rounded-lg resize-none font-mono focus:outline-none"
+                                        className="w-full h-60 p-3 text-sm bg-gray-50 border border-gray-200 rounded-lg resize-none font-mono focus:outline-none"
                                     />
                                 </div>
                             </div>
