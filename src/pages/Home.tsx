@@ -32,7 +32,7 @@ export function Home({ onNavigate }: HomeProps) {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* HASTA Bölümü */}
           <div>
-            <h2 className="mb-6">Hasta</h2>
+            <h2 className="mb-6 text-2xl font-bold">Hasta</h2>
             <div className="grid grid-cols-2 gap-4">
               <MetroTile
                 title="İletişim"
@@ -93,7 +93,7 @@ export function Home({ onNavigate }: HomeProps) {
 
           {/* ÖĞRENCİ Bölümü */}
           <div>
-            <h2 className="mb-6">Öğrenci</h2>
+            <h2 className="mb-6 text-2xl font-bold">Öğrenci</h2>
             <div className="grid grid-cols-2 gap-4">
               <MetroTile
                 title="SDÜ Tıp Patoloji Notlarım"
@@ -150,7 +150,7 @@ export function Home({ onNavigate }: HomeProps) {
 
           {/* AKADEMİK Bölümü */}
           <div>
-            <h2 className="mb-6">Akademik</h2>
+            <h2 className="mb-6 text-2xl font-bold">Akademik</h2>
             <div className="grid grid-cols-2 gap-4">
               <MetroTile
                 title="Yayınlar"
