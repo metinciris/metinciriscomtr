@@ -13,7 +13,6 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
   const navItems = [
     { name: 'Ana Sayfa', path: 'home', icon: Home },
     { name: 'Hakkımda', path: 'ben-kimim', icon: User },
-    { name: 'Öğrenci', path: 'ders-programi', icon: GraduationCap },
     { name: 'Akademik', path: 'yayinlar', icon: BookOpen },
   ];
 
@@ -22,7 +21,7 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
       {/* Header */}
       <header className="bg-[#1e1e1e] text-white sticky top-0 z-50 shadow-lg">
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-16 md:h-12">
             <div className="flex items-center space-x-3 cursor-pointer" onClick={() => onNavigate('home')}>
               <div className="w-10 h-10 bg-[#00A6D6] flex items-center justify-center">
                 <span className="text-white">MC</span>
@@ -40,8 +39,8 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
                   key={item.path}
                   onClick={() => onNavigate(item.path)}
                   className={`px-4 py-2 flex items-center space-x-2 transition-colors ${currentPage === item.path
-                      ? 'bg-[#0078D4] text-white'
-                      : 'text-white/80 hover:bg-white/10'
+                    ? 'bg-[#0078D4] text-white'
+                    : 'text-white/80 hover:bg-white/10'
                     }`}
                 >
                   <item.icon size={18} />
@@ -70,8 +69,8 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
                     setMobileMenuOpen(false);
                   }}
                   className={`w-full px-4 py-3 flex items-center space-x-2 transition-colors ${currentPage === item.path
-                      ? 'bg-[#0078D4] text-white'
-                      : 'text-white/80 hover:bg-white/10'
+                    ? 'bg-[#0078D4] text-white'
+                    : 'text-white/80 hover:bg-white/10'
                     }`}
                 >
                   <item.icon size={18} />
