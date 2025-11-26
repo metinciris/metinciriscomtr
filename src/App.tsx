@@ -22,7 +22,7 @@ import { LinkedIn } from './pages/LinkedIn';
 import { DigerCalismalar } from './pages/DigerCalismalar';
 import { FetusUzunluklari } from './pages/FetusUzunluklari';
 import { RcbCalculator } from './pages/RcbCalculator';
-import { Endoskopi } from './pages/Endoskopi';
+
 import { Toaster } from './components/ui/sonner';
 
 export default function App() {
@@ -103,9 +103,6 @@ export default function App() {
 
       case 'rcb-calculator':
         return <RcbCalculator />;
-
-      case 'endoskopi':
-        return <Endoskopi />;
 
       case 'home':
       default:
