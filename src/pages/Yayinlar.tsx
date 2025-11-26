@@ -653,12 +653,12 @@ export function Yayinlar() {
           <div className="space-y-2 text-muted-foreground">
             <p className="m-0">
               <strong>E-posta:</strong>{' '}
-              <a href="mailto:metinciris@sdu.edu.tr" className="text-[#00A6D6] hover:underline">
-                metinciris@sdu.edu.tr
+              <a href="mailto:ibrahimciris@sdu.edu.tr" className="text-[#00A6D6] hover:underline">
+                ibrahimciris@sdu.edu.tr
               </a>
             </p>
-            <p className="m-0"><strong>Dahili:</strong> 3660</p>
-            <p className="m-0"><strong>Santral:</strong> +90 246 211 38 38</p>
+            <p className="m-0"><strong>Dahili:</strong> 9292</p>
+            <p className="m-0"><strong>Santral:</strong> +90 246 211 9292</p>
           </div>
         </div>
       </div>
