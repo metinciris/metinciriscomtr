@@ -55,7 +55,7 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
                     title="Endoskopi Raporlama"
                     subtitle="GİS Biyopsi Raporlayıcı"
                     icon={<FileText size={40} />}
-                    color="bg-[#2C3E50]"
+                    color="bg-slate-800"
                     size="medium"
                     onClick={() => handleNavigate('endoskopi')}
                 />
