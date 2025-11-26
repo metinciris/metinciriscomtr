@@ -28,7 +28,7 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
               </div>
               <div>
                 <h1 className="m-0 leading-tight">Prof Dr Metin Çiriş</h1>
-                <p className="text-white/70 m-0" style={{ fontSize: '0.75rem' }}>SDÜ Tıp Fakültesi</p>
+                <p className="text-white/70 m-0" style={{ fontSize: '0.75rem' }}>SDÜ Tıp Fakültesi Tıbbi Patoloji</p>
               </div>
             </div>
 
