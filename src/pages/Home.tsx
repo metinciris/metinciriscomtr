@@ -201,12 +201,12 @@ export function Home({ onNavigate }: HomeProps) {
                 onClick={() => onNavigate('github')}
               />
               <MetroTile
-                title="Sınav Analizi"
+                title="Diğer Çalışmalar"
                 subtitle=""
-                icon={<FileBarChart size={40} />}
+                icon={<Briefcase size={40} />}
                 color="bg-[#27AE60]"
                 size="medium"
-                onClick={() => onNavigate('sinav-analizi')}
+                onClick={() => onNavigate('diger-calismalar')}
               />
             </div>
           </div>

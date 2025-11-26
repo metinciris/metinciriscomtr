@@ -19,6 +19,7 @@ import { Blog } from './pages/Blog';
 import { GitHub } from './pages/GitHub';
 import { Facebook } from './pages/Facebook';
 import { LinkedIn } from './pages/LinkedIn';
+import { DigerCalismalar } from './pages/DigerCalismalar';
 import { Toaster } from './components/ui/sonner';
 
 export default function App() {
@@ -90,6 +91,9 @@ export default function App() {
 
       case 'linkedin':
         return <LinkedIn />;
+
+      case 'diger-calismalar':
+        return <DigerCalismalar onNavigate={navigate} />;
 
       case 'home':
       default:
