@@ -49,8 +49,7 @@ export function Blog() {
       <div className="bg-gradient-to-r from-[#27AE60] to-[#2ECC71] text-white p-12 mb-8 rounded-xl shadow-lg">
         <h1 className="text-white mb-4 text-4xl font-bold">Blog</h1>
         <p className="text-white/90 max-w-3xl text-lg">
-          Web geliştirme, tasarım ve teknoloji hakkında düşüncelerimi, deneyimlerimi ve
-          öğrendiklerimi paylaşıyorum.
+          Serbest yazılar ve patologların işini kolaylaştıracak vibe coding web sayfaları.
         </p>
       </div>
 

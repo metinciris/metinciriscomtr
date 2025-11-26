@@ -145,6 +145,14 @@ export function Home({ onNavigate }: HomeProps) {
                 size="medium"
                 onClick={() => onNavigate('ders-programi')}
               />
+              <MetroTile
+                title="Blog"
+                subtitle="Vibe Coding & Yazılar"
+                icon={<BookOpen size={40} />}
+                color="bg-[#8E44AD]"
+                size="medium"
+                onClick={() => onNavigate('blog')}
+              />
             </div>
           </div>
 
