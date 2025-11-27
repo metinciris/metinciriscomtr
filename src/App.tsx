@@ -23,6 +23,7 @@ import { DigerCalismalar } from './pages/DigerCalismalar';
 import { FetusUzunluklari } from './pages/FetusUzunluklari';
 import { RcbCalculator } from './pages/RcbCalculator';
 import GistRaporlama from './pages/GistRaporlama';
+import { Galeri } from './pages/Galeri';
 
 import { Toaster } from './components/ui/sonner';
 
