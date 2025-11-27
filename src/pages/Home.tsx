@@ -313,7 +313,7 @@ export function Home({ onNavigate }: HomeProps) {
                 title="Slide Galeri"
                 subtitle={galeriSubtitle}
                 icon={<FileText size={40} />}
-                color="bg-[#005B99]"
+                color="bg-[#003E7E]"
                 size="wide"
                 onClick={() => onNavigate('galeri')}
               />
