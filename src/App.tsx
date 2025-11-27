@@ -74,6 +74,8 @@ export default function App() {
         return <OgrenciYemek />;
       case 'donem-3':
         return <Donem3 />;
+        case 'galeri':
+  return <Galeri />;
       case 'portfolyo':
         return <Portfolyo />;
       case 'sinav-analizi':
