@@ -1,7 +1,7 @@
 import React from 'react';
 import { PageContainer } from '../components/PageContainer';
 import { MetroTile } from '../components/MetroTile';
-import { FileBarChart, Activity } from 'lucide-react';
+import { FileBarChart, Activity, FileText } from 'lucide-react';
 
 interface DigerCalismalarProps {
     onNavigate?: (page: string) => void;
@@ -50,6 +50,14 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
                     color="bg-[#E74C3C]"
                     size="medium"
                     onClick={() => handleNavigate('rcb-calculator')}
+                />
+                <MetroTile
+                    title="GİST Raporlama"
+                    subtitle="Gastrointestinal Stromal Tümör"
+                    icon={<FileText size={40} />}
+                    color="bg-[#9B59B6]"
+                    size="medium"
+                    onClick={() => handleNavigate('gist-raporlama')}
                 />
 
             </div>

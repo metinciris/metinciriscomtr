@@ -22,6 +22,7 @@ import { LinkedIn } from './pages/LinkedIn';
 import { DigerCalismalar } from './pages/DigerCalismalar';
 import { FetusUzunluklari } from './pages/FetusUzunluklari';
 import { RcbCalculator } from './pages/RcbCalculator';
+import GistRaporlama from './pages/GistRaporlama';
 
 import { Toaster } from './components/ui/sonner';
 
@@ -103,6 +104,9 @@ export default function App() {
 
       case 'rcb-calculator':
         return <RcbCalculator />;
+
+      case 'gist-raporlama':
+        return <GistRaporlama />;
 
       case 'home':
       default:
