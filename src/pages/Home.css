@@ -1,58 +1,53 @@
 /* Sadece Home sayfasına özel stiller */
 
-/* Lumia tarzı hava durumu kutusu */
+/* Lumia tarzı hava durumu karosu */
 .home-weather-tile {
   border-radius: 1rem;
-  padding: 1rem;
+  padding: 0.9rem 1rem;
   background: #1e3a8a; /* koyu mavi */
   color: #ffffff;
-  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.3);
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.3);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-height: 120px;
+  min-height: 110px;
 }
 
-/* Tile’ın üst kısmı: şehir + sıcaklık */
-.home-weather-top {
+/* Isparta başlığı */
+.home-weather-header {
   display: flex;
-  align-items: flex-start;
   justify-content: space-between;
-  gap: 0.75rem;
+  align-items: center;
+  margin-bottom: 0.4rem;
 }
 
-/* Isparta yazısı */
 .home-weather-city {
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  opacity: 0.8;
-}
-
-/* Durum (parçalı bulutlu vb.) */
-.home-weather-desc {
-  font-size: 0.9rem;
-  font-weight: 500;
-  margin-top: 0.15rem;
-}
-
-/* Büyük sıcaklık yazısı */
-.home-weather-temp {
-  font-size: 2.25rem;
-  line-height: 1;
-  font-weight: 700;
-}
-
-/* Alt satır: nem, rüzgar bilgileri */
-.home-weather-bottom {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 0.75rem;
-  font-size: 0.75rem;
   opacity: 0.85;
 }
 
-/* Küçük meta parçaları */
-.home-weather-meta {
-  white-space: nowrap;
+/* Simge + sıcaklık */
+.home-weather-main {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.5rem;
 }
+
+.home-weather-icon {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.home-weather-temp {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* (İstersen burada rotasyonlu yazılar için ekstra stil tanımlayıp
+   MetroTile içinde subtitle'a className ekleyebilirsin; şu an
+   metinler özellikle kısa tutulduğu için tek satır kalacak şekilde
+   hazırlandı.) */
