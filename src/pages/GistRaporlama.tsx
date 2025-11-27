@@ -292,7 +292,7 @@ export default function GistRaporlama() {
     return (
         <PageContainer>
             <div className={cn("min-h-screen p-3 md:p-4 transition-colors duration-500", bgClass)}>
-                <div className="max-w-4xl mx-auto w-full space-y-3">
+                <div className="max-w-[95%] xl:max-w-7xl mx-auto w-full space-y-4">
                     <div className="flex items-baseline justify-between gap-2">
                         <h1 className="text-xl md:text-2xl font-semibold tracking-tight">GİST Raporlama</h1>
                         <div className="text-[11px] text-muted-foreground text-right">
@@ -302,7 +302,7 @@ export default function GistRaporlama() {
 
                     <Card className={cn("mt-1 border transition-colors duration-500", bgClass)}>
                         <CardContent className="p-4 space-y-4">
-                            <section className="grid md:grid-cols-2 gap-4">
+                            <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                                 <div className="grid gap-2 text-sm">
                                     <Label className="text-xs">Histolojik Tip</Label>
                                     <Select value={histoTip} onValueChange={setHistoTip}>
@@ -411,7 +411,7 @@ export default function GistRaporlama() {
 
                             <Separator className="my-1" />
 
-                            <section className="grid md:grid-cols-3 gap-3 text-xs">
+                            <section className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 text-xs">
                                 <div className="grid gap-1.5">
                                     <Label className="text-[11px]">C-KİT (CD117)</Label>
                                     <Select value={cd117} onValueChange={setCd117}>
