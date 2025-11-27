@@ -13,17 +13,18 @@
   transition: background 0.6s ease, box-shadow 0.6s ease, filter 0.6s ease;
 }
 
-/* Gündüz */
+/* Gündüz (açık / parçalı bulutlu) */
 .home-weather-day {
   background: linear-gradient(145deg, #2563eb, #1d4ed8);
 }
 
-/* Gece */
+/* Gece (açık / hafif bulutlu) – hafif glow */
 .home-weather-night {
   background: radial-gradient(circle at 20% 0%, #1f2937, #020617);
+  animation: weather-night-glow 10s ease-in-out infinite;
 }
 
-/* Bulutlu */
+/* Bulutlu (gündüz) */
 .home-weather-cloudy {
   background: linear-gradient(145deg, #1e3a8a, #1e293b);
 }
@@ -41,14 +42,40 @@
 /* Sis */
 .home-weather-fog {
   background: linear-gradient(145deg, #6b7280, #111827);
+  animation: weather-fog-breathe 8s ease-in-out infinite;
 }
 
-/* Fırtına – hafif şimşek efekti */
+/* Fırtına – şimşek efekti */
 .home-weather-storm {
   background: linear-gradient(145deg, #0f172a, #020617);
   animation: weather-storm-flash 7s ease-in-out infinite;
 }
 
+/* Gece hafif ışık parlaması */
+@keyframes weather-night-glow {
+  0%,
+  100% {
+    box-shadow: 0 10px 20px rgba(15, 23, 42, 0.5);
+    filter: brightness(1);
+  }
+  50% {
+    box-shadow: 0 12px 26px rgba(148, 163, 184, 0.7);
+    filter: brightness(1.08);
+  }
+}
+
+/* Sis nefes efekti (çok abartmadan) */
+@keyframes weather-fog-breathe {
+  0%,
+  100% {
+    filter: blur(0px) brightness(1);
+  }
+  50% {
+    filter: blur(0.6px) brightness(0.96);
+  }
+}
+
+/* Fırtınada kısa şimşek parlama */
 @keyframes weather-storm-flash {
   0%,
   85%,
@@ -58,8 +85,8 @@
   }
   88%,
   90% {
-    box-shadow: 0 0 30px rgba(248, 250, 252, 0.95);
-    filter: brightness(1.25);
+    box-shadow: 0 0 32px rgba(248, 250, 252, 0.95);
+    filter: brightness(1.26);
   }
 }
 
@@ -88,7 +115,7 @@
   margin-top: -12px; /* simgeyi biraz yukarı al */
 }
 
-/* Simge – hafif yüzen animasyon */
+/* Varsayılan simge animasyonu (yumuşak yukarı–aşağı) */
 .home-weather-icon {
   font-size: 3.3rem;
   line-height: 1;
@@ -96,7 +123,7 @@
   animation: weather-float 3.2s ease-in-out infinite;
 }
 
-/* Sıcaklık – hafif nefes animasyonu */
+/* Varsayılan sıcaklık animasyonu (hafif nefes) */
 .home-weather-temp {
   font-size: 2.2rem;
   font-weight: 700;
@@ -104,6 +131,39 @@
   animation: weather-pulse 4s ease-in-out infinite;
 }
 
+/* ---- DURUMA ÖZEL SİMGE ANİMASYONLARI ---- */
+
+/* Yağmur – küçük damla hareketi */
+.home-weather-rain .home-weather-icon {
+  animation: weather-rain-drop 1.5s ease-in-out infinite;
+}
+
+/* Kar – yavaşça süzülen kar tanesi */
+.home-weather-snow .home-weather-icon {
+  animation: weather-snow-drift 3.4s ease-in-out infinite;
+}
+
+/* Sis – çok hafif sağa–sola kayma */
+.home-weather-fog .home-weather-icon {
+  animation: weather-fog-drift 3.8s ease-in-out infinite;
+}
+
+/* Fırtına – ikon hafif titrer */
+.home-weather-storm .home-weather-icon {
+  animation: weather-storm-icon 1.2s ease-in-out infinite;
+}
+
+/* Gece açık – hafif yukarı-aşağı ama biraz daha yavaş */
+.home-weather-night .home-weather-icon {
+  animation: weather-float 4s ease-in-out infinite;
+}
+
+/* Kar tanesi veya yağmurda sıcaklık animasyonu biraz daha belirgin olabilir istersen;
+   şimdilik tüm varyantlarda aynı kalıyor. */
+
+/* ---- ANİMASYON KEYFRAMES ---- */
+
+/* Genel yüzen animasyon (güneş / bulut / gece) */
 @keyframes weather-float {
   0% {
     transform: translateY(-2px);
@@ -116,6 +176,7 @@
   }
 }
 
+/* Sıcaklık için hafif nabız */
 @keyframes weather-pulse {
   0%,
   100% {
@@ -123,5 +184,64 @@
   }
   50% {
     opacity: 0.85;
+  }
+}
+
+/* Yağmur damlası hareketi */
+@keyframes weather-rain-drop {
+  0% {
+    transform: translateY(-2px);
+  }
+  35% {
+    transform: translateY(4px) scaleY(1.05);
+  }
+  70% {
+    transform: translateY(-3px);
+  }
+  100% {
+    transform: translateY(-2px);
+  }
+}
+
+/* Karın yavaşça süzülmesi */
+@keyframes weather-snow-drift {
+  0% {
+    transform: translateY(-4px) translateX(0px);
+  }
+  50% {
+    transform: translateY(2px) translateX(3px);
+  }
+  100% {
+    transform: translateY(-4px) translateX(0px);
+  }
+}
+
+/* Sis için sağa–sola hafif kayma */
+@keyframes weather-fog-drift {
+  0% {
+    transform: translateX(0px);
+  }
+  50% {
+    transform: translateX(3px);
+  }
+  100% {
+    transform: translateX(0px);
+  }
+}
+
+/* Fırtınada hafif titreme */
+@keyframes weather-storm-icon {
+  0%,
+  100% {
+    transform: translateY(-2px);
+  }
+  25% {
+    transform: translateY(-4px) translateX(-1px);
+  }
+  50% {
+    transform: translateY(-1px) translateX(1px);
+  }
+  75% {
+    transform: translateY(-5px) translateX(-0.5px);
   }
 }
