@@ -152,16 +152,16 @@ function TestPanel() {
 
 export default function GistRaporlama() {
     const [histoTip, setHistoTip] = useState(HISTO_TIP_OPTS[0]);
-    const [enBuyukCm, setEnBuyukCm] = useState("2.2");
-    const [lx, setLx] = useState("2.2");
-    const [wx, setWx] = useState("1.8");
-    const [hx, setHx] = useState("1.5");
+    const [enBuyukCm, setEnBuyukCm] = useState("");
+    const [lx, setLx] = useState("");
+    const [wx, setWx] = useState("");
+    const [hx, setHx] = useState("");
     const [sinir, setSinir] = useState("Ekspansil");
     const [odak, setOdak] = useState("Unifokal");
     const [yerlesim, setYerlesim] = useState("Mide");
-    const [mitoz, setMitoz] = useState("3");
+    const [mitoz, setMitoz] = useState("");
     const [nekrozVar, setNekrozVar] = useState(false);
-    const [nekrozYuzde, setNekrozYuzde] = useState("0");
+    const [nekrozYuzde, setNekrozYuzde] = useState("");
     const [neoTedaviVar, setNeoTedaviVar] = useState(false);
     const [canliTumorYuzde, setCanliTumorYuzde] = useState("");
     const [cerrahiMetin, setCerrahiMetin] = useState("Serozal yüzeye 0,3 cm mesafededir.");
@@ -411,106 +411,16 @@ export default function GistRaporlama() {
 
                             <Separator className="my-1" />
 
-                            <section className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 text-xs">
-                                <div className="grid gap-1.5">
-                                    <Label className="text-[11px]">C-KİT (CD117)</Label>
-                                    <Select value={cd117} onValueChange={setCd117}>
-                                        <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-                                        <SelectContent className="text-xs">
-                                            {["Pozitif", "Negatif"].map((o) => (
-                                                <SelectItem key={o} value={o}>{o}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="grid gap-1.5">
-                                    <Label className="text-[11px]">DOG1 (ANO1)</Label>
-                                    <Select value={dog1} onValueChange={setDog1}>
-                                        <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-                                        <SelectContent className="text-xs">
-                                            {['Pozitif', 'Negatif'].map((o) => (
-                                                <SelectItem key={o} value={o}>{o}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="grid gap-1.5">
-                                    <Label className="text-[11px]">SDHA</Label>
-                                    <Select value={sdha} onValueChange={setSdha}>
-                                        <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-                                        <SelectContent className="text-xs">
-                                            {['İntakt', 'Deficient'].map((o) => (
-                                                <SelectItem key={o} value={o}>{o}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="grid gap-1.5">
-                                    <Label className="text-[11px]">SDHB</Label>
-                                    <Select value={sdhb} onValueChange={setSdhb}>
-                                        <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-                                        <SelectContent className="text-xs">
-                                            {['İntakt', 'Deficient'].map((o) => (
-                                                <SelectItem key={o} value={o}>{o}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="grid gap-1.5">
-                                    <Label className="text-[11px]">BRAF</Label>
-                                    <Select value={braf} onValueChange={setBraf}>
-                                        <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-                                        <SelectContent className="text-xs">
-                                            {['Pozitif', 'Negatif'].map((o) => (
-                                                <SelectItem key={o} value={o}>{o}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="grid gap-1.5">
-                                    <Label className="text-[11px]">CD34</Label>
-                                    <Select value={cd34} onValueChange={setCd34}>
-                                        <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-                                        <SelectContent className="text-xs">
-                                            {['Pozitif', 'Negatif', 'Yamalı pozitif'].map((o) => (
-                                                <SelectItem key={o} value={o}>{o}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="grid gap-1.5">
-                                    <Label className="text-[11px]">SMA</Label>
-                                    <Select value={sma} onValueChange={setSma}>
-                                        <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-                                        <SelectContent className="text-xs">
-                                            {['Pozitif', 'Negatif', 'Yamalı pozitif'].map((o) => (
-                                                <SelectItem key={o} value={o}>{o}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="grid gap-1.5">
-                                    <Label className="text-[11px]">Desmin</Label>
-                                    <Select value={desmin} onValueChange={setDesmin}>
-                                        <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-                                        <SelectContent className="text-xs">
-                                            {['Pozitif', 'Negatif', 'Yamalı pozitif'].map((o) => (
-                                                <SelectItem key={o} value={o}>{o}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="grid gap-1.5">
-                                    <Label className="text-[11px]">S-100</Label>
-                                    <Select value={s100} onValueChange={setS100}>
-                                        <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-                                        <SelectContent className="text-xs">
-                                            {['Pozitif', 'Negatif', 'Yamalı pozitif'].map((o) => (
-                                                <SelectItem key={o} value={o}>{o}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
+                            <section className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                                <IhcToggle label="C-KİT (CD117)" value={cd117} onChange={setCd117} options={["Pozitif", "Negatif"]} />
+                                <IhcToggle label="DOG1 (ANO1)" value={dog1} onChange={setDog1} options={["Pozitif", "Negatif"]} />
+                                <IhcToggle label="SDHA" value={sdha} onChange={setSdha} options={["İntakt", "Deficient"]} />
+                                <IhcToggle label="SDHB" value={sdhb} onChange={setSdhb} options={["İntakt", "Deficient"]} />
+                                <IhcToggle label="BRAF" value={braf} onChange={setBraf} options={["Pozitif", "Negatif"]} />
+                                <IhcToggle label="CD34" value={cd34} onChange={setCd34} options={["Pozitif", "Negatif", "Yamalı pozitif"]} />
+                                <IhcToggle label="SMA" value={sma} onChange={setSma} options={["Pozitif", "Negatif", "Yamalı pozitif"]} />
+                                <IhcToggle label="Desmin" value={desmin} onChange={setDesmin} options={["Pozitif", "Negatif", "Yamalı pozitif"]} />
+                                <IhcToggle label="S-100" value={s100} onChange={setS100} options={["Pozitif", "Negatif", "Yamalı pozitif"]} />
                                 <div className="grid gap-1.5">
                                     <Label className="text-[11px]">Ki-67 (%)</Label>
                                     <Input className="h-8 text-xs" inputMode="numeric" value={ki67} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setKi67(e.target.value)} />
@@ -550,4 +460,28 @@ export default function GistRaporlama() {
             </div>
         </PageContainer>
     );
+}
+
+function IhcToggle({ label, value, onChange, options }: { label: string, value: string, onChange: (v: string) => void, options: string[] }) {
+    return (
+        <div className="grid gap-1.5">
+            <Label className="text-[11px]">{label}</Label>
+            <div className="flex flex-wrap gap-1">
+                {options.map((opt) => (
+                    <button
+                        key={opt}
+                        onClick={() => onChange(opt)}
+                        className={cn(
+                            "px-2 py-1 text-[10px] border rounded transition-colors",
+                            value === opt
+                                ? "bg-primary text-primary-foreground border-primary"
+                                : "bg-background hover:bg-muted text-muted-foreground border-input"
+                        )}
+                    >
+                        {opt}
+                    </button>
+                ))}
+            </div>
+        </div>
+    )
 }
