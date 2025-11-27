@@ -75,9 +75,9 @@ export function FetusUzunluklari() {
 
     return (
         <PageContainer>
-            <div className="bg-gradient-to-r from-[#3498DB] to-[#2980B9] text-white p-12 mb-8 rounded-xl shadow-lg">
-                <h1 className="text-white mb-4 text-4xl font-bold">Fetus Uzunlukları</h1>
-                <p className="text-white/90 max-w-3xl text-lg">
+            <div className="bg-blue-50 text-gray-900 p-12 mb-8 rounded-xl shadow-lg border border-blue-100">
+                <h1 className="text-gray-900 mb-4 text-4xl font-bold">Fetus Uzunlukları</h1>
+                <p className="text-blue-800 max-w-3xl text-lg">
                     Gebelik haftasına göre beklenen fetal ölçümler. Medikal otopsi referans değerleri.
                 </p>
             </div>
