@@ -1,13 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { motion } from "motion/react";
-import { Copy, Check, AlertCircle, Activity, Ruler, Microscope, FileText, Info } from "lucide-react";
-import { cn } from "../components/ui/utils";
+import { Copy, Check, Activity, Ruler, Microscope, FileText, Info } from "lucide-react";
 import { PageContainer } from "../components/PageContainer";
-import { Button } from "../components/ui/button";
-import { Switch } from "../components/ui/switch";
-import { Label } from "../components/ui/label";
-import { Input } from "../components/ui/input";
-import { Card } from "../components/ui/card";
 
 // --- Constants & Logic ---
 const HISTO_TIP_OPTS = [
@@ -67,94 +61,6 @@ function riskFrom(sizeCm: number | undefined, mitos: number | undefined, site: s
     if (smallBowel || colorectal) return !highMitos ? (band === 1 ? "Düşük" : band === 2 ? "Orta" : "Yüksek") : "Yüksek";
     return highMitos || band >= 3 ? "Yüksek" : band === 2 ? "Orta" : "Düşük";
 }
-
-// --- Robust Components ---
-
-const SectionHeader = ({ title, icon: Icon }: { title: string, icon: any }) => (
-    <div className="flex items-center gap-3 border-b border-slate-200 bg-slate-50 px-6 py-4">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 text-blue-700 shadow-sm">
-            <Icon size={18} />
-        </div>
-        <h3 className="font-bold text-slate-800">{title}</h3>
-    </div>
-);
-
-const SolidCard = ({ children, className, title, icon }: { children: React.ReactNode, className?: string, title?: string, icon?: any }) => (
-    <Card className={cn("overflow-hidden border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md", className)}>
-        {title && <SectionHeader title={title} icon={icon} />}
-        <div className="p-6">{children}</div>
-    </Card>
-);
-
-const SolidInput = ({ label, value, onChange, placeholder, suffix, className }: any) => (
-    <div className={cn("space-y-2", className)}>
-        <label className="block text-xs font-bold uppercase tracking-wide text-slate-500">
-            {label}
-        </label>
-        <div className="relative group">
-            <Input
-                type="text"
-                inputMode="decimal"
-                value={value}
-                onChange={onChange}
-                placeholder={placeholder}
-                className={cn(
-                    "h-11 w-full rounded-lg border-slate-200 bg-slate-50 px-4 text-sm font-medium text-slate-900 transition-all",
-                    "placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20",
-                    suffix && "pr-12" // Add padding for suffix
-                )}
-            />
-            {suffix && (
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4">
-                    <span className="text-xs font-semibold text-slate-400 group-focus-within:text-blue-500">{suffix}</span>
-                </div>
-            )}
-        </div>
-    </div>
-);
-
-const SolidToggle = ({ options, value, onChange, label }: { options: string[], value: string, onChange: (v: string) => void, label?: string }) => (
-    <div className="space-y-3">
-        {label && <label className="block text-xs font-bold uppercase tracking-wide text-slate-500">{label}</label>}
-        <div className="flex flex-wrap gap-2">
-            {options.map((opt) => {
-                const isActive = value === opt;
-                return (
-                    <button
-                        key={opt}
-                        onClick={() => onChange(opt)}
-                        type="button"
-                        className={cn(
-                            "relative rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200 border",
-                            isActive
-                                ? "bg-blue-600 text-white border-blue-600 shadow-md ring-2 ring-blue-200 ring-offset-1 z-10"
-                                : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:border-slate-300 hover:text-slate-900"
-                        )}
-                    >
-                        {opt}
-                        {isActive && (
-                            <motion.div
-                                layoutId="activeIndicator"
-                                className="absolute inset-0 rounded-lg bg-blue-600 -z-10"
-                                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                            />
-                        )}
-                    </button>
-                );
-            })}
-        </div>
-    </div>
-);
-
-const ResultBadge = ({ label, value, colorClass }: any) => (
-    <motion.div
-        whileHover={{ scale: 1.02 }}
-        className={cn("flex flex-col items-center justify-center rounded-xl border p-5 text-center shadow-sm transition-all", colorClass)}
-    >
-        <span className="text-[11px] font-bold uppercase tracking-widest opacity-70">{label}</span>
-        <span className="mt-2 text-2xl font-black tracking-tight">{value || "-"}</span>
-    </motion.div>
-);
 
 export default function GistRaporlama() {
     // State
@@ -226,247 +132,693 @@ export default function GistRaporlama() {
         }
     };
 
-    // Dynamic Colors
-    const riskColor = useMemo(() => {
-        if (risk === "Yüksek") return "bg-red-50 text-red-900 border-red-200 ring-red-100";
-        if (risk === "Orta") return "bg-orange-50 text-orange-900 border-orange-200 ring-orange-100";
-        if (risk === "Düşük" || risk === "Çok düşük") return "bg-emerald-50 text-emerald-900 border-emerald-200 ring-emerald-100";
-        return "bg-slate-50 text-slate-900 border-slate-200 ring-slate-100";
-    }, [risk]);
+    // Inline styles to override ALL global CSS
+    const baseButtonStyle: React.CSSProperties = {
+        padding: '10px 16px',
+        borderRadius: '8px',
+        fontSize: '14px',
+        fontWeight: '500',
+        cursor: 'pointer',
+        transition: 'all 0.2s',
+        border: '1px solid',
+        outline: 'none',
+        fontFamily: 'inherit',
+        lineHeight: '1.5',
+    };
+
+    const activeButtonStyle: React.CSSProperties = {
+        ...baseButtonStyle,
+        backgroundColor: '#2563eb',
+        color: '#ffffff',
+        borderColor: '#2563eb',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+    };
+
+    const inactiveButtonStyle: React.CSSProperties = {
+        ...baseButtonStyle,
+        backgroundColor: '#ffffff',
+        color: '#475569',
+        borderColor: '#e2e8f0',
+    };
+
+    const inputStyle: React.CSSProperties = {
+        width: '100%',
+        padding: '10px 12px',
+        borderRadius: '8px',
+        border: '1px solid #e2e8f0',
+        backgroundColor: '#f8fafc',
+        fontSize: '14px',
+        fontWeight: '500',
+        color: '#0f172a',
+        outline: 'none',
+        transition: 'all 0.2s',
+        fontFamily: 'inherit',
+    };
+
+    const cardStyle: React.CSSProperties = {
+        backgroundColor: '#ffffff',
+        borderRadius: '12px',
+        border: '1px solid #e2e8f0',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+        overflow: 'hidden',
+        marginBottom: '24px',
+    };
 
     return (
         <PageContainer>
-            <div className="min-h-screen w-full bg-slate-50/50 p-4 pb-20 md:p-8">
-                <div className="mx-auto max-w-7xl space-y-8">
+            <div style={{ minHeight: '100vh', backgroundColor: '#f8fafc', padding: '32px 16px' }}>
+                <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
                     {/* Header */}
-                    <header className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between rounded-2xl bg-slate-900 p-8 text-white shadow-lg">
-                        <motion.div
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.5 }}
-                            className="space-y-2"
-                        >
-                            <h1 className="text-3xl font-bold tracking-tight">
-                                GİST Raporlama
-                            </h1>
-                            <p className="text-slate-400">CAP GIST Protokolü (4.3.0.0) Uyumlu Akıllı Şablon</p>
-                        </motion.div>
-                        <motion.div
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.5, delay: 0.1 }}
-                            className="flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-xs font-medium text-white backdrop-blur-sm border border-white/10"
-                        >
-                            <Info size={14} className="text-blue-400" />
-                            <span>v2.2 Final</span>
-                        </motion.div>
-                    </header>
+                    <div style={{
+                        backgroundColor: '#1e293b',
+                        borderRadius: '16px',
+                        padding: '32px',
+                        marginBottom: '32px',
+                        boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                    }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+                            <div>
+                                <h1 style={{ fontSize: '28px', fontWeight: '700', color: '#ffffff', marginBottom: '8px' }}>
+                                    GİST Raporlama
+                                </h1>
+                                <p style={{ fontSize: '14px', color: '#94a3b8' }}>CAP GIST Protokolü (4.3.0.0) Uyumlu Akıllı Şablon</p>
+                            </div>
+                            <div style={{
+                                backgroundColor: 'rgba(255,255,255,0.1)',
+                                padding: '8px 16px',
+                                borderRadius: '20px',
+                                fontSize: '12px',
+                                color: '#ffffff',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px'
+                            }}>
+                                <Info size={14} />
+                                <span>v2.3 Stable</span>
+                            </div>
+                        </div>
+                    </div>
 
-                    <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
-                        {/* Main Form Area */}
-                        <div className="space-y-6">
-                            {/* Tumor Details */}
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.5, delay: 0.2 }}
-                            >
-                                <SolidCard title="Tümör Özellikleri" icon={Microscope}>
-                                    <div className="grid gap-8">
-                                        <div className="space-y-4">
-                                            <Label className="text-xs font-bold uppercase tracking-wide text-slate-500">Histolojik Tip</Label>
-                                            <div className="grid gap-2">
-                                                {HISTO_TIP_OPTS.map(opt => (
-                                                    <button
-                                                        key={opt}
-                                                        onClick={() => setHistoTip(opt)}
-                                                        className={cn(
-                                                            "w-full rounded-lg px-4 py-3 text-left text-sm font-medium transition-all border",
-                                                            histoTip === opt
-                                                                ? "bg-blue-50 border-blue-200 text-blue-700 shadow-sm"
-                                                                : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
-                                                        )}
-                                                    >
-                                                        <div className="flex items-center gap-3">
-                                                            <div className={cn("h-4 w-4 rounded-full border-2 flex items-center justify-center", histoTip === opt ? "border-blue-600" : "border-slate-300")}>
-                                                                {histoTip === opt && <div className="h-2 w-2 rounded-full bg-blue-600" />}
-                                                            </div>
-                                                            {opt}
-                                                        </div>
-                                                    </button>
-                                                ))}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: '32px' }}>
+                        {/* Main Form */}
+                        <div>
+                            {/* Tümör Özellikleri */}
+                            <div style={cardStyle}>
+                                <div style={{
+                                    backgroundColor: '#f8fafc',
+                                    borderBottom: '1px solid #e2e8f0',
+                                    padding: '20px 24px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '12px'
+                                }}>
+                                    <div style={{
+                                        width: '32px',
+                                        height: '32px',
+                                        backgroundColor: '#dbeafe',
+                                        borderRadius: '8px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        color: '#1d4ed8'
+                                    }}>
+                                        <Microscope size={18} />
+                                    </div>
+                                    <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#0f172a' }}>Tümör Özellikleri</h3>
+                                </div>
+                                <div style={{ padding: '24px' }}>
+                                    {/* Histolojik Tip */}
+                                    <div style={{ marginBottom: '24px' }}>
+                                        <label style={{
+                                            display: 'block',
+                                            fontSize: '11px',
+                                            fontWeight: '700',
+                                            textTransform: 'uppercase',
+                                            letterSpacing: '0.5px',
+                                            color: '#64748b',
+                                            marginBottom: '12px'
+                                        }}>Histolojik Tip</label>
+                                        <div style={{ display: 'grid', gap: '8px' }}>
+                                            {HISTO_TIP_OPTS.map(opt => (
+                                                <button
+                                                    key={opt}
+                                                    onClick={() => setHistoTip(opt)}
+                                                    style={{
+                                                        ...baseButtonStyle,
+                                                        backgroundColor: histoTip === opt ? '#eff6ff' : '#ffffff',
+                                                        color: histoTip === opt ? '#1e40af' : '#475569',
+                                                        borderColor: histoTip === opt ? '#93c5fd' : '#e2e8f0',
+                                                        textAlign: 'left',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '12px'
+                                                    }}
+                                                >
+                                                    <div style={{
+                                                        width: '16px',
+                                                        height: '16px',
+                                                        borderRadius: '50%',
+                                                        border: `2px solid ${histoTip === opt ? '#2563eb' : '#cbd5e1'}`,
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        flexShrink: 0
+                                                    }}>
+                                                        {histoTip === opt && <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#2563eb' }} />}
+                                                    </div>
+                                                    {opt}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Yerleşim */}
+                                    <div style={{ marginBottom: '24px' }}>
+                                        <label style={{
+                                            display: 'block',
+                                            fontSize: '11px',
+                                            fontWeight: '700',
+                                            textTransform: 'uppercase',
+                                            letterSpacing: '0.5px',
+                                            color: '#64748b',
+                                            marginBottom: '12px'
+                                        }}>Yerleşim</label>
+                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+                                            {YERLEŞIM_OPTS.map(opt => (
+                                                <button
+                                                    key={opt}
+                                                    onClick={() => setYerlesim(opt)}
+                                                    style={yerlesim === opt ? {
+                                                        ...activeButtonStyle,
+                                                        backgroundColor: '#6366f1',
+                                                        borderColor: '#6366f1',
+                                                    } : inactiveButtonStyle}
+                                                >
+                                                    {opt}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Boyutlar */}
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
+                                        <div>
+                                            <label style={{
+                                                display: 'block',
+                                                fontSize: '11px',
+                                                fontWeight: '700',
+                                                textTransform: 'uppercase',
+                                                letterSpacing: '0.5px',
+                                                color: '#64748b',
+                                                marginBottom: '8px'
+                                            }}>En Büyük Boyut</label>
+                                            <div style={{ position: 'relative' }}>
+                                                <input
+                                                    type="text"
+                                                    inputMode="decimal"
+                                                    value={enBuyukCm}
+                                                    onChange={(e) => setEnBuyukCm(e.target.value)}
+                                                    placeholder="0.0"
+                                                    style={{ ...inputStyle, paddingRight: '40px' }}
+                                                />
+                                                <span style={{
+                                                    position: 'absolute',
+                                                    right: '12px',
+                                                    top: '50%',
+                                                    transform: 'translateY(-50%)',
+                                                    fontSize: '12px',
+                                                    fontWeight: '600',
+                                                    color: '#94a3b8',
+                                                    pointerEvents: 'none'
+                                                }}>cm</span>
                                             </div>
                                         </div>
+                                        <div>
+                                            <label style={{
+                                                display: 'block',
+                                                fontSize: '11px',
+                                                fontWeight: '700',
+                                                textTransform: 'uppercase',
+                                                letterSpacing: '0.5px',
+                                                color: '#64748b',
+                                                marginBottom: '8px'
+                                            }}>Mitotik Oran</label>
+                                            <div style={{ position: 'relative' }}>
+                                                <input
+                                                    type="text"
+                                                    inputMode="decimal"
+                                                    value={mitoz}
+                                                    onChange={(e) => setMitoz(e.target.value)}
+                                                    placeholder="0"
+                                                    style={{ ...inputStyle, paddingRight: '60px' }}
+                                                />
+                                                <span style={{
+                                                    position: 'absolute',
+                                                    right: '12px',
+                                                    top: '50%',
+                                                    transform: 'translateY(-50%)',
+                                                    fontSize: '12px',
+                                                    fontWeight: '600',
+                                                    color: '#94a3b8',
+                                                    pointerEvents: 'none'
+                                                }}>/5mm²</span>
+                                            </div>
+                                        </div>
+                                    </div>
 
-                                        <div className="space-y-4">
-                                            <Label className="text-xs font-bold uppercase tracking-wide text-slate-500">Yerleşim</Label>
-                                            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                                                {YERLEŞIM_OPTS.map(opt => (
+                                    {/* L x W x H */}
+                                    <div style={{ marginBottom: '24px' }}>
+                                        <label style={{
+                                            display: 'block',
+                                            fontSize: '11px',
+                                            fontWeight: '700',
+                                            textTransform: 'uppercase',
+                                            letterSpacing: '0.5px',
+                                            color: '#64748b',
+                                            marginBottom: '8px'
+                                        }}>Diğer Boyutlar (L x W x H)</label>
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+                                            <input type="text" inputMode="decimal" value={lx} onChange={(e) => setLx(e.target.value)} placeholder="L" style={inputStyle} />
+                                            <input type="text" inputMode="decimal" value={wx} onChange={(e) => setWx(e.target.value)} placeholder="W" style={inputStyle} />
+                                            <input type="text" inputMode="decimal" value={hx} onChange={(e) => setHx(e.target.value)} placeholder="H" style={inputStyle} />
+                                        </div>
+                                    </div>
+
+                                    {/* Sınır ve Odak */}
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                        <div>
+                                            <label style={{
+                                                display: 'block',
+                                                fontSize: '11px',
+                                                fontWeight: '700',
+                                                textTransform: 'uppercase',
+                                                letterSpacing: '0.5px',
+                                                color: '#64748b',
+                                                marginBottom: '12px'
+                                            }}>Tümör Sınırları</label>
+                                            <div style={{ display: 'flex', gap: '8px' }}>
+                                                {SINIR_OPTS.map(opt => (
                                                     <button
                                                         key={opt}
-                                                        onClick={() => setYerlesim(opt)}
-                                                        className={cn(
-                                                            "rounded-lg px-3 py-2.5 text-sm font-medium transition-all border text-center",
-                                                            yerlesim === opt
-                                                                ? "bg-indigo-600 text-white border-indigo-600 shadow-md ring-2 ring-indigo-200 ring-offset-1"
-                                                                : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:border-slate-300"
-                                                        )}
+                                                        onClick={() => setSinir(opt)}
+                                                        style={sinir === opt ? activeButtonStyle : inactiveButtonStyle}
                                                     >
                                                         {opt}
                                                     </button>
                                                 ))}
                                             </div>
                                         </div>
-
-                                        <div className="grid gap-6 md:grid-cols-2">
-                                            <SolidInput label="En Büyük Boyut" value={enBuyukCm} onChange={(e: any) => setEnBuyukCm(e.target.value)} placeholder="0.0" suffix="cm" />
-                                            <SolidInput label="Mitotik Oran" value={mitoz} onChange={(e: any) => setMitoz(e.target.value)} placeholder="0" suffix="/5mm²" />
-                                        </div>
-
-                                        <div className="space-y-2">
-                                            <Label className="text-xs font-bold uppercase tracking-wide text-slate-500">Diğer Boyutlar (L x W x H)</Label>
-                                            <div className="grid grid-cols-3 gap-3">
-                                                <SolidInput placeholder="L" value={lx} onChange={(e: any) => setLx(e.target.value)} />
-                                                <SolidInput placeholder="W" value={wx} onChange={(e: any) => setWx(e.target.value)} />
-                                                <SolidInput placeholder="H" value={hx} onChange={(e: any) => setHx(e.target.value)} />
-                                            </div>
-                                        </div>
-
-                                        <div className="grid gap-6 md:grid-cols-2">
-                                            <SolidToggle label="Tümör Sınırları" options={SINIR_OPTS} value={sinir} onChange={setSinir} />
-                                            <SolidToggle label="Tümör Odağı" options={ODAK_OPTS} value={odak} onChange={setOdak} />
-                                        </div>
-                                    </div>
-                                </SolidCard>
-                            </motion.div>
-
-                            {/* Additional Features */}
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.5, delay: 0.3 }}
-                            >
-                                <SolidCard title="Ek Özellikler" icon={Activity}>
-                                    <div className="grid gap-6 md:grid-cols-2">
-                                        <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-5 transition-colors hover:bg-slate-100">
-                                            <div className="space-y-1">
-                                                <Label className="text-sm font-bold text-slate-900">Nekroz</Label>
-                                                <p className="text-xs text-slate-500">Tümörde nekroz varlığı</p>
-                                            </div>
-                                            <div className="flex items-center gap-3">
-                                                {nekrozVar && <Input type="text" placeholder="%" className="w-20 h-9 bg-white text-center" value={nekrozYuzde} onChange={(e) => setNekrozYuzde(e.target.value)} />}
-                                                <Switch checked={nekrozVar} onCheckedChange={setNekrozVar} />
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-5 transition-colors hover:bg-slate-100">
-                                            <div className="space-y-1">
-                                                <Label className="text-sm font-bold text-slate-900">Neoadjuvan</Label>
-                                                <p className="text-xs text-slate-500">Tedavi sonrası değişiklik</p>
-                                            </div>
-                                            <div className="flex items-center gap-3">
-                                                {neoTedaviVar && <Input type="text" placeholder="Canlı %" className="w-24 h-9 bg-white text-center" value={canliTumorYuzde} onChange={(e) => setCanliTumorYuzde(e.target.value)} />}
-                                                <Switch checked={neoTedaviVar} onCheckedChange={setNeoTedaviVar} />
-                                            </div>
-                                        </div>
-                                        <div className="md:col-span-2 space-y-4">
-                                            <div className="space-y-2">
-                                                <Label className="text-xs font-bold uppercase tracking-wide text-slate-500">Cerrahi Sınırlar</Label>
-                                                <textarea
-                                                    className="w-full rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-900 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 transition-all outline-none resize-none"
-                                                    rows={2}
-                                                    value={cerrahiMetin}
-                                                    onChange={(e) => setCerrahiMetin(e.target.value)}
-                                                />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label className="text-xs font-bold uppercase tracking-wide text-slate-500">Lenf Nodları</Label>
-                                                <textarea
-                                                    className="w-full rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-900 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/20 transition-all outline-none resize-none"
-                                                    rows={2}
-                                                    value={nodDurumu}
-                                                    onChange={(e) => setNodDurumu(e.target.value)}
-                                                />
+                                        <div>
+                                            <label style={{
+                                                display: 'block',
+                                                fontSize: '11px',
+                                                fontWeight: '700',
+                                                textTransform: 'uppercase',
+                                                letterSpacing: '0.5px',
+                                                color: '#64748b',
+                                                marginBottom: '12px'
+                                            }}>Tümör Odağı</label>
+                                            <div style={{ display: 'flex', gap: '8px' }}>
+                                                {ODAK_OPTS.map(opt => (
+                                                    <button
+                                                        key={opt}
+                                                        onClick={() => setOdak(opt)}
+                                                        style={odak === opt ? activeButtonStyle : inactiveButtonStyle}
+                                                    >
+                                                        {opt}
+                                                    </button>
+                                                ))}
                                             </div>
                                         </div>
                                     </div>
-                                </SolidCard>
-                            </motion.div>
+                                </div>
+                            </div>
 
-                            {/* IHC Markers */}
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.5, delay: 0.4 }}
-                            >
-                                <SolidCard title="İmmünohistokimya" icon={Ruler}>
-                                    <div className="grid grid-cols-1 gap-x-8 gap-y-8 md:grid-cols-2 lg:grid-cols-3">
-                                        <SolidToggle label="C-KİT (CD117)" options={["Pozitif", "Negatif"]} value={cd117} onChange={setCd117} />
-                                        <SolidToggle label="DOG1 (ANO1)" options={["Pozitif", "Negatif"]} value={dog1} onChange={setDog1} />
-                                        <SolidToggle label="CD34" options={["Pozitif", "Negatif", "Yamalı pozitif"]} value={cd34} onChange={setCd34} />
-                                        <SolidToggle label="SMA" options={["Pozitif", "Negatif", "Yamalı pozitif"]} value={sma} onChange={setSma} />
-                                        <SolidToggle label="Desmin" options={["Pozitif", "Negatif", "Yamalı pozitif"]} value={desmin} onChange={setDesmin} />
-                                        <SolidToggle label="S-100" options={["Pozitif", "Negatif", "Yamalı pozitif"]} value={s100} onChange={setS100} />
-                                        <SolidToggle label="BRAF" options={["Pozitif", "Negatif"]} value={braf} onChange={setBraf} />
-                                        <SolidToggle label="SDHA" options={["İntakt", "Deficient"]} value={sdha} onChange={setSdha} />
-                                        <SolidToggle label="SDHB" options={["İntakt", "Deficient"]} value={sdhb} onChange={setSdhb} />
-                                        <div className="flex items-end">
-                                            <SolidInput label="Ki-67 İndeksi" suffix="%" value={ki67} onChange={(e: any) => setKi67(e.target.value)} />
+                            {/* Ek Özellikler */}
+                            <div style={cardStyle}>
+                                <div style={{
+                                    backgroundColor: '#f8fafc',
+                                    borderBottom: '1px solid #e2e8f0',
+                                    padding: '20px 24px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '12px'
+                                }}>
+                                    <div style={{
+                                        width: '32px',
+                                        height: '32px',
+                                        backgroundColor: '#dbeafe',
+                                        borderRadius: '8px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        color: '#1d4ed8'
+                                    }}>
+                                        <Activity size={18} />
+                                    </div>
+                                    <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#0f172a' }}>Ek Özellikler</h3>
+                                </div>
+                                <div style={{ padding: '24px' }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+                                        <div style={{
+                                            backgroundColor: '#f8fafc',
+                                            border: '1px solid #e2e8f0',
+                                            borderRadius: '12px',
+                                            padding: '20px',
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center'
+                                        }}>
+                                            <div>
+                                                <div style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a', marginBottom: '4px' }}>Nekroz</div>
+                                                <div style={{ fontSize: '12px', color: '#64748b' }}>Tümörde nekroz varlığı</div>
+                                            </div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                                {nekrozVar && <input type="text" placeholder="%" value={nekrozYuzde} onChange={(e) => setNekrozYuzde(e.target.value)} style={{ ...inputStyle, width: '80px', textAlign: 'center' }} />}
+                                                <label style={{ position: 'relative', display: 'inline-block', width: '48px', height: '24px' }}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={nekrozVar}
+                                                        onChange={(e) => setNekrozVar(e.target.checked)}
+                                                        style={{ opacity: 0, width: 0, height: 0 }}
+                                                    />
+                                                    <span style={{
+                                                        position: 'absolute',
+                                                        cursor: 'pointer',
+                                                        top: 0,
+                                                        left: 0,
+                                                        right: 0,
+                                                        bottom: 0,
+                                                        backgroundColor: nekrozVar ? '#2563eb' : '#cbd5e1',
+                                                        transition: '0.3s',
+                                                        borderRadius: '24px',
+                                                    }}>
+                                                        <span style={{
+                                                            position: 'absolute',
+                                                            content: '',
+                                                            height: '18px',
+                                                            width: '18px',
+                                                            left: nekrozVar ? '26px' : '3px',
+                                                            bottom: '3px',
+                                                            backgroundColor: 'white',
+                                                            transition: '0.3s',
+                                                            borderRadius: '50%',
+                                                        }} />
+                                                    </span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div style={{
+                                            backgroundColor: '#f8fafc',
+                                            border: '1px solid #e2e8f0',
+                                            borderRadius: '12px',
+                                            padding: '20px',
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center'
+                                        }}>
+                                            <div>
+                                                <div style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a', marginBottom: '4px' }}>Neoadjuvan</div>
+                                                <div style={{ fontSize: '12px', color: '#64748b' }}>Tedavi sonrası</div>
+                                            </div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                                {neoTedaviVar && <input type="text" placeholder="Canlı %" value={canliTumorYuzde} onChange={(e) => setCanliTumorYuzde(e.target.value)} style={{ ...inputStyle, width: '96px', textAlign: 'center' }} />}
+                                                <label style={{ position: 'relative', display: 'inline-block', width: '48px', height: '24px' }}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={neoTedaviVar}
+                                                        onChange={(e) => setNeoTedaviVar(e.target.checked)}
+                                                        style={{ opacity: 0, width: 0, height: 0 }}
+                                                    />
+                                                    <span style={{
+                                                        position: 'absolute',
+                                                        cursor: 'pointer',
+                                                        top: 0,
+                                                        left: 0,
+                                                        right: 0,
+                                                        bottom: 0,
+                                                        backgroundColor: neoTedaviVar ? '#2563eb' : '#cbd5e1',
+                                                        transition: '0.3s',
+                                                        borderRadius: '24px',
+                                                    }}>
+                                                        <span style={{
+                                                            position: 'absolute',
+                                                            content: '',
+                                                            height: '18px',
+                                                            width: '18px',
+                                                            left: neoTedaviVar ? '26px' : '3px',
+                                                            bottom: '3px',
+                                                            backgroundColor: 'white',
+                                                            transition: '0.3s',
+                                                            borderRadius: '50%',
+                                                        }} />
+                                                    </span>
+                                                </label>
+                                            </div>
                                         </div>
                                     </div>
-                                </SolidCard>
-                            </motion.div>
-                        </div>
+                                    <div style={{ display: 'grid', gap: '16px' }}>
+                                        <div>
+                                            <label style={{
+                                                display: 'block',
+                                                fontSize: '11px',
+                                                fontWeight: '700',
+                                                textTransform: 'uppercase',
+                                                letterSpacing: '0.5px',
+                                                color: '#64748b',
+                                                marginBottom: '8px'
+                                            }}>Cerrahi Sınırlar</label>
+                                            <textarea
+                                                value={cerrahiMetin}
+                                                onChange={(e) => setCerrahiMetin(e.target.value)}
+                                                rows={2}
+                                                style={{
+                                                    ...inputStyle,
+                                                    resize: 'none',
+                                                    fontFamily: 'inherit'
+                                                }}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label style={{
+                                                display: 'block',
+                                                fontSize: '11px',
+                                                fontWeight: '700',
+                                                textTransform: 'uppercase',
+                                                letterSpacing: '0.5px',
+                                                color: '#64748b',
+                                                marginBottom: '8px'
+                                            }}>Lenf Nodları</label>
+                                            <textarea
+                                                value={nodDurumu}
+                                                onChange={(e) => setNodDurumu(e.target.value)}
+                                                rows={2}
+                                                style={{
+                                                    ...inputStyle,
+                                                    resize: 'none',
+                                                    fontFamily: 'inherit'
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
-                        {/* Sidebar Results */}
-                        <div className="space-y-6">
-                            <div className="sticky top-6 space-y-6">
-                                <motion.div
-                                    initial={{ opacity: 0, scale: 0.95 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    transition={{ duration: 0.5, delay: 0.5 }}
-                                >
-                                    <SolidCard className={cn("border-2 ring-4 ring-offset-2", riskColor)}>
-                                        <div className="space-y-6 text-center">
-                                            <h3 className="text-xs font-black uppercase tracking-widest opacity-60">Sonuç Paneli</h3>
-                                            <div className="grid gap-4">
-                                                <ResultBadge label="Risk" value={risk} colorClass="bg-white/60 backdrop-blur-sm" />
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <ResultBadge label="Grade" value={grade} colorClass="bg-white/60 backdrop-blur-sm" />
-                                                    <ResultBadge label="pT" value={pT} colorClass="bg-white/60 backdrop-blur-sm" />
+                            {/* İmmünohistokimya */}
+                            <div style={cardStyle}>
+                                <div style={{
+                                    backgroundColor: '#f8fafc',
+                                    borderBottom: '1px solid #e2e8f0',
+                                    padding: '20px 24px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '12px'
+                                }}>
+                                    <div style={{
+                                        width: '32px',
+                                        height: '32px',
+                                        backgroundColor: '#dbeafe',
+                                        borderRadius: '8px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        color: '#1d4ed8'
+                                    }}>
+                                        <Ruler size={18} />
+                                    </div>
+                                    <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#0f172a' }}>İmmünohistokimya</h3>
+                                </div>
+                                <div style={{ padding: '24px' }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}>
+                                        {[
+                                            { label: 'C-KİT (CD117)', value: cd117, setter: setCd117, options: ['Pozitif', 'Negatif'] },
+                                            { label: 'DOG1 (ANO1)', value: dog1, setter: setDog1, options: ['Pozitif', 'Negatif'] },
+                                            { label: 'CD34', value: cd34, setter: setCd34, options: ['Pozitif', 'Negatif', 'Yamalı pozitif'] },
+                                            { label: 'SMA', value: sma, setter: setSma, options: ['Pozitif', 'Negatif', 'Yamalı pozitif'] },
+                                            { label: 'Desmin', value: desmin, setter: setDesmin, options: ['Pozitif', 'Negatif', 'Yamalı pozitif'] },
+                                            { label: 'S-100', value: s100, setter: setS100, options: ['Pozitif', 'Negatif', 'Yamalı pozitif'] },
+                                            { label: 'BRAF', value: braf, setter: setBraf, options: ['Pozitif', 'Negatif'] },
+                                            { label: 'SDHA', value: sdha, setter: setSdha, options: ['İntakt', 'Deficient'] },
+                                            { label: 'SDHB', value: sdhb, setter: setSdhb, options: ['İntakt', 'Deficient'] },
+                                        ].map(item => (
+                                            <div key={item.label}>
+                                                <label style={{
+                                                    display: 'block',
+                                                    fontSize: '11px',
+                                                    fontWeight: '700',
+                                                    textTransform: 'uppercase',
+                                                    letterSpacing: '0.5px',
+                                                    color: '#64748b',
+                                                    marginBottom: '12px'
+                                                }}>{item.label}</label>
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                                    {item.options.map(opt => (
+                                                        <button
+                                                            key={opt}
+                                                            onClick={() => item.setter(opt)}
+                                                            style={{
+                                                                ...baseButtonStyle,
+                                                                padding: '8px 12px',
+                                                                fontSize: '13px',
+                                                                backgroundColor: item.value === opt ? '#2563eb' : '#ffffff',
+                                                                color: item.value === opt ? '#ffffff' : '#475569',
+                                                                borderColor: item.value === opt ? '#2563eb' : '#e2e8f0',
+                                                            }}
+                                                        >
+                                                            {opt}
+                                                        </button>
+                                                    ))}
                                                 </div>
                                             </div>
-                                        </div>
-                                    </SolidCard>
-                                </motion.div>
-
-                                <motion.div
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ duration: 0.5, delay: 0.6 }}
-                                >
-                                    <SolidCard title="Rapor Önizleme" icon={FileText} className="overflow-hidden bg-slate-900 border-slate-800">
-                                        <div className="relative">
-                                            <pre className="max-h-[400px] overflow-auto whitespace-pre-wrap rounded-lg bg-slate-950/50 border border-slate-800 p-4 text-[11px] leading-relaxed text-slate-300 font-mono">
-                                                {rapor}
-                                            </pre>
-                                            <div className="absolute bottom-4 right-4">
-                                                <Button
-                                                    size="sm"
-                                                    onClick={handleCopy}
-                                                    className={cn(
-                                                        "shadow-lg transition-all font-semibold",
-                                                        copied
-                                                            ? "bg-emerald-600 hover:bg-emerald-700 text-white ring-2 ring-emerald-500/50"
-                                                            : "bg-blue-600 hover:bg-blue-700 text-white ring-2 ring-blue-500/50"
-                                                    )}
-                                                >
-                                                    {copied ? <Check size={14} className="mr-2" /> : <Copy size={14} className="mr-2" />}
-                                                    {copied ? "Kopyalandı" : "Kopyala"}
-                                                </Button>
+                                        ))}
+                                        <div>
+                                            <label style={{
+                                                display: 'block',
+                                                fontSize: '11px',
+                                                fontWeight: '700',
+                                                textTransform: 'uppercase',
+                                                letterSpacing: '0.5px',
+                                                color: '#64748b',
+                                                marginBottom: '8px'
+                                            }}>Ki-67 İndeksi</label>
+                                            <div style={{ position: 'relative' }}>
+                                                <input
+                                                    type="text"
+                                                    inputMode="decimal"
+                                                    value={ki67}
+                                                    onChange={(e) => setKi67(e.target.value)}
+                                                    placeholder="0"
+                                                    style={{ ...inputStyle, paddingRight: '32px' }}
+                                                />
+                                                <span style={{
+                                                    position: 'absolute',
+                                                    right: '12px',
+                                                    top: '50%',
+                                                    transform: 'translateY(-50%)',
+                                                    fontSize: '12px',
+                                                    fontWeight: '600',
+                                                    color: '#94a3b8',
+                                                    pointerEvents: 'none'
+                                                }}>%</span>
                                             </div>
                                         </div>
-                                    </SolidCard>
-                                </motion.div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Sidebar */}
+                        <div>
+                            <div style={{ position: 'sticky', top: '24px' }}>
+                                {/* Sonuç Paneli */}
+                                <div style={{
+                                    ...cardStyle,
+                                    border: '2px solid',
+                                    borderColor: risk === 'Yüksek' ? '#fca5a5' : risk === 'Orta' ? '#fdba74' : risk === 'Düşük' || risk === 'Çok düşük' ? '#86efac' : '#e2e8f0',
+                                    backgroundColor: risk === 'Yüksek' ? '#fef2f2' : risk === 'Orta' ? '#fff7ed' : risk === 'Düşük' || risk === 'Çok düşük' ? '#f0fdf4' : '#ffffff',
+                                }}>
+                                    <div style={{ padding: '24px', textAlign: 'center' }}>
+                                        <h3 style={{ fontSize: '11px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '1px', color: '#64748b', marginBottom: '24px' }}>Sonuç Paneli</h3>
+                                        <div style={{ marginBottom: '16px', padding: '20px', backgroundColor: 'rgba(255,255,255,0.6)', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.05)' }}>
+                                            <div style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', color: '#64748b', marginBottom: '8px' }}>Risk</div>
+                                            <div style={{ fontSize: '24px', fontWeight: '900', color: '#0f172a' }}>{risk || '-'}</div>
+                                        </div>
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                            <div style={{ padding: '20px', backgroundColor: 'rgba(255,255,255,0.6)', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.05)' }}>
+                                                <div style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', color: '#64748b', marginBottom: '8px' }}>Grade</div>
+                                                <div style={{ fontSize: '20px', fontWeight: '900', color: '#0f172a' }}>{grade || '-'}</div>
+                                            </div>
+                                            <div style={{ padding: '20px', backgroundColor: 'rgba(255,255,255,0.6)', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.05)' }}>
+                                                <div style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', color: '#64748b', marginBottom: '8px' }}>pT</div>
+                                                <div style={{ fontSize: '20px', fontWeight: '900', color: '#0f172a' }}>{pT || '-'}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Rapor Önizleme */}
+                                <div style={{ ...cardStyle, backgroundColor: '#1e293b', borderColor: '#334155', marginTop: '24px' }}>
+                                    <div style={{
+                                        backgroundColor: 'rgba(255,255,255,0.05)',
+                                        borderBottom: '1px solid #334155',
+                                        padding: '20px 24px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '12px'
+                                    }}>
+                                        <div style={{
+                                            width: '32px',
+                                            height: '32px',
+                                            backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                                            borderRadius: '8px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            color: '#60a5fa'
+                                        }}>
+                                            <FileText size={18} />
+                                        </div>
+                                        <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#f1f5f9' }}>Rapor Önizleme</h3>
+                                    </div>
+                                    <div style={{ padding: '24px', position: 'relative' }}>
+                                        <pre style={{
+                                            maxHeight: '400px',
+                                            overflow: 'auto',
+                                            whiteSpace: 'pre-wrap',
+                                            backgroundColor: 'rgba(0,0,0,0.3)',
+                                            border: '1px solid #334155',
+                                            borderRadius: '8px',
+                                            padding: '16px',
+                                            fontSize: '11px',
+                                            lineHeight: '1.6',
+                                            color: '#cbd5e1',
+                                            fontFamily: 'monospace',
+                                            margin: 0
+                                        }}>
+                                            {rapor}
+                                        </pre>
+                                        <button
+                                            onClick={handleCopy}
+                                            style={{
+                                                ...baseButtonStyle,
+                                                position: 'absolute',
+                                                bottom: '36px',
+                                                right: '36px',
+                                                backgroundColor: copied ? '#10b981' : '#2563eb',
+                                                color: '#ffffff',
+                                                borderColor: copied ? '#10b981' : '#2563eb',
+                                                boxShadow: '0 4px 6px rgba(0,0,0,0.2)',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '8px',
+                                                fontWeight: '600'
+                                            }}
+                                        >
+                                            {copied ? <Check size={14} /> : <Copy size={14} />}
+                                            {copied ? 'Kopyalandı' : 'Kopyala'}
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
