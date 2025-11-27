@@ -1,16 +1,69 @@
+/* Sadece Home sayfasına özel stiller */
+
+/* HAVA DURUMU KAROSU GENEL */
 .home-weather-tile {
   border-radius: 1rem;
   padding: 0.9rem 1rem;
-  background: #1e3a8a;
   color: #ffffff;
-  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.3);
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.4);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   min-height: 110px;
+  transition: background 0.6s ease, box-shadow 0.6s ease, filter 0.6s ease;
 }
 
-/* üst: Isparta */
+/* Gündüz */
+.home-weather-day {
+  background: linear-gradient(145deg, #2563eb, #1d4ed8);
+}
+
+/* Gece */
+.home-weather-night {
+  background: radial-gradient(circle at 20% 0%, #1f2937, #020617);
+}
+
+/* Bulutlu */
+.home-weather-cloudy {
+  background: linear-gradient(145deg, #1e3a8a, #1e293b);
+}
+
+/* Yağmur */
+.home-weather-rain {
+  background: linear-gradient(145deg, #1e40af, #0f172a);
+}
+
+/* Kar */
+.home-weather-snow {
+  background: linear-gradient(145deg, #38bdf8, #1e3a8a);
+}
+
+/* Sis */
+.home-weather-fog {
+  background: linear-gradient(145deg, #6b7280, #111827);
+}
+
+/* Fırtına – hafif şimşek efekti */
+.home-weather-storm {
+  background: linear-gradient(145deg, #0f172a, #020617);
+  animation: weather-storm-flash 7s ease-in-out infinite;
+}
+
+@keyframes weather-storm-flash {
+  0%,
+  85%,
+  100% {
+    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.8);
+    filter: brightness(1);
+  }
+  88%,
+  90% {
+    box-shadow: 0 0 30px rgba(248, 250, 252, 0.95);
+    filter: brightness(1.25);
+  }
+}
+
+/* Başlık satırı (ISPARTA) */
 .home-weather-header {
   display: flex;
   justify-content: space-between;
@@ -25,25 +78,25 @@
   opacity: 0.85;
 }
 
-/* alt: simge + sıcaklık (animasyonlu) */
+/* Simge + sıcaklık alanı */
 .home-weather-main {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 0.25rem;
-  margin-top: -4px;   /* simge hafif yukarı çıktı */
+  margin-top: -12px; /* simgeyi biraz yukarı al */
 }
 
-
-/* Simge hafif yukarı-aşağı yüzer */
+/* Simge – hafif yüzen animasyon */
 .home-weather-icon {
-  font-size: 3.1rem;
+  font-size: 3.3rem;
   line-height: 1;
+  transform: translateY(-2px);
   animation: weather-float 3.2s ease-in-out infinite;
 }
 
-/* Sıcaklık hafif nefes alır (parlama gibi) */
+/* Sıcaklık – hafif nefes animasyonu */
 .home-weather-temp {
   font-size: 2.2rem;
   font-weight: 700;
@@ -51,20 +104,18 @@
   animation: weather-pulse 4s ease-in-out infinite;
 }
 
-/* Yüzen simge animasyonu */
 @keyframes weather-float {
   0% {
-    transform: translateY(0px);
+    transform: translateY(-2px);
   }
   50% {
-    transform: translateY(-4px);
+    transform: translateY(-6px);
   }
   100% {
-    transform: translateY(0px);
+    transform: translateY(-2px);
   }
 }
 
-/* Hafif parlama animasyonu (çok agresif değil) */
 @keyframes weather-pulse {
   0%,
   100% {
