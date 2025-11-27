@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { PageContainer } from '../components/PageContainer';
 import { MetroTile } from '../components/MetroTile';
 import {
@@ -20,12 +20,68 @@ import {
   Github,
   UserCircle,
 } from 'lucide-react';
+import './Home.css';
 
 interface HomeProps {
   onNavigate: (page: string) => void;
 }
 
+// Rotasyon için kısa açıklama dizileri
+const TIP_SUBTITLES = [
+  'Ders slaytları ve özetler',
+  'Vize–final odaklı notlar',
+  'Güncel müfredat ile uyumlu',
+];
+
+const DIS_SUBTITLES = [
+  'Diş hekimliği ders notları',
+  'Sunum ve pdf arşivi',
+  'Sık güncellenen içerik',
+];
+
+const ECZA_SUBTITLES = [
+  'Eczacılık not arşivi',
+  'Farmakoloji ve patoloji',
+  'Dropbox klasörüne yönlendirir',
+];
+
+const BLOG_SUBTITLES = [
+  'Vaka yazıları ve notlar',
+  'Vibe Coding & yazılım',
+  'Eğitim ve günlük notlar',
+];
+
+const GALERI_SUBTITLES = [
+  'Sanal mikroskop slide galerisi',
+  'Gerçek vakalardan seçilmiş olgular',
+  'Dijital histopatoloji arşivi',
+];
+
+// Basit dönen metin hook’u
+function useRotatingText(texts: string[], intervalMs: number): string {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    if (!texts || texts.length <= 1) return;
+
+    const id = window.setInterval(() => {
+      setIndex((prev) => (prev + 1) % texts.length);
+    }, intervalMs);
+
+    return () => window.clearInterval(id);
+  }, [texts, intervalMs]);
+
+  return texts[index] ?? '';
+}
+
 export function Home({ onNavigate }: HomeProps) {
+  // Dönen alt açıklamalar
+  const tipSubtitle = useRotatingText(TIP_SUBTITLES, 4000);
+  const disSubtitle = useRotatingText(DIS_SUBTITLES, 4000);
+  const eczaSubtitle = useRotatingText(ECZA_SUBTITLES, 4000);
+  const blogSubtitle = useRotatingText(BLOG_SUBTITLES, 4000);
+  const galeriSubtitle = useRotatingText(GALERI_SUBTITLES, 4000);
+
   return (
     <div className="min-h-screen bg-[#f0f0f0]">
       <PageContainer>
@@ -88,6 +144,21 @@ export function Home({ onNavigate }: HomeProps) {
                 size="medium"
                 onClick={() => onNavigate('hastane-yemek')}
               />
+
+              {/* Lumia tarzı, tıklanmayan hava durumu kutusu */}
+              <div className="home-weather-tile">
+                <div className="home-weather-top">
+                  <div>
+                    <div className="home-weather-city">Isparta</div>
+                    <div className="home-weather-desc">Parçalı bulutlu</div>
+                  </div>
+                  <div className="home-weather-temp">12°</div>
+                </div>
+                <div className="home-weather-bottom">
+                  <span className="home-weather-meta">Nem %68</span>
+                  <span className="home-weather-meta">Rüzgar 5 km/sa</span>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -97,7 +168,7 @@ export function Home({ onNavigate }: HomeProps) {
             <div className="grid grid-cols-2 gap-4">
               <MetroTile
                 title="SDÜ Tıp Patoloji Notlarım"
-                subtitle=""
+                subtitle={tipSubtitle}
                 icon={<BookMarked size={40} />}
                 color="bg-[#00A6D6]"
                 size="wide"
@@ -105,7 +176,7 @@ export function Home({ onNavigate }: HomeProps) {
               />
               <MetroTile
                 title="Diş Ders Notlarım"
-                subtitle=""
+                subtitle={disSubtitle}
                 icon={<FolderOpen size={40} />}
                 color="bg-[#E67E22]"
                 size="medium"
@@ -118,7 +189,7 @@ export function Home({ onNavigate }: HomeProps) {
               />
               <MetroTile
                 title="Eczacılık Notlarım"
-                subtitle=""
+                subtitle={eczaSubtitle}
                 icon={<FolderOpen size={40} />}
                 color="bg-[#3498DB]"
                 size="medium"
@@ -139,11 +210,21 @@ export function Home({ onNavigate }: HomeProps) {
               />
               <MetroTile
                 title="Blog"
-                subtitle="Vibe Coding & Yazılar"
+                subtitle={blogSubtitle}
                 icon={<BookOpen size={40} />}
                 color="bg-[#8E44AD]"
                 size="medium"
                 onClick={() => onNavigate('blog')}
+              />
+
+              {/* Öğrenci grubunun altına Slide Galeri kutusu */}
+              <MetroTile
+                title="Slide Galeri"
+                subtitle={galeriSubtitle}
+                icon={<FileBarChart size={40} />}
+                color="bg-[#1BA1E2]"
+                size="wide"
+                onClick={() => onNavigate('galeri')}
               />
             </div>
           </div>
