@@ -22,64 +22,50 @@ interface HomeProps {
   onNavigate: (page: string) => void;
 }
 
-/** --- KISA, TEK SATIRLIK DÖNEN AÇIKLAMALAR --- **/
+/* --- KISA, TEK SATIRLIK DÖNEN AÇIKLAMALAR --- */
 
-const TIP_SUBTITLES = [
-  'Ders slaytları',
-  'Özet notlar',
-  'Güncel müfredat',
-];
-
+// Öğrenci
+const TIP_SUBTITLES = ['Ders slaytları', 'Özet notlar', 'Güncel müfredat'];
 const DIS_SUBTITLES = [
   'Diş hekimliği notları',
   'Slayt ve sunumlar',
   'Pratik odaklı notlar',
 ];
-
 const ECZA_SUBTITLES = [
   'Eczacılık notları',
   'Farmakoloji ağırlıklı',
   'Dropbox klasörü',
 ];
-
-const BLOG_SUBTITLES = [
-  'Vaka yazıları',
-  'Yazılım & eğitim',
-  'Güncel notlar',
-];
-
+const BLOG_SUBTITLES = ['Vaka yazıları', 'Yazılım & eğitim', 'Güncel notlar'];
 const GALERI_SUBTITLES = [
   'Sanal mikroskop',
   'Histopatoloji vakaları',
   'Dijital slide arşivi',
 ];
 
-// Akademik taraf
+// Akademik
 const YAYIN_SUBTITLES = [
   'Makale listesi',
   'PubMed bağlantıları',
   'Güncel yayınlar',
 ];
-
 const PORTFOLYO_SUBTITLES = [
   'Projeler & slaytlar',
   'Sunum arşivi',
   'Örnek çalışmalar',
 ];
-
 const PROFIL_SUBTITLES = [
   'Akademik özgeçmiş',
   'İletişim bilgileri',
   'Çalışma alanları',
 ];
-
 const DIGER_SUBTITLES = [
   'Vaka sunumları',
   'Yan projeler',
   'Diğer çalışmalar',
 ];
 
-/** Kısa dönen metin hook’u */
+/* --- KISA DÖNEN METİN HOOK'U --- */
 function useRotatingText(texts: string[], intervalMs: number): string {
   const [index, setIndex] = useState(0);
 
@@ -96,26 +82,79 @@ function useRotatingText(texts: string[], intervalMs: number): string {
   return texts[index] ?? '';
 }
 
-/** Hava durumu state’i */
+/* --- HAVA DURUMU TİP VE YARDIMCI FONKSİYONLAR --- */
+
+type WeatherVariant =
+  | 'day'
+  | 'night'
+  | 'rain'
+  | 'storm'
+  | 'snow'
+  | 'fog'
+  | 'cloudy';
+
 type WeatherState = {
   temp: number | null;
   icon: string;
+  variant: WeatherVariant;
 };
 
-function getWeatherIcon(code?: number): string {
-  if (code === undefined || code === null) return '☁️';
+// Kod + gündüz/gece bilgisinden tema seç
+function getWeatherVariant(code?: number, isDay?: boolean): WeatherVariant {
+  if (code === undefined || code === null) return isDay ? 'day' : 'night';
 
-  // Open-Meteo weather_code haritasını kabaca gruplayalım
-  // 0: Clear, 1-2: açık/az bulutlu, 3: kapalı, 45-48: sis
-  // 51-67: yağmur / drizzle, 71-86: kar, 95+: fırtına
+  if (code === 45 || code === 48) return 'fog'; // sis
+
+  if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) {
+    // yağmur / sağanak / donan yağmur
+    return 'rain';
+  }
+
+  if ((code >= 71 && code <= 77) || (code >= 85 && code <= 86)) {
+    // kar / kar sağanağı
+    return 'snow';
+  }
+
+  if (code >= 95) {
+    // gök gürültülü fırtına
+    return 'storm';
+  }
+
+  if (!isDay) return 'night';
+  if (code === 3) return 'cloudy';
+
+  return 'day';
+}
+
+// Open-Meteo weather_code + is_day -> emoji
+function getWeatherIcon(code?: number, isDay?: boolean): string {
+  if (code === undefined || code === null) {
+    return isDay ? '🌤️' : '🌙';
+  }
+
+  // gece ikonları
+  if (!isDay) {
+    if (code === 0 || code === 1 || code === 2) return '🌙';
+    if (code === 3) return '☁️';
+  }
+
   if (code === 0) return '☀️';
   if (code === 1 || code === 2) return '🌤️';
   if (code === 3) return '☁️';
   if (code === 45 || code === 48) return '🌫️';
-  if (code >= 51 && code <= 67) return '🌧️';
-  if (code >= 71 && code <= 86) return '❄️';
-  if (code >= 95) return '⛈️';
-  return '🌤️';
+
+  if (code >= 51 && code <= 55) return '🌦️'; // hafif yağmur
+  if (code >= 56 && code <= 57) return '🌧️'; // donan çise
+  if (code >= 61 && code <= 65) return '🌧️'; // yağmur
+  if (code >= 66 && code <= 67) return '🌧️'; // donan yağmur
+
+  if (code >= 71 && code <= 77) return '❄️'; // kar
+  if (code >= 80 && code <= 82) return '🌦️'; // sağanak
+  if (code >= 85 && code <= 86) return '🌨️'; // kar sağanağı
+
+  if (code >= 95 && code <= 99) return '⛈️'; // gök gürültülü
+
+  return isDay ? '🌤️' : '🌙';
 }
 
 export function Home({ onNavigate }: HomeProps) {
@@ -131,10 +170,11 @@ export function Home({ onNavigate }: HomeProps) {
   const profilSubtitle = useRotatingText(PROFIL_SUBTITLES, 4000);
   const digerSubtitle = useRotatingText(DIGER_SUBTITLES, 4000);
 
-  // Hava durumu (Isparta) – Open-Meteo (API key gerektirmiyor)
+  // Hava durumu (Isparta) – Open-Meteo
   const [weather, setWeather] = useState<WeatherState>({
     temp: null,
-    icon: '☁️',
+    icon: '🌤️',
+    variant: 'day',
   });
 
   useEffect(() => {
@@ -144,7 +184,7 @@ export function Home({ onNavigate }: HomeProps) {
     const url =
       `https://api.open-meteo.com/v1/forecast` +
       `?latitude=${lat}&longitude=${lon}` +
-      `&current=temperature_2m,weather_code` +
+      `&current=temperature_2m,weather_code,is_day` +
       `&timezone=Europe%2FIstanbul`;
 
     fetch(url)
@@ -163,16 +203,23 @@ export function Home({ onNavigate }: HomeProps) {
             ? current.weather_code
             : current.weathercode;
 
+        const isDay =
+          current.is_day === 1 ||
+          current.is_day === true ||
+          current.is_day === '1';
+
+        const variant = getWeatherVariant(codeRaw, isDay);
+        const icon = getWeatherIcon(codeRaw, isDay);
+
         setWeather({
-          temp:
-            typeof tempRaw === 'number' ? Math.round(tempRaw) : weather.temp,
-          icon: getWeatherIcon(codeRaw),
+          temp: typeof tempRaw === 'number' ? Math.round(tempRaw) : null,
+          icon,
+          variant,
         });
       })
       .catch(() => {
-        // Hata olursa mevcut state kalsın (☁️ / null)
+        // Hata olursa mevcut state kalsın
       });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -238,10 +285,10 @@ export function Home({ onNavigate }: HomeProps) {
                 onClick={() => onNavigate('hastane-yemek')}
               />
 
-              {/* Lumia tarzı, tıklanmayan, otomatik güncellenen hava durumu */}
-              <div className="home-weather-tile">
+              {/* Lumia tarzı, tıklanmayan hava durumu karosu */}
+              <div className={`home-weather-tile home-weather-${weather.variant}`}>
                 <div className="home-weather-header">
-                  <span className="home-weather-city">Isparta</span>
+                  <span className="home-weather-city">ISPARTA</span>
                 </div>
                 <div className="home-weather-main">
                   <span className="home-weather-icon">{weather.icon}</span>
@@ -307,8 +354,7 @@ export function Home({ onNavigate }: HomeProps) {
                 size="medium"
                 onClick={() => onNavigate('blog')}
               />
-
-              {/* Öğrenci grubunun EN ALTINA Slide Galeri kutusu */}
+              {/* Öğrenci grubunun en altına Slide Galeri */}
               <MetroTile
                 title="Slide Galeri"
                 subtitle={galeriSubtitle}
