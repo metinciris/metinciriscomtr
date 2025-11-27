@@ -1,10 +1,7 @@
-/* Sadece Home sayfasına özel stiller */
-
-/* Lumia tarzı hava durumu karosu */
 .home-weather-tile {
   border-radius: 1rem;
   padding: 0.9rem 1rem;
-  background: #1e3a8a; /* koyu mavi */
+  background: #1e3a8a;
   color: #ffffff;
   box-shadow: 0 10px 20px rgba(15, 23, 42, 0.3);
   display: flex;
@@ -13,7 +10,7 @@
   min-height: 110px;
 }
 
-/* Isparta başlığı */
+/* üst: Isparta */
 .home-weather-header {
   display: flex;
   justify-content: space-between;
@@ -28,29 +25,51 @@
   opacity: 0.85;
 }
 
-/* Simge + sıcaklık */
+/* alt: simge + sıcaklık (animasyonlu) */
 .home-weather-main {
   display: flex;
-  flex-direction: column;   /* dikey hizalama */
-  align-items: center;      /* tam ortala */
+  flex-direction: column;
+  align-items: center;     /* ortalı */
   justify-content: center;
-  gap: 0.3rem;
-  margin-top: 0.3rem;
+  gap: 0.25rem;
+  margin-top: 0.2rem;
 }
 
+/* Simge hafif yukarı-aşağı yüzer */
 .home-weather-icon {
-  font-size: 2.6rem;  /* büyütüldü */
+  font-size: 2.6rem;
   line-height: 1;
+  animation: weather-float 3.2s ease-in-out infinite;
 }
 
+/* Sıcaklık hafif nefes alır (parlama gibi) */
 .home-weather-temp {
-  font-size: 2.2rem;  /* 9° biraz büyük dursun */
+  font-size: 2.2rem;
   font-weight: 700;
   line-height: 1;
+  animation: weather-pulse 4s ease-in-out infinite;
 }
 
+/* Yüzen simge animasyonu */
+@keyframes weather-float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
 
-/* (İstersen burada rotasyonlu yazılar için ekstra stil tanımlayıp
-   MetroTile içinde subtitle'a className ekleyebilirsin; şu an
-   metinler özellikle kısa tutulduğu için tek satır kalacak şekilde
-   hazırlandı.) */
+/* Hafif parlama animasyonu (çok agresif değil) */
+@keyframes weather-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
