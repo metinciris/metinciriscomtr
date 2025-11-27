@@ -2,16 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { PageContainer } from '../components/PageContainer';
 import { MetroTile } from '../components/MetroTile';
 import {
-  User,
   MessageSquare,
   FileText,
   BookOpen,
-  Stethoscope,
   Utensils,
   GraduationCap,
   Briefcase,
-  Activity,
-  FileBarChart,
   BookMarked,
   Facebook,
   Building2,
@@ -26,38 +22,64 @@ interface HomeProps {
   onNavigate: (page: string) => void;
 }
 
-// Rotasyon için kısa açıklama dizileri
+/** --- KISA, TEK SATIRLIK DÖNEN AÇIKLAMALAR --- **/
+
 const TIP_SUBTITLES = [
-  'Ders slaytları ve özetler',
-  'Vize–final odaklı notlar',
-  'Güncel müfredat ile uyumlu',
+  'Ders slaytları',
+  'Özet notlar',
+  'Güncel müfredat',
 ];
 
 const DIS_SUBTITLES = [
-  'Diş hekimliği ders notları',
-  'Sunum ve pdf arşivi',
-  'Sık güncellenen içerik',
+  'Diş hekimliği notları',
+  'Slayt ve sunumlar',
+  'Pratik odaklı notlar',
 ];
 
 const ECZA_SUBTITLES = [
-  'Eczacılık not arşivi',
-  'Farmakoloji ve patoloji',
-  'Dropbox klasörüne yönlendirir',
+  'Eczacılık notları',
+  'Farmakoloji ağırlıklı',
+  'Dropbox klasörü',
 ];
 
 const BLOG_SUBTITLES = [
-  'Vaka yazıları ve notlar',
-  'Vibe Coding & yazılım',
-  'Eğitim ve günlük notlar',
+  'Vaka yazıları',
+  'Yazılım & eğitim',
+  'Güncel notlar',
 ];
 
 const GALERI_SUBTITLES = [
-  'Sanal mikroskop slide galerisi',
-  'Gerçek vakalardan seçilmiş olgular',
-  'Dijital histopatoloji arşivi',
+  'Sanal mikroskop',
+  'Histopatoloji vakaları',
+  'Dijital slide arşivi',
 ];
 
-// Basit dönen metin hook’u
+// Akademik taraf
+const YAYIN_SUBTITLES = [
+  'Makale listesi',
+  'PubMed bağlantıları',
+  'Güncel yayınlar',
+];
+
+const PORTFOLYO_SUBTITLES = [
+  'Projeler & slaytlar',
+  'Sunum arşivi',
+  'Örnek çalışmalar',
+];
+
+const PROFIL_SUBTITLES = [
+  'Akademik özgeçmiş',
+  'İletişim bilgileri',
+  'Çalışma alanları',
+];
+
+const DIGER_SUBTITLES = [
+  'Vaka sunumları',
+  'Yan projeler',
+  'Diğer çalışmalar',
+];
+
+/** Kısa dönen metin hook’u */
 function useRotatingText(texts: string[], intervalMs: number): string {
   const [index, setIndex] = useState(0);
 
@@ -74,6 +96,28 @@ function useRotatingText(texts: string[], intervalMs: number): string {
   return texts[index] ?? '';
 }
 
+/** Hava durumu state’i */
+type WeatherState = {
+  temp: number | null;
+  icon: string;
+};
+
+function getWeatherIcon(code?: number): string {
+  if (code === undefined || code === null) return '☁️';
+
+  // Open-Meteo weather_code haritasını kabaca gruplayalım
+  // 0: Clear, 1-2: açık/az bulutlu, 3: kapalı, 45-48: sis
+  // 51-67: yağmur / drizzle, 71-86: kar, 95+: fırtına
+  if (code === 0) return '☀️';
+  if (code === 1 || code === 2) return '🌤️';
+  if (code === 3) return '☁️';
+  if (code === 45 || code === 48) return '🌫️';
+  if (code >= 51 && code <= 67) return '🌧️';
+  if (code >= 71 && code <= 86) return '❄️';
+  if (code >= 95) return '⛈️';
+  return '🌤️';
+}
+
 export function Home({ onNavigate }: HomeProps) {
   // Dönen alt açıklamalar
   const tipSubtitle = useRotatingText(TIP_SUBTITLES, 4000);
@@ -81,6 +125,55 @@ export function Home({ onNavigate }: HomeProps) {
   const eczaSubtitle = useRotatingText(ECZA_SUBTITLES, 4000);
   const blogSubtitle = useRotatingText(BLOG_SUBTITLES, 4000);
   const galeriSubtitle = useRotatingText(GALERI_SUBTITLES, 4000);
+
+  const yayinSubtitle = useRotatingText(YAYIN_SUBTITLES, 4000);
+  const portfolyoSubtitle = useRotatingText(PORTFOLYO_SUBTITLES, 4000);
+  const profilSubtitle = useRotatingText(PROFIL_SUBTITLES, 4000);
+  const digerSubtitle = useRotatingText(DIGER_SUBTITLES, 4000);
+
+  // Hava durumu (Isparta) – Open-Meteo (API key gerektirmiyor)
+  const [weather, setWeather] = useState<WeatherState>({
+    temp: null,
+    icon: '☁️',
+  });
+
+  useEffect(() => {
+    const lat = 37.76; // Isparta civarı
+    const lon = 30.55;
+
+    const url =
+      `https://api.open-meteo.com/v1/forecast` +
+      `?latitude=${lat}&longitude=${lon}` +
+      `&current=temperature_2m,weather_code` +
+      `&timezone=Europe%2FIstanbul`;
+
+    fetch(url)
+      .then((res) => res.json())
+      .then((data) => {
+        const current = data.current || data.current_weather;
+        if (!current) return;
+
+        const tempRaw =
+          typeof current.temperature_2m === 'number'
+            ? current.temperature_2m
+            : current.temperature;
+
+        const codeRaw =
+          typeof current.weather_code === 'number'
+            ? current.weather_code
+            : current.weathercode;
+
+        setWeather({
+          temp:
+            typeof tempRaw === 'number' ? Math.round(tempRaw) : weather.temp,
+          icon: getWeatherIcon(codeRaw),
+        });
+      })
+      .catch(() => {
+        // Hata olursa mevcut state kalsın (☁️ / null)
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#f0f0f0]">
@@ -92,7 +185,7 @@ export function Home({ onNavigate }: HomeProps) {
             <div className="grid grid-cols-2 gap-4">
               <MetroTile
                 title="İletişim"
-                subtitle="Hastalarla iletişim"
+                subtitle=""
                 icon={
                   <img
                     src="/img/metinciris.png"
@@ -122,7 +215,7 @@ export function Home({ onNavigate }: HomeProps) {
               />
               <MetroTile
                 title="Ben Kimim?"
-                subtitle="Tanıma ve iş birliği"
+                subtitle=""
                 icon={<BookOpen size={40} />}
                 color="bg-[#0078D4]"
                 size="medium"
@@ -145,18 +238,16 @@ export function Home({ onNavigate }: HomeProps) {
                 onClick={() => onNavigate('hastane-yemek')}
               />
 
-              {/* Lumia tarzı, tıklanmayan hava durumu kutusu */}
+              {/* Lumia tarzı, tıklanmayan, otomatik güncellenen hava durumu */}
               <div className="home-weather-tile">
-                <div className="home-weather-top">
-                  <div>
-                    <div className="home-weather-city">Isparta</div>
-                    <div className="home-weather-desc">Parçalı bulutlu</div>
-                  </div>
-                  <div className="home-weather-temp">12°</div>
+                <div className="home-weather-header">
+                  <span className="home-weather-city">Isparta</span>
                 </div>
-                <div className="home-weather-bottom">
-                  <span className="home-weather-meta">Nem %68</span>
-                  <span className="home-weather-meta">Rüzgar 5 km/sa</span>
+                <div className="home-weather-main">
+                  <span className="home-weather-icon">{weather.icon}</span>
+                  <span className="home-weather-temp">
+                    {weather.temp !== null ? `${weather.temp}°` : '--'}
+                  </span>
                 </div>
               </div>
             </div>
@@ -217,11 +308,11 @@ export function Home({ onNavigate }: HomeProps) {
                 onClick={() => onNavigate('blog')}
               />
 
-              {/* Öğrenci grubunun altına Slide Galeri kutusu */}
+              {/* Öğrenci grubunun EN ALTINA Slide Galeri kutusu */}
               <MetroTile
                 title="Slide Galeri"
                 subtitle={galeriSubtitle}
-                icon={<FileBarChart size={40} />}
+                icon={<FileText size={40} />}
                 color="bg-[#1BA1E2]"
                 size="wide"
                 onClick={() => onNavigate('galeri')}
@@ -235,7 +326,7 @@ export function Home({ onNavigate }: HomeProps) {
             <div className="grid grid-cols-2 gap-4">
               <MetroTile
                 title="Yayınlar"
-                subtitle=""
+                subtitle={yayinSubtitle}
                 icon={<FileText size={40} />}
                 color="bg-[#DC143C]"
                 size="medium"
@@ -243,7 +334,7 @@ export function Home({ onNavigate }: HomeProps) {
               />
               <MetroTile
                 title="Portfolyo"
-                subtitle=""
+                subtitle={portfolyoSubtitle}
                 icon={<Briefcase size={40} />}
                 color="bg-[#8E44AD]"
                 size="medium"
@@ -251,7 +342,7 @@ export function Home({ onNavigate }: HomeProps) {
               />
               <MetroTile
                 title="Profil"
-                subtitle=""
+                subtitle={profilSubtitle}
                 icon={<UserCircle size={40} />}
                 color="bg-[#E67E22]"
                 size="wide"
@@ -283,7 +374,7 @@ export function Home({ onNavigate }: HomeProps) {
               />
               <MetroTile
                 title="Diğer Çalışmalar"
-                subtitle=""
+                subtitle={digerSubtitle}
                 icon={<Briefcase size={40} />}
                 color="bg-[#27AE60]"
                 size="medium"
