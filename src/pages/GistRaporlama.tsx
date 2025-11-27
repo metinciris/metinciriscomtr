@@ -127,10 +127,13 @@ const SolidToggle = ({ options, value, onChange, label }: { options: string[], v
 );
 
 const ResultBadge = ({ label, value, colorClass }: any) => (
-    <div className={cn("flex flex-col items-center justify-center rounded-xl border p-4 text-center shadow-sm", colorClass)}>
+    <motion.div
+        whileHover={{ scale: 1.05 }}
+        className={cn("flex flex-col items-center justify-center rounded-xl border p-4 text-center shadow-sm transition-colors", colorClass)}
+    >
         <span className="text-[10px] uppercase tracking-wider opacity-80 font-semibold">{label}</span>
         <span className="mt-1 text-xl font-bold tracking-tight">{value || "-"}</span>
-    </div>
+    </motion.div>
 );
 
 export default function GistRaporlama() {
@@ -162,6 +165,15 @@ export default function GistRaporlama() {
     const [desmin, setDesmin] = useState("Negatif");
     const [s100, setS100] = useState("Negatif");
     const [ki67, setKi67] = useState("");
+    const [copied, setCopied] = useState(false);
+
+    const handleCopy = () => {
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(rapor);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        }
+    };
 
     // Calculations
     const sizeNum = useMemo(() => toNumber(enBuyukCm), [enBuyukCm]);
@@ -208,135 +220,162 @@ export default function GistRaporlama() {
                 <div className="mx-auto max-w-7xl space-y-8">
                     {/* Header */}
                     <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                        <div>
+                        <motion.div
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.5 }}
+                        >
                             <h1 className="text-3xl font-bold tracking-tight text-gray-900">
                                 GİST Raporlama
                             </h1>
                             <p className="text-sm text-gray-500">CAP GIST Protokolü (4.3.0.0) Uyumlu Akıllı Şablon</p>
-                        </div>
-                        <div className="flex items-center gap-2 rounded-full bg-white px-4 py-1.5 text-xs font-medium text-gray-900 border border-gray-200 shadow-sm">
+                        </motion.div>
+                        <motion.div
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.5, delay: 0.1 }}
+                            className="flex items-center gap-2 rounded-full bg-white px-4 py-1.5 text-xs font-medium text-gray-900 border border-gray-200 shadow-sm"
+                        >
                             <Info size={14} className="text-blue-600" />
                             <span>v2.1 Stable</span>
-                        </div>
+                        </motion.div>
                     </header>
 
                     <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
                         {/* Main Form Area */}
                         <div className="space-y-6">
                             {/* Tumor Details */}
-                            <SolidCard title="Tümör Özellikleri" icon={Microscope}>
-                                <div className="grid gap-6 md:grid-cols-2">
-                                    <div className="space-y-4">
-                                        <div className="space-y-2">
-                                            <Label className="text-xs font-semibold text-gray-700">Histolojik Tip</Label>
-                                            <div className="flex flex-col gap-2">
-                                                {HISTO_TIP_OPTS.map(opt => (
-                                                    <button
-                                                        key={opt}
-                                                        onClick={() => setHistoTip(opt)}
-                                                        className={cn(
-                                                            "w-full rounded-md px-4 py-2.5 text-left text-xs font-medium transition-colors border",
-                                                            histoTip === opt
-                                                                ? "bg-blue-600 text-white border-blue-600 shadow-sm"
-                                                                : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 hover:text-gray-900"
-                                                        )}
-                                                    >
-                                                        {opt}
-                                                    </button>
-                                                ))}
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.5, delay: 0.2 }}
+                            >
+                                <SolidCard title="Tümör Özellikleri" icon={Microscope}>
+                                    <div className="grid gap-6 md:grid-cols-2">
+                                        <div className="space-y-4">
+                                            <div className="space-y-2">
+                                                <Label className="text-xs font-semibold text-gray-700">Histolojik Tip</Label>
+                                                <div className="flex flex-col gap-2">
+                                                    {HISTO_TIP_OPTS.map(opt => (
+                                                        <button
+                                                            key={opt}
+                                                            onClick={() => setHistoTip(opt)}
+                                                            className={cn(
+                                                                "w-full rounded-md px-4 py-2.5 text-left text-xs font-medium transition-colors border",
+                                                                histoTip === opt
+                                                                    ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                                                                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 hover:text-gray-900"
+                                                            )}
+                                                        >
+                                                            {opt}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-xs font-semibold text-gray-700">Yerleşim</Label>
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    {YERLEŞIM_OPTS.map(opt => (
+                                                        <button
+                                                            key={opt}
+                                                            onClick={() => setYerlesim(opt)}
+                                                            className={cn(
+                                                                "rounded-md px-3 py-2 text-xs font-medium transition-colors border",
+                                                                yerlesim === opt
+                                                                    ? "bg-indigo-600 text-white border-indigo-600 shadow-sm"
+                                                                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 hover:text-gray-900"
+                                                            )}
+                                                        >
+                                                            {opt}
+                                                        </button>
+                                                    ))}
+                                                </div>
                                             </div>
                                         </div>
-                                        <div className="space-y-2">
-                                            <Label className="text-xs font-semibold text-gray-700">Yerleşim</Label>
-                                            <div className="grid grid-cols-2 gap-2">
-                                                {YERLEŞIM_OPTS.map(opt => (
-                                                    <button
-                                                        key={opt}
-                                                        onClick={() => setYerlesim(opt)}
-                                                        className={cn(
-                                                            "rounded-md px-3 py-2 text-xs font-medium transition-colors border",
-                                                            yerlesim === opt
-                                                                ? "bg-indigo-600 text-white border-indigo-600 shadow-sm"
-                                                                : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 hover:text-gray-900"
-                                                        )}
-                                                    >
-                                                        {opt}
-                                                    </button>
-                                                ))}
+                                        <div className="space-y-6">
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <SolidInput label="En Büyük Boyut" value={enBuyukCm} onChange={(e: any) => setEnBuyukCm(e.target.value)} placeholder="0.0" suffix="cm" />
+                                                <SolidInput label="Mitotik Oran" value={mitoz} onChange={(e: any) => setMitoz(e.target.value)} placeholder="0" suffix="/5mm²" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-xs font-semibold text-gray-700">Diğer Boyutlar (L x W x H)</Label>
+                                                <div className="grid grid-cols-3 gap-2">
+                                                    <SolidInput placeholder="L" value={lx} onChange={(e: any) => setLx(e.target.value)} />
+                                                    <SolidInput placeholder="W" value={wx} onChange={(e: any) => setWx(e.target.value)} />
+                                                    <SolidInput placeholder="H" value={hx} onChange={(e: any) => setHx(e.target.value)} />
+                                                </div>
+                                            </div>
+                                            <div className="space-y-4 rounded-lg bg-gray-50 border border-gray-200 p-4">
+                                                <SolidToggle label="Tümör Sınırları" options={SINIR_OPTS} value={sinir} onChange={setSinir} />
+                                                <SolidToggle label="Tümör Odağı" options={ODAK_OPTS} value={odak} onChange={setOdak} />
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="space-y-6">
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <SolidInput label="En Büyük Boyut" value={enBuyukCm} onChange={(e: any) => setEnBuyukCm(e.target.value)} placeholder="0.0" suffix="cm" />
-                                            <SolidInput label="Mitotik Oran" value={mitoz} onChange={(e: any) => setMitoz(e.target.value)} placeholder="0" suffix="/5mm²" />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label className="text-xs font-semibold text-gray-700">Diğer Boyutlar (L x W x H)</Label>
-                                            <div className="grid grid-cols-3 gap-2">
-                                                <SolidInput placeholder="L" value={lx} onChange={(e: any) => setLx(e.target.value)} />
-                                                <SolidInput placeholder="W" value={wx} onChange={(e: any) => setWx(e.target.value)} />
-                                                <SolidInput placeholder="H" value={hx} onChange={(e: any) => setHx(e.target.value)} />
-                                            </div>
-                                        </div>
-                                        <div className="space-y-4 rounded-lg bg-gray-50 border border-gray-200 p-4">
-                                            <SolidToggle label="Tümör Sınırları" options={SINIR_OPTS} value={sinir} onChange={setSinir} />
-                                            <SolidToggle label="Tümör Odağı" options={ODAK_OPTS} value={odak} onChange={setOdak} />
-                                        </div>
-                                    </div>
-                                </div>
-                            </SolidCard>
+                                </SolidCard>
+                            </motion.div>
 
                             {/* Additional Features */}
-                            <SolidCard title="Ek Özellikler" icon={Activity}>
-                                <div className="grid gap-6 md:grid-cols-2">
-                                    <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4">
-                                        <div className="space-y-0.5">
-                                            <Label className="text-sm font-medium text-gray-900">Nekroz</Label>
-                                            <p className="text-xs text-gray-500">Tümörde nekroz varlığı</p>
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.5, delay: 0.3 }}
+                            >
+                                <SolidCard title="Ek Özellikler" icon={Activity}>
+                                    <div className="grid gap-6 md:grid-cols-2">
+                                        <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4">
+                                            <div className="space-y-0.5">
+                                                <Label className="text-sm font-medium text-gray-900">Nekroz</Label>
+                                                <p className="text-xs text-gray-500">Tümörde nekroz varlığı</p>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                {nekrozVar && <Input type="text" placeholder="%" className="w-16 h-8 bg-white" value={nekrozYuzde} onChange={(e) => setNekrozYuzde(e.target.value)} />}
+                                                <Switch checked={nekrozVar} onCheckedChange={setNekrozVar} />
+                                            </div>
                                         </div>
-                                        <div className="flex items-center gap-3">
-                                            {nekrozVar && <Input type="text" placeholder="%" className="w-16 h-8 bg-white" value={nekrozYuzde} onChange={(e) => setNekrozYuzde(e.target.value)} />}
-                                            <Switch checked={nekrozVar} onCheckedChange={setNekrozVar} />
+                                        <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4">
+                                            <div className="space-y-0.5">
+                                                <Label className="text-sm font-medium text-gray-900">Neoadjuvan Tedavi</Label>
+                                                <p className="text-xs text-gray-500">Tedavi sonrası değişiklik</p>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                {neoTedaviVar && <Input type="text" placeholder="Canlı %" className="w-20 h-8 bg-white" value={canliTumorYuzde} onChange={(e) => setCanliTumorYuzde(e.target.value)} />}
+                                                <Switch checked={neoTedaviVar} onCheckedChange={setNeoTedaviVar} />
+                                            </div>
+                                        </div>
+                                        <div className="md:col-span-2">
+                                            <Label className="mb-2 block text-xs font-semibold text-gray-700">Cerrahi Sınırlar & Lenf Nodları</Label>
+                                            <div className="grid gap-4 md:grid-cols-2">
+                                                <textarea className="w-full rounded-md border border-gray-300 bg-white p-3 text-xs text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200" rows={3} value={cerrahiMetin} onChange={(e) => setCerrahiMetin(e.target.value)} />
+                                                <textarea className="w-full rounded-md border border-gray-300 bg-white p-3 text-xs text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200" rows={3} value={nodDurumu} onChange={(e) => setNodDurumu(e.target.value)} />
+                                            </div>
                                         </div>
                                     </div>
-                                    <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4">
-                                        <div className="space-y-0.5">
-                                            <Label className="text-sm font-medium text-gray-900">Neoadjuvan Tedavi</Label>
-                                            <p className="text-xs text-gray-500">Tedavi sonrası değişiklik</p>
-                                        </div>
-                                        <div className="flex items-center gap-3">
-                                            {neoTedaviVar && <Input type="text" placeholder="Canlı %" className="w-20 h-8 bg-white" value={canliTumorYuzde} onChange={(e) => setCanliTumorYuzde(e.target.value)} />}
-                                            <Switch checked={neoTedaviVar} onCheckedChange={setNeoTedaviVar} />
-                                        </div>
-                                    </div>
-                                    <div className="md:col-span-2">
-                                        <Label className="mb-2 block text-xs font-semibold text-gray-700">Cerrahi Sınırlar & Lenf Nodları</Label>
-                                        <div className="grid gap-4 md:grid-cols-2">
-                                            <textarea className="w-full rounded-md border border-gray-300 bg-white p-3 text-xs text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200" rows={3} value={cerrahiMetin} onChange={(e) => setCerrahiMetin(e.target.value)} />
-                                            <textarea className="w-full rounded-md border border-gray-300 bg-white p-3 text-xs text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200" rows={3} value={nodDurumu} onChange={(e) => setNodDurumu(e.target.value)} />
-                                        </div>
-                                    </div>
-                                </div>
-                            </SolidCard>
+                                </SolidCard>
+                            </motion.div>
 
                             {/* IHC Markers */}
-                            <SolidCard title="İmmünohistokimya" icon={Ruler}>
-                                <div className="grid grid-cols-1 gap-x-6 gap-y-6 md:grid-cols-2 lg:grid-cols-3">
-                                    <SolidToggle label="C-KİT (CD117)" options={["Pozitif", "Negatif"]} value={cd117} onChange={setCd117} />
-                                    <SolidToggle label="DOG1 (ANO1)" options={["Pozitif", "Negatif"]} value={dog1} onChange={setDog1} />
-                                    <SolidToggle label="CD34" options={["Pozitif", "Negatif", "Yamalı pozitif"]} value={cd34} onChange={setCd34} />
-                                    <SolidToggle label="SMA" options={["Pozitif", "Negatif", "Yamalı pozitif"]} value={sma} onChange={setSma} />
-                                    <SolidToggle label="Desmin" options={["Pozitif", "Negatif", "Yamalı pozitif"]} value={desmin} onChange={setDesmin} />
-                                    <SolidToggle label="S-100" options={["Pozitif", "Negatif", "Yamalı pozitif"]} value={s100} onChange={setS100} />
-                                    <SolidToggle label="BRAF" options={["Pozitif", "Negatif"]} value={braf} onChange={setBraf} />
-                                    <SolidToggle label="SDHA" options={["İntakt", "Deficient"]} value={sdha} onChange={setSdha} />
-                                    <SolidToggle label="SDHB" options={["İntakt", "Deficient"]} value={sdhb} onChange={setSdhb} />
-                                    <div className="flex items-end">
-                                        <SolidInput label="Ki-67 Proliferasyon İndeksi" suffix="%" value={ki67} onChange={(e: any) => setKi67(e.target.value)} />
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.5, delay: 0.4 }}
+                            >
+                                <SolidCard title="İmmünohistokimya" icon={Ruler}>
+                                    <div className="grid grid-cols-1 gap-x-6 gap-y-6 md:grid-cols-2 lg:grid-cols-3">
+                                        <SolidToggle label="C-KİT (CD117)" options={["Pozitif", "Negatif"]} value={cd117} onChange={setCd117} />
+                                        <SolidToggle label="DOG1 (ANO1)" options={["Pozitif", "Negatif"]} value={dog1} onChange={setDog1} />
+                                        <SolidToggle label="CD34" options={["Pozitif", "Negatif", "Yamalı pozitif"]} value={cd34} onChange={setCd34} />
+                                        <SolidToggle label="SMA" options={["Pozitif", "Negatif", "Yamalı pozitif"]} value={sma} onChange={setSma} />
+                                        <SolidToggle label="Desmin" options={["Pozitif", "Negatif", "Yamalı pozitif"]} value={desmin} onChange={setDesmin} />
+                                        <SolidToggle label="S-100" options={["Pozitif", "Negatif", "Yamalı pozitif"]} value={s100} onChange={setS100} />
+                                        <SolidToggle label="BRAF" options={["Pozitif", "Negatif"]} value={braf} onChange={setBraf} />
+                                        <SolidToggle label="SDHA" options={["İntakt", "Deficient"]} value={sdha} onChange={setSdha} />
+                                        <SolidToggle label="SDHB" options={["İntakt", "Deficient"]} value={sdhb} onChange={setSdhb} />
+                                        <div className="flex items-end">
+                                            <SolidInput label="Ki-67 Proliferasyon İndeksi" suffix="%" value={ki67} onChange={(e: any) => setKi67(e.target.value)} />
+                                        </div>
                                     </div>
-                                </div>
-                            </SolidCard>
+                                </SolidCard>
+                            </motion.div>
                         </div>
 
                         {/* Sidebar Results */}
@@ -361,9 +400,13 @@ export default function GistRaporlama() {
                                             {rapor}
                                         </pre>
                                         <div className="absolute bottom-4 right-4">
-                                            <Button size="sm" onClick={() => navigator.clipboard?.writeText(rapor)} className="shadow-sm">
-                                                <Copy size={14} className="mr-2" />
-                                                Kopyala
+                                            <Button
+                                                size="sm"
+                                                onClick={handleCopy}
+                                                className={cn("shadow-sm transition-all", copied ? "bg-green-600 hover:bg-green-700" : "")}
+                                            >
+                                                {copied ? <Check size={14} className="mr-2" /> : <Copy size={14} className="mr-2" />}
+                                                {copied ? "Kopyalandı" : "Kopyala"}
                                             </Button>
                                         </div>
                                     </div>
