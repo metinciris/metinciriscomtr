@@ -10,7 +10,23 @@
   flex-direction: column;
   justify-content: space-between;
   min-height: 110px;
-  transition: background 0.6s ease, box-shadow 0.6s ease, filter 0.6s ease;
+  cursor: pointer; /* imleç el olsun */
+  transition:
+    background 0.6s ease,
+    box-shadow 0.2s ease,
+    filter 0.6s ease,
+    transform 0.15s ease;
+}
+
+/* Hover’da hafif kaldır */
+.home-weather-tile:hover {
+  box-shadow: 0 14px 26px rgba(15, 23, 42, 0.5);
+}
+
+/* Tıklanınca karo hafif bassın */
+.home-weather-tile:active {
+  transform: translateY(1px) scale(0.98);
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.45);
 }
 
 /* Gündüz (açık / parçalı bulutlu) */
@@ -64,7 +80,7 @@
   }
 }
 
-/* Sis nefes efekti (çok abartmadan) */
+/* Sis nefes efekti */
 @keyframes weather-fog-breathe {
   0%,
   100% {
@@ -153,13 +169,15 @@
   animation: weather-storm-icon 1.2s ease-in-out infinite;
 }
 
-/* Gece açık – hafif yukarı-aşağı ama biraz daha yavaş */
+/* Gece açık – biraz daha yavaş float */
 .home-weather-night .home-weather-icon {
   animation: weather-float 4s ease-in-out infinite;
 }
 
-/* Kar tanesi veya yağmurda sıcaklık animasyonu biraz daha belirgin olabilir istersen;
-   şimdilik tüm varyantlarda aynı kalıyor. */
+/* TIKLANINCA: simge kısa bir zıplama yapsın */
+.home-weather-tile:active .home-weather-icon {
+  animation: weather-bounce-click 0.35s ease;
+}
 
 /* ---- ANİMASYON KEYFRAMES ---- */
 
@@ -243,5 +261,21 @@
   }
   75% {
     transform: translateY(-5px) translateX(-0.5px);
+  }
+}
+
+/* Tıklamada kısa zıplama animasyonu */
+@keyframes weather-bounce-click {
+  0% {
+    transform: translateY(-2px) scale(1);
+  }
+  30% {
+    transform: translateY(-10px) scale(1.05);
+  }
+  60% {
+    transform: translateY(-4px) scale(0.97);
+  }
+  100% {
+    transform: translateY(-2px) scale(1);
   }
 }
