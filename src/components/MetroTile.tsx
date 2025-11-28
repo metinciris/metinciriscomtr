@@ -38,7 +38,7 @@ export function MetroTile({
       onClick={onClick}
     >
       <div className="w-full h-full p-6 flex flex-col justify-between relative z-10">
-        <div className="flex-1 flex items-start justify-between">
+        <div className="flex-1 flex items-center justify-between">
           <div className="flex flex-col justify-between h-full">
             {icon && <div className="text-white/90 mb-auto">{icon}</div>}
           </div>
