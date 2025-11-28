@@ -27,6 +27,12 @@ interface HomeProps {
 
 // Öğrenci
 const TIP_SUBTITLES = ['Ders slaytları', 'Özet notlar', 'Güncel müfredat'];
+const ILETISIM_SUBTITLES = [
+  'Adres',
+  'E-posta',
+  'Sosyal medya',
+  'LinkedIn iletişim',
+];
 const DIS_SUBTITLES = ['Slaytlar', 'Ders materyali'];
 const ECZA_SUBTITLES = ['Slaytlar', 'Ders materyali'];
 const BLOG_SUBTITLES = ['Vaka yazıları', 'Yazılım & eğitim', 'Güncel notlar'];
@@ -149,6 +155,7 @@ function getWeatherIcon(code?: number, isDay?: boolean): string {
 export function Home({ onNavigate }: HomeProps) {
   // Dönen alt açıklamalar
   const tipSubtitle = useRotatingText(TIP_SUBTITLES, 4000);
+  const iletisimSubtitle = useRotatingText(ILETISIM_SUBTITLES, 4000);
   const disSubtitle = useRotatingText(DIS_SUBTITLES, 4000);
   const eczaSubtitle = useRotatingText(ECZA_SUBTITLES, 4000);
   const blogSubtitle = useRotatingText(BLOG_SUBTITLES, 4000);
@@ -221,7 +228,7 @@ export function Home({ onNavigate }: HomeProps) {
             <div className="grid grid-cols-2 gap-4">
               <MetroTile
                 title="İletişim"
-                subtitle=""
+                subtitle={iletisimSubtitle}
                 icon={<Phone size={40} />}
                 color="bg-[#00A6D6]"
                 size="wide"
