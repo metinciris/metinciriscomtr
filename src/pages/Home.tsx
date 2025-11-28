@@ -232,14 +232,14 @@ export function Home({ onNavigate }: HomeProps) {
                 icon={<Phone size={36} />}
                 color="bg-[#00A6D6]"
                 size="wide"
-                className="!pb-10"
+                innerClassName="!p-3 !pb-10"
                 onClick={() => onNavigate('iletisim')}
               >
                 <div className="flex flex-col items-center justify-center mr-1">
                   <img
                     src="/img/metinciris.png"
                     alt="Prof. Dr. Metin Çiriş"
-                    className="w-12 h-12 rounded-full object-cover border-2 border-white/70 shadow-md mb-1"
+                    className="w-10 h-10 rounded-full object-cover border-2 border-white/70 shadow-md mb-1"
                   />
                   <span className="text-white text-[9px] font-bold text-center leading-tight opacity-90">
                     Prof. Dr.
@@ -432,8 +432,8 @@ export function Home({ onNavigate }: HomeProps) {
               />
             </div>
           </div>
-        </div>
-      </PageContainer>
-    </div>
+        </div >
+      </PageContainer >
+    </div >
   );
 }
