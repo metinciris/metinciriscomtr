@@ -15,6 +15,7 @@ import {
   Linkedin,
   Github,
   UserCircle,
+  Phone,
 } from 'lucide-react';
 import './Home.css';
 
@@ -26,16 +27,8 @@ interface HomeProps {
 
 // Öğrenci
 const TIP_SUBTITLES = ['Ders slaytları', 'Özet notlar', 'Güncel müfredat'];
-const DIS_SUBTITLES = [
-  'Diş hekimliği notları',
-  'Slayt ve sunumlar',
-  'Pratik odaklı notlar',
-];
-const ECZA_SUBTITLES = [
-  'Eczacılık notları',
-  'Farmakoloji ağırlıklı',
-  'Dropbox klasörü',
-];
+const DIS_SUBTITLES = ['Slaytlar', 'Ders materyali'];
+const ECZA_SUBTITLES = ['Slaytlar', 'Ders materyali'];
 const BLOG_SUBTITLES = ['Vaka yazıları', 'Yazılım & eğitim', 'Güncel notlar'];
 const GALERI_SUBTITLES = [
   'Sanal mikroskop',
@@ -50,20 +43,16 @@ const YAYIN_SUBTITLES = [
   'Güncel yayınlar',
 ];
 const PORTFOLYO_SUBTITLES = [
-  'Projeler & slaytlar',
-  'Sunum arşivi',
-  'Örnek çalışmalar',
+  'Kısaca ben',
+  'Günlük podcast',
+  'Günlük makaleler',
 ];
 const PROFIL_SUBTITLES = [
   'Akademik özgeçmiş',
   'İletişim bilgileri',
   'Çalışma alanları',
 ];
-const DIGER_SUBTITLES = [
-  'Vaka sunumları',
-  'Yan projeler',
-  'Diğer çalışmalar',
-];
+const DIGER_SUBTITLES = ['Raporlama', 'Patoloji için'];
 
 /* --- KISA DÖNEN METİN HOOK'U --- */
 function useRotatingText(texts: string[], intervalMs: number): string {
@@ -233,17 +222,24 @@ export function Home({ onNavigate }: HomeProps) {
               <MetroTile
                 title="İletişim"
                 subtitle=""
-                icon={
-                  <img
-                    src="/img/metinciris.png"
-                    alt="Prof. Dr. Metin Çiriş"
-                    className="w-20 h-20 object-cover border-2 border-white/70 shadow-md"
-                  />
-                }
+                icon={<Phone size={40} />}
                 color="bg-[#00A6D6]"
                 size="wide"
                 onClick={() => onNavigate('iletisim')}
-              />
+              >
+                <div className="flex flex-col items-center justify-center mr-2">
+                  <img
+                    src="/img/metinciris.png"
+                    alt="Prof. Dr. Metin Çiriş"
+                    className="w-16 h-16 rounded-full object-cover border-2 border-white/70 shadow-md mb-1"
+                  />
+                  <span className="text-white text-[10px] font-bold text-center leading-tight opacity-90">
+                    Prof. Dr.
+                    <br />
+                    Metin Çiriş
+                  </span>
+                </div>
+              </MetroTile>
               <MetroTile
                 title="Ziyaret Mesajı"
                 subtitle=""

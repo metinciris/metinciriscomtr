@@ -9,6 +9,7 @@ interface MetroTileProps {
   size?: 'small' | 'medium' | 'large' | 'wide' | 'tall';
   onClick?: () => void;
   className?: string;
+  children?: React.ReactNode;
 }
 
 export function MetroTile({
@@ -19,6 +20,7 @@ export function MetroTile({
   size = 'medium',
   onClick,
   className = '',
+  children,
 }: MetroTileProps) {
   const sizeClasses = {
     small: 'col-span-1 row-span-1 h-32',
@@ -35,9 +37,12 @@ export function MetroTile({
       className={`${sizeClasses[size]} ${color} ${className} rounded-none cursor-pointer overflow-hidden relative group`}
       onClick={onClick}
     >
-      <div className="w-full h-full p-6 flex flex-col justify-between">
-        <div className="flex-1 flex items-start justify-start">
-          {icon && <div className="text-white/90">{icon}</div>}
+      <div className="w-full h-full p-6 flex flex-col justify-between relative z-10">
+        <div className="flex-1 flex items-start justify-between">
+          <div className="flex flex-col justify-between h-full">
+            {icon && <div className="text-white/90 mb-auto">{icon}</div>}
+          </div>
+          {children}
         </div>
         <div>
           <h3 className="text-white m-0">{title}</h3>
