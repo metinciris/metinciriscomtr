@@ -232,7 +232,6 @@ export function Home({ onNavigate }: HomeProps) {
                 icon={<Phone size={36} />}
                 color="bg-[#00A6D6]"
                 size="wide"
-                className="!p-4"
                 onClick={() => onNavigate('iletisim')}
               >
                 <div className="flex flex-col items-center justify-center mr-1">
