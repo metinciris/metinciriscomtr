@@ -1,0 +1,58 @@
+name: Moderation
+
+on:
+  issues:
+    types: [opened]
+  issue_comment:
+    types: [created]
+
+jobs:
+  moderate:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Check if actor is owner
+        id: check_owner
+        run: |
+          if [ "${{ github.actor }}" == "metinciris" ]; then
+            echo "is_owner=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_owner=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Close and Lock Issue (Non-Owner)
+        if: github.event_name == 'issues' && steps.check_owner.outputs.is_owner == 'false'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: "Bu depo sadece kişisel web sitesi içerik yönetimi içindir. Dışarıdan açılan konular otomatik olarak kapatılmaktadır.\n\nThis repository is for personal website content management only. Issues opened by others are automatically closed."
+            });
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              state: 'closed',
+              state_reason: 'not_planned'
+            });
+            await github.rest.issues.lock({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              lock_reason: 'spam'
+            });
+
+      - name: Delete Comment (Non-Owner)
+        if: github.event_name == 'issue_comment' && steps.check_owner.outputs.is_owner == 'false'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            await github.rest.issues.deleteComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: context.payload.comment.id
+            });
