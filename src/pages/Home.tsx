@@ -229,18 +229,19 @@ export function Home({ onNavigate }: HomeProps) {
               <MetroTile
                 title="İletişim"
                 subtitle={iletisimSubtitle}
-                icon={<Phone size={40} />}
+                icon={<Phone size={36} />}
                 color="bg-[#00A6D6]"
                 size="wide"
+                className="!p-4"
                 onClick={() => onNavigate('iletisim')}
               >
-                <div className="flex flex-col items-center justify-center mr-2">
+                <div className="flex flex-col items-center justify-center mr-1">
                   <img
                     src="/img/metinciris.png"
                     alt="Prof. Dr. Metin Çiriş"
-                    className="w-16 h-16 rounded-full object-cover border-2 border-white/70 shadow-md mb-1"
+                    className="w-12 h-12 rounded-full object-cover border-2 border-white/70 shadow-md mb-1"
                   />
-                  <span className="text-white text-[10px] font-bold text-center leading-tight opacity-90">
+                  <span className="text-white text-[9px] font-bold text-center leading-tight opacity-90">
                     Prof. Dr.
                     <br />
                     Metin Çiriş
