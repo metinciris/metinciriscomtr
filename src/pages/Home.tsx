@@ -232,7 +232,7 @@ export function Home({ onNavigate }: HomeProps) {
   const podcastDynamicTitle = usePodcastRotatingTitle(10000);
   const podcastSubtitle =
     podcastDynamicTitle && podcastDynamicTitle.trim().length > 0
-      ? shorten(podcastDynamicTitle, 32)
+      ? shorten(podcastDynamicTitle, 80)
       : 'Güncel makale başlıkları';
 
   // Hava durumu (Isparta) – Open-Meteo
