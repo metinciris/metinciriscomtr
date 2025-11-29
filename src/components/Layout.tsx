@@ -22,13 +22,21 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
       <header className="bg-[#1e1e1e] text-white sticky top-0 z-50 shadow-lg">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16 md:h-12">
-<div className="w-12 h-12 rounded-md overflow-hidden flex items-center justify-center bg-white">
-  <img
-    src="/favicon.ico"
-    alt="Prof. Dr. Metin Çiriş"
-    className="w-full h-full object-contain"
-  />
+<div
+  className="flex items-center space-x-3 cursor-pointer"
+  onClick={() => onNavigate('home')}
+>
+  <div className="w-10 h-10 bg-[#00A6D6] flex items-center justify-center rounded-md overflow-hidden">
+    <img
+      src="/favicon.ico"
+      alt="Prof. Dr. Metin Çiriş"
+      className="w-8 h-8 object-contain"
+    />
+  </div>
+
+  {/* yanındaki metinler burada devam edecek */}
 </div>
+
 
               <div>
                 <h1 className="m-0 leading-tight">Prof Dr Metin Çiriş</h1>
