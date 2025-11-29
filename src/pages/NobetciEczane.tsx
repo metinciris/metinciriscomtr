@@ -19,10 +19,10 @@ export function NobetciEczane() {
       color1: '00d2d3',
       color2: '17a2b8',
       city: 'isparta',   // sadece Isparta
-      county: '',        // tüm ilçeler
+      county: 'merkez',        // tüm ilçeler
       type: 'default-iframe',
       width: 400,        // px cinsinden; istersen artırabilirsin
-      height: 550        // px cinsinden
+      height: 650        // px cinsinden
     };
 
     const script = document.createElement('script');
