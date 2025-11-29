@@ -1,36 +1,110 @@
 import React from 'react';
 import { Layout } from './components/Layout';
-import { Home } from './pages/Home';
-import { Iletisim } from './pages/Iletisim';
-import { ZiyaretMesaji } from './pages/ZiyaretMesaji';
-import { BiyopsiSonucu } from './pages/BiyopsiSonucu';
-import { BenKimim } from './pages/BenKimim';
-import { NobetciEczane } from './pages/NobetciEczane';
-import { DersNotlari } from './pages/DersNotlari';
-import { DersProgrami } from './pages/DersProgrami';
-import { OgrenciYemek } from './pages/OgrenciYemek';
-import { HastaneYemek } from './pages/HastaneYemek';
-import { Donem3 } from './pages/Donem3';
-import { Portfolyo } from './pages/Portfolyo';
-import { SinavAnalizi } from './pages/SinavAnalizi';
-import { Yayinlar } from './pages/Yayinlar';
-import Podcast from './pages/Podcast';
-import { Blog } from './pages/Blog';
-import { GitHub } from './pages/GitHub';
-import { Facebook } from './pages/Facebook';
-import { LinkedIn } from './pages/LinkedIn';
-import { DigerCalismalar } from './pages/DigerCalismalar';
-import { FetusUzunluklari } from './pages/FetusUzunluklari';
-import { RcbCalculator } from './pages/RcbCalculator';
-import GistRaporlama from './pages/GistRaporlama';
-import { Galeri } from './pages/Galeri';
-import { Makale } from './pages/Makale';
 import { Toaster } from './components/ui/sonner';
+
+/**
+ * Sayfaları lazy yükle:
+ * - Named export olanlar: .then(m => ({ default: m.X }))
+ * - Default export olanlar: direkt import()
+ */
+
+// Home ve Hasta/Öğrenci/Akademik sayfaları
+const Home = React.lazy(() =>
+  import('./pages/Home').then((m) => ({ default: m.Home })),
+);
+const Iletisim = React.lazy(() =>
+  import('./pages/Iletisim').then((m) => ({ default: m.Iletisim })),
+);
+const ZiyaretMesaji = React.lazy(() =>
+  import('./pages/ZiyaretMesaji').then((m) => ({ default: m.ZiyaretMesaji })),
+);
+const BiyopsiSonucu = React.lazy(() =>
+  import('./pages/BiyopsiSonucu').then((m) => ({
+    default: m.BiyopsiSonucu,
+  })),
+);
+const BenKimim = React.lazy(() =>
+  import('./pages/BenKimim').then((m) => ({ default: m.BenKimim })),
+);
+const NobetciEczane = React.lazy(() =>
+  import('./pages/NobetciEczane').then((m) => ({
+    default: m.NobetciEczane,
+  })),
+);
+const DersNotlari = React.lazy(() =>
+  import('./pages/DersNotlari').then((m) => ({ default: m.DersNotlari })),
+);
+const DersProgrami = React.lazy(() =>
+  import('./pages/DersProgrami').then((m) => ({ default: m.DersProgrami })),
+);
+const OgrenciYemek = React.lazy(() =>
+  import('./pages/OgrenciYemek').then((m) => ({
+    default: m.OgrenciYemek,
+  })),
+);
+const HastaneYemek = React.lazy(() =>
+  import('./pages/HastaneYemek').then((m) => ({
+    default: m.HastaneYemek,
+  })),
+);
+const Donem3 = React.lazy(() =>
+  import('./pages/Donem3').then((m) => ({ default: m.Donem3 })),
+);
+const Galeri = React.lazy(() =>
+  import('./pages/Galeri').then((m) => ({ default: m.Galeri })),
+);
+
+// Akademik / diğer
+const Portfolyo = React.lazy(() =>
+  import('./pages/Portfolyo').then((m) => ({ default: m.Portfolyo })),
+);
+const SinavAnalizi = React.lazy(() =>
+  import('./pages/SinavAnalizi').then((m) => ({
+    default: m.SinavAnalizi,
+  })),
+);
+const Yayinlar = React.lazy(() =>
+  import('./pages/Yayinlar').then((m) => ({ default: m.Yayinlar })),
+);
+const Blog = React.lazy(() =>
+  import('./pages/Blog').then((m) => ({ default: m.Blog })),
+);
+const GitHubPage = React.lazy(() =>
+  import('./pages/GitHub').then((m) => ({ default: m.GitHub })),
+);
+const FacebookPage = React.lazy(() =>
+  import('./pages/Facebook').then((m) => ({ default: m.Facebook })),
+);
+const LinkedInPage = React.lazy(() =>
+  import('./pages/LinkedIn').then((m) => ({ default: m.LinkedIn })),
+);
+const DigerCalismalar = React.lazy(() =>
+  import('./pages/DigerCalismalar').then((m) => ({
+    default: m.DigerCalismalar,
+  })),
+);
+const FetusUzunluklari = React.lazy(() =>
+  import('./pages/FetusUzunluklari').then((m) => ({
+    default: m.FetusUzunluklari,
+  })),
+);
+const RcbCalculator = React.lazy(() =>
+  import('./pages/RcbCalculator').then((m) => ({
+    default: m.RcbCalculator,
+  })),
+);
+const Makale = React.lazy(() =>
+  import('./pages/Makale').then((m) => ({ default: m.Makale })),
+);
+
+// Default export olan sayfalar (Podcast, GistRaporlama)
+const Podcast = React.lazy(() => import('./pages/Podcast'));
+const GistRaporlama = React.lazy(() => import('./pages/GistRaporlama'));
 
 export default function App() {
   const [currentPage, setCurrentPage] = React.useState('home');
 
-  // Handle browser back/forward buttons
+  // Hash tabanlı navigation (geri/ileri butonları çalışsın)
   React.useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.slice(1) || 'home';
@@ -38,7 +112,7 @@ export default function App() {
     };
 
     window.addEventListener('hashchange', handleHashChange);
-    handleHashChange(); // Set initial page based on URL hash
+    handleHashChange(); // ilk açılışta URL'ye göre sayfa seç
 
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
@@ -74,30 +148,32 @@ export default function App() {
         return <OgrenciYemek />;
       case 'donem-3':
         return <Donem3 />;
-        case 'galeri':
-  return <Galeri />;
+      case 'galeri':
+        return <Galeri />;
+
+      // Akademik / diğer
       case 'portfolyo':
         return <Portfolyo />;
       case 'sinav-analizi':
         return <SinavAnalizi />;
 
-      // Akademik Bölümü
       case 'yayinlar':
         return <Yayinlar />;
-    case 'podcast':
-  return <Podcast onNavigate={setCurrentPage} />;
+
+      case 'podcast':
+        return <Podcast onNavigate={navigate} />;
 
       case 'blog':
         return <Blog />;
 
       case 'github':
-        return <GitHub />;
+        return <GitHubPage />;
 
       case 'facebook':
-        return <Facebook />;
+        return <FacebookPage />;
 
       case 'linkedin':
-        return <LinkedIn />;
+        return <LinkedInPage />;
 
       case 'diger-calismalar':
         return <DigerCalismalar onNavigate={navigate} />;
@@ -111,20 +187,27 @@ export default function App() {
       case 'gist-raporlama':
         return <GistRaporlama />;
 
+      case 'makale':
+        return <Makale onNavigate={navigate} />;
+
       case 'home':
       default:
         return <Home onNavigate={navigate} />;
-
-     case 'makale':
-      return <Makale onNavigate={navigate} />;
-
     }
   };
 
   return (
     <>
       <Layout currentPage={currentPage} onNavigate={navigate}>
-        {renderPage()}
+        <React.Suspense
+          fallback={
+            <div className="p-8 text-center text-slate-600">
+              Yükleniyor…
+            </div>
+          }
+        >
+          {renderPage()}
+        </React.Suspense>
       </Layout>
       <Toaster position="top-right" />
     </>
