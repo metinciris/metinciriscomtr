@@ -431,7 +431,7 @@ export function Home({ onNavigate }: HomeProps) {
               <MetroTile
                 title="Slide Galeri"
                 subtitle={galeriSubtitle}
-                icon={<Microscope size={40} />}   {/* 🔬 burada */}
+                icon={<Microscope size={40} />}
                 color="bg-[#003E7E]"
                 size="medium"
                 onClick={() => onNavigate('galeri')}
