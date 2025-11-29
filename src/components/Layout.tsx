@@ -21,7 +21,7 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
       {/* Header */}
       <header className="bg-[#1e1e1e] text-white sticky top-0 z-50 shadow-lg">
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16 md:h-12">
+          <div className="flex items-center justify-between h-20 md:h-16">
             {/* Logo + isim */}
             <div
               className="flex items-center space-x-3 cursor-pointer"
@@ -36,13 +36,16 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
                 />
               </div>
               <div>
-                <h1 className="m-0 leading-tight">Prof Dr Metin Çiriş</h1>
-                <p
-                  className="text-white/70 m-0"
-                  style={{ fontSize: '0.75rem' }}
-                >
-                  SDÜ Tıp Fakültesi Tıbbi Patoloji
-                </p>
+<h1 className="m-0 leading-tight text-lg md:text-xl">
+  Prof Dr Metin Çiriş
+</h1>
+<p
+  className="text-white/70 m-0 mt-0.5"
+  style={{ fontSize: '0.75rem' }}
+>
+  SDÜ Tıp Fakültesi Tıbbi Patoloji
+</p>
+
               </div>
             </div>
 
@@ -65,14 +68,16 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
             </nav>
 
             {/* Mobile Menu Button */}
-            <button
-              type="button"
-              className="md:hidden p-2 hover:bg-white/10 rounded"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label={mobileMenuOpen ? 'Menüyü kapat' : 'Menüyü aç'}
-            >
-              <Menu aria-hidden="true" size={24} />
-            </button>
+<button
+  type="button"
+  className="md:hidden p-2 hover:bg-white/10 rounded"
+  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+  aria-label={mobileMenuOpen ? 'Menüyü kapat' : 'Menüyü aç'}
+  aria-expanded={mobileMenuOpen}
+>
+  <Menu aria-hidden="true" size={24} />
+</button>
+
           </div>
 
           {/* Mobile Navigation */}
