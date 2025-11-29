@@ -303,9 +303,13 @@ export function Home({ onNavigate }: HomeProps) {
       <PageContainer>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* HASTA Bölümü */}
-          <div>
-            <h2 className="mb-6 text-2xl font-bold">Hasta</h2>
-            <div className="grid grid-cols-2 gap-4">
+<div>
+  <h2 className="mb-1 text-2xl font-bold">Hasta</h2>
+  <p className="mb-4 text-sm text-slate-600">
+    Biyopsi sonuçları, iletişim ve günlük pratik bilgiler.
+  </p>
+  <div className="grid grid-cols-2 gap-4">
+
               <MetroTile
                 title="İletişim"
                 subtitle={iletisimSubtitle}
@@ -372,10 +376,14 @@ export function Home({ onNavigate }: HomeProps) {
             </div>
           </div>
 
-          {/* ÖĞRENCİ Bölümü */}
-          <div>
-            <h2 className="mb-6 text-2xl font-bold">Öğrenci</h2>
-            <div className="grid grid-cols-2 gap-4">
+{/* ÖĞRENCİ Bölümü */}
+<div>
+  <h2 className="mb-1 text-2xl font-bold">Öğrenci</h2>
+  <p className="mb-4 text-sm text-slate-600">
+    Tıp, diş ve eczacılık öğrencileri için ders notları ve programlar.
+  </p>
+  <div className="grid grid-cols-2 gap-4">
+
               <MetroTile
                 title="SDÜ Tıp Patoloji Notlarım"
                 subtitle={tipSubtitle}
@@ -449,10 +457,14 @@ export function Home({ onNavigate }: HomeProps) {
             </div>
           </div>
 
-          {/* AKADEMİK Bölümü */}
-          <div>
-            <h2 className="mb-6 text-2xl font-bold">Akademik</h2>
-            <div className="grid grid-cols-2 gap-4">
+{/* AKADEMİK Bölümü */}
+<div>
+  <h2 className="mb-1 text-2xl font-bold">Akademik</h2>
+  <p className="mb-4 text-sm text-slate-600">
+    Yayınlar, portfolyo ve patolojiye yönelik projeler.
+  </p>
+  <div className="grid grid-cols-2 gap-4">
+
               <MetroTile
                 title="Yayınlar"
                 subtitle={yayinSubtitle}
