@@ -16,7 +16,7 @@ import {
   Github,
   Phone,
   Headphones,
-  Microscope,   // 🔬 YENİ
+  Microscope, // 🔬
 } from 'lucide-react';
 import './Home.css';
 
@@ -50,6 +50,16 @@ const MAKALE_SUBTITLES = [
   'Sadece patoloji',
   'PubMed linkleri ile',
   'Günlük uğrayın',
+];
+
+// 🔹 SDÜ Hastane Yemek karosu için dönen alt yazılar
+const HASTANE_YEMEK_SUBTITLES = [
+  'SDÜ tıp yemek',
+  'Hastane yemek menüsü',
+  'Bugünün yemeği',
+  'Bugünün menüsü',
+  'Öğlen menüsü',
+  'Akşam menüsü',
 ];
 
 // Akademik
@@ -234,6 +244,10 @@ export function Home({ onNavigate }: HomeProps) {
   const blogSubtitle = useRotatingText(BLOG_SUBTITLES, 4000);
   const galeriSubtitle = useRotatingText(GALERI_SUBTITLES, 4000);
   const makaleSubtitle = useRotatingText(MAKALE_SUBTITLES, 4000);
+  const hastaneYemekSubtitle = useRotatingText(
+    HASTANE_YEMEK_SUBTITLES,
+    4000,
+  );
 
   const yayinSubtitle = useRotatingText(YAYIN_SUBTITLES, 4000);
   const portfolyoSubtitle = useRotatingText(PORTFOLYO_SUBTITLES, 4000);
@@ -303,13 +317,12 @@ export function Home({ onNavigate }: HomeProps) {
       <PageContainer>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* HASTA Bölümü */}
-<div>
-  <h2 className="mb-1 text-2xl font-bold">Hasta</h2>
-  <p className="mb-4 text-sm text-slate-600">
-    Biyopsi sonuçları, iletişim ve günlük pratik bilgiler.
-  </p>
-  <div className="grid grid-cols-2 gap-4">
-
+          <div>
+            <h2 className="mb-1 text-2xl font-bold">Hasta</h2>
+            <p className="mb-4 text-sm text-slate-600">
+              Biyopsi sonuçları, iletişim ve günlük pratik bilgiler.
+            </p>
+            <div className="grid grid-cols-2 gap-4">
               <MetroTile
                 title="İletişim"
                 subtitle={iletisimSubtitle}
@@ -352,7 +365,7 @@ export function Home({ onNavigate }: HomeProps) {
               />
               <MetroTile
                 title="SDÜ Hastane Yemek"
-                subtitle=""
+                subtitle={hastaneYemekSubtitle}
                 icon={<Utensils size={40} />}
                 color="bg-[#16A085]"
                 size="medium"
@@ -376,14 +389,14 @@ export function Home({ onNavigate }: HomeProps) {
             </div>
           </div>
 
-{/* ÖĞRENCİ Bölümü */}
-<div>
-  <h2 className="mb-1 text-2xl font-bold">Öğrenci</h2>
-  <p className="mb-4 text-sm text-slate-600">
-    Tıp, diş ve eczacılık öğrencileri için ders notları ve programlar.
-  </p>
-  <div className="grid grid-cols-2 gap-4">
-
+          {/* ÖĞRENCİ Bölümü */}
+          <div>
+            <h2 className="mb-1 text-2xl font-bold">Öğrenci</h2>
+            <p className="mb-4 text-sm text-slate-600">
+              Tıp, diş ve eczacılık öğrencileri için ders notları ve
+              programlar.
+            </p>
+            <div className="grid grid-cols-2 gap-4">
               <MetroTile
                 title="SDÜ Tıp Patoloji Notlarım"
                 subtitle={tipSubtitle}
@@ -457,14 +470,13 @@ export function Home({ onNavigate }: HomeProps) {
             </div>
           </div>
 
-{/* AKADEMİK Bölümü */}
-<div>
-  <h2 className="mb-1 text-2xl font-bold">Akademik</h2>
-  <p className="mb-4 text-sm text-slate-600">
-    Yayınlar, portfolyo ve patolojiye yönelik projeler.
-  </p>
-  <div className="grid grid-cols-2 gap-4">
-
+          {/* AKADEMİK Bölümü */}
+          <div>
+            <h2 className="mb-1 text-2xl font-bold">Akademik</h2>
+            <p className="mb-4 text-sm text-slate-600">
+              Yayınlar, portfolyo ve patolojiye yönelik projeler.
+            </p>
+            <div className="grid grid-cols-2 gap-4">
               <MetroTile
                 title="Yayınlar"
                 subtitle={yayinSubtitle}
