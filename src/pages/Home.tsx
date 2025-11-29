@@ -455,7 +455,7 @@ export function Home({ onNavigate }: HomeProps) {
                 icon={<Headphones size={40} />}
                 color="bg-[#E67E22]"
                 size="wide"
-                onClick={() => onNavigate('profil')}
+                onClick={() => onNavigate('podcast')}
               />
 
               <MetroTile
