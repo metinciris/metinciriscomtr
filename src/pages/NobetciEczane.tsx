@@ -31,7 +31,7 @@ export function NobetciEczane() {
       county: 'merkez',  // Isparta merkez
       type: 'default-iframe',
       width: 450,        // px cinsinden
-      height: 1150       // px cinsinden
+      height: 1100       // px cinsinden
     };
 
     const script = document.createElement('script');
@@ -52,7 +52,7 @@ export function NobetciEczane() {
       <div className="bg-gradient-to-r from-[#990000] to-[#8B0000] text-white p-12 mb-8">
         <h1 className="text-white mb-4">Isparta Nöbetçi Eczane</h1>
         <p className="text-white/90">
-          Isparta Merkez ve İlçeler Nöbetçi Eczaneler
+          Isparta Merkez Nöbetçi Eczaneler
         </p>
       </div>
 
