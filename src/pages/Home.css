@@ -180,7 +180,7 @@
 /* --- TIKLAMA ANİMASYONU (DÜZELTİLMİŞ) --- */
 
 .home-weather-tile:active .home-weather-icon {
-  animation: weather-bounce-click 1.1s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: weather-bounce-click 2.1s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes weather-bounce-click {
