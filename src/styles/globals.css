@@ -187,3 +187,8 @@
 html {
   font-size: var(--font-size);
 }
+/* Safari'de toast sürüklenirken metin seçimini engelle */
+[data-sonner-toast][data-swiped="true"] {
+  -webkit-user-select: none; /* Safari / iOS Safari */
+  user-select: none;         /* Diğer modern tarayıcılar */
+}
