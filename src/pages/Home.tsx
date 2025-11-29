@@ -14,8 +14,8 @@ import {
   FolderOpen,
   Linkedin,
   Github,
-  UserCircle,
   Phone,
+  Headphones,
 } from 'lucide-react';
 import './Home.css';
 
@@ -54,11 +54,6 @@ const PORTFOLYO_SUBTITLES = [
   'Günlük podcast',
   'Günlük makaleler',
 ];
-const PROFIL_SUBTITLES = [
-  'Akademik özgeçmiş',
-  'İletişim bilgileri',
-  'Çalışma alanları',
-];
 const DIGER_SUBTITLES = ['Raporlama', 'Patoloji için'];
 
 /* --- KISA DÖNEN METİN HOOK'U --- */
@@ -76,6 +71,73 @@ function useRotatingText(texts: string[], intervalMs: number): string {
   }, [texts, intervalMs]);
 
   return texts[index] ?? '';
+}
+
+/* Küçük yardımcı: yazıyı tek satırda tutmak için kısaltma */
+function shorten(text: string, max: number): string {
+  if (!text) return '';
+  return text.length <= max ? text : text.slice(0, max - 3) + '...';
+}
+
+/* --- PODCAST KAROSU İÇİN SHEET'TEN BAŞLIK ÇEKEN HOOK --- */
+
+const PODCAST_SHEET_ID = '148p3M41R52gVVjtLSF2Qh8rJvBPEWJ7SV4lgSBQYwLc';
+const PODCAST_GID = '1109640564';
+const PODCAST_RANGE = 'A1:F132';
+
+function usePodcastRotatingTitle(intervalMs: number): string {
+  const [titles, setTitles] = useState<string[]>([]);
+  const [index, setIndex] = useState(0);
+
+  // Başlıkları bir kez çek
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const url = `https://docs.google.com/spreadsheets/d/${PODCAST_SHEET_ID}/gviz/tq?tqx=out:json&gid=${PODCAST_GID}&range=${PODCAST_RANGE}`;
+        const res = await fetch(url);
+        const text = await res.text();
+        const jsonText = text.substring(
+          text.indexOf('(') + 1,
+          text.lastIndexOf(')'),
+        );
+        const data = JSON.parse(jsonText);
+
+        const collected: string[] = [];
+        if (data.table && data.table.rows) {
+          data.table.rows.forEach((row: any) => {
+            const title = row.c[0]?.v?.toString().trim();
+            if (title) {
+              collected.push(title);
+            }
+          });
+        }
+
+        if (collected.length > 0) {
+          // Her sayfa yüklemesinde rastgele bir başlangıç index'i
+          const startIndex = Math.floor(Math.random() * collected.length);
+          setTitles(collected);
+          setIndex(startIndex);
+        }
+      } catch (e) {
+        console.error('Podcast başlıkları alınamadı', e);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // 10 sn'de bir sonraki başlığa geç
+  useEffect(() => {
+    if (!titles.length) return;
+    const id = window.setInterval(() => {
+      setIndex((prev) => (prev + 1) % titles.length);
+    }, intervalMs);
+
+    return () => window.clearInterval(id);
+  }, [titles, intervalMs]);
+
+  if (!titles.length) return '';
+  return titles[index] ?? '';
 }
 
 /* --- HAVA DURUMU TİP VE YARDIMCI FONKSİYONLAR --- */
@@ -164,8 +226,14 @@ export function Home({ onNavigate }: HomeProps) {
 
   const yayinSubtitle = useRotatingText(YAYIN_SUBTITLES, 4000);
   const portfolyoSubtitle = useRotatingText(PORTFOLYO_SUBTITLES, 4000);
-  const profilSubtitle = useRotatingText(PROFIL_SUBTITLES, 4000);
   const digerSubtitle = useRotatingText(DIGER_SUBTITLES, 4000);
+
+  // Podcast karosu için canlı başlık
+  const podcastDynamicTitle = usePodcastRotatingTitle(10000);
+  const podcastSubtitle =
+    podcastDynamicTitle && podcastDynamicTitle.trim().length > 0
+      ? shorten(podcastDynamicTitle, 32)
+      : 'Güncel makale başlıkları';
 
   // Hava durumu (Isparta) – Open-Meteo
   const [weather, setWeather] = useState<WeatherState>({
@@ -277,7 +345,9 @@ export function Home({ onNavigate }: HomeProps) {
               />
 
               {/* Lumia tarzı, tıklanmayan hava durumu karosu */}
-              <div className={`home-weather-tile home-weather-${weather.variant}`}>
+              <div
+                className={`home-weather-tile home-weather-${weather.variant}`}
+              >
                 <div className="home-weather-header">
                   <span className="home-weather-city">ISPARTA</span>
                 </div>
@@ -377,14 +447,17 @@ export function Home({ onNavigate }: HomeProps) {
                 size="medium"
                 onClick={() => onNavigate('portfolyo')}
               />
+
+              {/* PROFİL yerine PODCAST karosu */}
               <MetroTile
-                title="Profil"
-                subtitle={profilSubtitle}
-                icon={<UserCircle size={40} />}
+                title="Podcast"
+                subtitle={podcastSubtitle}
+                icon={<Headphones size={40} />}
                 color="bg-[#E67E22]"
                 size="wide"
                 onClick={() => onNavigate('profil')}
               />
+
               <MetroTile
                 title="Facebook"
                 subtitle=""
@@ -419,8 +492,8 @@ export function Home({ onNavigate }: HomeProps) {
               />
             </div>
           </div>
-        </div >
-      </PageContainer >
-    </div >
+        </div>
+      </PageContainer>
+    </div>
   );
 }
