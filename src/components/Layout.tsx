@@ -22,25 +22,27 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
       <header className="bg-[#1e1e1e] text-white sticky top-0 z-50 shadow-lg">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16 md:h-12">
-<div
-  className="flex items-center space-x-3 cursor-pointer"
-  onClick={() => onNavigate('home')}
->
-  <div className="w-10 h-10 bg-[#00A6D6] flex items-center justify-center rounded-md overflow-hidden">
-    <img
-      src="/favicon.ico"
-      alt="Prof. Dr. Metin Çiriş"
-      className="w-8 h-8 object-contain"
-    />
-  </div>
-
-  {/* yanındaki metinler burada devam edecek */}
-</div>
-
-
+            {/* Logo + isim */}
+            <div
+              className="flex items-center space-x-3 cursor-pointer"
+              onClick={() => onNavigate('home')}
+            >
+              {/* Burada eskiden MC yazıyordu, şimdi favicon gösteriyoruz */}
+              <div className="w-10 h-10 bg-[#00A6D6] flex items-center justify-center rounded-md overflow-hidden">
+                <img
+                  src="/favicon.ico"
+                  alt="Prof. Dr. Metin Çiriş"
+                  className="w-8 h-8 object-contain"
+                />
+              </div>
               <div>
                 <h1 className="m-0 leading-tight">Prof Dr Metin Çiriş</h1>
-                <p className="text-white/70 m-0" style={{ fontSize: '0.75rem' }}>SDÜ Tıp Fakültesi Tıbbi Patoloji</p>
+                <p
+                  className="text-white/70 m-0"
+                  style={{ fontSize: '0.75rem' }}
+                >
+                  SDÜ Tıp Fakültesi Tıbbi Patoloji
+                </p>
               </div>
             </div>
 
@@ -50,10 +52,11 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
                 <button
                   key={item.path}
                   onClick={() => onNavigate(item.path)}
-                  className={`px-4 py-2 flex items-center space-x-2 transition-colors ${currentPage === item.path
-                    ? 'bg-[#0078D4] text-white'
-                    : 'text-white/80 hover:bg-white/10'
-                    }`}
+                  className={`px-4 py-2 flex items-center space-x-2 transition-colors ${
+                    currentPage === item.path
+                      ? 'bg-[#0078D4] text-white'
+                      : 'text-white/80 hover:bg-white/10'
+                  }`}
                 >
                   <item.icon size={18} />
                   <span>{item.name}</span>
@@ -61,16 +64,15 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
               ))}
             </nav>
 
-{/* Mobile Menu Button */}
-<button
-  type="button"
-  className="md:hidden p-2 hover:bg-white/10 rounded"
-  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-  aria-label={mobileMenuOpen ? 'Menüyü kapat' : 'Menüyü aç'}
->
-  <Menu aria-hidden="true" size={24} />
-</button>
-
+            {/* Mobile Menu Button */}
+            <button
+              type="button"
+              className="md:hidden p-2 hover:bg-white/10 rounded"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label={mobileMenuOpen ? 'Menüyü kapat' : 'Menüyü aç'}
+            >
+              <Menu aria-hidden="true" size={24} />
+            </button>
           </div>
 
           {/* Mobile Navigation */}
@@ -83,10 +85,11 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
                     onNavigate(item.path);
                     setMobileMenuOpen(false);
                   }}
-                  className={`w-full px-4 py-3 flex items-center space-x-2 transition-colors ${currentPage === item.path
-                    ? 'bg-[#0078D4] text-white'
-                    : 'text-white/80 hover:bg-white/10'
-                    }`}
+                  className={`w-full px-4 py-3 flex items-center space-x-2 transition-colors ${
+                    currentPage === item.path
+                      ? 'bg-[#0078D4] text-white'
+                      : 'text-white/80 hover:bg-white/10'
+                  }`}
                 >
                   <item.icon size={18} />
                   <span>{item.name}</span>
@@ -107,7 +110,8 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
             <div>
               <h3>Prof Dr Metin Çiriş</h3>
               <p className="text-white/70 mt-2">
-                Süleyman Demirel Üniversitesi<br />
+                Süleyman Demirel Üniversitesi
+                <br />
                 Tıp Fakültesi Tıbbi Patoloji Anabilim Dalı
               </p>
             </div>
@@ -144,7 +148,10 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
               <h4>İletişim Bilgileri</h4>
               <div className="text-white/70 mt-2 space-y-1">
                 <p className="m-0">
-                  <a href="mailto:ibrahimciris@sdu.edu.tr" className="hover:text-white transition-colors">
+                  <a
+                    href="mailto:ibrahimciris@sdu.edu.tr"
+                    className="hover:text-white transition-colors"
+                  >
                     ibrahimciris@sdu.edu.tr
                   </a>
                 </p>
@@ -172,7 +179,9 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
             </div>
           </div>
           <div className="border-t border-white/20 mt-8 pt-6 text-center text-white/60">
-            <p className="m-0">© 2025 Prof Dr Metin Çiriş - SDÜ Tıp Fakültesi Tıbbi Patoloji</p>
+            <p className="m-0">
+              © 2025 Prof Dr Metin Çiriş - SDÜ Tıp Fakültesi Tıbbi Patoloji
+            </p>
           </div>
         </div>
       </footer>
