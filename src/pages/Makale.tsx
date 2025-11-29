@@ -73,13 +73,17 @@ export function Makale({ onNavigate }: MakaleProps) {
   return (
     <PageContainer>
       {/* Üst açıklama */}
-      <div className="bg-gradient-to-r from-[#00A6D6] to-[#8E44AD] text-white p-8 mb-8 rounded-2xl">
-        <h1 className="text-white mb-3">Günlük PubMed Makale Özetleri</h1>
-        <p className="text-white/90 text-sm md:text-base">
-          Dünyada ve Türkiye&apos;de önde gelen patoloji dergilerini takip ediyorum.
-          İşte son çıkan makaleler.
-        </p>
-      </div>
+<div className="bg-gradient-to-r from-[#00A6D6] to-[#8E44AD] text-white p-8 mb-8 rounded-2xl">
+  <h1 className="text-white mb-3">Günlük PubMed Makale Özetleri</h1>
+  <p className="text-white/90 text-sm md:text-base">
+    Dünyada ve Türkiye&apos;de önde gelen patoloji dergilerini takip ediyorum.
+    İşte son çıkan makaleler.
+  </p>
+  <p className="text-white/80 text-xs mt-2">
+    En yeni özetler en üstte listelenir.
+  </p>
+</div>
+
 
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 mb-6 text-sm rounded-lg">
@@ -88,7 +92,7 @@ export function Makale({ onNavigate }: MakaleProps) {
       )}
 
       {/* Sadece A3’ten gelen kutular */}
-      <div className="space-y-6">
+     <div className="space-y-8">
         {issues.map(issue => (
           <div
             key={issue.id}
