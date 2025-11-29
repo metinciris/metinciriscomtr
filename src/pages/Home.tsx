@@ -451,7 +451,7 @@ export function Home({ onNavigate }: HomeProps) {
 
               {/* PROFİL yerine PODCAST karosu */}
               <MetroTile
-                title="Podcast"
+                title="Patoloji Podcast"
                 subtitle={podcastSubtitle}
                 icon={<Headphones size={40} />}
                 color="bg-[#E67E22]"
