@@ -28,12 +28,14 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
               onClick={() => onNavigate('home')}
             >
               {/* Burada eskiden MC yazıyordu, şimdi favicon gösteriyoruz */}
-              <div className="w-10 h-10 bg-[#00A6D6] flex items-center justify-center rounded-md overflow-hidden">
-                <img
-                  src="/favicon.ico"
-                  alt="Prof. Dr. Metin Çiriş"
-                  className="w-8 h-8 object-contain"
-                />
+<div className="w-12 h-12 bg-[#00A6D6] rounded-xl overflow-hidden flex items-center justify-center">
+  <img
+    src="/img/metinciris.jpg"
+    alt="Prof. Dr. Metin Çiriş"
+    className="w-full h-full object-cover"
+  />
+</div>
+
               </div>
               <div>
                 <h1 className="m-0 leading-tight">Prof Dr Metin Çiriş</h1>
