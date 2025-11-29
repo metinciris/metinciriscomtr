@@ -2707,3 +2707,12 @@ html {
   inherits: false;
   initial-value: 1;
 }
+
+.podcast-html-content p {
+  margin: 4px 0;
+}
+
+.podcast-html-content b {
+  display: block;
+  margin-top: 12px;
+}
