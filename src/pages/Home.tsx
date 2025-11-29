@@ -51,8 +51,9 @@ const YAYIN_SUBTITLES = [
 ];
 const PORTFOLYO_SUBTITLES = [
   'Kısaca ben',
-  'Günlük podcast',
-  'Günlük makaleler',
+  'Uzmanlıklarım',
+  'Baktığım biyopsiler',
+    'Akademik geçmiş',
 ];
 const DIGER_SUBTITLES = ['Raporlama', 'Patoloji için'];
 
