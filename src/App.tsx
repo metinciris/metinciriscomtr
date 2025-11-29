@@ -84,8 +84,8 @@ export default function App() {
       // Akademik Bölümü
       case 'yayinlar':
         return <Yayinlar />;
-      case 'profil':
-        return <Profil onNavigate={navigate} />;
+    case 'profil':
+  return <Podcast onNavigate={setCurrentPage} />;
 
       case 'blog':
         return <Blog />;
