@@ -64,8 +64,7 @@ export function NobetciEczane() {
         <div className="max-w-3xl mx-auto">
           <h2 className="mb-3">Bugünkü Nöbetçi Eczaneler (Isparta)</h2>
           <p className="text-muted-foreground mb-4">
-            Aşağıdaki listede Isparta ili için güncel nöbetçi eczaneler, Eczaneleri.NET servisi
-            üzerinden otomatik olarak gösterilmektedir.
+            Aşağıdaki nöbetçi eczaneler otomatik alınmaktadır:
           </p>
           {/* Widget konteyneri – script burayı dolduracak */}
           <div className="pharmacy-container w-full overflow-hidden" />
