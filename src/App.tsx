@@ -24,7 +24,7 @@ import { FetusUzunluklari } from './pages/FetusUzunluklari';
 import { RcbCalculator } from './pages/RcbCalculator';
 import GistRaporlama from './pages/GistRaporlama';
 import { Galeri } from './pages/Galeri';
-
+import { Makale } from './pages/Makale';
 import { Toaster } from './components/ui/sonner';
 
 export default function App() {
