@@ -1,7 +1,14 @@
 // src/pages/Podcast.tsx
 import { useEffect, useState, useRef } from 'react';
 import { PageContainer } from '../components/PageContainer';
-import { Play, Pause, Square, SkipBack, SkipForward, Volume2 } from 'lucide-react';
+import {
+  Play,
+  Pause,
+  Square,
+  SkipBack,
+  SkipForward,
+  Volume2,
+} from 'lucide-react';
 
 interface PodcastProps {
   onNavigate: (page: string) => void; // App ile uyum için, bu sayfada kullanmıyoruz
@@ -36,6 +43,8 @@ const journalMapping: JournalMapping[] = [
   },
 ];
 
+const PODCAST_SHEET_ID = '148p3M41R52gVVjtLSF2Qh8rJvBPEWJ7SV4lgSBQYwLc';
+
 export default function Podcast({}: PodcastProps) {
   const [articleTitles, setArticleTitles] = useState<string[]>([]);
   const [articleJournals, setArticleJournals] = useState<string[]>([]);
@@ -48,7 +57,9 @@ export default function Podcast({}: PodcastProps) {
   const [loadingMessage, setLoadingMessage] = useState(
     "Google Sheets'ten veriler yükleniyor...",
   );
-  const [tableData, setTableData] = useState<string[]>([]);
+
+  // alt kısmın HTML bloğu (A1 hücresi)
+  const [htmlContent, setHtmlContent] = useState<string>('');
 
   const synthRef = useRef<SpeechSynthesis | null>(null);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
@@ -63,10 +74,10 @@ export default function Podcast({}: PodcastProps) {
       synthRef.current.onvoiceschanged = loadVoices;
     }
 
-    // Google Charts ve tablo verisi
+    // Google Charts ile alt HTML hücresini çek
     loadGoogleCharts();
 
-    // Podcast verileri
+    // Podcast ana verileri
     fetchPodcastData();
 
     return () => {
@@ -89,42 +100,40 @@ export default function Podcast({}: PodcastProps) {
     const script = document.createElement('script');
     script.src = 'https://www.gstatic.com/charts/loader.js';
     script.onload = () => {
-      (window as any).google.charts.load('current', { packages: ['corechart'] });
-      (window as any).google.charts.setOnLoadCallback(loadTableData);
+      (window as any).google.charts.load('current', { packages: ['table'] });
+      (window as any).google.charts.setOnLoadCallback(loadHtmlBlock);
     };
     document.body.appendChild(script);
   };
 
-  const loadTableData = () => {
-    const sheetID = '148p3M41R52gVVjtLSF2Qh8rJvBPEWJ7SV4lgSBQYwLc';
+  // Alt taraftaki A1 hücresindeki dev HTML bloğunu çek
+  const loadHtmlBlock = () => {
     const query = new (window as any).google.visualization.Query(
-      `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?gid=1844098177&range=A1:A20`,
+      `https://docs.google.com/spreadsheets/d/${PODCAST_SHEET_ID}/gviz/tq?gid=1844098177&range=A1:A1`,
     );
 
     query.send((response: any) => {
       if (response.isError()) {
-        console.error('Veri çekilemedi');
+        console.error('HTML hücresi çekilemedi:', response.getMessage());
         return;
       }
 
-      const responseData = response.getDataTable();
-      const data: string[] = [];
-
-      for (let i = 0; i < responseData.getNumberOfRows(); i++) {
-        data.push(responseData.getValue(i, 0));
+      const dataTable = response.getDataTable();
+      if (dataTable.getNumberOfRows() > 0) {
+        const value = dataTable.getValue(0, 0);
+        if (typeof value === 'string') {
+          setHtmlContent(value);
+        }
       }
-
-      setTableData(data);
     });
   };
 
   const fetchPodcastData = async () => {
     try {
-      const SHEET_ID = '148p3M41R52gVVjtLSF2Qh8rJvBPEWJ7SV4lgSBQYwLc';
       const SHEET_GID = '1109640564';
       const SHEET_RANGE = 'A1:F132';
 
-      const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${SHEET_GID}&range=${SHEET_RANGE}`;
+      const url = `https://docs.google.com/spreadsheets/d/${PODCAST_SHEET_ID}/gviz/tq?tqx=out:json&gid=${SHEET_GID}&range=${SHEET_RANGE}`;
       const response = await fetch(url);
       const responseText = await response.text();
       const jsonText = responseText.substring(
@@ -334,7 +343,9 @@ export default function Podcast({}: PodcastProps) {
               </button>
               <button
                 onClick={handleNext}
-                disabled={currentTitleIndex >= articleTitles.length - 1 || isPlaying}
+                disabled={
+                  currentTitleIndex >= articleTitles.length - 1 || isPlaying
+                }
                 className="bg-[#336699] text-white px-4 py-2 rounded hover:bg-[#264d73] disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2 text-sm"
               >
                 <SkipForward size={16} /> Sonraki
@@ -366,21 +377,13 @@ export default function Podcast({}: PodcastProps) {
             <div className="text-xs text-gray-600 italic">{status}</div>
           </div>
 
-          {/* Alt tablo (A1:A20) */}
-          {tableData.length > 0 && (
+          {/* Alt HTML blok (A1 hücresi) */}
+          {htmlContent && (
             <div className="bg-white p-6 rounded-lg shadow-md mb-8">
-              <table className="w-full text-sm">
-                <tbody>
-                  {tableData.map((row, index) => (
-                    <tr key={index}>
-                      <td
-                        className="py-2 border-b"
-                        dangerouslySetInnerHTML={{ __html: row }}
-                      />
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <div
+                className="text-sm leading-relaxed podcast-html-content"
+                dangerouslySetInnerHTML={{ __html: htmlContent }}
+              />
             </div>
           )}
         </div>
