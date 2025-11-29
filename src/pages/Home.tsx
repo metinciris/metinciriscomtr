@@ -16,6 +16,7 @@ import {
   Github,
   Phone,
   Headphones,
+  Microscope,   // 🔬 YENİ
 } from 'lucide-react';
 import './Home.css';
 
@@ -43,7 +44,7 @@ const GALERI_SUBTITLES = [
   'Dijital slide arşivi',
 ];
 
-// 🔹 YENİ: Makale Takip karosu için
+// Makale Takip karosu için
 const MAKALE_SUBTITLES = [
   'Günlük makale',
   'Sadece patoloji',
@@ -79,7 +80,7 @@ function useRotatingText(texts: string[], intervalMs: number): string {
     return () => window.clearInterval(id);
   }, [texts, intervalMs]);
 
-    return texts[index] ?? '';
+  return texts[index] ?? '';
 }
 
 /* Küçük yardımcı: yazıyı tek satırda tutmak için kısaltma */
@@ -232,7 +233,7 @@ export function Home({ onNavigate }: HomeProps) {
   const eczaSubtitle = useRotatingText(ECZA_SUBTITLES, 4000);
   const blogSubtitle = useRotatingText(BLOG_SUBTITLES, 4000);
   const galeriSubtitle = useRotatingText(GALERI_SUBTITLES, 4000);
-  const makaleSubtitle = useRotatingText(MAKALE_SUBTITLES, 4000); // 🔹 yeni
+  const makaleSubtitle = useRotatingText(MAKALE_SUBTITLES, 4000);
 
   const yayinSubtitle = useRotatingText(YAYIN_SUBTITLES, 4000);
   const portfolyoSubtitle = useRotatingText(PORTFOLYO_SUBTITLES, 4000);
@@ -426,17 +427,17 @@ export function Home({ onNavigate }: HomeProps) {
                 onClick={() => onNavigate('blog')}
               />
 
-              {/* 🔹 Slide Galeri artık tek kare */}
+              {/* Slide Galeri – mikroskop ikonu */}
               <MetroTile
                 title="Slide Galeri"
                 subtitle={galeriSubtitle}
-                icon={<FileText size={40} />}
+                icon={<Microscope size={40} />}   {/* 🔬 burada */}
                 color="bg-[#003E7E]"
                 size="medium"
                 onClick={() => onNavigate('galeri')}
               />
 
-              {/* 🔹 Yeni: Makale Takip karosu */}
+              {/* Makale Takip karosu */}
               <MetroTile
                 title="Makale Takip"
                 subtitle={makaleSubtitle}
