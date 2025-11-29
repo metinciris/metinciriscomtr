@@ -43,6 +43,14 @@ const GALERI_SUBTITLES = [
   'Dijital slide arşivi',
 ];
 
+// 🔹 YENİ: Makale Takip karosu için
+const MAKALE_SUBTITLES = [
+  'Günlük makale',
+  'Sadece patoloji',
+  'PubMed linkleri ile',
+  'Günlük uğrayın',
+];
+
 // Akademik
 const YAYIN_SUBTITLES = [
   'Makale listesi',
@@ -53,7 +61,7 @@ const PORTFOLYO_SUBTITLES = [
   'Kısaca ben',
   'Uzmanlıklarım',
   'Baktığım biyopsiler',
-    'Akademik geçmiş',
+  'Akademik geçmiş',
 ];
 const DIGER_SUBTITLES = ['Raporlama', 'Patoloji için'];
 
@@ -71,7 +79,7 @@ function useRotatingText(texts: string[], intervalMs: number): string {
     return () => window.clearInterval(id);
   }, [texts, intervalMs]);
 
-  return texts[index] ?? '';
+    return texts[index] ?? '';
 }
 
 /* Küçük yardımcı: yazıyı tek satırda tutmak için kısaltma */
@@ -224,6 +232,7 @@ export function Home({ onNavigate }: HomeProps) {
   const eczaSubtitle = useRotatingText(ECZA_SUBTITLES, 4000);
   const blogSubtitle = useRotatingText(BLOG_SUBTITLES, 4000);
   const galeriSubtitle = useRotatingText(GALERI_SUBTITLES, 4000);
+  const makaleSubtitle = useRotatingText(MAKALE_SUBTITLES, 4000); // 🔹 yeni
 
   const yayinSubtitle = useRotatingText(YAYIN_SUBTITLES, 4000);
   const portfolyoSubtitle = useRotatingText(PORTFOLYO_SUBTITLES, 4000);
@@ -416,14 +425,25 @@ export function Home({ onNavigate }: HomeProps) {
                 size="medium"
                 onClick={() => onNavigate('blog')}
               />
-              {/* Öğrenci grubunun en altına Slide Galeri */}
+
+              {/* 🔹 Slide Galeri artık tek kare */}
               <MetroTile
                 title="Slide Galeri"
                 subtitle={galeriSubtitle}
                 icon={<FileText size={40} />}
                 color="bg-[#003E7E]"
-                size="wide"
+                size="medium"
                 onClick={() => onNavigate('galeri')}
+              />
+
+              {/* 🔹 Yeni: Makale Takip karosu */}
+              <MetroTile
+                title="Makale Takip"
+                subtitle={makaleSubtitle}
+                icon={<FileText size={40} />}
+                color="bg-[#16A085]"
+                size="medium"
+                onClick={() => onNavigate('makale')}
               />
             </div>
           </div>
