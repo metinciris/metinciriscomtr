@@ -114,6 +114,10 @@ export default function App() {
       case 'home':
       default:
         return <Home onNavigate={navigate} />;
+
+     case 'makale':
+      return <Makale onNavigate={navigate} />;
+
     }
   };
 
