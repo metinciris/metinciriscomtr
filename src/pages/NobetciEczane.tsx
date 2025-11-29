@@ -22,7 +22,7 @@ export function NobetciEczane() {
       county: 'merkez',        // tüm ilçeler
       type: 'default-iframe',
       width: 400,        // px cinsinden; istersen artırabilirsin
-      height: 650        // px cinsinden
+      height: 950        // px cinsinden
     };
 
     const script = document.createElement('script');
