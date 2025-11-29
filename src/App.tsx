@@ -14,7 +14,7 @@ import { Donem3 } from './pages/Donem3';
 import { Portfolyo } from './pages/Portfolyo';
 import { SinavAnalizi } from './pages/SinavAnalizi';
 import { Yayinlar } from './pages/Yayinlar';
-import Profil from './pages/Profil';
+import Podcast from './pages/Podcast';
 import { Blog } from './pages/Blog';
 import { GitHub } from './pages/GitHub';
 import { Facebook } from './pages/Facebook';
