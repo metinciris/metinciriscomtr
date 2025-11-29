@@ -21,8 +21,8 @@ export function NobetciEczane() {
       city: 'isparta',   // sadece Isparta
       county: 'merkez',        // tüm ilçeler
       type: 'default-iframe',
-      width: 400,        // px cinsinden; istersen artırabilirsin
-      height: 950        // px cinsinden
+      width: 450,        // px cinsinden; istersen artırabilirsin
+      height: 1000        // px cinsinden
     };
 
     const script = document.createElement('script');
