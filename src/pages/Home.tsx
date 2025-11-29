@@ -55,8 +55,8 @@ const MAKALE_SUBTITLES = [
 // 🔹 SDÜ Hastane Yemek karosu için dönen alt yazılar
 const HASTANE_YEMEK_SUBTITLES = [
   'SDÜ tıp yemek',
-  'Hastane yemek menüsü',
-  'Bugünün yemeği',
+  'Hastane yemek',
+  'Bugün yemek',
   'Bugünün menüsü',
   'Öğlen menüsü',
   'Akşam menüsü',
