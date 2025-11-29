@@ -285,7 +285,7 @@
 /* Tıklanınca: hızlı çık, süzülerek in */
 .home-weather-tile:active .home-weather-icon {
   /* süreyi uzattık, easing’i daha yumuşak yaptık */
-  animation: weather-bounce-click 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: weather-bounce-click 1.9s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Hızlı yukarı çıkıp yavaş yavaş inen zıplama */
