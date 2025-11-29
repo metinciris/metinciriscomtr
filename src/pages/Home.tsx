@@ -351,7 +351,7 @@ export function Home({ onNavigate }: HomeProps) {
                 onClick={() => onNavigate('nobetci-eczane')}
               />
               <MetroTile
-                title="SDÜ Hastane Bugünkü Yemek Menüsü"
+                title="SDÜ Hastane Yemek"
                 subtitle=""
                 icon={<Utensils size={40} />}
                 color="bg-[#16A085]"
