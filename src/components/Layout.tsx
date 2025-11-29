@@ -49,13 +49,16 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
               ))}
             </nav>
 
-            {/* Mobile Menu Button */}
-            <button
-              className="md:hidden p-2 hover:bg-white/10 rounded"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              <Menu size={24} />
-            </button>
+{/* Mobile Menu Button */}
+<button
+  type="button"
+  className="md:hidden p-2 hover:bg-white/10 rounded"
+  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+  aria-label={mobileMenuOpen ? 'Menüyü kapat' : 'Menüyü aç'}
+>
+  <Menu aria-hidden="true" size={24} />
+</button>
+
           </div>
 
           {/* Mobile Navigation */}
