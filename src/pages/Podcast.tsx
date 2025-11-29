@@ -58,7 +58,7 @@ export default function Podcast({}: PodcastProps) {
     "Google Sheets'ten veriler yükleniyor...",
   );
 
-  // alt kısmın HTML bloğu (A1 hücresi)
+  // Alt kısımdaki büyük HTML bloğu
   const [htmlContent, setHtmlContent] = useState<string>('');
 
   const synthRef = useRef<SpeechSynthesis | null>(null);
@@ -74,10 +74,10 @@ export default function Podcast({}: PodcastProps) {
       synthRef.current.onvoiceschanged = loadVoices;
     }
 
-    // Google Charts ile alt HTML hücresini çek
+    // Google Charts ile alt HTML verisini çek
     loadGoogleCharts();
 
-    // Podcast ana verileri
+    // Podcast başlık/PMID verileri
     fetchPodcastData();
 
     return () => {
@@ -100,31 +100,37 @@ export default function Podcast({}: PodcastProps) {
     const script = document.createElement('script');
     script.src = 'https://www.gstatic.com/charts/loader.js';
     script.onload = () => {
-      (window as any).google.charts.load('current', { packages: ['table'] });
+      // Eski, çalışan yapı: corechart paketi
+      (window as any).google.charts.load('current', { packages: ['corechart'] });
       (window as any).google.charts.setOnLoadCallback(loadHtmlBlock);
     };
     document.body.appendChild(script);
   };
 
-  // Alt taraftaki A1 hücresindeki dev HTML bloğunu çek
+  // Eski Profil.tsx gibi A1:A20 aralığını çek ama tablo çizme; tek HTML bloğu yap
   const loadHtmlBlock = () => {
     const query = new (window as any).google.visualization.Query(
-      `https://docs.google.com/spreadsheets/d/${PODCAST_SHEET_ID}/gviz/tq?gid=1844098177&range=A1:A1`,
+      `https://docs.google.com/spreadsheets/d/${PODCAST_SHEET_ID}/gviz/tq?gid=1844098177&range=A1:A20`,
     );
 
     query.send((response: any) => {
       if (response.isError()) {
-        console.error('HTML hücresi çekilemedi:', response.getMessage());
+        console.error('HTML hücreleri çekilemedi:', response.getMessage());
         return;
       }
 
-      const dataTable = response.getDataTable();
-      if (dataTable.getNumberOfRows() > 0) {
-        const value = dataTable.getValue(0, 0);
-        if (typeof value === 'string') {
-          setHtmlContent(value);
+      const responseData = response.getDataTable();
+      const parts: string[] = [];
+
+      for (let i = 0; i < responseData.getNumberOfRows(); i++) {
+        const value = responseData.getValue(i, 0);
+        if (typeof value === 'string' && value.trim().length > 0) {
+          parts.push(value);
         }
       }
+
+      // Tüm satırları tek bir HTML string olarak birleştir
+      setHtmlContent(parts.join(''));
     });
   };
 
@@ -377,7 +383,7 @@ export default function Podcast({}: PodcastProps) {
             <div className="text-xs text-gray-600 italic">{status}</div>
           </div>
 
-          {/* Alt HTML blok (A1 hücresi) */}
+          {/* Alt HTML blok: dergi + makale listeleri */}
           {htmlContent && (
             <div className="bg-white p-6 rounded-lg shadow-md mb-8">
               <div
