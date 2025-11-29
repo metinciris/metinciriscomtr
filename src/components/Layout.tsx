@@ -141,13 +141,7 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
                 >
                   Yayınlar
                 </button>
-                <button
-                  onClick={() => onNavigate('nobetci-eczane')}
-                  className="text-white/70 hover:text-white text-left transition-colors"
-                >
-                  Nöbetçi Eczane
-                </button>
-              </div>
+               </div>
             </div>
             <div>
               <h4>İletişim Bilgileri</h4>
@@ -185,7 +179,7 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
           </div>
           <div className="border-t border-white/20 mt-8 pt-6 text-center text-white/60">
             <p className="m-0">
-              © 2025 Prof Dr Metin Çiriş - SDÜ Tıp Fakültesi Tıbbi Patoloji
+              © 2026 Prof Dr Metin Çiriş - SDÜ Tıp Fakültesi Tıbbi Patoloji
             </p>
           </div>
         </div>
