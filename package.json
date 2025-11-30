@@ -56,10 +56,17 @@
             "@types/node": "^20.19.25",
             "@vitejs/plugin-react": "^5.1.1",
             "tailwindcss": "^4.1.17",
-            "vite": "6.3.5"
+            "vite": "6.3.5",
+            "vitest": "^1.6.0",
+            "@vitest/ui": "^1.6.0",
+            "jsdom": "^24.1.0",
+            "@testing-library/react": "^16.0.0",
+            "@testing-library/jest-dom": "^6.4.5"
       },
       "scripts": {
             "dev": "vite",
-            "build": "vite build"
+            "build": "vite build",
+            "test": "vitest",
+            "test:ui": "vitest --ui"
       }
 }
