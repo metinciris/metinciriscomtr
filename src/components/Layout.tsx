@@ -178,9 +178,9 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
             </div>
           </div>
           <div className="border-t border-white/20 mt-8 pt-6 text-center text-white/60">
-            <p className="m-0">
-              © 2026 Prof Dr Metin Çiriş - SDÜ Tıp Fakültesi Tıbbi Patoloji
-            </p>
+           <p className="m-0">
+          © {currentYear} Prof Dr Metin Çiriş - SDÜ Tıp Fakültesi Tıbbi Patoloji
+        </p>
           </div>
         </div>
       </footer>
