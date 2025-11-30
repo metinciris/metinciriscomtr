@@ -1,4 +1,9 @@
-"dependencies": {
+{
+  "name": "Web Site Yenileme Projesi",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "dependencies": {
     "@radix-ui/react-accordion": "^1.2.3",
     "@radix-ui/react-alert-dialog": "^1.1.6",
     "@radix-ui/react-aspect-ratio": "^1.1.2",
@@ -46,4 +51,16 @@
     "sonner": "^2.0.3",
     "tailwind-merge": "*",
     "vaul": "^1.1.2"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.17",
+    "@types/node": "^20.19.25",
+    "@vitejs/plugin-react": "^5.1.1",
+    "tailwindcss": "^4.1.17",
+    "vite": "6.3.5"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  }
 }
