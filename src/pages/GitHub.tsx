@@ -1,6 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { PageContainer } from '../components/PageContainer';
-import { Calendar, ExternalLink, Tag, Github as GithubIcon, Code, BookOpen, Users, Microscope } from 'lucide-react';
+import {
+    Calendar,
+    ExternalLink,
+    Tag,
+    Github as GithubIcon,
+    Code,
+    BookOpen,
+    Users,
+    Microscope,
+    Star
+} from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -13,12 +23,27 @@ interface GitHubPost {
     labels: { name: string }[];
 }
 
+interface GitHubRepo {
+    id: number;
+    name: string;
+    html_url: string;
+    description: string | null;
+    stargazers_count: number;
+    forks_count: number;
+    language: string | null;
+    updated_at: string;
+}
+
 export function GitHub() {
     const [posts, setPosts] = useState<GitHubPost[]>([]);
     const [loading, setLoading] = useState(true);
 
+    const [repos, setRepos] = useState<GitHubRepo[]>([]);
+    const [reposLoading, setReposLoading] = useState(true);
+
     useEffect(() => {
-        fetch('https://api.github.com/repos/metinciris/metinciriscomtr/issues?labels=github&state=open')
+        // GitHub etiketli Issues (sayfada gömmek istediğin yazılar)
+        fetch('https://api.github.com/repos/metinciris/metinciriscomtr/issues?labels=GitHub&state=open')
             .then(res => res.json())
             .then(data => {
                 if (Array.isArray(data)) {
@@ -29,6 +54,24 @@ export function GitHub() {
             .catch(err => {
                 console.error('Error fetching GitHub posts:', err);
                 setLoading(false);
+            });
+
+        // Popüler / son depolar (profil altına koyacağımız bölüm)
+        fetch('https://api.github.com/users/metinciris/repos?per_page=100')
+            .then(res => res.json())
+            .then((data: GitHubRepo[]) => {
+                if (Array.isArray(data)) {
+                    const sorted = [...data]
+                        .sort((a, b) => b.stargazers_count - a.stargazers_count)
+                        .slice(0, 6); // en popüler ilk 6 repo
+
+                    setRepos(sorted);
+                }
+                setReposLoading(false);
+            })
+            .catch(err => {
+                console.error('Error fetching GitHub repos:', err);
+                setReposLoading(false);
             });
     }, []);
 
@@ -206,7 +249,7 @@ export function GitHub() {
 
             {/* GitHub Issues Paylaşımları */}
             <div className="mb-4">
-                <h2 className="text-2xl font-bold mb-6">Son Paylaşımlar</h2>
+                <h2 className="text-2xl font-bold mb-6">Son Paylaşımlar (Issues ile eklediklerim)</h2>
             </div>
 
             {loading ? (
@@ -214,26 +257,28 @@ export function GitHub() {
                     <div className="w-12 h-12 border-4 border-[#333333] border-t-transparent rounded-full animate-spin"></div>
                 </div>
             ) : posts.length === 0 ? (
-                <div className="text-center py-12 bg-white rounded-xl border border-gray-100">
+                <div className="text-center py-12 bg-white rounded-xl border border-gray-100 mb-10">
                     <p className="text-gray-500">Henüz GitHub paylaşımı bulunmuyor.</p>
                 </div>
             ) : (
-                <div className="space-y-6">
+                <div className="space-y-6 mb-10">
                     {posts.map((post) => (
                         <div
                             key={post.id}
                             className="bg-white rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100 p-8"
                         >
                             <div className="flex flex-wrap gap-2 mb-4">
-                                {post.labels.filter(l => l.name !== 'github').map((label, index) => (
-                                    <span
-                                        key={index}
-                                        className="inline-flex items-center gap-1 px-3 py-1 bg-gray-100 text-gray-600 text-sm rounded-full font-medium"
-                                    >
-                                        <Tag size={12} />
-                                        {label.name}
-                                    </span>
-                                ))}
+                                {post.labels
+                                    .filter(l => l.name !== 'GitHub' && l.name.toLowerCase() !== 'github')
+                                    .map((label, index) => (
+                                        <span
+                                            key={index}
+                                            className="inline-flex items-center gap-1 px-3 py-1 bg-gray-100 text-gray-600 text-sm rounded-full font-medium"
+                                        >
+                                            <Tag size={12} />
+                                            {label.name}
+                                        </span>
+                                    ))}
                             </div>
 
                             <h2 className="text-2xl font-bold mb-4 text-gray-900">{post.title}</h2>
@@ -247,7 +292,9 @@ export function GitHub() {
                             <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                                 <div className="flex items-center gap-2 text-gray-500">
                                     <Calendar size={16} />
-                                    <span className="text-sm">{new Date(post.created_at).toLocaleDateString('tr-TR')}</span>
+                                    <span className="text-sm">
+                                        {new Date(post.created_at).toLocaleDateString('tr-TR')}
+                                    </span>
                                 </div>
                                 <a
                                     href={post.html_url}
@@ -262,6 +309,75 @@ export function GitHub() {
                     ))}
                 </div>
             )}
+
+            {/* Popüler Repos Bölümü */}
+            <div className="mt-4">
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-2xl font-bold">GitHub’da Öne Çıkan Depolar</h2>
+                    <a
+                        href="https://github.com/metinciris?tab=repositories"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 text-sm text-[#333333] hover:underline font-medium"
+                    >
+                        Tüm depoları görüntüle
+                        <ExternalLink size={14} />
+                    </a>
+                </div>
+
+                {reposLoading ? (
+                    <div className="flex justify-center py-12">
+                        <div className="w-10 h-10 border-4 border-[#333333] border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                ) : repos.length === 0 ? (
+                    <div className="text-center py-10 bg-white rounded-xl border border-gray-100">
+                        <p className="text-gray-500">
+                            Şu anda listelenecek depo bulunamadı veya GitHub API isteği sınırına ulaşıldı.
+                        </p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {repos.map(repo => (
+                            <a
+                                key={repo.id}
+                                href={repo.html_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="group bg-white rounded-xl border border-gray-100 p-6 hover:shadow-lg hover:border-gray-200 transition-all flex flex-col justify-between"
+                            >
+                                <div>
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <GithubIcon size={18} className="text-gray-700" />
+                                        <h3 className="text-lg font-semibold text-gray-900 group-hover:underline break-words">
+                                            {repo.name}
+                                        </h3>
+                                    </div>
+                                    <p className="text-sm text-gray-600 line-clamp-3 mb-4">
+                                        {repo.description || 'Açıklama eklenmemiş.'}
+                                    </p>
+                                </div>
+
+                                <div className="flex items-center justify-between pt-4 border-t border-gray-100 text-sm text-gray-500">
+                                    <div className="flex items-center gap-3">
+                                        <span className="inline-flex items-center gap-1">
+                                            <Star size={14} />
+                                            {repo.stargazers_count}
+                                        </span>
+                                        {repo.language && (
+                                            <span className="px-2 py-0.5 bg-gray-100 rounded-full text-xs">
+                                                {repo.language}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <span>
+                                        {new Date(repo.updated_at).toLocaleDateString('tr-TR')}
+                                    </span>
+                                </div>
+                            </a>
+                        ))}
+                    </div>
+                )}
+            </div>
         </PageContainer>
     );
 }
