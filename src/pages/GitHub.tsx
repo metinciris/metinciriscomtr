@@ -9,7 +9,8 @@ import {
     BookOpen,
     Users,
     Microscope,
-    Star
+    Star,
+    GitFork
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -23,22 +24,30 @@ interface GitHubPost {
     labels: { name: string }[];
 }
 
-interface GitHubRepo {
-    id: number;
+interface PinnedRepoApi {
+    author: string;
+    name: string;
+    description: string;
+    language: string | null;
+    stars: number;
+    forks: number;
+}
+
+interface GitHubRepoCard {
+    id: string;
     name: string;
     html_url: string;
-    description: string | null;
+    description: string;
+    language: string | null;
     stargazers_count: number;
     forks_count: number;
-    language: string | null;
-    updated_at: string;
 }
 
 export function GitHub() {
     const [posts, setPosts] = useState<GitHubPost[]>([]);
     const [loading, setLoading] = useState(true);
 
-    const [repos, setRepos] = useState<GitHubRepo[]>([]);
+    const [repos, setRepos] = useState<GitHubRepoCard[]>([]);
     const [reposLoading, setReposLoading] = useState(true);
 
     useEffect(() => {
@@ -56,21 +65,28 @@ export function GitHub() {
                 setLoading(false);
             });
 
-        // Popüler / son depolar (profil altına koyacağımız bölüm)
-        fetch('https://api.github.com/users/metinciris/repos?per_page=100')
+        // Pinned repolar (profilde iğnelenmiş olanlar)
+        fetch('https://pinned.berrysauce.dev/get/metinciris')
             .then(res => res.json())
-            .then((data: GitHubRepo[]) => {
+            .then((data: PinnedRepoApi[] | { detail?: string }) => {
                 if (Array.isArray(data)) {
-                    const sorted = [...data]
-                        .sort((a, b) => b.stargazers_count - a.stargazers_count)
-                        .slice(0, 6); // en popüler ilk 6 repo
-
-                    setRepos(sorted);
+                    const mapped: GitHubRepoCard[] = data.map((repo) => ({
+                        id: `${repo.author}/${repo.name}`,
+                        name: repo.name,
+                        html_url: `https://github.com/${repo.author}/${repo.name}`,
+                        description: repo.description || '',
+                        language: repo.language,
+                        stargazers_count: repo.stars,
+                        forks_count: repo.forks
+                    }));
+                    setRepos(mapped);
+                } else {
+                    console.error('Error from pinned API:', data);
                 }
                 setReposLoading(false);
             })
             .catch(err => {
-                console.error('Error fetching GitHub repos:', err);
+                console.error('Error fetching pinned repos:', err);
                 setReposLoading(false);
             });
     }, []);
@@ -310,10 +326,10 @@ export function GitHub() {
                 </div>
             )}
 
-            {/* Popüler Repos Bölümü */}
+            {/* Pinned Repos Bölümü */}
             <div className="mt-4">
                 <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-2xl font-bold">GitHub’da Öne Çıkan Depolar</h2>
+                    <h2 className="text-2xl font-bold">GitHub’da Öne Çıkan (Pinned) Depolar</h2>
                     <a
                         href="https://github.com/metinciris?tab=repositories"
                         target="_blank"
@@ -332,7 +348,7 @@ export function GitHub() {
                 ) : repos.length === 0 ? (
                     <div className="text-center py-10 bg-white rounded-xl border border-gray-100">
                         <p className="text-gray-500">
-                            Şu anda listelenecek depo bulunamadı veya GitHub API isteği sınırına ulaşıldı.
+                            Şu anda listelenecek pinned depo bulunamadı veya servis geçici olarak yanıt vermiyor.
                         </p>
                     </div>
                 ) : (
@@ -358,10 +374,14 @@ export function GitHub() {
                                 </div>
 
                                 <div className="flex items-center justify-between pt-4 border-t border-gray-100 text-sm text-gray-500">
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-4">
                                         <span className="inline-flex items-center gap-1">
                                             <Star size={14} />
                                             {repo.stargazers_count}
+                                        </span>
+                                        <span className="inline-flex items-center gap-1">
+                                            <GitFork size={14} />
+                                            {repo.forks_count}
                                         </span>
                                         {repo.language && (
                                             <span className="px-2 py-0.5 bg-gray-100 rounded-full text-xs">
@@ -369,9 +389,6 @@ export function GitHub() {
                                             </span>
                                         )}
                                     </div>
-                                    <span>
-                                        {new Date(repo.updated_at).toLocaleDateString('tr-TR')}
-                                    </span>
                                 </div>
                             </a>
                         ))}
