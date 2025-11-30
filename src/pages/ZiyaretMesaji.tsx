@@ -8,7 +8,7 @@ export function ZiyaretMesaji() {
   return (
     <PageContainer>
       <div className="bg-[#FF8C00] text-white p-12 mb-8">
-        <h1 className="text-white mb-4">Ziyareti Mesajı</h1>
+        <h1 className="text-white mb-4">Ziyaret Mesajı</h1>
         <p className="text-white/90">
           Web sitemizi ziyaret ettiğiniz için teşekkür ederiz. Görüş, öneri ve sorularınızı
           bizimle paylaşabilirsiniz.
@@ -33,20 +33,25 @@ export function ZiyaretMesaji() {
             id="ziyaretciForm"
             className="space-y-6"
           >
-            {/* Telefon */}
+            {/* E-posta (önceden Telefon alanı) */}
             <div>
-              <label htmlFor="phone" className="block mb-2">
-                Telefon
+              <label htmlFor="email" className="block mb-2">
+                E-posta Adresiniz
               </label>
               <Input
-                id="phone"
-                type="text"
-                name="entry.433982418"
-                placeholder="Telefon numaranız (isteğe bağlı)"
+                id="email"
+                type="email"
+                name="entry.433982418" // Eski "Telefon" sorusunun entry ID'si, artık e-posta için
+                placeholder="ornek@email.com"
+                inputMode="email"
+                autoComplete="email"
               />
+              <p className="text-muted-foreground mt-1 m-0 text-xs">
+                İsteğe bağlıdır. Yazarsanız, size geri dönüş yaparken kullanılabilir.
+              </p>
             </div>
 
-            {/* İsim Soyad / Şirket */}
+            {/* İsim Soyad / Şirket (zorunlu) */}
             <div>
               <label htmlFor="name" className="block mb-2">
                 İsim Soyad / Şirket <span className="text-destructive">*</span>
@@ -55,12 +60,12 @@ export function ZiyaretMesaji() {
                 id="name"
                 type="text"
                 name="entry.480799618"
-                placeholder="Adınız ve soyadınız"
+                placeholder="Adınız ve Soyadınız"
                 required
               />
             </div>
 
-            {/* Mesaj */}
+            {/* Mesaj (zorunlu) */}
             <div>
               <label htmlFor="message" className="block mb-2">
                 Mesajınız <span className="text-destructive">*</span>
@@ -87,10 +92,7 @@ export function ZiyaretMesaji() {
               Mesajı Gönder
             </button>
 
-            <p className="text-xs text-muted-foreground mt-2 m-0">
-              Bu form Google Forms üzerinden çalışır; iletileriniz Google hesabınızdaki forma
-              kaydedilir ve oradan e-posta bildirimi alırsınız.
-            </p>
+
           </form>
         </div>
 
