@@ -84,7 +84,7 @@ export function Facebook() {
                     {posts.map((post) => (
                         <div
                             key={post.id}
-                            className="bg-white rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100 p-6 md:p-8"
+                            className="bg-white rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100 p-6 md:p-8 max-w-3xl mx-auto"
                         >
                             {/* LABELS (facebook etiketi hariç) */}
                             <div className="flex flex-wrap gap-2 mb-3">
@@ -103,20 +103,20 @@ export function Facebook() {
                                     ))}
                             </div>
 
-                            {/* BAŞLIK (istersen issues title'ı kısa açıklama gibi kullanabilirsin) */}
+                            {/* BAŞLIK */}
                             <h2 className="text-xl md:text-2xl font-bold mb-4 text-gray-900">
                                 {post.title}
                             </h2>
 
                             {/* RESPONSIVE EMBED BÖLÜMÜ */}
                             <div className="text-gray-700 mb-4 md:mb-6 prose prose-sm md:prose-lg max-w-none">
-                                {/* iframe boyutunu override eden küçük CSS */}
+                                {/* iframe genişliğini override eden CSS */}
                                 <style>
                                     {`
                                     .fb-embed iframe {
                                         width: 100% !important;
                                         max-width: 100% !important;
-                                        height: auto !important;
+                                        border: none !important;
                                     }
                                 `}
                                 </style>
@@ -131,7 +131,7 @@ export function Facebook() {
                                 </div>
                             </div>
 
-                            {/* ALT SATIR: sadece tarih, GitHub link YOK */}
+                            {/* ALT SATIR: sadece tarih */}
                             <div className="pt-3 border-t border-gray-100 flex justify-between items-center">
                                 <div className="flex items-center gap-2 text-gray-500 text-xs md:text-sm">
                                     <Calendar size={16} />
@@ -141,7 +141,7 @@ export function Facebook() {
                                         ).toLocaleDateString("tr-TR")}
                                     </span>
                                 </div>
-                                {/* Sağ tarafta boş bırakıyoruz; istersen buraya "Facebook'ta aç" gibi bir link de ekleyebiliriz */}
+                                {/* Sağ taraf şimdilik boş; istersen buraya "Facebook'ta aç" linki ekleyebiliriz */}
                             </div>
                         </div>
                     ))}
