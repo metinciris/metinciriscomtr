@@ -3,7 +3,7 @@ import { PageContainer } from "../components/PageContainer";
 import { Calendar, ExternalLink, Tag } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import rehypeRaw from "rehype-raw"; // 🔥 iframe için ZORUNLU
+import rehypeRaw from "rehype-raw"; // HTML (iframe) işlemek için
 
 interface FacebookPost {
     id: number;
@@ -47,7 +47,8 @@ export function Facebook() {
                 </div>
 
                 <p className="text-white/90 max-w-3xl text-lg">
-                    Sosyal paylaşımlarım, güncel duyurular ve topluluk etkileşimleri.
+                    Facebook sayfamda paylaştığım gönderilerin embed edilmiş hâli.
+                    Güncel duyurular, eğitim içerikleri ve topluluk etkileşimleri burada.
                 </p>
 
                 <a
@@ -67,30 +68,34 @@ export function Facebook() {
                 </a>
             </div>
 
-            {/* İÇERİK ALANI */}
+            {/* İÇERİK */}
             {loading ? (
                 <div className="flex justify-center py-20">
-                    <div className="w-12 h-12 border-4 border-[#3B5998] border-t-transparent rounded-full animate-spin"></div>
+                    <div className="w-12 h-12 border-4 border-[#3B5998] border-t-transparent rounded-full animate-spin" />
                 </div>
             ) : posts.length === 0 ? (
                 <div className="text-center py-12 bg-white rounded-xl border border-gray-100">
-                    <p className="text-gray-500">Henüz Facebook paylaşımı bulunmuyor.</p>
+                    <p className="text-gray-500">
+                        Henüz embed edilmiş Facebook gönderisi eklenmemiş.
+                    </p>
                 </div>
             ) : (
-                <div className="space-y-6">
+                <div className="space-y-8">
                     {posts.map((post) => (
                         <div
                             key={post.id}
-                            className="bg-white rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100 p-8"
+                            className="bg-white rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100 p-6 md:p-8"
                         >
-                            {/* LABELS */}
-                            <div className="flex flex-wrap gap-2 mb-4">
+                            {/* LABELS (facebook etiketi hariç) */}
+                            <div className="flex flex-wrap gap-2 mb-3">
                                 {post.labels
-                                    .filter((l) => l.name.toLowerCase() !== "facebook")
+                                    .filter(
+                                        (l) => l.name.toLowerCase() !== "facebook"
+                                    )
                                     .map((label, index) => (
                                         <span
                                             key={index}
-                                            className="inline-flex items-center gap-1 px-3 py-1 bg-gray-100 text-gray-600 text-sm rounded-full font-medium"
+                                            className="inline-flex items-center gap-1 px-3 py-1 bg-gray-100 text-gray-600 text-xs md:text-sm rounded-full font-medium"
                                         >
                                             <Tag size={12} />
                                             {label.name}
@@ -98,36 +103,45 @@ export function Facebook() {
                                     ))}
                             </div>
 
-                            {/* BAŞLIK */}
-                            <h2 className="text-2xl font-bold mb-4 text-gray-900">{post.title}</h2>
+                            {/* BAŞLIK (istersen issues title'ı kısa açıklama gibi kullanabilirsin) */}
+                            <h2 className="text-xl md:text-2xl font-bold mb-4 text-gray-900">
+                                {post.title}
+                            </h2>
 
-                            {/* MARKDOWN + iframe */}
-                            <div className="text-gray-700 mb-6 prose prose-lg max-w-none">
-                                <ReactMarkdown
-                                    remarkPlugins={[remarkGfm]}
-                                    rehypePlugins={[rehypeRaw]} // 🔥 iframe, embed, HTML artık çalışıyor
-                                >
-                                    {post.body}
-                                </ReactMarkdown>
+                            {/* RESPONSIVE EMBED BÖLÜMÜ */}
+                            <div className="text-gray-700 mb-4 md:mb-6 prose prose-sm md:prose-lg max-w-none">
+                                {/* iframe boyutunu override eden küçük CSS */}
+                                <style>
+                                    {`
+                                    .fb-embed iframe {
+                                        width: 100% !important;
+                                        max-width: 100% !important;
+                                        height: auto !important;
+                                    }
+                                `}
+                                </style>
+
+                                <div className="fb-embed">
+                                    <ReactMarkdown
+                                        remarkPlugins={[remarkGfm]}
+                                        rehypePlugins={[rehypeRaw]}
+                                    >
+                                        {post.body}
+                                    </ReactMarkdown>
+                                </div>
                             </div>
 
-                            {/* ALT BİLGİ */}
-                            <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                                <div className="flex items-center gap-2 text-gray-500">
+                            {/* ALT SATIR: sadece tarih, GitHub link YOK */}
+                            <div className="pt-3 border-t border-gray-100 flex justify-between items-center">
+                                <div className="flex items-center gap-2 text-gray-500 text-xs md:text-sm">
                                     <Calendar size={16} />
-                                    <span className="text-sm">
-                                        {new Date(post.created_at).toLocaleDateString("tr-TR")}
+                                    <span>
+                                        {new Date(
+                                            post.created_at
+                                        ).toLocaleDateString("tr-TR")}
                                     </span>
                                 </div>
-
-                                <a
-                                    href={post.html_url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center gap-2 text-[#3B5998] hover:underline font-medium"
-                                >
-                                    GitHub'da Görüntüle <ExternalLink size={16} />
-                                </a>
+                                {/* Sağ tarafta boş bırakıyoruz; istersen buraya "Facebook'ta aç" gibi bir link de ekleyebiliriz */}
                             </div>
                         </div>
                     ))}
