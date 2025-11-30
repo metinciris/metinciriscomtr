@@ -1,5 +1,5 @@
 import React from 'react';
-import { Menu, Home, User, GraduationCap, BookOpen } from 'lucide-react';
+import { Menu, Home, User, BookOpen } from 'lucide-react';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -9,6 +9,7 @@ interface LayoutProps {
 
 export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  const currentYear = new Date().getFullYear(); // Yılı otomatik al
 
   const navItems = [
     { name: 'Ana Sayfa', path: 'home', icon: Home },
@@ -27,7 +28,7 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
               className="flex items-center space-x-3 cursor-pointer"
               onClick={() => onNavigate('home')}
             >
-              {/* YENİ: metinciris.jpg avatarı */}
+              {/* Avatar */}
               <div className="w-12 h-12 bg-[#00A6D6] rounded-xl overflow-hidden flex items-center justify-center">
                 <img
                   src="/img/metinciris.jpg"
@@ -36,16 +37,15 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
                 />
               </div>
               <div>
-<h1 className="m-0 leading-tight text-lg md:text-xl">
-  Prof Dr Metin Çiriş
-</h1>
-<p
-  className="text-white/70 m-0 mt-0.5"
-  style={{ fontSize: '0.75rem' }}
->
-  SDÜ Tıp Fakültesi Tıbbi Patoloji
-</p>
-
+                <h1 className="m-0 leading-tight text-lg md:text-xl">
+                  Prof Dr Metin Çiriş
+                </h1>
+                <p
+                  className="text-white/70 m-0 mt-0.5"
+                  style={{ fontSize: '0.75rem' }}
+                >
+                  SDÜ Tıp Fakültesi Tıbbi Patoloji
+                </p>
               </div>
             </div>
 
@@ -68,16 +68,15 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
             </nav>
 
             {/* Mobile Menu Button */}
-<button
-  type="button"
-  className="md:hidden p-2 hover:bg-white/10 rounded"
-  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-  aria-label={mobileMenuOpen ? 'Menüyü kapat' : 'Menüyü aç'}
-  aria-expanded={mobileMenuOpen}
->
-  <Menu aria-hidden="true" size={24} />
-</button>
-
+            <button
+              type="button"
+              className="md:hidden p-2 hover:bg-white/10 rounded"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label={mobileMenuOpen ? 'Menüyü kapat' : 'Menüyü aç'}
+              aria-expanded={mobileMenuOpen}
+            >
+              <Menu aria-hidden="true" size={24} />
+            </button>
           </div>
 
           {/* Mobile Navigation */}
@@ -141,7 +140,7 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
                 >
                   Yayınlar
                 </button>
-               </div>
+              </div>
             </div>
             <div>
               <h4>İletişim Bilgileri</h4>
@@ -178,9 +177,9 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
             </div>
           </div>
           <div className="border-t border-white/20 mt-8 pt-6 text-center text-white/60">
-           <p className="m-0">
-          © {currentYear} Prof Dr Metin Çiriş - SDÜ Tıp Fakültesi Tıbbi Patoloji
-        </p>
+            <p className="m-0">
+              © {currentYear} Prof Dr Metin Çiriş - SDÜ Tıp Fakültesi Tıbbi Patoloji
+            </p>
           </div>
         </div>
       </footer>
