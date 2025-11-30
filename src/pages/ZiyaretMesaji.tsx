@@ -3,27 +3,8 @@ import { PageContainer } from '../components/PageContainer';
 import { MessageSquare, Send } from 'lucide-react';
 import { Textarea } from '../components/ui/textarea';
 import { Input } from '../components/ui/input';
-import { toast } from 'sonner@2.0.3';
 
 export function ZiyaretMesaji() {
-  const [formData, setFormData] = React.useState({
-    name: '',
-    email: '',
-    message: '',
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!formData.name || !formData.message) {
-      toast.error('Lütfen ad ve mesaj alanlarını doldurun');
-      return;
-    }
-
-    toast.success('Mesajınız başarıyla gönderildi!');
-    setFormData({ name: '', email: '', message: '' });
-  };
-
   return (
     <PageContainer>
       <div className="bg-[#FF8C00] text-white p-12 mb-8">
@@ -44,50 +25,59 @@ export function ZiyaretMesaji() {
             <h2>Mesajınızı Bırakın</h2>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Google Forms'a bağlı gerçek form */}
+          <form
+            action="https://docs.google.com/forms/d/e/1FAIpQLSd1JpaucSQGovf934mAYBUkiKPOaKw_H_xu6KSVA4L9IKP0Vg/formResponse"
+            method="POST"
+            target="_self"
+            id="ziyaretciForm"
+            className="space-y-6"
+          >
+            {/* Telefon */}
+            <div>
+              <label htmlFor="phone" className="block mb-2">
+                Telefon
+              </label>
+              <Input
+                id="phone"
+                type="text"
+                name="entry.433982418"
+                placeholder="Telefon numaranız (isteğe bağlı)"
+              />
+            </div>
+
+            {/* İsim Soyad / Şirket */}
             <div>
               <label htmlFor="name" className="block mb-2">
-                Adınız Soyadınız <span className="text-destructive">*</span>
+                İsim Soyad / Şirket <span className="text-destructive">*</span>
               </label>
               <Input
                 id="name"
                 type="text"
+                name="entry.480799618"
                 placeholder="Adınız ve soyadınız"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 required
               />
             </div>
 
-            <div>
-              <label htmlFor="email" className="block mb-2">
-                E-posta Adresiniz
-              </label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="ornek@email.com"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              />
-              <p className="text-muted-foreground mt-1 m-0">
-                İsteğe bağlı - Size geri dönüş yapmak istediğimizde kullanılacaktır
-              </p>
-            </div>
-
+            {/* Mesaj */}
             <div>
               <label htmlFor="message" className="block mb-2">
                 Mesajınız <span className="text-destructive">*</span>
               </label>
               <Textarea
                 id="message"
+                name="entry.666122626"
                 placeholder="Görüş, öneri veya sorularınızı buraya yazabilirsiniz..."
-                value={formData.message}
-                onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                 className="min-h-[200px]"
                 required
               />
             </div>
+
+            {/* Google Forms'un ihtiyaç duyduğu gizli alanlar */}
+            <input type="hidden" name="fvv" value="1" />
+            <input type="hidden" name="fbzx" value="9179628098242353502" />
+            <input type="hidden" name="pageHistory" value="0" />
 
             <button
               type="submit"
@@ -96,6 +86,11 @@ export function ZiyaretMesaji() {
               <Send size={20} />
               Mesajı Gönder
             </button>
+
+            <p className="text-xs text-muted-foreground mt-2 m-0">
+              Bu form Google Forms üzerinden çalışır; iletileriniz Google hesabınızdaki forma
+              kaydedilir ve oradan e-posta bildirimi alırsınız.
+            </p>
           </form>
         </div>
 
