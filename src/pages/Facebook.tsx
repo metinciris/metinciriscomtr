@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { PageContainer } from '../components/PageContainer';
-import { Calendar, ExternalLink, Tag } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+import React, { useState, useEffect } from "react";
+import { PageContainer } from "../components/PageContainer";
+import { Calendar, ExternalLink, Tag } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw"; // 🔥 iframe için ZORUNLU
 
 interface FacebookPost {
     id: number;
@@ -18,23 +19,25 @@ export function Facebook() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch('https://api.github.com/repos/metinciris/metinciriscomtr/issues?labels=facebook&state=open')
-            .then(res => res.json())
-            .then(data => {
+        fetch(
+            "https://api.github.com/repos/metinciris/metinciriscomtr/issues?labels=facebook&state=open"
+        )
+            .then((res) => res.json())
+            .then((data) => {
                 if (Array.isArray(data)) {
                     setPosts(data);
                 }
                 setLoading(false);
             })
-            .catch(err => {
-                console.error('Error fetching Facebook posts:', err);
+            .catch((err) => {
+                console.error("Error fetching Facebook posts:", err);
                 setLoading(false);
             });
     }, []);
 
     return (
         <PageContainer>
-            {/* Header */}
+            {/* HEADER */}
             <div className="bg-[#3B5998] text-white p-12 mb-8 rounded-xl shadow-lg">
                 <div className="flex items-center gap-4 mb-4">
                     <svg className="w-12 h-12" fill="currentColor" viewBox="0 0 24 24">
@@ -47,7 +50,6 @@ export function Facebook() {
                     Sosyal paylaşımlarım, güncel duyurular ve topluluk etkileşimleri.
                 </p>
 
-                {/* DÜZELTİLMİŞ BUTON */}
                 <a
                     href="https://fb.com/patoloji"
                     target="_blank"
@@ -60,12 +62,12 @@ export function Facebook() {
                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                     </svg>
-
                     Facebook Sayfamı Ziyaret Et
                     <ExternalLink size={16} />
                 </a>
             </div>
 
+            {/* İÇERİK ALANI */}
             {loading ? (
                 <div className="flex justify-center py-20">
                     <div className="w-12 h-12 border-4 border-[#3B5998] border-t-transparent rounded-full animate-spin"></div>
@@ -81,30 +83,41 @@ export function Facebook() {
                             key={post.id}
                             className="bg-white rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100 p-8"
                         >
+                            {/* LABELS */}
                             <div className="flex flex-wrap gap-2 mb-4">
-                                {post.labels.filter(l => l.name !== 'facebook').map((label, index) => (
-                                    <span
-                                        key={index}
-                                        className="inline-flex items-center gap-1 px-3 py-1 bg-gray-100 text-gray-600 text-sm rounded-full font-medium"
-                                    >
-                                        <Tag size={12} />
-                                        {label.name}
-                                    </span>
-                                ))}
+                                {post.labels
+                                    .filter((l) => l.name.toLowerCase() !== "facebook")
+                                    .map((label, index) => (
+                                        <span
+                                            key={index}
+                                            className="inline-flex items-center gap-1 px-3 py-1 bg-gray-100 text-gray-600 text-sm rounded-full font-medium"
+                                        >
+                                            <Tag size={12} />
+                                            {label.name}
+                                        </span>
+                                    ))}
                             </div>
 
+                            {/* BAŞLIK */}
                             <h2 className="text-2xl font-bold mb-4 text-gray-900">{post.title}</h2>
 
+                            {/* MARKDOWN + iframe */}
                             <div className="text-gray-700 mb-6 prose prose-lg max-w-none">
-                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                <ReactMarkdown
+                                    remarkPlugins={[remarkGfm]}
+                                    rehypePlugins={[rehypeRaw]} // 🔥 iframe, embed, HTML artık çalışıyor
+                                >
                                     {post.body}
                                 </ReactMarkdown>
                             </div>
 
+                            {/* ALT BİLGİ */}
                             <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                                 <div className="flex items-center gap-2 text-gray-500">
                                     <Calendar size={16} />
-                                    <span className="text-sm">{new Date(post.created_at).toLocaleDateString('tr-TR')}</span>
+                                    <span className="text-sm">
+                                        {new Date(post.created_at).toLocaleDateString("tr-TR")}
+                                    </span>
                                 </div>
 
                                 <a
