@@ -139,18 +139,20 @@ export function Facebook() {
                                     <style>
                                         {`
                                         .fb-embed iframe {
-                                            width: 100% !important;
                                             max-width: 100% !important;
                                             border: none !important;
                                             overflow: hidden !important;
                                             display: block !important;
                                             margin: 0 auto !important;
+                                            border-radius: 8px;
+                                            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
                                         }
                                         .fb-embed {
                                             display: flex;
                                             justify-content: center;
                                             width: 100%;
                                             overflow: hidden;
+                                            padding: 10px 0;
                                         }
                                     `}
                                     </style>
