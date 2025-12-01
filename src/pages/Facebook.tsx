@@ -17,23 +17,47 @@ interface FacebookPost {
 export function Facebook() {
     const [posts, setPosts] = useState<FacebookPost[]>([]);
     const [loading, setLoading] = useState(true);
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
 
-    useEffect(() => {
+    const fetchPosts = (pageNum: number) => {
+        const isFirstPage = pageNum === 1;
+        if (isFirstPage) setLoading(true);
+        else setLoadingMore(true);
+
         fetch(
-            "https://api.github.com/repos/metinciris/metinciriscomtr/issues?labels=facebook&state=open"
+            `https://api.github.com/repos/metinciris/metinciriscomtr/issues?labels=facebook&state=open&per_page=10&page=${pageNum}`
         )
             .then((res) => res.json())
             .then((data) => {
                 if (Array.isArray(data)) {
-                    setPosts(data);
+                    if (data.length < 10) {
+                        setHasMore(false);
+                    }
+                    setPosts((prev) => (isFirstPage ? data : [...prev, ...data]));
+                } else {
+                    setHasMore(false);
                 }
-                setLoading(false);
             })
             .catch((err) => {
                 console.error("Error fetching Facebook posts:", err);
+            })
+            .finally(() => {
                 setLoading(false);
+                setLoadingMore(false);
             });
+    };
+
+    useEffect(() => {
+        fetchPosts(1);
     }, []);
+
+    const handleLoadMore = () => {
+        const nextPage = page + 1;
+        setPage(nextPage);
+        fetchPosts(nextPage);
+    };
 
     return (
         <PageContainer>
@@ -80,71 +104,101 @@ export function Facebook() {
                     </p>
                 </div>
             ) : (
-                <div className="space-y-8">
+                <div className="space-y-8 pb-12">
                     {posts.map((post) => (
                         <div
                             key={post.id}
-                            className="bg-white rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100 p-6 md:p-8 max-w-3xl mx-auto"
+                            className="bg-white rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 border border-gray-100 p-0 md:p-0 max-w-3xl mx-auto"
                         >
-                            {/* LABELS (facebook etiketi hariç) */}
-                            <div className="flex flex-wrap gap-2 mb-3">
-                                {post.labels
-                                    .filter(
-                                        (l) => l.name.toLowerCase() !== "facebook"
-                                    )
-                                    .map((label, index) => (
-                                        <span
-                                            key={index}
-                                            className="inline-flex items-center gap-1 px-3 py-1 bg-gray-100 text-gray-600 text-xs md:text-sm rounded-full font-medium"
+                            <div className="p-6 md:p-8">
+                                {/* LABELS (facebook etiketi hariç) */}
+                                <div className="flex flex-wrap gap-2 mb-3">
+                                    {post.labels
+                                        .filter(
+                                            (l) => l.name.toLowerCase() !== "facebook"
+                                        )
+                                        .map((label, index) => (
+                                            <span
+                                                key={index}
+                                                className="inline-flex items-center gap-1 px-3 py-1 bg-gray-100 text-gray-600 text-xs md:text-sm rounded-full font-medium"
+                                            >
+                                                <Tag size={12} />
+                                                {label.name}
+                                            </span>
+                                        ))}
+                                </div>
+
+                                {/* BAŞLIK */}
+                                <h2 className="text-xl md:text-2xl font-bold mb-4 text-gray-900">
+                                    {post.title}
+                                </h2>
+
+                                {/* RESPONSIVE EMBED BÖLÜMÜ */}
+                                <div className="text-gray-700 mb-4 md:mb-6 prose prose-sm md:prose-lg max-w-none">
+                                    {/* iframe genişliğini override eden CSS */}
+                                    <style>
+                                        {`
+                                        .fb-embed iframe {
+                                            width: 100% !important;
+                                            max-width: 100% !important;
+                                            border: none !important;
+                                            overflow: hidden !important;
+                                            display: block !important;
+                                            margin: 0 auto !important;
+                                        }
+                                        .fb-embed {
+                                            display: flex;
+                                            justify-content: center;
+                                            width: 100%;
+                                            overflow: hidden;
+                                        }
+                                    `}
+                                    </style>
+
+                                    <div className="fb-embed">
+                                        <ReactMarkdown
+                                            remarkPlugins={[remarkGfm]}
+                                            rehypePlugins={[rehypeRaw]}
                                         >
-                                            <Tag size={12} />
-                                            {label.name}
+                                            {post.body}
+                                        </ReactMarkdown>
+                                    </div>
+                                </div>
+
+                                {/* ALT SATIR: sadece tarih */}
+                                <div className="pt-3 border-t border-gray-100 flex justify-between items-center">
+                                    <div className="flex items-center gap-2 text-gray-500 text-xs md:text-sm">
+                                        <Calendar size={16} />
+                                        <span>
+                                            {new Date(
+                                                post.created_at
+                                            ).toLocaleDateString("tr-TR")}
                                         </span>
-                                    ))}
-                            </div>
-
-                            {/* BAŞLIK */}
-                            <h2 className="text-xl md:text-2xl font-bold mb-4 text-gray-900">
-                                {post.title}
-                            </h2>
-
-                            {/* RESPONSIVE EMBED BÖLÜMÜ */}
-                            <div className="text-gray-700 mb-4 md:mb-6 prose prose-sm md:prose-lg max-w-none">
-                                {/* iframe genişliğini override eden CSS */}
-                                <style>
-                                    {`
-                                    .fb-embed iframe {
-                                        width: 100% !important;
-                                        max-width: 100% !important;
-                                        border: none !important;
-                                    }
-                                `}
-                                </style>
-
-                                <div className="fb-embed">
-                                    <ReactMarkdown
-                                        remarkPlugins={[remarkGfm]}
-                                        rehypePlugins={[rehypeRaw]}
-                                    >
-                                        {post.body}
-                                    </ReactMarkdown>
+                                    </div>
                                 </div>
-                            </div>
-
-                            {/* ALT SATIR: sadece tarih */}
-                            <div className="pt-3 border-t border-gray-100 flex justify-between items-center">
-                                <div className="flex items-center gap-2 text-gray-500 text-xs md:text-sm">
-                                    <Calendar size={16} />
-                                    <span>
-                                        {new Date(
-                                            post.created_at
-                                        ).toLocaleDateString("tr-TR")}
-                                    </span>
-                                </div>
-                                {/* Sağ taraf şimdilik boş; istersen buraya "Facebook'ta aç" linki ekleyebiliriz */}
                             </div>
                         </div>
                     ))}
+
+                    {/* DAHA FAZLA YÜKLE BUTONU */}
+                    {hasMore && (
+                        <div className="flex justify-center pt-4">
+                            <button
+                                onClick={handleLoadMore}
+                                disabled={loadingMore}
+                                className="bg-[#3B5998] text-white px-8 py-3 rounded-full font-semibold shadow-md hover:bg-[#2d4373] transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
+                            >
+                                {loadingMore ? (
+                                    <>
+                                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                        Yükleniyor...
+                                    </>
+                                ) : (
+                                    "Daha Fazla Gönderi Yükle"
+                                )}
+                            </button>
+                        </div>
+                    )}
                 </div>
             )}
         </PageContainer>

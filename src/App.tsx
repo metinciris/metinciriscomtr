@@ -9,9 +9,8 @@ import { Toaster } from './components/ui/sonner';
  */
 
 // Home ve Hasta/Öğrenci/Akademik sayfaları
-const Home = React.lazy(() =>
-  import('./pages/Home').then((m) => ({ default: m.Home })),
-);
+import { Home } from './pages/Home';
+
 const Iletisim = React.lazy(() =>
   import('./pages/Iletisim').then((m) => ({ default: m.Iletisim })),
 );

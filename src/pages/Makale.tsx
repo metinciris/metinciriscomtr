@@ -2,6 +2,7 @@ import React from 'react';
 import { PageContainer } from '../components/PageContainer';
 import { Loader2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
+import ReactMarkdown from 'react-markdown';
 
 interface MakaleProps {
   onNavigate: (page: string) => void;
@@ -73,16 +74,16 @@ export function Makale({ onNavigate }: MakaleProps) {
   return (
     <PageContainer>
       {/* Üst açıklama */}
-<div className="bg-gradient-to-r from-[#00A6D6] to-[#8E44AD] text-white p-8 mb-8 rounded-2xl">
-  <h1 className="text-white mb-3">Günlük PubMed Makale Özetleri</h1>
-  <p className="text-white/90 text-sm md:text-base">
-    Dünyada ve Türkiye&apos;de önde gelen patoloji dergilerini takip ediyorum.
-    İşte son çıkan makaleler.
-  </p>
-  <p className="text-white/80 text-xs mt-2">
-    En yeni özetler en üstte listelenir.
-  </p>
-</div>
+      <div className="bg-gradient-to-r from-[#00A6D6] to-[#8E44AD] text-white p-8 mb-8 rounded-2xl">
+        <h1 className="text-white mb-3">Günlük PubMed Makale Özetleri</h1>
+        <p className="text-white/90 text-sm md:text-base">
+          Dünyada ve Türkiye&apos;de önde gelen patoloji dergilerini takip ediyorum.
+          İşte son çıkan makaleler.
+        </p>
+        <p className="text-white/80 text-xs mt-2">
+          En yeni özetler en üstte listelenir.
+        </p>
+      </div>
 
 
       {error && (
@@ -92,17 +93,16 @@ export function Makale({ onNavigate }: MakaleProps) {
       )}
 
       {/* Sadece A3’ten gelen kutular */}
-     <div className="space-y-8">
+      <div className="space-y-8">
         {issues.map(issue => (
           <div
             key={issue.id}
             className="bg-white rounded-2xl shadow-sm p-4 md:p-6 border border-slate-100"
           >
-            <div
-              className="text-sm leading-relaxed overflow-x-auto"
-              // Issue body = Veriler!A3 HTML
-              dangerouslySetInnerHTML={{ __html: issue.body }}
-            />
+            <div className="text-sm leading-relaxed overflow-x-auto">
+              {/* Issue body = Veriler!A3 HTML */}
+              <ReactMarkdown>{issue.body}</ReactMarkdown>
+            </div>
           </div>
         ))}
       </div>

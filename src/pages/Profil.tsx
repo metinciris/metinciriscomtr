@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { PageContainer } from '../components/PageContainer';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { Play, Pause, Square, SkipBack, SkipForward, Volume2 } from 'lucide-react';
+import DOMPurify from 'dompurify';
 
 interface ProfilProps {
   onNavigate: (page: string) => void;
@@ -49,14 +50,14 @@ export default function Profil({ onNavigate }: ProfilProps) {
     // Initialize Speech Synthesis
     synthRef.current = window.speechSynthesis;
     loadVoices();
-    
+
     if (synthRef.current.onvoiceschanged !== undefined) {
       synthRef.current.onvoiceschanged = loadVoices;
     }
 
     // Load Google Charts and data
     loadGoogleCharts();
-    
+
     // Fetch podcast data
     fetchPodcastData();
 
@@ -89,20 +90,20 @@ export default function Profil({ onNavigate }: ProfilProps) {
     const query = new (window as any).google.visualization.Query(
       `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?gid=1844098177&range=A1:A20`
     );
-    
+
     query.send((response: any) => {
       if (response.isError()) {
         console.error('Veri çekilemedi');
         return;
       }
-      
+
       const responseData = response.getDataTable();
       const data: string[] = [];
-      
+
       for (let i = 0; i < responseData.getNumberOfRows(); i++) {
         data.push(responseData.getValue(i, 0));
       }
-      
+
       setTableData(data);
     });
   };
@@ -112,7 +113,7 @@ export default function Profil({ onNavigate }: ProfilProps) {
       const SHEET_ID = '148p3M41R52gVVjtLSF2Qh8rJvBPEWJ7SV4lgSBQYwLc';
       const SHEET_GID = '1109640564';
       const SHEET_RANGE = 'A1:F132';
-      
+
       const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=${SHEET_GID}&range=${SHEET_RANGE}`;
       const response = await fetch(url);
       const responseText = await response.text();
@@ -127,18 +128,18 @@ export default function Profil({ onNavigate }: ProfilProps) {
         data.table.rows.forEach((row: any, index: number) => {
           const title = row.c[0]?.v?.toString().trim() || "";
           const pmid = row.c[5]?.v ? row.c[5].v.toString().trim() : "";
-          
+
           if (title && pmid) {
             const rowNum = index + 2;
             let journal = "";
-            
+
             for (const mapping of journalMapping) {
               if (rowNum >= mapping.start && rowNum <= mapping.end) {
                 journal = mapping.name;
                 break;
               }
             }
-            
+
             titles.push(title);
             journals.push(journal);
             pmids.push(pmid);
@@ -165,7 +166,7 @@ export default function Profil({ onNavigate }: ProfilProps) {
     utteranceRef.current.lang = 'tr-TR';
     utteranceRef.current.rate = 0.9;
     utteranceRef.current.volume = volume;
-    
+
     utteranceRef.current.onend = () => {
       if (!isPaused && currentTitleIndex < articleTitles.length - 1) {
         setCurrentTitleIndex(prev => prev + 1);
@@ -289,7 +290,7 @@ export default function Profil({ onNavigate }: ProfilProps) {
             {/* Podcast Player */}
             <div className="mt-8 border-t pt-8">
               <h3 className="mb-4">Güncel Makaleler Podcast</h3>
-              
+
               <div className="bg-[#336699] text-white px-4 py-2 rounded inline-block mb-4">
                 {currentJournal}
               </div>
@@ -382,9 +383,9 @@ export default function Profil({ onNavigate }: ProfilProps) {
                 <tbody>
                   {tableData.map((row, index) => (
                     <tr key={index}>
-                      <td 
-                        className="py-2 border-b" 
-                        dangerouslySetInnerHTML={{ __html: row }}
+                      <td
+                        className="py-2 border-b"
+                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(row) }}
                       />
                     </tr>
                   ))}
