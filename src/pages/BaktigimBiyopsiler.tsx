@@ -204,7 +204,7 @@ export function BaktigimBiyopsiler() {
           {/* 10. Metastatik tümörler */}
           <div className="relative overflow-hidden group">
             <ImageWithFallback
-              src="https://images.unsplash.com/photo-1579165466741-7f35a4755657?q=80&w=1000&auto=format&fit=crop"
+              src="https://images.unsplash.com/photo-1559757175-5700dde675bc?q=80&w=1000&auto=format&fit=crop"
               alt="Metastatik tümörler"
               className="w-full h-64 object-cover"
             />
@@ -216,12 +216,17 @@ export function BaktigimBiyopsiler() {
           </div>
 
           {/* 11. Konsültasyon */}
-          <div className="bg-[#34495E] text-white p-8 flex flex-col justify-center">
-            <div className="mb-4">
-              <Microscope size={48} className="text-white" />
+          <div className="relative overflow-hidden group">
+            <ImageWithFallback
+              src="https://images.unsplash.com/photo-1582719471384-894fbb16e074?q=80&w=1000&auto=format&fit=crop"
+              alt="Konsültasyon"
+              className="w-full h-64 object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#34495E] to-transparent opacity-80"></div>
+            <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+              <h3 className="text-white mb-2">Konsültasyon</h3>
+              <p className="text-white/90 m-0">Patoloji konsültasyonu. Preparat ve parafin blok birlikte gönderilmelidir.</p>
             </div>
-            <h3 className="text-white mb-2">Konsültasyon</h3>
-            <p className="text-white/90 m-0">Patoloji konsültasyonu. Preparat ve parafin blok birlikte gönderilmelidir.</p>
           </div>
 
           {/* 12. Deneysel Patoloji */}
