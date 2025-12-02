@@ -80,61 +80,58 @@ export function BaktigimBiyopsiler() {
       <div className="mb-8">
         <h2 className="mb-6">Uzmanlık Alanları</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* 1. Endokrin sistem patolojisi */}
           <div className="relative overflow-hidden group">
             <ImageWithFallback
-              src="https://images.unsplash.com/photo-1715111641804-f8af88e93b01?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0aHlyb2lkJTIwbWVkaWNhbHxlbnwxfHx8fDE3NjI4MDI5MjZ8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
-              alt="Tiroid ve Paratiroid"
-              className="w-full h-64 object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#00A6D6] to-transparent opacity-80"></div>
-            <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-              <h3 className="text-white mb-2">Tiroid ve Paratiroid</h3>
-              <p className="text-white/90 m-0">Endokrin sistem patolojisi</p>
-            </div>
-          </div>
-
-          <div className="relative overflow-hidden group">
-            <ImageWithFallback
-              src="https://images.unsplash.com/photo-1630959300489-63dae3a8240a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwYXRob2xvZ3klMjBtaWNyb3Njb3BlJTIwbGFib3JhdG9yeXxlbnwxfHx8fDE3NjI4MDI5MTh8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
-              alt="Hepatobiliyer Sistem"
-              className="w-full h-64 object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#E74C3C] to-transparent opacity-80"></div>
-            <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-              <h3 className="text-white mb-2">Hepatobiliyer Sistem</h3>
-              <p className="text-white/90 m-0">Karaciğer ve safra yolları</p>
-            </div>
-          </div>
-
-          <div className="relative overflow-hidden group">
-            <ImageWithFallback
-              src="https://images.unsplash.com/photo-1738778344503-f6e0df318895?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtZWRpY2FsJTIwcmVzZWFyY2glMjBzY2llbmNlfGVufDF8fHx8MTc2Mjc4NzkxNXww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
-              alt="Santral Sinir Sistemi"
+              src="/img/endocrine_pathology.png"
+              alt="Endokrin sistem patolojisi"
               className="w-full h-64 object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#8E44AD] to-transparent opacity-80"></div>
             <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-              <h3 className="text-white mb-2">Santral Sinir Sistemi</h3>
-              <p className="text-white/90 m-0">Nöropatoloji</p>
+              <h3 className="text-white mb-2">Endokrin sistem patolojisi</h3>
+              <p className="text-white/90 m-0">Tiroid, Paratiroid, Hipofiz, Adrenal gland</p>
             </div>
           </div>
 
+          {/* 2. Sitopatoloji */}
+          <div className="relative overflow-hidden group">
+            <ImageWithFallback
+              src="/img/cytopathology.png"
+              alt="Sitopatoloji"
+              className="w-full h-64 object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#E74C3C] to-transparent opacity-80"></div>
+            <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+              <h3 className="text-white mb-2">Sitopatoloji</h3>
+              <p className="text-white/90 m-0">Tiroid, paratiroid İİAB</p>
+            </div>
+          </div>
+
+          {/* 3. Baş-Boyun Patolojisi */}
           <div className="bg-[#27AE60] text-white p-8 flex flex-col justify-center">
             <div className="mb-4">
               <Stethoscope size={48} className="text-white" />
             </div>
             <h3 className="text-white mb-2">Baş-Boyun Patolojisi</h3>
-            <p className="text-white/90 m-0">Baş ve boyun bölgesi hastalıkları</p>
+            <p className="text-white/90 m-0">Baş ve boyun bölgesi tümörleri</p>
           </div>
 
-          <div className="bg-[#F39C12] text-white p-8 flex flex-col justify-center">
-            <div className="mb-4">
-              <Heart size={48} className="text-white" />
+          {/* 4. Hepatobiliyer Sistem ve pankreas */}
+          <div className="relative overflow-hidden group">
+            <ImageWithFallback
+              src="https://images.unsplash.com/photo-1630959300489-63dae3a8240a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwYXRob2xvZ3klMjBtaWNyb3Njb3BlJTIwbGFib3JhdG9yeXxlbnwxfHx8fDE3NjI4MDI5MTh8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+              alt="Hepatobiliyer Sistem ve pankreas"
+              className="w-full h-64 object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#E74C3C] to-transparent opacity-80"></div>
+            <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+              <h3 className="text-white mb-2">Hepatobiliyer Sistem ve pankreas</h3>
+              <p className="text-white/90 m-0">Karaciğer, safra yolları ve pankreas patolojisi</p>
             </div>
-            <h3 className="text-white mb-2">Pankreas</h3>
-            <p className="text-white/90 m-0">Pankreas patolojisi</p>
           </div>
 
+          {/* 5. Nefropatoloji */}
           <div className="relative overflow-hidden group">
             <ImageWithFallback
               src="https://images.unsplash.com/photo-1715527498501-4eb81f7ce451?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxraWRuZXklMjBuZXBocm9sb2d5JTIwbWVkaWNhbHxlbnwxfHx8fDE3NjI4MDI5MzF8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
@@ -148,6 +145,7 @@ export function BaktigimBiyopsiler() {
             </div>
           </div>
 
+          {/* 6. Kemik ve Yumuşak Doku */}
           <div className="relative overflow-hidden group">
             <ImageWithFallback
               src="https://images.unsplash.com/photo-1530026405186-ed1f139313f8?q=80&w=1000&auto=format&fit=crop"
@@ -161,6 +159,35 @@ export function BaktigimBiyopsiler() {
             </div>
           </div>
 
+          {/* 7. Frozen */}
+          <div className="relative overflow-hidden group">
+            <ImageWithFallback
+              src="/img/frozen_section.png"
+              alt="Frozen"
+              className="w-full h-64 object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#00A6D6] to-transparent opacity-80"></div>
+            <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+              <h3 className="text-white mb-2">Frozen</h3>
+              <p className="text-white/90 m-0">Ameliyat esnasında frozen inceleme</p>
+            </div>
+          </div>
+
+          {/* 8. Moleküler tetkikler */}
+          <div className="relative overflow-hidden group">
+            <ImageWithFallback
+              src="https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?q=80&w=1000&auto=format&fit=crop"
+              alt="Moleküler tetkikler"
+              className="w-full h-64 object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#9B59B6] to-transparent opacity-80"></div>
+            <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+              <h3 className="text-white mb-2">Moleküler tetkikler</h3>
+              <p className="text-white/90 m-0">Tümör patolojisi moleküler tetkikleri</p>
+            </div>
+          </div>
+
+          {/* 9. NGS */}
           <div className="relative overflow-hidden group">
             <ImageWithFallback
               src="https://images.unsplash.com/photo-1576086213369-97a306d36557?q=80&w=1000&auto=format&fit=crop"
@@ -174,12 +201,27 @@ export function BaktigimBiyopsiler() {
             </div>
           </div>
 
+          {/* 10. Metastatik tümörler */}
+          <div className="relative overflow-hidden group">
+            <ImageWithFallback
+              src="https://images.unsplash.com/photo-1579165466741-7f35a4755657?q=80&w=1000&auto=format&fit=crop"
+              alt="Metastatik tümörler"
+              className="w-full h-64 object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#34495E] to-transparent opacity-80"></div>
+            <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+              <h3 className="text-white mb-2">Metastatik tümörler</h3>
+              <p className="text-white/90 m-0">Karaciğer, kemik, beyin metastazlarından tanı</p>
+            </div>
+          </div>
+
+          {/* 11. Konsültasyon */}
           <div className="bg-[#34495E] text-white p-8 flex flex-col justify-center">
             <div className="mb-4">
               <Microscope size={48} className="text-white" />
             </div>
-            <h3 className="text-white mb-2">Patoloji Konsültasyon</h3>
-            <p className="text-white/90 m-0">İkinci görüş ve uzman değerlendirmesi</p>
+            <h3 className="text-white mb-2">Konsültasyon</h3>
+            <p className="text-white/90 m-0">Patoloji konsültasyonu. Preparat ve parafin blok birlikte gönderilmelidir.</p>
           </div>
         </div>
       </div>
