@@ -223,6 +223,20 @@ export function BaktigimBiyopsiler() {
             <h3 className="text-white mb-2">Konsültasyon</h3>
             <p className="text-white/90 m-0">Patoloji konsültasyonu. Preparat ve parafin blok birlikte gönderilmelidir.</p>
           </div>
+
+          {/* 12. Deneysel Patoloji */}
+          <div className="relative overflow-hidden group">
+            <ImageWithFallback
+              src="https://images.unsplash.com/photo-1532094349884-543bc11b234d?q=80&w=1000&auto=format&fit=crop"
+              alt="Deneysel Patoloji"
+              className="w-full h-64 object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#16A085] to-transparent opacity-80"></div>
+            <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+              <h3 className="text-white mb-2">Deneysel Patoloji</h3>
+              <p className="text-white/90 m-0">Deney hayvanları patolojisi</p>
+            </div>
+          </div>
         </div>
       </div>
 
