@@ -25,14 +25,9 @@ export function BaktigimBiyopsiler() {
           <p className="text-muted-foreground mb-4">
             Süleyman Demirel Üniversitesi<br />
             Tıp Fakültesi Tıbbi Patoloji Anabilim Dalı<br />
-            Öğretim Üyesi
+            Öğretim Üyesi<br />
+            Merkez / Isparta
           </p>
-          <div className="bg-[#11528f] text-white p-6">
-            <p className="text-white m-0">
-              Ben, Prof. Dr. Metin Çiriş, Isparta Süleyman Demirel Üniversitesi Tıp Fakültesi Patoloji
-              Anabilim Dalında görev yapıyorum.
-            </p>
-          </div>
         </div>
 
         <div className="space-y-6">
@@ -72,16 +67,11 @@ export function BaktigimBiyopsiler() {
                 <span className="text-[#9B59B6]">•</span>
                 <span className="text-muted-foreground">NGS</span>
               </div>
+              <div className="flex items-start gap-3 p-3 bg-white">
+                <span className="text-[#E67E22]">•</span>
+                <span className="text-muted-foreground">Kemik ve yumuşak doku patolojisi</span>
+              </div>
             </div>
-          </div>
-
-          <div className="bg-gradient-to-r from-[#00A6D6] to-[#11528f] text-white p-8">
-            <h3 className="text-white mb-4">Görev ve Sorumluluklar</h3>
-            <p className="text-white/90 m-0">
-              Tıbbi patoloji alanında hasta tanı ve tedavisine katkı sağlamak,
-              tıp öğrencilerinin eğitimi ve bilimsel araştırmalar yapmak temel
-              görevlerim arasındadır.
-            </p>
           </div>
         </div>
       </div>
@@ -157,6 +147,40 @@ export function BaktigimBiyopsiler() {
               <p className="text-white/90 m-0">Böbrek patolojisi</p>
             </div>
           </div>
+
+          <div className="relative overflow-hidden group">
+            <ImageWithFallback
+              src="https://images.unsplash.com/photo-1530026405186-ed1f139313f8?q=80&w=1000&auto=format&fit=crop"
+              alt="Kemik ve Yumuşak Doku"
+              className="w-full h-64 object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#E67E22] to-transparent opacity-80"></div>
+            <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+              <h3 className="text-white mb-2">Kemik ve Yumuşak Doku</h3>
+              <p className="text-white/90 m-0">Sarkom ve tümör patolojisi</p>
+            </div>
+          </div>
+
+          <div className="relative overflow-hidden group">
+            <ImageWithFallback
+              src="https://images.unsplash.com/photo-1576086213369-97a306d36557?q=80&w=1000&auto=format&fit=crop"
+              alt="NGS"
+              className="w-full h-64 object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#9B59B6] to-transparent opacity-80"></div>
+            <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+              <h3 className="text-white mb-2">NGS (Yeni Nesil Dizileme)</h3>
+              <p className="text-white/90 m-0">Tümör dokusundaki genetik değişiklikleri detaylı inceleyen ileri test</p>
+            </div>
+          </div>
+
+          <div className="bg-[#34495E] text-white p-8 flex flex-col justify-center">
+            <div className="mb-4">
+              <Microscope size={48} className="text-white" />
+            </div>
+            <h3 className="text-white mb-2">Patoloji Konsültasyon</h3>
+            <p className="text-white/90 m-0">İkinci görüş ve uzman değerlendirmesi</p>
+          </div>
         </div>
       </div>
 
@@ -204,6 +228,22 @@ export function BaktigimBiyopsiler() {
               <strong>Telefon:</strong> (246) 211 92 92
             </p>
           </div>
+        </div>
+      </div>
+
+      {/* Hakkımda ve Sorumluluklar */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <div className="bg-white p-8 border-l-4 border-[#11528f] shadow-sm">
+          <h2 className="text-[#11528f] mb-4">Hakkımda</h2>
+          <p className="text-gray-700 leading-relaxed">
+            Ben, Prof. Dr. Metin Çiriş, Isparta Süleyman Demirel Üniversitesi Tıp Fakültesi Patoloji Anabilim Dalı’nda öğretim üyesi olarak görev yapmaktayım. Akademik ve mesleki birikimim doğrultusunda, patoloji alanında hem eğitim hem de sağlık hizmeti sunan önemli bir rol üstlenmekteyim. Fakültemizdeki görevim; öğrencilerin, asistanların ve sağlık profesyonellerinin mesleki gelişimine katkı sunarken aynı zamanda hastalarımızın doğru tanıya ulaşabilmesi için multidisipliner ekip içinde aktif sorumluluk almayı kapsamaktadır.
+          </p>
+        </div>
+        <div className="bg-white p-8 border-l-4 border-[#E74C3C] shadow-sm">
+          <h2 className="text-[#E74C3C] mb-4">Görev ve Sorumluluklarım</h2>
+          <p className="text-gray-700 leading-relaxed">
+            Tıbbi patoloji alanında, hastalıklara doğru ve kesin tanı koyarak hastaların tedavi süreçlerinin sağlıklı bir şekilde yönlendirilmesine katkı sağlamak öncelikli görevlerim arasındadır. Klinik branşlarla yakın iş birliği içinde çalışarak, biyopsi ve cerrahi materyallerin değerlendirilmesi, sitolojik incelemeler ve gerekli durumlarda ileri moleküler tanı yöntemlerinin uygulanması süreçlerinde aktif rol alıyorum. Bunun yanında, tıp öğrencileri ve araştırma görevlilerine patoloji eğitimi vererek, onların mesleki bilgi ve becerilerini geliştirmeyi amaçlıyorum. Bilimsel araştırmalar yürüterek hem ulusal hem de uluslararası literatüre katkı sunmak, yeni tanı yöntemlerinin geliştirilmesine destek olmak da akademik sorumluluklarım arasında yer almaktadır.
+          </p>
         </div>
       </div>
 
