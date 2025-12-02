@@ -3,6 +3,7 @@ import { PageContainer } from '../components/PageContainer';
 import { Loader2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import ReactMarkdown from 'react-markdown';
+import rehypeRaw from 'rehype-raw';
 
 interface MakaleProps {
   onNavigate: (page: string) => void;
@@ -101,7 +102,7 @@ export function Makale({ onNavigate }: MakaleProps) {
           >
             <div className="text-sm leading-relaxed overflow-x-auto">
               {/* Issue body = Veriler!A3 HTML */}
-              <ReactMarkdown>{issue.body}</ReactMarkdown>
+              <ReactMarkdown rehypePlugins={[rehypeRaw]}>{issue.body}</ReactMarkdown>
             </div>
           </div>
         ))}

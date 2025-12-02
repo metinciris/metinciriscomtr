@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import rehypeRaw from 'rehype-raw';
 
 interface GitHubPost {
     id: number;
@@ -431,7 +432,10 @@ export function GitHub() {
                                 <h2 className="text-2xl font-bold mb-4 text-gray-900">{post.title}</h2>
 
                                 <div className="text-gray-700 mb-6 prose prose-lg max-w-none">
-                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                    <ReactMarkdown
+                                        remarkPlugins={[remarkGfm]}
+                                        rehypePlugins={[rehypeRaw]}
+                                    >
                                         {post.body}
                                     </ReactMarkdown>
                                 </div>

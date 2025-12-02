@@ -4,6 +4,7 @@ import { Calendar, Clock, Tag, Search, ExternalLink } from 'lucide-react';
 import { Input } from '../components/ui/input';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import rehypeRaw from 'rehype-raw';
 
 interface BlogPost {
   id: number;
@@ -100,7 +101,10 @@ export function Blog() {
                 <h3 className="text-xl font-bold mb-3 text-gray-900 line-clamp-2">{post.title}</h3>
 
                 <div className="text-gray-600 mb-4 line-clamp-3 text-sm prose prose-sm">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    rehypePlugins={[rehypeRaw]}
+                  >
                     {post.body.split('\n').slice(0, 3).join('\n')}
                   </ReactMarkdown>
                 </div>
