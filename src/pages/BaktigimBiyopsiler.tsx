@@ -84,7 +84,7 @@ export function BaktigimBiyopsiler() {
           {/* 1. Endokrin sistem patolojisi */}
           <div className="relative overflow-hidden group">
             <ImageWithFallback
-              src="/img/endocrine_pathology.png"
+              src="/img/endocrine_pathology.jpg"
               alt="Endokrin sistem patolojisi"
               className="w-full h-64 object-cover"
             />
@@ -98,7 +98,7 @@ export function BaktigimBiyopsiler() {
           {/* 2. Sitopatoloji */}
           <div className="relative overflow-hidden group">
             <ImageWithFallback
-              src="/img/cytopathology.png"
+              src="/img/cytopathology.jpg"
               alt="Sitopatoloji"
               className="w-full h-64 object-cover"
             />
@@ -248,70 +248,6 @@ export function BaktigimBiyopsiler() {
               <p className="text-white/90 m-0">Deney hayvanları patolojisi</p>
             </div>
           </div>
-
-        </div>
-      </div>
-
-      {/* Akademik Bilgiler */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        <div className="bg-white p-8">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="bg-[#27AE60] w-12 h-12 flex items-center justify-center text-white">
-              <BookOpen size={24} />
-            </div>
-            <h2>Eğitim ve Araştırma</h2>
-          </div>
-          <p className="text-muted-foreground mb-4">
-            Süleyman Demirel Üniversitesi Tıp Fakültesi Tıbbi Patoloji Anabilim Dalında
-            uzun yıllardır öğretim üyeliği yapmaktayım.
-          </p>
-          <p className="text-muted-foreground mb-4">
-            Tıp öğrencilerine patoloji eğitimi vermenin yanı sıra, uzmanlık öğrencilerinin
-            eğitiminde de aktif rol almaktayım.
-          </p>
-          <p className="text-muted-foreground m-0">
-            Yukarıda belirtilen ilgi alanlarımda araştırmalar yapmakta ve bilimsel
-            yayınlar üretmekteyim.
-          </p>
-        </div>
-
-        <div className="bg-white p-8">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="bg-[#E74C3C] w-12 h-12 flex items-center justify-center text-white">
-              <Users size={24} />
-            </div>
-            <h2>İletişim ve İş Birliği</h2>
-          </div>
-          <p className="text-muted-foreground mb-4">
-            Hastalar, öğrenciler ve meslektaşlarım için her zaman ulaşılabilir olmaya
-            çalışıyorum.
-          </p>
-          <p className="text-muted-foreground mb-4">
-            Biyopsi sonuçları, konsültasyon talepleri ve akademik iş birlikleri için
-            benimle iletişime geçebilirsiniz.
-          </p>
-          <div className="bg-[#F5F5F5] p-4">
-            <p className="text-muted-foreground m-0">
-              <strong>E-posta:</strong> metin@metinciris.com.tr<br />
-              <strong>Telefon:</strong> (246) 211 92 92
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Hakkımda ve Sorumluluklar */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        <div className="bg-white p-8 border-l-4 border-[#11528f] shadow-sm">
-          <h2 className="text-[#11528f] mb-4">Hakkımda</h2>
-          <p className="text-gray-700 leading-relaxed">
-            Ben, Prof. Dr. Metin Çiriş, Isparta Süleyman Demirel Üniversitesi Tıp Fakültesi Patoloji Anabilim Dalı’nda öğretim üyesi olarak görev yapmaktayım. Akademik ve mesleki birikimim doğrultusunda, patoloji alanında hem eğitim hem de sağlık hizmeti sunan önemli bir rol üstlenmekteyim. Fakültemizdeki görevim; öğrencilerin, asistanların ve sağlık profesyonellerinin mesleki gelişimine katkı sunarken aynı zamanda hastalarımızın doğru tanıya ulaşabilmesi için multidisipliner ekip içinde aktif sorumluluk almayı kapsamaktadır.
-          </p>
-        </div>
-        <div className="bg-white p-8 border-l-4 border-[#E74C3C] shadow-sm">
-          <h2 className="text-[#E74C3C] mb-4">Görev ve Sorumluluklarım</h2>
-          <p className="text-gray-700 leading-relaxed">
-            Tıbbi patoloji alanında, hastalıklara doğru ve kesin tanı koyarak hastaların tedavi süreçlerinin sağlıklı bir şekilde yönlendirilmesine katkı sağlamak öncelikli görevlerim arasındadır. Klinik branşlarla yakın iş birliği içinde çalışarak, biyopsi ve cerrahi materyallerin değerlendirilmesi, sitolojik incelemeler ve gerekli durumlarda ileri moleküler tanı yöntemlerinin uygulanması süreçlerinde aktif rol alıyorum. Bunun yanında, tıp öğrencileri ve araştırma görevlilerine patoloji eğitimi vererek, onların mesleki bilgi ve becerilerini geliştirmeyi amaçlıyorum. Bilimsel araştırmalar yürüterek hem ulusal hem de uluslararası literatüre katkı sunmak, yeni tanı yöntemlerinin geliştirilmesine destek olmak da akademik sorumluluklarım arasında yer almaktadır.
-          </p>
         </div>
       </div>
 
