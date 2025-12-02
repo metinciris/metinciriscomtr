@@ -108,6 +108,9 @@ export function BiyopsiSonucu() {
             <Phone size={20} />
             <span>(246) 211 94 24</span>
           </a>
+          <p className="text-sm text-muted-foreground mt-4">
+            Özel patoloji değerlendirmesi için sekreterliğimiz ile görüşebilirsiniz.
+          </p>
         </div>
 
         <div className="bg-white p-8">

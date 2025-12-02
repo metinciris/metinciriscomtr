@@ -348,12 +348,12 @@ export function Home({ onNavigate }: HomeProps) {
                 onClick={() => onNavigate('biyopsi-sonucu')}
               />
               <MetroTile
-                title="Ben Kimim?"
+                title="Baktığım Biyopsiler"
                 subtitle=""
                 icon={<BookOpen size={40} />}
                 color="bg-[#0078D4]"
                 size="medium"
-                onClick={() => onNavigate('ben-kimim')}
+                onClick={() => onNavigate('baktigim-biyopsiler')}
               />
               <MetroTile
                 title="Isparta Nöbetçi Eczane"

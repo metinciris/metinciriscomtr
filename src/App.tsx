@@ -22,8 +22,8 @@ const BiyopsiSonucu = React.lazy(() =>
     default: m.BiyopsiSonucu,
   })),
 );
-const BenKimim = React.lazy(() =>
-  import('./pages/BenKimim').then((m) => ({ default: m.BenKimim })),
+const BaktigimBiyopsiler = React.lazy(() =>
+  import('./pages/BaktigimBiyopsiler').then((m) => ({ default: m.BaktigimBiyopsiler })),
 );
 const NobetciEczane = React.lazy(() =>
   import('./pages/NobetciEczane').then((m) => ({
@@ -131,8 +131,8 @@ export default function App() {
         return <ZiyaretMesaji />;
       case 'biyopsi-sonucu':
         return <BiyopsiSonucu />;
-      case 'ben-kimim':
-        return <BenKimim />;
+      case 'baktigim-biyopsiler':
+        return <BaktigimBiyopsiler />;
       case 'nobetci-eczane':
         return <NobetciEczane />;
       case 'hastane-yemek':

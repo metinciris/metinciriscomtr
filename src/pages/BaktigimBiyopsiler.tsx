@@ -3,11 +3,11 @@ import { PageContainer } from '../components/PageContainer';
 import { GraduationCap, Award, BookOpen, Microscope, Users, Target, Stethoscope, Brain, Heart } from 'lucide-react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 
-export function BenKimim() {
+export function BaktigimBiyopsiler() {
   return (
     <PageContainer>
       <div className="bg-[#11528f] text-white p-12 mb-8">
-        <h1 className="text-white mb-4">Ben Kimim?</h1>
+        <h1 className="text-white mb-4">Baktığım Biyopsiler</h1>
         <p className="text-white/90">
           Süleyman Demirel Üniversitesi Tıp Fakültesi Tıbbi Patoloji Anabilim Dalında görev yapıyorum
         </p>
@@ -29,7 +29,7 @@ export function BenKimim() {
           </p>
           <div className="bg-[#11528f] text-white p-6">
             <p className="text-white m-0">
-              Ben, Prof. Dr. Metin Çiriş, Isparta Süleyman Demirel Üniversitesi Tıp Fakültesi Patoloji 
+              Ben, Prof. Dr. Metin Çiriş, Isparta Süleyman Demirel Üniversitesi Tıp Fakültesi Patoloji
               Anabilim Dalında görev yapıyorum.
             </p>
           </div>
@@ -68,14 +68,18 @@ export function BenKimim() {
                 <span className="text-[#1BA1E2]">•</span>
                 <span className="text-muted-foreground">Nefropatoloji</span>
               </div>
+              <div className="flex items-start gap-3 p-3 bg-[#F5F5F5]">
+                <span className="text-[#9B59B6]">•</span>
+                <span className="text-muted-foreground">NGS</span>
+              </div>
             </div>
           </div>
 
           <div className="bg-gradient-to-r from-[#00A6D6] to-[#11528f] text-white p-8">
             <h3 className="text-white mb-4">Görev ve Sorumluluklar</h3>
             <p className="text-white/90 m-0">
-              Tıbbi patoloji alanında hasta tanı ve tedavisine katkı sağlamak, 
-              tıp öğrencilerinin eğitimi ve bilimsel araştırmalar yapmak temel 
+              Tıbbi patoloji alanında hasta tanı ve tedavisine katkı sağlamak,
+              tıp öğrencilerinin eğitimi ve bilimsel araştırmalar yapmak temel
               görevlerim arasındadır.
             </p>
           </div>
@@ -166,15 +170,15 @@ export function BenKimim() {
             <h2>Eğitim ve Araştırma</h2>
           </div>
           <p className="text-muted-foreground mb-4">
-            Süleyman Demirel Üniversitesi Tıp Fakültesi Tıbbi Patoloji Anabilim Dalında 
+            Süleyman Demirel Üniversitesi Tıp Fakültesi Tıbbi Patoloji Anabilim Dalında
             uzun yıllardır öğretim üyeliği yapmaktayım.
           </p>
           <p className="text-muted-foreground mb-4">
-            Tıp öğrencilerine patoloji eğitimi vermenin yanı sıra, uzmanlık öğrencilerinin 
+            Tıp öğrencilerine patoloji eğitimi vermenin yanı sıra, uzmanlık öğrencilerinin
             eğitiminde de aktif rol almaktayım.
           </p>
           <p className="text-muted-foreground m-0">
-            Yukarıda belirtilen ilgi alanlarımda araştırmalar yapmakta ve bilimsel 
+            Yukarıda belirtilen ilgi alanlarımda araştırmalar yapmakta ve bilimsel
             yayınlar üretmekteyim.
           </p>
         </div>
@@ -187,11 +191,11 @@ export function BenKimim() {
             <h2>İletişim ve İş Birliği</h2>
           </div>
           <p className="text-muted-foreground mb-4">
-            Hastalar, öğrenciler ve meslektaşlarım için her zaman ulaşılabilir olmaya 
+            Hastalar, öğrenciler ve meslektaşlarım için her zaman ulaşılabilir olmaya
             çalışıyorum.
           </p>
           <p className="text-muted-foreground mb-4">
-            Biyopsi sonuçları, konsültasyon talepleri ve akademik iş birlikleri için 
+            Biyopsi sonuçları, konsültasyon talepleri ve akademik iş birlikleri için
             benimle iletişime geçebilirsiniz.
           </p>
           <div className="bg-[#F5F5F5] p-4">
@@ -215,11 +219,11 @@ export function BenKimim() {
             <div className="p-12 max-w-2xl">
               <h2 className="text-white mb-4">Tıbbi Patoloji</h2>
               <p className="text-white/90 mb-4">
-                Patoloji, hastalıkların nedenlerini, gelişimini ve etkilerini inceleyen 
+                Patoloji, hastalıkların nedenlerini, gelişimini ve etkilerini inceleyen
                 bir tıp dalıdır.
               </p>
               <p className="text-white/90 m-0">
-                Mikroskobik incelemeler ve laboratuvar testleri ile hastalıkların tanısında 
+                Mikroskobik incelemeler ve laboratuvar testleri ile hastalıkların tanısında
                 kritik rol oynar.
               </p>
             </div>
@@ -228,12 +232,36 @@ export function BenKimim() {
       </div>
 
       {/* Önemli Not */}
-      <div className="bg-[#E3F2FD] border-l-4 border-[#11528f] p-6">
+      <div className="bg-[#E3F2FD] border-l-4 border-[#11528f] p-6 mb-8">
         <h3 className="mb-3">Daha Fazla Bilgi</h3>
         <p className="text-muted-foreground m-0">
-          Akademik yayınlarım, araştırmalarım ve detaylı özgeçmişim için 
+          Akademik yayınlarım, araştırmalarım ve detaylı özgeçmişim için
           <strong> Akademik</strong> bölümündeki <strong>Yayınlar</strong> sayfasını ziyaret edebilirsiniz.
         </p>
+      </div>
+
+      {/* Hızlı Erişim Linkleri */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <a href="#portfolyo" className="block group">
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 h-full hover:shadow-md transition-shadow">
+            <h3 className="text-[#11528f] mb-2 group-hover:underline">Uzmanlık Alanlarım ve Akademik Bilgilerim</h3>
+            <p className="text-sm text-gray-600">Portfolyo sayfasına git</p>
+          </div>
+        </a>
+
+        <a href="#yayinlar" className="block group">
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 h-full hover:shadow-md transition-shadow">
+            <h3 className="text-[#DC143C] mb-2 group-hover:underline">Akademik Yayınlarım</h3>
+            <p className="text-sm text-gray-600">Katıldığım bilimsel çalışmalar</p>
+          </div>
+        </a>
+
+        <a href="#biyopsi-sonucu" className="block group">
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 h-full hover:shadow-md transition-shadow">
+            <h3 className="text-[#8E44AD] mb-2 group-hover:underline">Biyopsi Sonucu</h3>
+            <p className="text-sm text-gray-600">Özel biyopsi değerlendirmesi ve rapor sonuçları</p>
+          </div>
+        </a>
       </div>
     </PageContainer>
   );
