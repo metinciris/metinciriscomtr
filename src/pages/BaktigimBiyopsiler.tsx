@@ -17,7 +17,7 @@ export function BaktigimBiyopsiler() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         <div className="bg-white p-8">
           <ImageWithFallback
-            src="https://w3.sdu.edu.tr/foto.aspx?sicil_no=02956"
+            src="/img/metin-ciris.jpg"
             alt="Prof. Dr. Metin Çiriş"
             className="w-full h-96 object-cover mb-6"
           />
@@ -80,6 +80,7 @@ export function BaktigimBiyopsiler() {
       <div className="mb-8">
         <h2 className="mb-6">Uzmanlık Alanları</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
           {/* 1. Endokrin sistem patolojisi */}
           <div className="relative overflow-hidden group">
             <ImageWithFallback
@@ -111,7 +112,7 @@ export function BaktigimBiyopsiler() {
           {/* 3. Baş-Boyun Patolojisi */}
           <div className="relative overflow-hidden group">
             <ImageWithFallback
-              src="https://images.unsplash.com/photo-1576086213369-97a306d36557?q=80&w=1000&auto=format&fit=crop"
+              src="/img/bas-boyun-patolojisi.jpg"
               alt="Baş-Boyun Patolojisi"
               className="w-full h-64 object-cover"
             />
@@ -125,7 +126,7 @@ export function BaktigimBiyopsiler() {
           {/* 4. Hepatobiliyer Sistem ve pankreas */}
           <div className="relative overflow-hidden group">
             <ImageWithFallback
-              src="https://images.unsplash.com/photo-1630959300489-63dae3a8240a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwYXRob2xvZ3klMjBtaWNyb3Njb3BlJTIwbGFib3JhdG9yeXxlbnwxfHx8fDE3NjI4MDI5MTh8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+              src="/img/hepatobiliyer-pankreas.jpg"
               alt="Hepatobiliyer Sistem ve pankreas"
               className="w-full h-64 object-cover"
             />
@@ -139,7 +140,7 @@ export function BaktigimBiyopsiler() {
           {/* 5. Nefropatoloji */}
           <div className="relative overflow-hidden group">
             <ImageWithFallback
-              src="https://images.unsplash.com/photo-1715527498501-4eb81f7ce451?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxraWRuZXklMjBuZXBocm9sb2d5JTIwbWVkaWNhbHxlbnwxfHx8fDE3NjI4MDI5MzF8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+              src="/img/nefropatoloji.jpg"
               alt="Nefropatoloji"
               className="w-full h-64 object-cover"
             />
@@ -153,7 +154,7 @@ export function BaktigimBiyopsiler() {
           {/* 6. Kemik ve Yumuşak Doku */}
           <div className="relative overflow-hidden group">
             <ImageWithFallback
-              src="https://images.unsplash.com/photo-1530026405186-ed1f139313f8?q=80&w=1000&auto=format&fit=crop"
+              src="/img/kemik-yumusak-doku.jpg"
               alt="Kemik ve Yumuşak Doku"
               className="w-full h-64 object-cover"
             />
@@ -181,7 +182,7 @@ export function BaktigimBiyopsiler() {
           {/* 8. Moleküler tetkikler */}
           <div className="relative overflow-hidden group">
             <ImageWithFallback
-              src="https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?q=80&w=1000&auto=format&fit=crop"
+              src="/img/molekuler-tetkik.jpg"
               alt="Moleküler tetkikler"
               className="w-full h-64 object-cover"
             />
@@ -195,7 +196,7 @@ export function BaktigimBiyopsiler() {
           {/* 9. NGS */}
           <div className="relative overflow-hidden group">
             <ImageWithFallback
-              src="https://images.unsplash.com/photo-1576086213369-97a306d36557?q=80&w=1000&auto=format&fit=crop"
+              src="/img/ngs.jpg"
               alt="NGS"
               className="w-full h-64 object-cover"
             />
@@ -209,7 +210,7 @@ export function BaktigimBiyopsiler() {
           {/* 10. Metastatik tümörler */}
           <div className="relative overflow-hidden group">
             <ImageWithFallback
-              src="https://images.unsplash.com/photo-1576086213369-97a306d36557?q=80&w=1000&auto=format&fit=crop"
+              src="/img/metastatik-tumor.jpg"
               alt="Metastatik tümörler"
               className="w-full h-64 object-cover"
             />
@@ -223,7 +224,7 @@ export function BaktigimBiyopsiler() {
           {/* 11. Konsültasyon */}
           <div className="relative overflow-hidden group">
             <ImageWithFallback
-              src="https://images.unsplash.com/photo-1574689049597-7e6c8e754c5b?q=80&w=1000&auto=format&fit=crop"
+              src="/img/konsultasyon.jpg"
               alt="Konsültasyon"
               className="w-full h-64 object-cover"
             />
@@ -237,7 +238,7 @@ export function BaktigimBiyopsiler() {
           {/* 12. Deneysel Patoloji */}
           <div className="relative overflow-hidden group">
             <ImageWithFallback
-              src="https://images.unsplash.com/photo-1532094349884-543bc11b234d?q=80&w=1000&auto=format&fit=crop"
+              src="/img/deneysel-patoloji.jpg"
               alt="Deneysel Patoloji"
               className="w-full h-64 object-cover"
             />
@@ -247,6 +248,7 @@ export function BaktigimBiyopsiler() {
               <p className="text-white/90 m-0">Deney hayvanları patolojisi</p>
             </div>
           </div>
+
         </div>
       </div>
 
@@ -317,7 +319,7 @@ export function BaktigimBiyopsiler() {
       <div className="mb-8">
         <div className="relative overflow-hidden">
           <ImageWithFallback
-            src="https://images.unsplash.com/photo-1630959300489-63dae3a8240a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwYXRob2xvZ3klMjBtaWNyb3Njb3BlJTIwbGFib3JhdG9yeXxlbnwxfHx8fDE3NjI4MDI5MTh8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+            src="/img/patoloji-laboratuvar.jpg"
             alt="Patoloji Laboratuvarı"
             className="w-full h-96 object-cover"
           />
