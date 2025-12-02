@@ -13,7 +13,7 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
 
   const navItems = [
     { name: 'Ana Sayfa', path: 'home', icon: Home },
-    { name: 'Hakkımda', path: 'ben-kimim', icon: User },
+    { name: 'Biyopsi', path: 'baktigim-biyopsiler', icon: User },
     { name: 'Akademik', path: 'yayinlar', icon: BookOpen },
   ];
 
@@ -55,11 +55,10 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
                 <button
                   key={item.path}
                   onClick={() => onNavigate(item.path)}
-                  className={`px-4 py-2 flex items-center space-x-2 transition-colors ${
-                    currentPage === item.path
+                  className={`px-4 py-2 flex items-center space-x-2 transition-colors ${currentPage === item.path
                       ? 'bg-[#0078D4] text-white'
                       : 'text-white/80 hover:bg-white/10'
-                  }`}
+                    }`}
                 >
                   <item.icon size={18} />
                   <span>{item.name}</span>
@@ -89,11 +88,10 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
                     onNavigate(item.path);
                     setMobileMenuOpen(false);
                   }}
-                  className={`w-full px-4 py-3 flex items-center space-x-2 transition-colors ${
-                    currentPage === item.path
+                  className={`w-full px-4 py-3 flex items-center space-x-2 transition-colors ${currentPage === item.path
                       ? 'bg-[#0078D4] text-white'
                       : 'text-white/80 hover:bg-white/10'
-                  }`}
+                    }`}
                 >
                   <item.icon size={18} />
                   <span>{item.name}</span>

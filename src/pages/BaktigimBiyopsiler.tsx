@@ -223,7 +223,7 @@ export function BaktigimBiyopsiler() {
           {/* 11. Konsültasyon */}
           <div className="relative overflow-hidden group">
             <ImageWithFallback
-              src="https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=1000&auto=format&fit=crop"
+              src="https://images.unsplash.com/photo-1579154204601-01588f351e67?q=80&w=1000&auto=format&fit=crop"
               alt="Konsültasyon"
               className="w-full h-64 object-cover"
             />
