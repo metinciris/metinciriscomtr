@@ -109,12 +109,17 @@ export function BaktigimBiyopsiler() {
           </div>
 
           {/* 3. Baş-Boyun Patolojisi */}
-          <div className="bg-[#27AE60] text-white p-8 flex flex-col justify-center">
-            <div className="mb-4">
-              <Stethoscope size={48} className="text-white" />
+          <div className="relative overflow-hidden group">
+            <ImageWithFallback
+              src="https://images.unsplash.com/photo-1576086213369-97a306d36557?q=80&w=1000&auto=format&fit=crop"
+              alt="Baş-Boyun Patolojisi"
+              className="w-full h-64 object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#27AE60] to-transparent opacity-80"></div>
+            <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+              <h3 className="text-white mb-2">Baş-Boyun Patolojisi</h3>
+              <p className="text-white/90 m-0">Baş ve boyun bölgesi tümörleri</p>
             </div>
-            <h3 className="text-white mb-2">Baş-Boyun Patolojisi</h3>
-            <p className="text-white/90 m-0">Baş ve boyun bölgesi tümörleri</p>
           </div>
 
           {/* 4. Hepatobiliyer Sistem ve pankreas */}
@@ -204,11 +209,11 @@ export function BaktigimBiyopsiler() {
           {/* 10. Metastatik tümörler */}
           <div className="relative overflow-hidden group">
             <ImageWithFallback
-              src="https://images.unsplash.com/photo-1559757175-5700dde675bc?q=80&w=1000&auto=format&fit=crop"
+              src="https://images.unsplash.com/photo-1576086213369-97a306d36557?q=80&w=1000&auto=format&fit=crop"
               alt="Metastatik tümörler"
               className="w-full h-64 object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#34495E] to-transparent opacity-80"></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-[#34495E] to-transparent opacity-90"></div>
             <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
               <h3 className="text-white mb-2">Metastatik tümörler</h3>
               <p className="text-white/90 m-0">Karaciğer, kemik, beyin metastazlarından tanı</p>
@@ -218,11 +223,11 @@ export function BaktigimBiyopsiler() {
           {/* 11. Konsültasyon */}
           <div className="relative overflow-hidden group">
             <ImageWithFallback
-              src="https://images.unsplash.com/photo-1582719471384-894fbb16e074?q=80&w=1000&auto=format&fit=crop"
+              src="https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=1000&auto=format&fit=crop"
               alt="Konsültasyon"
               className="w-full h-64 object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#34495E] to-transparent opacity-80"></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-[#34495E] to-transparent opacity-90"></div>
             <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
               <h3 className="text-white mb-2">Konsültasyon</h3>
               <p className="text-white/90 m-0">Patoloji konsültasyonu. Preparat ve parafin blok birlikte gönderilmelidir.</p>
