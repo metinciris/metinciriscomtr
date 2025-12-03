@@ -268,7 +268,7 @@ export function Deprem() {
                                             style={{ backgroundColor: rowColor }}
                                         >
                                             <td
-                                                className={`px-6 py-4 border-r border-gray-300 border-b-4 border-white ${highlight
+                                                className={`px-6 py-4 border-r border-gray-300 border-b border-gray-300 ${highlight
                                                     ? 'font-bold text-red-900 text-base'
                                                     : 'text-gray-800'
                                                     }`}
@@ -288,7 +288,7 @@ export function Deprem() {
                                                     <span>{eq.title}</span>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 text-center border-r border-gray-300 border-b-4 border-white">
+                                            <td className="px-6 py-4 text-center border-r border-gray-300 border-b border-gray-300">
                                                 <div className="flex items-center justify-center gap-2">
                                                     <span
                                                         className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-bold shadow-sm ${getMagnitudeBadgeStyle(
@@ -305,10 +305,10 @@ export function Deprem() {
                                                     )}
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 text-center text-gray-700 font-medium border-r border-gray-300 border-b-4 border-white">
+                                            <td className="px-6 py-4 text-center text-gray-700 font-medium border-r border-gray-300 border-b border-gray-300">
                                                 {eq.depth.toFixed(1)}
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-b-4 border-white">
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-b border-gray-300">
                                                 <div className="flex flex-col">
                                                     <span>{formatDate(eq.date_time)}</span>
                                                     {today && (
