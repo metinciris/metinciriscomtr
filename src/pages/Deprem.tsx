@@ -237,7 +237,7 @@ export function Deprem() {
                                     const rowColor = getRowColor(eq.mag, highlight, today, recent);
 
                                     // Base classes for borders and transitions
-                                    let rowClasses = 'transition-all duration-150 border-l-4';
+                                    let rowClasses = 'transition-all duration-150 border-l-4 border-b-4 border-white';
 
                                     if (highlight) rowClasses += ' border-l-red-600 shadow-sm';
                                     else if (eq.mag >= 6) rowClasses += ' border-l-red-800';
