@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { PageContainer } from '../components/PageContainer';
-import { Activity, RefreshCw, AlertTriangle, MapPin, Clock, AlertOctagon, Zap, Volume2, VolumeX, ChevronDown, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Activity, RefreshCw, AlertTriangle, MapPin, Clock, AlertOctagon, Zap, Volume2, VolumeX, ChevronDown, ArrowUpDown, ArrowUp, ArrowDown, Navigation } from 'lucide-react';
 
 interface Earthquake {
     earthquake_id: string;
@@ -8,6 +8,10 @@ interface Earthquake {
     mag: number;
     depth: number;
     date_time: string;
+    geojson: {
+        type: string;
+        coordinates: [number, number]; // [lng, lat]
+    };
     location_properties: {
         closestCity: {
             name: string;
@@ -24,7 +28,7 @@ interface APIResponse {
     };
 }
 
-type SortKey = 'date_time' | 'mag';
+type SortKey = 'date_time' | 'mag' | 'distance';
 type SortDirection = 'asc' | 'desc';
 
 export function Deprem() {
@@ -40,6 +44,26 @@ export function Deprem() {
         direction: 'desc'
     });
     const latestEqDateRef = useRef<string | null>(null);
+
+    // Isparta Coordinates
+    const ISPARTA_COORDS = { lat: 37.7648, lng: 30.5567 };
+
+    const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+        const R = 6371; // Radius of the earth in km
+        const dLat = deg2rad(lat2 - lat1);
+        const dLon = deg2rad(lon2 - lon1);
+        const a =
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        const d = R * c; // Distance in km
+        return d;
+    };
+
+    const deg2rad = (deg: number) => {
+        return deg * (Math.PI / 180);
+    };
 
     const playBeep = (frequency = 440, duration = 0.1) => {
         if (!soundEnabled) return;
@@ -225,6 +249,10 @@ export function Deprem() {
     const sortedEarthquakes = [...earthquakes].sort((a, b) => {
         if (sortConfig.key === 'mag') {
             return sortConfig.direction === 'asc' ? a.mag - b.mag : b.mag - a.mag;
+        } else if (sortConfig.key === 'distance') {
+            const distA = calculateDistance(ISPARTA_COORDS.lat, ISPARTA_COORDS.lng, a.geojson.coordinates[1], a.geojson.coordinates[0]);
+            const distB = calculateDistance(ISPARTA_COORDS.lat, ISPARTA_COORDS.lng, b.geojson.coordinates[1], b.geojson.coordinates[0]);
+            return sortConfig.direction === 'asc' ? distA - distB : distB - distA;
         } else {
             // Date sort
             const timeA = new Date(a.date_time).getTime();
@@ -233,12 +261,7 @@ export function Deprem() {
         }
     });
 
-    // Split data logic (applied AFTER sorting)
-    // If sorting by Magnitude, we probably want to show the top 50 largest, etc.
-    // But user requirement was "Top 50" (usually implies recent) + "Older 3.0+".
-    // If user sorts by Magnitude, the concept of "Top 50" changes.
-    // Let's apply sorting to the WHOLE list, then slice.
-
+    // Split data logic
     const top50 = sortedEarthquakes.slice(0, 50);
     const olderRecords = sortedEarthquakes.slice(50);
     const olderSignificant = olderRecords.filter(eq => eq.mag >= 3.0);
@@ -357,6 +380,19 @@ export function Deprem() {
                                 </th>
                                 <th
                                     className="px-6 py-4 text-center text-sm font-bold text-gray-700 uppercase tracking-wider border-r border-gray-300 cursor-pointer hover:bg-gray-200 transition-colors select-none"
+                                    onClick={() => handleSort('distance')}
+                                >
+                                    <div className="flex items-center justify-center gap-1">
+                                        <Navigation size={16} className="inline mr-1" />
+                                        Isparta'ya Uzaklık
+                                        {sortConfig.key === 'distance' && (
+                                            sortConfig.direction === 'desc' ? <ArrowDown size={14} /> : <ArrowUp size={14} />
+                                        )}
+                                        {sortConfig.key !== 'distance' && <ArrowUpDown size={14} className="text-gray-400" />}
+                                    </div>
+                                </th>
+                                <th
+                                    className="px-6 py-4 text-center text-sm font-bold text-gray-700 uppercase tracking-wider border-r border-gray-300 cursor-pointer hover:bg-gray-200 transition-colors select-none"
                                     onClick={() => handleSort('mag')}
                                 >
                                     <div className="flex items-center justify-center gap-1">
@@ -388,14 +424,14 @@ export function Deprem() {
                         <tbody className="divide-y divide-gray-300">
                             {loading && earthquakes.length === 0 ? (
                                 <tr>
-                                    <td colSpan={4} className="px-6 py-12 text-center">
+                                    <td colSpan={5} className="px-6 py-12 text-center">
                                         <RefreshCw className="animate-spin mx-auto mb-3 text-gray-400" size={32} />
                                         <p className="text-gray-500">Veriler yükleniyor...</p>
                                     </td>
                                 </tr>
                             ) : earthquakes.length === 0 ? (
                                 <tr>
-                                    <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
+                                    <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
                                         <AlertTriangle className="mx-auto mb-3 text-gray-300" size={32} />
                                         <p>Kayıt bulunamadı.</p>
                                     </td>
@@ -405,6 +441,8 @@ export function Deprem() {
                                     const highlight = isIsparta(eq.title);
                                     const today = isToday(eq.date_time);
                                     const recent = isRecent(eq.date_time);
+                                    const distance = calculateDistance(ISPARTA_COORDS.lat, ISPARTA_COORDS.lng, eq.geojson.coordinates[1], eq.geojson.coordinates[0]);
+
                                     const getRowColor = (mag: number, isIspartaLocation: boolean, isTodayEq: boolean, isRecentEq: boolean) => {
                                         if (isIspartaLocation) return '#fee2e2'; // red-100
                                         if (mag >= 6) return '#fca5a5'; // red-300
@@ -463,6 +501,9 @@ export function Deprem() {
                                                         </div>
                                                     )}
                                                 </div>
+                                            </td>
+                                            <td className="px-6 py-4 text-center border-r border-gray-300 border-b border-gray-300 font-mono text-gray-700">
+                                                {distance.toFixed(1)} km
                                             </td>
                                             <td className="px-6 py-4 text-center border-r border-gray-300 border-b border-gray-300">
                                                 <div className="flex items-center justify-center gap-2">
