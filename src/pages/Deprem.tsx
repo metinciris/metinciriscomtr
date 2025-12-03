@@ -79,65 +79,95 @@ export function Deprem() {
         setError(null);
 
         try {
-            const response = await fetch('https://api.orhanaydogdu.com.tr/deprem/kandilli/live');
+            // Helper to format date as YYYY-MM-DD
+            const formatDateForApi = (date: Date) => {
+                return date.toISOString().split('T')[0];
+            };
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+            // Generate dates for the last 7 days
+            const datesToFetch: string[] = [];
+            for (let i = 0; i < 7; i++) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                datesToFetch.push(formatDateForApi(d));
             }
 
-            const data: APIResponse = await response.json();
+            // Prepare all fetch promises
+            // 1. Live data (Top 100)
+            const promises = [
+                fetch('https://api.orhanaydogdu.com.tr/deprem/kandilli/live?limit=100').then(r => r.json())
+            ];
 
-            if (data.status && data.result && Array.isArray(data.result)) {
-                // New filtering logic: Top 50 records + Any > 3.0 in last 24 hours
-                const allEarthquakes = data.result;
+            // 2. Archive data for each date (2 pages = 200 records per day)
+            datesToFetch.forEach(date => {
+                // Page 1
+                promises.push(
+                    fetch(`https://api.orhanaydogdu.com.tr/deprem/kandilli/archive?date=${date}&limit=100`).then(r => r.json())
+                );
+                // Page 2 (Skip 100)
+                promises.push(
+                    fetch(`https://api.orhanaydogdu.com.tr/deprem/kandilli/archive?date=${date}&limit=100&skip=100`).then(r => r.json())
+                );
+            });
 
-                // 1. Get top 50
-                const top50 = allEarthquakes.slice(0, 50);
+            // Execute all requests in parallel
+            const results = await Promise.all(promises);
 
-                // 2. Get > 3.0 in last 24 hours
-                const oneDayAgo = new Date();
-                oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+            // Process results
+            let allRawEarthquakes: Earthquake[] = [];
 
-                const significantRecent = allEarthquakes.filter((eq: Earthquake) => {
-                    try {
-                        const eqDate = new Date(eq.date_time);
-                        return eq.mag >= 3.0 && eqDate >= oneDayAgo;
-                    } catch {
-                        return false;
-                    }
-                });
-
-                // 3. Merge and remove duplicates
-                const mergedMap = new Map();
-
-                [...top50, ...significantRecent].forEach(eq => {
-                    mergedMap.set(eq.earthquake_id, eq);
-                });
-
-                const finalList = Array.from(mergedMap.values()).sort((a, b) => {
-                    return new Date(b.date_time).getTime() - new Date(a.date_time).getTime();
-                });
-
-                // Check for new earthquake (using the full list logic)
-                if (finalList.length > 0) {
-                    const newestEq = finalList[0];
-                    if (latestEqDateRef.current && newestEq.date_time !== latestEqDateRef.current) {
-                        // New earthquake detected!
-                        const newEqDate = new Date(newestEq.date_time);
-                        const oldEqDate = new Date(latestEqDateRef.current);
-
-                        if (newEqDate > oldEqDate) {
-                            const beepCount = Math.floor(newestEq.mag);
-                            playBeepSequence(beepCount);
-                        }
-                    }
-                    latestEqDateRef.current = newestEq.date_time;
+            results.forEach((data: any) => {
+                if (data.status && data.result && Array.isArray(data.result)) {
+                    allRawEarthquakes = [...allRawEarthquakes, ...data.result];
                 }
+            });
 
-                setEarthquakes(finalList);
-            } else {
-                throw new Error('Veri formatı hatalı');
+            // Deduplicate based on earthquake_id (or date_time + mag if id missing/duplicate)
+            const uniqueMap = new Map();
+            allRawEarthquakes.forEach(eq => {
+                // Create a unique key if earthquake_id is not reliable across endpoints
+                const key = eq.earthquake_id || `${eq.date_time}_${eq.mag}`;
+                if (!uniqueMap.has(key)) {
+                    uniqueMap.set(key, eq);
+                }
+            });
+
+            const uniqueEarthquakes = Array.from(uniqueMap.values());
+
+            // Sort by date descending
+            uniqueEarthquakes.sort((a, b) => {
+                return new Date(b.date_time).getTime() - new Date(a.date_time).getTime();
+            });
+
+            // Filter:
+            // 1. Keep Top 50 (most recent)
+            // 2. Keep ANY > 3.0 from the rest
+
+            const top50 = uniqueEarthquakes.slice(0, 50);
+            const rest = uniqueEarthquakes.slice(50);
+
+            const significantRest = rest.filter(eq => eq.mag >= 3.0);
+
+            const finalList = [...top50, ...significantRest];
+
+            // Check for new earthquake (using the very first one)
+            if (finalList.length > 0) {
+                const newestEq = finalList[0];
+                if (latestEqDateRef.current && newestEq.date_time !== latestEqDateRef.current) {
+                    // New earthquake detected!
+                    const newEqDate = new Date(newestEq.date_time);
+                    const oldEqDate = new Date(latestEqDateRef.current);
+
+                    if (newEqDate > oldEqDate) {
+                        const beepCount = Math.floor(newestEq.mag);
+                        playBeepSequence(beepCount);
+                    }
+                }
+                latestEqDateRef.current = newestEq.date_time;
             }
+
+            setEarthquakes(finalList);
+
         } catch (err: any) {
             console.error('Deprem verisi hatası:', err);
             setError(err.message || 'Veriler yüklenirken bir hata oluştu.');
