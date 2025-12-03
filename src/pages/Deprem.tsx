@@ -240,10 +240,14 @@ export function Deprem() {
                         </div>
                         <button
                             onClick={() => setSoundEnabled(!soundEnabled)}
-                            className={`flex items-center justify-center gap-2 p-3 rounded-lg backdrop-blur-sm transition-all ${soundEnabled
-                                ? 'bg-white text-red-700 shadow-md ring-2 ring-red-500'
-                                : 'bg-white/10 text-white hover:bg-white/20'
+                            className={`flex items-center justify-center gap-2 p-3 rounded-lg backdrop-blur-sm transition-all shadow-md ${soundEnabled
+                                ? 'ring-2 ring-red-500'
+                                : 'hover:bg-white/20'
                                 }`}
+                            style={{
+                                backgroundColor: soundEnabled ? 'white' : 'rgba(255, 255, 255, 0.1)',
+                                color: soundEnabled ? '#b91c1c' : 'white'
+                            }}
                             title={soundEnabled ? "Sesli uyarı açık" : "Sesli uyarı kapalı"}
                         >
                             {soundEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
