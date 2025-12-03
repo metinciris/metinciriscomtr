@@ -265,7 +265,7 @@ export function Deprem() {
                             Kandilli Rasathanesi canlı verileri
                         </p>
                         <p className="text-white/80 text-sm">
-                            Son 50 kayıt ve son 10 gündeki 3.0+ depremler • 30 saniyede bir güncellenir
+                            Son 100 deprem kaydı • 30 saniyede bir güncellenir
                         </p>
                     </div>
                     <div className="flex flex-col gap-2">
@@ -487,7 +487,7 @@ export function Deprem() {
                     <span className="font-bold ml-2">Son 1 saat</span> içindeki depremler "YENİ" etiketi ile belirtilir.
                     <br />
                     <span className="font-bold text-red-700 mt-2 block">Isparta ilinde deprem varsa Kırmızı renkle yazılır.</span>
-                    <span className="block mt-1">On gün içinde 3 ve üzeri deprem varsa en altta gösterilmiştir.</span>
+
                 </p>
             </div>
         </PageContainer>
