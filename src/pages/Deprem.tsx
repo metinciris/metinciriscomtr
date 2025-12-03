@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { PageContainer } from '../components/PageContainer';
-import { Activity, RefreshCw, AlertTriangle, MapPin, Clock, AlertOctagon, Zap, Volume2, VolumeX, ChevronDown } from 'lucide-react';
+import { Activity, RefreshCw, AlertTriangle, MapPin, Clock, AlertOctagon, Zap, Volume2, VolumeX, ChevronDown, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 
 interface Earthquake {
     earthquake_id: string;
@@ -24,6 +24,9 @@ interface APIResponse {
     };
 }
 
+type SortKey = 'date_time' | 'mag';
+type SortDirection = 'asc' | 'desc';
+
 export function Deprem() {
     const [earthquakes, setEarthquakes] = useState<Earthquake[]>([]);
     // Loading state for data fetching
@@ -32,6 +35,10 @@ export function Deprem() {
     const [error, setError] = useState<string | null>(null);
     const [soundEnabled, setSoundEnabled] = useState(false);
     const [showHistory, setShowHistory] = useState(false);
+    const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: SortDirection }>({
+        key: 'date_time',
+        direction: 'desc'
+    });
     const latestEqDateRef = useRef<string | null>(null);
 
     const playBeep = (frequency = 440, duration = 0.1) => {
@@ -79,37 +86,57 @@ export function Deprem() {
         setError(null);
 
         try {
-            const response = await fetch('https://api.orhanaydogdu.com.tr/deprem/kandilli/live');
+            // Fetch both Live (for immediate latest) and Archive (for deeper history)
+            const [liveResponse, archiveResponse] = await Promise.all([
+                fetch('https://api.orhanaydogdu.com.tr/deprem/kandilli/live'),
+                fetch('https://api.orhanaydogdu.com.tr/deprem/kandilli/archive?limit=500')
+            ]);
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+            const liveData: APIResponse = await liveResponse.json();
+            const archiveData: APIResponse = await archiveResponse.json();
+
+            let allEarthquakes: Earthquake[] = [];
+
+            if (liveData.status && liveData.result) {
+                allEarthquakes = [...allEarthquakes, ...liveData.result];
+            }
+            if (archiveData.status && archiveData.result) {
+                allEarthquakes = [...allEarthquakes, ...archiveData.result];
             }
 
-            const data: APIResponse = await response.json();
-
-            if (data.status && data.result && Array.isArray(data.result)) {
-                const allEarthquakes = data.result;
-
-                // Check for new earthquake (using the very first one)
-                if (allEarthquakes.length > 0) {
-                    const newestEq = allEarthquakes[0];
-                    if (latestEqDateRef.current && newestEq.date_time !== latestEqDateRef.current) {
-                        // New earthquake detected!
-                        const newEqDate = new Date(newestEq.date_time);
-                        const oldEqDate = new Date(latestEqDateRef.current);
-
-                        if (newEqDate > oldEqDate) {
-                            const beepCount = Math.floor(newestEq.mag);
-                            playBeepSequence(beepCount);
-                        }
-                    }
-                    latestEqDateRef.current = newestEq.date_time;
+            // Deduplicate
+            const uniqueMap = new Map();
+            allEarthquakes.forEach(eq => {
+                const key = eq.earthquake_id || `${eq.date_time}_${eq.mag}`;
+                if (!uniqueMap.has(key)) {
+                    uniqueMap.set(key, eq);
                 }
+            });
 
-                setEarthquakes(allEarthquakes);
-            } else {
-                throw new Error('Veri formatı hatalı');
+            const uniqueEarthquakes = Array.from(uniqueMap.values());
+
+            // Initial sort by date desc
+            uniqueEarthquakes.sort((a, b) => {
+                return new Date(b.date_time).getTime() - new Date(a.date_time).getTime();
+            });
+
+            // Check for new earthquake (using the very first one from live/merged)
+            if (uniqueEarthquakes.length > 0) {
+                const newestEq = uniqueEarthquakes[0];
+                if (latestEqDateRef.current && newestEq.date_time !== latestEqDateRef.current) {
+                    // New earthquake detected!
+                    const newEqDate = new Date(newestEq.date_time);
+                    const oldEqDate = new Date(latestEqDateRef.current);
+
+                    if (newEqDate > oldEqDate) {
+                        const beepCount = Math.floor(newestEq.mag);
+                        playBeepSequence(beepCount);
+                    }
+                }
+                latestEqDateRef.current = newestEq.date_time;
             }
+
+            setEarthquakes(uniqueEarthquakes);
         } catch (err: any) {
             console.error('Deprem verisi hatası:', err);
             setError(err.message || 'Veriler yüklenirken bir hata oluştu.');
@@ -187,9 +214,33 @@ export function Deprem() {
         return 'bg-green-100 text-green-800 border border-green-200';
     };
 
-    // Split data logic
-    const top50 = earthquakes.slice(0, 50);
-    const olderRecords = earthquakes.slice(50);
+    // Sorting Logic
+    const handleSort = (key: SortKey) => {
+        setSortConfig(current => ({
+            key,
+            direction: current.key === key && current.direction === 'desc' ? 'asc' : 'desc'
+        }));
+    };
+
+    const sortedEarthquakes = [...earthquakes].sort((a, b) => {
+        if (sortConfig.key === 'mag') {
+            return sortConfig.direction === 'asc' ? a.mag - b.mag : b.mag - a.mag;
+        } else {
+            // Date sort
+            const timeA = new Date(a.date_time).getTime();
+            const timeB = new Date(b.date_time).getTime();
+            return sortConfig.direction === 'asc' ? timeA - timeB : timeB - timeA;
+        }
+    });
+
+    // Split data logic (applied AFTER sorting)
+    // If sorting by Magnitude, we probably want to show the top 50 largest, etc.
+    // But user requirement was "Top 50" (usually implies recent) + "Older 3.0+".
+    // If user sorts by Magnitude, the concept of "Top 50" changes.
+    // Let's apply sorting to the WHOLE list, then slice.
+
+    const top50 = sortedEarthquakes.slice(0, 50);
+    const olderRecords = sortedEarthquakes.slice(50);
     const olderSignificant = olderRecords.filter(eq => eq.mag >= 3.0);
 
     // Determine what to show
@@ -197,8 +248,30 @@ export function Deprem() {
         ? [...top50, ...olderSignificant]
         : top50;
 
+    // Find Isparta earthquakes for banner
+    const ispartaQuakes = earthquakes.filter(eq => isIsparta(eq.title));
+    const latestIsparta = ispartaQuakes.length > 0 ? ispartaQuakes[0] : null;
+
     return (
         <PageContainer>
+            {/* Isparta Banner */}
+            {latestIsparta && (
+                <div className="bg-red-600 text-white p-4 mb-6 rounded-xl shadow-lg animate-pulse border-2 border-red-400">
+                    <div className="flex items-center gap-4">
+                        <AlertOctagon size={32} className="flex-shrink-0" />
+                        <div>
+                            <h3 className="font-bold text-lg uppercase tracking-wide">Isparta'da Deprem!</h3>
+                            <p className="font-medium">
+                                {latestIsparta.title} - Büyüklük: <span className="text-xl font-bold">{latestIsparta.mag}</span>
+                            </p>
+                            <p className="text-sm opacity-90">
+                                {formatDate(latestIsparta.date_time)} ({getTimeAgo(latestIsparta.date_time)})
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Header */}
             <div className="bg-gradient-to-r from-[#E74C3C] via-[#C0392B] to-[#E74C3C] text-white p-8 mb-8 rounded-xl shadow-lg">
                 <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
@@ -282,15 +355,33 @@ export function Deprem() {
                                     <MapPin size={16} className="inline mr-2" />
                                     Yer
                                 </th>
-                                <th className="px-6 py-4 text-center text-sm font-bold text-gray-700 uppercase tracking-wider border-r border-gray-300">
-                                    Büyüklük
+                                <th
+                                    className="px-6 py-4 text-center text-sm font-bold text-gray-700 uppercase tracking-wider border-r border-gray-300 cursor-pointer hover:bg-gray-200 transition-colors select-none"
+                                    onClick={() => handleSort('mag')}
+                                >
+                                    <div className="flex items-center justify-center gap-1">
+                                        Büyüklük
+                                        {sortConfig.key === 'mag' && (
+                                            sortConfig.direction === 'desc' ? <ArrowDown size={14} /> : <ArrowUp size={14} />
+                                        )}
+                                        {sortConfig.key !== 'mag' && <ArrowUpDown size={14} className="text-gray-400" />}
+                                    </div>
                                 </th>
                                 <th className="px-6 py-4 text-center text-sm font-bold text-gray-700 uppercase tracking-wider border-r border-gray-300">
                                     Derinlik (km)
                                 </th>
-                                <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 uppercase tracking-wider">
-                                    <Clock size={16} className="inline mr-2" />
-                                    Tarih / Saat
+                                <th
+                                    className="px-6 py-4 text-left text-sm font-bold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors select-none"
+                                    onClick={() => handleSort('date_time')}
+                                >
+                                    <div className="flex items-center gap-1">
+                                        <Clock size={16} className="inline mr-2" />
+                                        Tarih / Saat
+                                        {sortConfig.key === 'date_time' && (
+                                            sortConfig.direction === 'desc' ? <ArrowDown size={14} /> : <ArrowUp size={14} />
+                                        )}
+                                        {sortConfig.key !== 'date_time' && <ArrowUpDown size={14} className="text-gray-400" />}
+                                    </div>
                                 </th>
                             </tr>
                         </thead>
