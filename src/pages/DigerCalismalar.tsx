@@ -63,7 +63,8 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
                     title="Deprem"
                     subtitle="Son depremler (Kandilli)"
                     icon={<AlertCircle size={40} />}
-                    color="bg-red-700"
+                    color=""
+                    style={{ backgroundColor: '#C0392B' }}
                     size="medium"
                     onClick={() => handleNavigate('deprem')}
                 />

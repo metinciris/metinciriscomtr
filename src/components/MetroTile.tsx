@@ -11,6 +11,7 @@ interface MetroTileProps {
   className?: string;
   children?: React.ReactNode;
   innerClassName?: string;
+  style?: React.CSSProperties;
 }
 
 export function MetroTile({
@@ -23,6 +24,7 @@ export function MetroTile({
   className = '',
   children,
   innerClassName = '',
+  style,
 }: MetroTileProps) {
   const sizeClasses = {
     small: 'col-span-1 row-span-1 h-32',
@@ -38,6 +40,7 @@ export function MetroTile({
       whileTap={{ scale: 0.98 }}
       className={`${sizeClasses[size]} ${color} ${className} rounded-none cursor-pointer overflow-hidden relative group`}
       onClick={onClick}
+      style={style}
     >
       <div className={`w-full h-full p-6 flex flex-col justify-between relative z-10 ${innerClassName}`}>
         <div className="flex-1 flex items-center justify-between">
