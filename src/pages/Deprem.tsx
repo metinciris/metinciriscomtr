@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { PageContainer } from '../components/PageContainer';
-import { Activity, RefreshCw, AlertTriangle, MapPin, Clock, AlertOctagon, Zap, Volume2, VolumeX } from 'lucide-react';
+import { Activity, RefreshCw, AlertTriangle, MapPin, Clock, AlertOctagon, Zap, Volume2, VolumeX, ChevronDown } from 'lucide-react';
 
 interface Earthquake {
     earthquake_id: string;
@@ -31,7 +31,7 @@ export function Deprem() {
     const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
     const [error, setError] = useState<string | null>(null);
     const [soundEnabled, setSoundEnabled] = useState(false);
-    const [visibleCount, setVisibleCount] = useState(50);
+    const [showHistory, setShowHistory] = useState(false);
     const latestEqDateRef = useRef<string | null>(null);
 
     const playBeep = (frequency = 440, duration = 0.1) => {
@@ -187,6 +187,16 @@ export function Deprem() {
         return 'bg-green-100 text-green-800 border border-green-200';
     };
 
+    // Split data logic
+    const top50 = earthquakes.slice(0, 50);
+    const olderRecords = earthquakes.slice(50);
+    const olderSignificant = olderRecords.filter(eq => eq.mag >= 3.0);
+
+    // Determine what to show
+    const displayedEarthquakes = showHistory
+        ? [...top50, ...olderSignificant]
+        : top50;
+
     return (
         <PageContainer>
             {/* Header */}
@@ -201,7 +211,7 @@ export function Deprem() {
                             Kandilli Rasathanesi canlı verileri
                         </p>
                         <p className="text-white/80 text-sm">
-                            Son 100 deprem kaydı • 30 saniyede bir güncellenir
+                            Son 50 kayıt ve daha eski 3.0+ depremler • 30 saniyede bir güncellenir
                         </p>
                     </div>
                     <div className="flex flex-col gap-2">
@@ -300,7 +310,7 @@ export function Deprem() {
                                     </td>
                                 </tr>
                             ) : (
-                                earthquakes.slice(0, visibleCount).map((eq, index) => {
+                                displayedEarthquakes.map((eq, index) => {
                                     const highlight = isIsparta(eq.title);
                                     const today = isToday(eq.date_time);
                                     const recent = isRecent(eq.date_time);
@@ -402,14 +412,26 @@ export function Deprem() {
                         </tbody>
                     </table>
                 </div>
-                {earthquakes.length > visibleCount && (
+
+                {/* Custom Pagination for Older Significant Quakes */}
+                {!showHistory && olderSignificant.length > 0 && (
                     <div className="p-4 text-center border-t border-gray-200 bg-gray-50">
                         <button
-                            onClick={() => setVisibleCount(prev => prev + 50)}
-                            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition-colors"
+                            onClick={() => setShowHistory(true)}
+                            className="flex items-center justify-center gap-2 mx-auto px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-lg shadow-md transition-all transform hover:scale-105"
                         >
-                            Daha Fazla Göster
+                            <AlertTriangle size={20} />
+                            <span>
+                                3.0 ve üzeri {olderSignificant.length} eski deprem daha var. Göster
+                            </span>
+                            <ChevronDown size={20} />
                         </button>
+                    </div>
+                )}
+
+                {showHistory && (
+                    <div className="p-4 text-center border-t border-gray-200 bg-gray-50">
+                        <p className="text-gray-600 italic">Tüm önemli eski kayıtlar gösteriliyor.</p>
                     </div>
                 )}
             </div>
