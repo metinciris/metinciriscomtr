@@ -130,17 +130,17 @@ export function Deprem() {
         let baseStyle = '';
 
         if (isIspartaLocation) {
-            baseStyle = 'bg-red-100 border-l-4 border-l-red-600 shadow-sm';
+            baseStyle = '!bg-red-200 border-l-4 border-l-red-600 shadow-sm';
         } else if (mag >= 6) {
-            baseStyle = 'bg-red-200 hover:bg-red-300 border-l-4 border-l-red-800';
+            baseStyle = '!bg-red-300 hover:!bg-red-400 border-l-4 border-l-red-800';
         } else if (mag >= 5) {
-            baseStyle = 'bg-red-100 hover:bg-red-200 border-l-4 border-l-red-500';
+            baseStyle = '!bg-red-200 hover:!bg-red-300 border-l-4 border-l-red-500';
         } else if (mag >= 4) {
-            baseStyle = 'bg-orange-100 hover:bg-orange-200 border-l-4 border-l-orange-400';
+            baseStyle = '!bg-orange-200 hover:!bg-orange-300 border-l-4 border-l-orange-400';
         } else if (mag >= 3) {
-            baseStyle = 'bg-yellow-100 hover:bg-yellow-200 border-l-4 border-l-yellow-400';
+            baseStyle = '!bg-yellow-200 hover:!bg-yellow-300 border-l-4 border-l-yellow-400';
         } else {
-            baseStyle = 'bg-green-100 hover:bg-green-200 border-l-4 border-l-green-400';
+            baseStyle = '!bg-green-200 hover:!bg-green-300 border-l-4 border-l-green-400';
         }
 
         if (isTodayEq) {
@@ -327,10 +327,10 @@ export function Deprem() {
                     <span className="font-bold">Bugünkü depremler</span> mavi çerçeve ile gösterilir.
                     <span className="font-bold ml-2">Son 1 saat</span> içindeki depremler "YENİ" etiketi ile belirtilir.
                     <br />
-                    <span className="inline-block w-3 h-3 bg-green-100 border border-green-400 mr-1 ml-2 rounded-full"></span> &lt; 3.0
-                    <span className="inline-block w-3 h-3 bg-yellow-100 border border-yellow-400 mr-1 ml-2 rounded-full"></span> 3.0 - 4.0
-                    <span className="inline-block w-3 h-3 bg-orange-100 border border-orange-400 mr-1 ml-2 rounded-full"></span> 4.0 - 5.0
-                    <span className="inline-block w-3 h-3 bg-red-100 border border-red-400 mr-1 ml-2 rounded-full"></span> &gt; 5.0
+                    <span className="inline-block w-3 h-3 bg-green-200 border border-green-400 mr-1 ml-2 rounded-full"></span> &lt; 3.0
+                    <span className="inline-block w-3 h-3 bg-yellow-200 border border-yellow-400 mr-1 ml-2 rounded-full"></span> 3.0 - 4.0
+                    <span className="inline-block w-3 h-3 bg-orange-200 border border-orange-400 mr-1 ml-2 rounded-full"></span> 4.0 - 5.0
+                    <span className="inline-block w-3 h-3 bg-red-200 border border-red-400 mr-1 ml-2 rounded-full"></span> &gt; 5.0
                 </p>
             </div>
         </PageContainer>
