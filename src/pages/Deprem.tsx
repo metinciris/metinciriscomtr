@@ -144,7 +144,7 @@ export function Deprem() {
         }
 
         if (isTodayEq) {
-            baseStyle += ' ring-2 ring-blue-600 ring-inset z-10 relative';
+            baseStyle += ' ring-4 ring-blue-500 ring-inset z-10 relative shadow-lg';
         }
 
         if (isRecentEq) {
@@ -213,17 +213,17 @@ export function Deprem() {
             {/* Table */}
             <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
                 <div className="overflow-x-auto">
-                    <table className="w-full">
+                    <table className="w-full border-collapse">
                         <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
                             <tr className="border-b-2 border-gray-300">
-                                <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 uppercase tracking-wider w-1/3">
+                                <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 uppercase tracking-wider w-1/3 border-r border-gray-300">
                                     <MapPin size={16} className="inline mr-2" />
                                     Yer
                                 </th>
-                                <th className="px-6 py-4 text-center text-sm font-bold text-gray-700 uppercase tracking-wider">
+                                <th className="px-6 py-4 text-center text-sm font-bold text-gray-700 uppercase tracking-wider border-r border-gray-300">
                                     Büyüklük
                                 </th>
-                                <th className="px-6 py-4 text-center text-sm font-bold text-gray-700 uppercase tracking-wider">
+                                <th className="px-6 py-4 text-center text-sm font-bold text-gray-700 uppercase tracking-wider border-r border-gray-300">
                                     Derinlik (km)
                                 </th>
                                 <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 uppercase tracking-wider">
@@ -260,7 +260,7 @@ export function Deprem() {
                                             className={`transition-all duration-150 ${rowStyle}`}
                                         >
                                             <td
-                                                className={`px-6 py-4 ${highlight
+                                                className={`px-6 py-4 border-r border-gray-300 ${highlight
                                                     ? 'font-bold text-red-900 text-base'
                                                     : 'text-gray-800'
                                                     }`}
@@ -280,7 +280,7 @@ export function Deprem() {
                                                     <span>{eq.title}</span>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 text-center">
+                                            <td className="px-6 py-4 text-center border-r border-gray-300">
                                                 <div className="flex items-center justify-center gap-2">
                                                     <span
                                                         className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-bold shadow-sm ${getMagnitudeBadgeStyle(
@@ -297,7 +297,7 @@ export function Deprem() {
                                                     )}
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 text-center text-gray-700 font-medium">
+                                            <td className="px-6 py-4 text-center text-gray-700 font-medium border-r border-gray-300">
                                                 {eq.depth.toFixed(1)}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
