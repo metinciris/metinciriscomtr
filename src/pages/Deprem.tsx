@@ -79,95 +79,37 @@ export function Deprem() {
         setError(null);
 
         try {
-            // Helper to format date as YYYY-MM-DD
-            const formatDateForApi = (date: Date) => {
-                return date.toISOString().split('T')[0];
-            };
+            const response = await fetch('https://api.orhanaydogdu.com.tr/deprem/kandilli/live');
 
-            // Generate dates for the last 7 days
-            const datesToFetch: string[] = [];
-            for (let i = 0; i < 7; i++) {
-                const d = new Date();
-                d.setDate(d.getDate() - i);
-                datesToFetch.push(formatDateForApi(d));
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            // Prepare all fetch promises
-            // 1. Live data (Top 100)
-            const promises = [
-                fetch('https://api.orhanaydogdu.com.tr/deprem/kandilli/live?limit=100').then(r => r.json())
-            ];
+            const data: APIResponse = await response.json();
 
-            // 2. Archive data for each date (2 pages = 200 records per day)
-            datesToFetch.forEach(date => {
-                // Page 1
-                promises.push(
-                    fetch(`https://api.orhanaydogdu.com.tr/deprem/kandilli/archive?date=${date}&limit=100`).then(r => r.json())
-                );
-                // Page 2 (Skip 100)
-                promises.push(
-                    fetch(`https://api.orhanaydogdu.com.tr/deprem/kandilli/archive?date=${date}&limit=100&skip=100`).then(r => r.json())
-                );
-            });
+            if (data.status && data.result && Array.isArray(data.result)) {
+                const allEarthquakes = data.result;
 
-            // Execute all requests in parallel
-            const results = await Promise.all(promises);
+                // Check for new earthquake (using the very first one)
+                if (allEarthquakes.length > 0) {
+                    const newestEq = allEarthquakes[0];
+                    if (latestEqDateRef.current && newestEq.date_time !== latestEqDateRef.current) {
+                        // New earthquake detected!
+                        const newEqDate = new Date(newestEq.date_time);
+                        const oldEqDate = new Date(latestEqDateRef.current);
 
-            // Process results
-            let allRawEarthquakes: Earthquake[] = [];
-
-            results.forEach((data: any) => {
-                if (data.status && data.result && Array.isArray(data.result)) {
-                    allRawEarthquakes = [...allRawEarthquakes, ...data.result];
-                }
-            });
-
-            // Deduplicate based on earthquake_id (or date_time + mag if id missing/duplicate)
-            const uniqueMap = new Map();
-            allRawEarthquakes.forEach(eq => {
-                // Create a unique key if earthquake_id is not reliable across endpoints
-                const key = eq.earthquake_id || `${eq.date_time}_${eq.mag}`;
-                if (!uniqueMap.has(key)) {
-                    uniqueMap.set(key, eq);
-                }
-            });
-
-            const uniqueEarthquakes = Array.from(uniqueMap.values());
-
-            // Sort by date descending
-            uniqueEarthquakes.sort((a, b) => {
-                return new Date(b.date_time).getTime() - new Date(a.date_time).getTime();
-            });
-
-            // Filter:
-            // 1. Keep Top 50 (most recent)
-            // 2. Keep ANY > 3.0 from the rest
-
-            const top50 = uniqueEarthquakes.slice(0, 50);
-            const rest = uniqueEarthquakes.slice(50);
-
-            const significantRest = rest.filter(eq => eq.mag >= 3.0);
-
-            const finalList = [...top50, ...significantRest];
-
-            // Check for new earthquake (using the very first one)
-            if (finalList.length > 0) {
-                const newestEq = finalList[0];
-                if (latestEqDateRef.current && newestEq.date_time !== latestEqDateRef.current) {
-                    // New earthquake detected!
-                    const newEqDate = new Date(newestEq.date_time);
-                    const oldEqDate = new Date(latestEqDateRef.current);
-
-                    if (newEqDate > oldEqDate) {
-                        const beepCount = Math.floor(newestEq.mag);
-                        playBeepSequence(beepCount);
+                        if (newEqDate > oldEqDate) {
+                            const beepCount = Math.floor(newestEq.mag);
+                            playBeepSequence(beepCount);
+                        }
                     }
+                    latestEqDateRef.current = newestEq.date_time;
                 }
-                latestEqDateRef.current = newestEq.date_time;
+
+                setEarthquakes(allEarthquakes);
+            } else {
+                throw new Error('Veri formatı hatalı');
             }
-
-            setEarthquakes(finalList);
-
         } catch (err: any) {
             console.error('Deprem verisi hatası:', err);
             setError(err.message || 'Veriler yüklenirken bir hata oluştu.');
@@ -186,13 +128,7 @@ export function Deprem() {
         }, 30000);
 
         return () => clearInterval(intervalId);
-    }, [soundEnabled]); // Re-create interval if soundEnabled changes to capture new state in closure? No, fetchData uses ref/state. 
-    // Actually fetchData is defined inside component, so it captures state. 
-    // But fetchData depends on soundEnabled for playBeepSequence -> playBeep.
-    // So we should include soundEnabled in dependency array or use a ref for soundEnabled.
-    // Better: use a ref for soundEnabled so we don't restart interval constantly.
-
-    // Let's stick to simple dependency for now, restarting interval every time user toggles sound is fine.
+    }, [soundEnabled]);
 
     const isIsparta = (title: string) => {
         return title.toLocaleLowerCase('tr-TR').includes('isparta');
@@ -487,7 +423,6 @@ export function Deprem() {
                     <span className="font-bold ml-2">Son 1 saat</span> içindeki depremler "YENİ" etiketi ile belirtilir.
                     <br />
                     <span className="font-bold text-red-700 mt-2 block">Isparta ilinde deprem varsa Kırmızı renkle yazılır.</span>
-
                 </p>
             </div>
         </PageContainer>
