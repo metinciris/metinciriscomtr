@@ -125,34 +125,7 @@ export function Deprem() {
         return 'bg-green-100 text-green-800 border border-green-200';
     };
 
-    // Row background color based on magnitude
-    const getRowStyle = (mag: number, isIspartaLocation: boolean, isTodayEq: boolean, isRecentEq: boolean) => {
-        let baseStyle = '';
 
-        if (isIspartaLocation) {
-            baseStyle = '!bg-red-200 border-l-4 border-l-red-600 shadow-sm';
-        } else if (mag >= 6) {
-            baseStyle = '!bg-red-300 hover:!bg-red-400 border-l-4 border-l-red-800';
-        } else if (mag >= 5) {
-            baseStyle = '!bg-red-200 hover:!bg-red-300 border-l-4 border-l-red-500';
-        } else if (mag >= 4) {
-            baseStyle = '!bg-orange-200 hover:!bg-orange-300 border-l-4 border-l-orange-400';
-        } else if (mag >= 3) {
-            baseStyle = '!bg-yellow-200 hover:!bg-yellow-300 border-l-4 border-l-yellow-400';
-        } else {
-            baseStyle = '!bg-green-200 hover:!bg-green-300 border-l-4 border-l-green-400';
-        }
-
-        if (isTodayEq) {
-            baseStyle += ' ring-4 ring-blue-500 ring-inset z-10 relative shadow-lg';
-        }
-
-        if (isRecentEq) {
-            baseStyle += ' animate-pulse';
-        }
-
-        return baseStyle;
-    };
 
     return (
         <PageContainer>
@@ -252,12 +225,35 @@ export function Deprem() {
                                     const highlight = isIsparta(eq.title);
                                     const today = isToday(eq.date_time);
                                     const recent = isRecent(eq.date_time);
-                                    const rowStyle = getRowStyle(eq.mag, highlight, today, recent);
+                                    const getRowColor = (mag: number, isIspartaLocation: boolean, isTodayEq: boolean, isRecentEq: boolean) => {
+                                        if (isIspartaLocation) return '#fee2e2'; // red-100
+                                        if (mag >= 6) return '#fca5a5'; // red-300
+                                        if (mag >= 5) return '#fee2e2'; // red-100
+                                        if (mag >= 4) return '#ffedd5'; // orange-100
+                                        if (mag >= 3) return '#fef9c3'; // yellow-100
+                                        return '#dcfce7'; // green-100
+                                    };
+
+                                    const rowColor = getRowColor(eq.mag, highlight, today, recent);
+
+                                    // Base classes for borders and transitions
+                                    let rowClasses = 'transition-all duration-150 border-l-4';
+
+                                    if (highlight) rowClasses += ' border-l-red-600 shadow-sm';
+                                    else if (eq.mag >= 6) rowClasses += ' border-l-red-800';
+                                    else if (eq.mag >= 5) rowClasses += ' border-l-red-500';
+                                    else if (eq.mag >= 4) rowClasses += ' border-l-orange-400';
+                                    else if (eq.mag >= 3) rowClasses += ' border-l-yellow-400';
+                                    else rowClasses += ' border-l-green-400';
+
+                                    if (today) rowClasses += ' ring-4 ring-blue-500 ring-inset z-10 relative shadow-lg';
+                                    if (recent) rowClasses += ' animate-pulse';
 
                                     return (
                                         <tr
                                             key={eq.earthquake_id || index}
-                                            className={`transition-all duration-150 ${rowStyle}`}
+                                            className={rowClasses}
+                                            style={{ backgroundColor: rowColor }}
                                         >
                                             <td
                                                 className={`px-6 py-4 border-r border-gray-300 ${highlight
