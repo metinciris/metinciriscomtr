@@ -311,7 +311,7 @@ export function Deprem() {
                         </p>
                     </div>
                     <div className="flex flex-col gap-2">
-                        <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 min-w-[200px]">
+                        <div className="bg-black/20 backdrop-blur-sm rounded-lg p-4 min-w-[200px]">
                             <div className="flex items-center justify-center gap-2 mb-2">
                                 <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
                                 <span className="font-semibold">
@@ -332,10 +332,10 @@ export function Deprem() {
                             onClick={() => setSoundEnabled(!soundEnabled)}
                             className={`flex items-center justify-center gap-2 p-3 rounded-lg backdrop-blur-sm transition-all shadow-md ${soundEnabled
                                 ? 'ring-2 ring-red-500'
-                                : 'hover:bg-white/20'
+                                : 'hover:bg-black/30'
                                 }`}
                             style={{
-                                backgroundColor: soundEnabled ? 'white' : 'rgba(255, 255, 255, 0.1)',
+                                backgroundColor: soundEnabled ? 'white' : 'rgba(0, 0, 0, 0.2)',
                                 color: soundEnabled ? '#b91c1c' : 'white'
                             }}
                             title={soundEnabled ? "Sesli uyarı açık" : "Sesli uyarı kapalı"}
