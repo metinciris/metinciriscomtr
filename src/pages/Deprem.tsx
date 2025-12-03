@@ -261,20 +261,6 @@ export function Deprem() {
         }
     });
 
-    // Split data logic
-    const top50 = sortedEarthquakes.slice(0, 50);
-    const olderRecords = sortedEarthquakes.slice(50);
-    const olderSignificant = olderRecords.filter(eq => eq.mag >= 3.0);
-
-    // Determine what to show
-    const displayedEarthquakes = showHistory
-        ? [...top50, ...olderSignificant]
-        : top50;
-
-    // Find Isparta earthquakes for banner
-    const ispartaQuakes = earthquakes.filter(eq => isIsparta(eq.title));
-    const latestIsparta = ispartaQuakes.length > 0 ? ispartaQuakes[0] : null;
-
     return (
         <PageContainer>
             {/* Isparta Banner */}
@@ -503,7 +489,7 @@ export function Deprem() {
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 text-center border-r border-gray-300 border-b border-gray-300 font-mono text-gray-700">
-                                                {distance.toFixed(1)} km
+                                                {Math.round(distance)} km
                                             </td>
                                             <td className="px-6 py-4 text-center border-r border-gray-300 border-b border-gray-300">
                                                 <div className="flex items-center justify-center gap-2">
@@ -546,18 +532,26 @@ export function Deprem() {
                 </div>
 
                 {/* Custom Pagination for Older Significant Quakes */}
-                {!showHistory && olderSignificant.length > 0 && (
+                {!showHistory && sortedEarthquakes.length > 50 && (
                     <div className="p-4 text-center border-t border-gray-200 bg-gray-50">
                         <button
                             onClick={() => setShowHistory(true)}
-                            className="flex items-center justify-center gap-2 mx-auto px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-lg shadow-md transition-all transform hover:scale-105"
+                            className="flex items-center justify-center gap-2 mx-auto px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-md transition-all transform hover:scale-105"
                         >
-                            <AlertTriangle size={20} />
-                            <span>
-                                3.0 ve üzeri {olderSignificant.length} eski deprem daha var. Göster
-                            </span>
                             <ChevronDown size={20} />
+                            <span>
+                                Daha Fazla Göster ({sortedEarthquakes.length - 50} kayıt daha)
+                            </span>
                         </button>
+                    </div>
+                )}
+
+                {!showHistory && olderSignificant.length > 0 && sortedEarthquakes.length <= 50 && (
+                    <div className="p-4 text-center border-t border-gray-200 bg-orange-50">
+                        <p className="text-orange-800 font-medium">
+                            <AlertTriangle size={16} className="inline mr-2" />
+                            3.0 ve üzeri {olderSignificant.length} eski deprem mevcut
+                        </p>
                     </div>
                 )}
 
