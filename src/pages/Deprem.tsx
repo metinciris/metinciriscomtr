@@ -241,13 +241,13 @@ export function Deprem() {
                         <button
                             onClick={() => setSoundEnabled(!soundEnabled)}
                             className={`flex items-center justify-center gap-2 p-3 rounded-lg backdrop-blur-sm transition-all ${soundEnabled
-                                ? 'bg-white text-red-600 shadow-md'
+                                ? 'bg-white text-red-700 shadow-md ring-2 ring-red-500'
                                 : 'bg-white/10 text-white hover:bg-white/20'
                                 }`}
                             title={soundEnabled ? "Sesli uyarı açık" : "Sesli uyarı kapalı"}
                         >
                             {soundEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
-                            <span className="font-medium">
+                            <span className="font-bold">
                                 {soundEnabled ? 'Ses Açık' : 'Ses Kapalı'}
                             </span>
                         </button>
@@ -352,19 +352,27 @@ export function Deprem() {
                                                     : 'text-gray-800'
                                                     }`}
                                             >
-                                                <div className="flex items-start gap-2">
-                                                    {highlight && (
-                                                        <span className="inline-block px-2 py-0.5 bg-red-600 text-white text-xs font-bold rounded uppercase mt-0.5 shadow-sm">
-                                                            Isparta
-                                                        </span>
+                                                <div className="flex flex-col">
+                                                    <div className="flex items-start gap-2">
+                                                        {highlight && (
+                                                            <span className="inline-block px-2 py-0.5 bg-red-600 text-white text-xs font-bold rounded uppercase mt-0.5 shadow-sm">
+                                                                Isparta
+                                                            </span>
+                                                        )}
+                                                        {recent && (
+                                                            <span className="inline-flex items-center px-2 py-0.5 bg-blue-100 text-blue-900 text-xs font-bold rounded uppercase mt-0.5 shadow-sm animate-pulse border border-blue-300">
+                                                                <Zap size={12} className="mr-1" />
+                                                                YENİ
+                                                            </span>
+                                                        )}
+                                                        <span>{eq.title}</span>
+                                                    </div>
+                                                    {today && (
+                                                        <div className="text-xs text-gray-500 mt-1 ml-1 flex items-center gap-1">
+                                                            <Clock size={10} />
+                                                            {getTimeAgo(eq.date_time)}
+                                                        </div>
                                                     )}
-                                                    {recent && (
-                                                        <span className="inline-flex items-center px-2 py-0.5 bg-blue-100 text-blue-900 text-xs font-bold rounded uppercase mt-0.5 shadow-sm animate-pulse border border-blue-300">
-                                                            <Zap size={12} className="mr-1" />
-                                                            YENİ
-                                                        </span>
-                                                    )}
-                                                    <span>{eq.title}</span>
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 text-center border-r border-gray-300 border-b border-gray-300">
@@ -394,9 +402,6 @@ export function Deprem() {
                                                         <div className="flex items-center gap-2 mt-1">
                                                             <span className="text-xs text-blue-700 font-bold bg-blue-100 px-1.5 py-0.5 rounded border border-blue-200">
                                                                 BUGÜN
-                                                            </span>
-                                                            <span className="text-xs text-gray-600 italic">
-                                                                {getTimeAgo(eq.date_time)}
                                                             </span>
                                                         </div>
                                                     )}
