@@ -87,22 +87,39 @@ export function Deprem() {
             const data: APIResponse = await response.json();
 
             if (data.status && data.result && Array.isArray(data.result)) {
-                // Filter for last 10 days
-                const tenDaysAgo = new Date();
-                tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
+                // New filtering logic: Top 50 records + Any > 3.0 in last 24 hours
+                const allEarthquakes = data.result;
 
-                const filtered = data.result.filter((eq: Earthquake) => {
+                // 1. Get top 50
+                const top50 = allEarthquakes.slice(0, 50);
+
+                // 2. Get > 3.0 in last 24 hours
+                const oneDayAgo = new Date();
+                oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+
+                const significantRecent = allEarthquakes.filter((eq: Earthquake) => {
                     try {
                         const eqDate = new Date(eq.date_time);
-                        return eqDate >= tenDaysAgo && !isNaN(eqDate.getTime());
+                        return eq.mag >= 3.0 && eqDate >= oneDayAgo;
                     } catch {
                         return false;
                     }
                 });
 
-                // Check for new earthquake
-                if (filtered.length > 0) {
-                    const newestEq = filtered[0];
+                // 3. Merge and remove duplicates
+                const mergedMap = new Map();
+
+                [...top50, ...significantRecent].forEach(eq => {
+                    mergedMap.set(eq.earthquake_id, eq);
+                });
+
+                const finalList = Array.from(mergedMap.values()).sort((a, b) => {
+                    return new Date(b.date_time).getTime() - new Date(a.date_time).getTime();
+                });
+
+                // Check for new earthquake (using the full list logic)
+                if (finalList.length > 0) {
+                    const newestEq = finalList[0];
                     if (latestEqDateRef.current && newestEq.date_time !== latestEqDateRef.current) {
                         // New earthquake detected!
                         const newEqDate = new Date(newestEq.date_time);
@@ -116,7 +133,7 @@ export function Deprem() {
                     latestEqDateRef.current = newestEq.date_time;
                 }
 
-                setEarthquakes(filtered);
+                setEarthquakes(finalList);
             } else {
                 throw new Error('Veri formatı hatalı');
             }
@@ -217,7 +234,7 @@ export function Deprem() {
                             Kandilli Rasathanesi canlı verileri
                         </p>
                         <p className="text-white/80 text-sm">
-                            Son 10 günün depremleri • 30 saniyede bir güncellenir
+                            Son 50 kayıt ve son 24 saatteki 3.0+ depremler • 30 saniyede bir güncellenir
                         </p>
                     </div>
                     <div className="flex flex-col gap-2">
@@ -428,10 +445,7 @@ export function Deprem() {
                     <span className="font-bold">Bugünkü depremler</span> mavi çerçeve ile gösterilir.
                     <span className="font-bold ml-2">Son 1 saat</span> içindeki depremler "YENİ" etiketi ile belirtilir.
                     <br />
-                    <span className="inline-block w-3 h-3 bg-green-200 border border-green-400 mr-1 ml-2 rounded-full"></span> &lt; 3.0
-                    <span className="inline-block w-3 h-3 bg-yellow-200 border border-yellow-400 mr-1 ml-2 rounded-full"></span> 3.0 - 4.0
-                    <span className="inline-block w-3 h-3 bg-orange-200 border border-orange-400 mr-1 ml-2 rounded-full"></span> 4.0 - 5.0
-                    <span className="inline-block w-3 h-3 bg-red-200 border border-red-400 mr-1 ml-2 rounded-full"></span> &gt; 5.0
+                    <span className="font-bold text-red-700 mt-2 block">Isparta ilinde deprem varsa Kırmızı renkle yazılır.</span>
                 </p>
             </div>
         </PageContainer>
