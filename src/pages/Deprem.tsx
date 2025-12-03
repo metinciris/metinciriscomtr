@@ -1,20 +1,26 @@
 import React, { useEffect, useState } from 'react';
 import { PageContainer } from '../components/PageContainer';
-import { Activity, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Activity, RefreshCw, AlertTriangle, MapPin, Clock } from 'lucide-react';
 
 interface Earthquake {
-    date: string;
-    timestamp: string; // "2024.12.03 10:15:00" format usually
+    earthquake_id: string;
+    title: string;
     mag: number;
     depth: number;
-    title: string; // Location
-    geojson: {
-        coordinates: [number, number];
-    };
+    date_time: string;
     location_properties: {
         closestCity: {
             name: string;
+            distance: number;
         };
+    };
+}
+
+interface APIResponse {
+    status: boolean;
+    result: Earthquake[];
+    metadata: {
+        count: number;
     };
 }
 
@@ -26,32 +32,38 @@ export function Deprem() {
 
     const fetchData = async () => {
         setLoading(true);
+        setError(null);
+
         try {
             const response = await fetch('https://api.orhanaydogdu.com.tr/deprem/kandilli/live');
-            if (!response.ok) {
-                throw new Error('Veri çekilemedi');
-            }
-            const data = await response.json();
 
-            if (data.status && data.result) {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data: APIResponse = await response.json();
+
+            if (data.status && data.result && Array.isArray(data.result)) {
                 // Filter for last 10 days
                 const tenDaysAgo = new Date();
                 tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
 
-                const filtered = data.result.filter((eq: any) => {
-                    // Parse date manually as format might be "2024.12.03 10:15:00"
-                    // The API returns 'date' field in "YYYY.MM.DD HH:mm:ss" format usually
-                    const dateStr = eq.date.replace(/\./g, '-'); // Convert 2024.12.03 to 2024-12-03
-                    const eqDate = new Date(dateStr);
-                    return eqDate >= tenDaysAgo;
+                const filtered = data.result.filter((eq: Earthquake) => {
+                    try {
+                        const eqDate = new Date(eq.date_time);
+                        return eqDate >= tenDaysAgo && !isNaN(eqDate.getTime());
+                    } catch {
+                        return false;
+                    }
                 });
 
                 setEarthquakes(filtered);
-                setError(null);
+            } else {
+                throw new Error('Veri formatı hatalı');
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error('Deprem verisi hatası:', err);
-            setError('Veriler yüklenirken bir hata oluştu.');
+            setError(err.message || 'Veriler yüklenirken bir hata oluştu.');
         } finally {
             setLoading(false);
             setLastUpdated(new Date());
@@ -73,85 +85,179 @@ export function Deprem() {
         return title.toLocaleLowerCase('tr-TR').includes('isparta');
     };
 
+    const formatDate = (dateStr: string) => {
+        try {
+            const date = new Date(dateStr);
+            return date.toLocaleString('tr-TR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        } catch {
+            return dateStr;
+        }
+    };
+
+    const getMagnitudeColor = (mag: number) => {
+        if (mag >= 5) return 'bg-red-600 text-white';
+        if (mag >= 4) return 'bg-orange-500 text-white';
+        if (mag >= 3) return 'bg-yellow-500 text-gray-900';
+        return 'bg-green-500 text-white';
+    };
+
     return (
         <PageContainer>
-            <div className="bg-gradient-to-r from-[#E74C3C] to-[#C0392B] text-white p-8 mb-8 rounded-xl shadow-lg">
-                <div className="flex justify-between items-start">
-                    <div>
-                        <h1 className="text-white mb-2 text-3xl font-bold flex items-center gap-3">
-                            <Activity size={32} />
+            {/* Header */}
+            <div className="bg-gradient-to-r from-[#E74C3C] via-[#C0392B] to-[#E74C3C] text-white p-8 mb-8 rounded-xl shadow-lg">
+                <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
+                    <div className="flex-1">
+                        <h1 className="text-white mb-3 text-4xl font-bold flex items-center gap-3">
+                            <Activity size={36} className="animate-pulse" />
                             Son Depremler
                         </h1>
-                        <p className="text-white/90 text-lg">
-                            Kandilli Rasathanesi verileri (Son 10 gün)
+                        <p className="text-white/90 text-lg mb-2">
+                            Kandilli Rasathanesi canlı verileri
+                        </p>
+                        <p className="text-white/80 text-sm">
+                            Son 10 günün depremleri • 30 saniyede bir güncellenir
                         </p>
                     </div>
-                    <div className="text-right text-sm text-white/80">
-                        <div className="flex items-center justify-end gap-2 mb-1">
-                            <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-                            {loading ? 'Yenileniyor...' : 'Canlı'}
+                    <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 min-w-[200px]">
+                        <div className="flex items-center justify-center gap-2 mb-2">
+                            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+                            <span className="font-semibold">
+                                {loading ? 'Yenileniyor...' : 'Canlı'}
+                            </span>
                         </div>
-                        <div>Son Güncelleme: {lastUpdated.toLocaleTimeString()}</div>
-                        <div className="mt-1 text-xs">30 saniyede bir yenilenir</div>
+                        <div className="text-center text-sm text-white/90">
+                            <Clock size={14} className="inline mr-1" />
+                            {lastUpdated.toLocaleTimeString('tr-TR')}
+                        </div>
+                        {earthquakes.length > 0 && (
+                            <div className="text-center text-sm text-white/80 mt-2 pt-2 border-t border-white/20">
+                                {earthquakes.length} kayıt
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
 
+            {/* Error Message */}
             {error && (
-                <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
-                    <div className="flex items-center">
-                        <AlertTriangle className="text-red-500 mr-2" />
-                        <p className="text-red-700">{error}</p>
+                <div className="bg-red-50 border-l-4 border-red-500 p-6 mb-6 rounded-r-lg shadow">
+                    <div className="flex items-start gap-3">
+                        <AlertTriangle className="text-red-500 flex-shrink-0 mt-1" size={24} />
+                        <div>
+                            <p className="text-red-700 font-semibold mb-1">Veri Yükleme Hatası</p>
+                            <p className="text-red-600 text-sm">{error}</p>
+                            <button
+                                onClick={fetchData}
+                                className="mt-3 px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-sm font-medium transition-colors"
+                            >
+                                Tekrar Dene
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
 
-            <div className="bg-white rounded-lg shadow overflow-hidden">
+            {/* Table */}
+            <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
                 <div className="overflow-x-auto">
-                    <table className="w-full text-sm text-left">
-                        <thead className="text-xs text-gray-700 uppercase bg-gray-50 border-b">
-                            <tr>
-                                <th className="px-6 py-3">Tarih / Saat</th>
-                                <th className="px-6 py-3">Büyüklük</th>
-                                <th className="px-6 py-3">Derinlik (km)</th>
-                                <th className="px-6 py-3">Yer</th>
+                    <table className="w-full">
+                        <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
+                            <tr className="border-b-2 border-gray-300">
+                                <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 uppercase tracking-wider">
+                                    <Clock size={16} className="inline mr-2" />
+                                    Tarih / Saat
+                                </th>
+                                <th className="px-6 py-4 text-center text-sm font-bold text-gray-700 uppercase tracking-wider">
+                                    Büyüklük
+                                </th>
+                                <th className="px-6 py-4 text-center text-sm font-bold text-gray-700 uppercase tracking-wider">
+                                    Derinlik (km)
+                                </th>
+                                <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 uppercase tracking-wider">
+                                    <MapPin size={16} className="inline mr-2" />
+                                    Yer
+                                </th>
                             </tr>
                         </thead>
-                        <tbody>
-                            {earthquakes.map((eq, index) => {
-                                const highlight = isIsparta(eq.title);
-                                return (
-                                    <tr
-                                        key={index}
-                                        className={`border-b hover:bg-gray-50 transition-colors ${highlight ? 'bg-red-50 border-l-4 border-l-red-500' : ''}`}
-                                    >
-                                        <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
-                                            {eq.date}
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <span className={`px-2 py-1 rounded font-bold ${eq.mag >= 4 ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'}`}>
-                                                {eq.mag}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 text-gray-600">
-                                            {eq.depth}
-                                        </td>
-                                        <td className={`px-6 py-4 ${highlight ? 'font-bold text-red-700' : 'text-gray-700'}`}>
-                                            {eq.title}
-                                        </td>
-                                    </tr>
-                                );
-                            })}
-                            {earthquakes.length === 0 && !loading && (
+                        <tbody className="divide-y divide-gray-200">
+                            {loading && earthquakes.length === 0 ? (
                                 <tr>
-                                    <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
-                                        Kayıt bulunamadı.
+                                    <td colSpan={4} className="px-6 py-12 text-center">
+                                        <RefreshCw className="animate-spin mx-auto mb-3 text-gray-400" size={32} />
+                                        <p className="text-gray-500">Veriler yükleniyor...</p>
                                     </td>
                                 </tr>
+                            ) : earthquakes.length === 0 ? (
+                                <tr>
+                                    <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
+                                        <AlertTriangle className="mx-auto mb-3 text-gray-300" size={32} />
+                                        <p>Kayıt bulunamadı.</p>
+                                    </td>
+                                </tr>
+                            ) : (
+                                earthquakes.map((eq, index) => {
+                                    const highlight = isIsparta(eq.title);
+                                    return (
+                                        <tr
+                                            key={eq.earthquake_id || index}
+                                            className={`hover:bg-gray-50 transition-all duration-150 ${highlight
+                                                    ? 'bg-red-50 border-l-4 border-l-red-500 shadow-sm'
+                                                    : index % 2 === 0
+                                                        ? 'bg-white'
+                                                        : 'bg-gray-50/50'
+                                                }`}
+                                        >
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                                {formatDate(eq.date_time)}
+                                            </td>
+                                            <td className="px-6 py-4 text-center">
+                                                <span
+                                                    className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-bold shadow-sm ${getMagnitudeColor(
+                                                        eq.mag
+                                                    )}`}
+                                                >
+                                                    {eq.mag.toFixed(1)}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 text-center text-gray-700 font-medium">
+                                                {eq.depth.toFixed(1)}
+                                            </td>
+                                            <td
+                                                className={`px-6 py-4 ${highlight
+                                                        ? 'font-bold text-red-700 text-base'
+                                                        : 'text-gray-700'
+                                                    }`}
+                                            >
+                                                <div className="flex items-start gap-2">
+                                                    {highlight && (
+                                                        <span className="inline-block px-2 py-0.5 bg-red-600 text-white text-xs font-bold rounded uppercase mt-0.5">
+                                                            Isparta
+                                                        </span>
+                                                    )}
+                                                    <span>{eq.title}</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })
                             )}
                         </tbody>
                     </table>
                 </div>
+            </div>
+
+            {/* Info Footer */}
+            <div className="mt-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg">
+                <p className="text-sm text-blue-800">
+                    <strong>Not:</strong> Veriler Kandilli Rasathanesi ve Orhanaydogdu API'dan alınmaktadır.
+                    Isparta ili ile ilgili depremler kırmızı renkle vurgulanmaktadır.
+                </p>
             </div>
         </PageContainer>
     );
