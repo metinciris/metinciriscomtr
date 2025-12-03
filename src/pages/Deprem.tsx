@@ -550,7 +550,12 @@ export function Deprem() {
                     <div className="p-4 text-center border-t border-gray-200 bg-gray-50">
                         <button
                             onClick={() => setShowHistory(true)}
-                            className="flex items-center justify-center gap-2 mx-auto px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-md transition-all transform hover:scale-105"
+                            className="flex items-center justify-center gap-2 mx-auto px-6 py-3 rounded-lg shadow-md transition-all transform hover:scale-105"
+                            style={{
+                                backgroundColor: '#2563eb',
+                                color: 'white',
+                                fontWeight: 'bold'
+                            }}
                         >
                             <ChevronDown size={20} />
                             <span>
