@@ -144,7 +144,7 @@ export function Deprem() {
         }
 
         if (isTodayEq) {
-            baseStyle += ' ring-2 ring-blue-400 ring-inset';
+            baseStyle += ' ring-2 ring-blue-600 ring-inset z-10 relative';
         }
 
         if (isRecentEq) {
@@ -232,7 +232,7 @@ export function Deprem() {
                                 </th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-200">
+                        <tbody className="divide-y divide-gray-300">
                             {loading && earthquakes.length === 0 ? (
                                 <tr>
                                     <td colSpan={4} className="px-6 py-12 text-center">
