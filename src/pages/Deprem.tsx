@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { PageContainer } from '../components/PageContainer';
-import { Activity, RefreshCw, AlertTriangle, MapPin, Clock, AlertOctagon, Zap } from 'lucide-react';
+import { Activity, RefreshCw, AlertTriangle, MapPin, Clock, AlertOctagon, Zap, Volume2, VolumeX } from 'lucide-react';
 
 interface Earthquake {
     earthquake_id: string;
@@ -30,6 +30,48 @@ export function Deprem() {
     const [loading, setLoading] = useState(true);
     const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
     const [error, setError] = useState<string | null>(null);
+    const [soundEnabled, setSoundEnabled] = useState(false);
+    const latestEqDateRef = useRef<string | null>(null);
+
+    const playBeep = (frequency = 440, duration = 0.1) => {
+        if (!soundEnabled) return;
+
+        try {
+            const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+            if (!AudioContext) return;
+
+            const audioCtx = new AudioContext();
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            oscillator.type = 'sine';
+            oscillator.frequency.value = frequency;
+
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + duration);
+        } catch (e) {
+            console.error('Audio play error:', e);
+        }
+    };
+
+    const playBeepSequence = (count: number) => {
+        if (!soundEnabled || count <= 0) return;
+
+        let beepsPlayed = 0;
+        const interval = setInterval(() => {
+            playBeep(880, 0.15); // Higher pitch for alert
+            beepsPlayed++;
+            if (beepsPlayed >= count) {
+                clearInterval(interval);
+            }
+        }, 300); // 300ms between beeps
+    };
 
     const fetchData = async () => {
         setLoading(true);
@@ -58,6 +100,22 @@ export function Deprem() {
                     }
                 });
 
+                // Check for new earthquake
+                if (filtered.length > 0) {
+                    const newestEq = filtered[0];
+                    if (latestEqDateRef.current && newestEq.date_time !== latestEqDateRef.current) {
+                        // New earthquake detected!
+                        const newEqDate = new Date(newestEq.date_time);
+                        const oldEqDate = new Date(latestEqDateRef.current);
+
+                        if (newEqDate > oldEqDate) {
+                            const beepCount = Math.floor(newestEq.mag);
+                            playBeepSequence(beepCount);
+                        }
+                    }
+                    latestEqDateRef.current = newestEq.date_time;
+                }
+
                 setEarthquakes(filtered);
             } else {
                 throw new Error('Veri formatı hatalı');
@@ -80,7 +138,13 @@ export function Deprem() {
         }, 30000);
 
         return () => clearInterval(intervalId);
-    }, []);
+    }, [soundEnabled]); // Re-create interval if soundEnabled changes to capture new state in closure? No, fetchData uses ref/state. 
+    // Actually fetchData is defined inside component, so it captures state. 
+    // But fetchData depends on soundEnabled for playBeepSequence -> playBeep.
+    // So we should include soundEnabled in dependency array or use a ref for soundEnabled.
+    // Better: use a ref for soundEnabled so we don't restart interval constantly.
+
+    // Let's stick to simple dependency for now, restarting interval every time user toggles sound is fine.
 
     const isIsparta = (title: string) => {
         return title.toLocaleLowerCase('tr-TR').includes('isparta');
@@ -156,22 +220,37 @@ export function Deprem() {
                             Son 10 günün depremleri • 30 saniyede bir güncellenir
                         </p>
                     </div>
-                    <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 min-w-[200px]">
-                        <div className="flex items-center justify-center gap-2 mb-2">
-                            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
-                            <span className="font-semibold">
-                                {loading ? 'Yenileniyor...' : 'Canlı'}
-                            </span>
-                        </div>
-                        <div className="text-center text-sm text-white/90">
-                            <Clock size={14} className="inline mr-1" />
-                            {lastUpdated.toLocaleTimeString('tr-TR')}
-                        </div>
-                        {earthquakes.length > 0 && (
-                            <div className="text-center text-sm text-white/80 mt-2 pt-2 border-t border-white/20">
-                                {earthquakes.length} kayıt
+                    <div className="flex flex-col gap-2">
+                        <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 min-w-[200px]">
+                            <div className="flex items-center justify-center gap-2 mb-2">
+                                <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+                                <span className="font-semibold">
+                                    {loading ? 'Yenileniyor...' : 'Canlı'}
+                                </span>
                             </div>
-                        )}
+                            <div className="text-center text-sm text-white/90">
+                                <Clock size={14} className="inline mr-1" />
+                                {lastUpdated.toLocaleTimeString('tr-TR')}
+                            </div>
+                            {earthquakes.length > 0 && (
+                                <div className="text-center text-sm text-white/80 mt-2 pt-2 border-t border-white/20">
+                                    {earthquakes.length} kayıt
+                                </div>
+                            )}
+                        </div>
+                        <button
+                            onClick={() => setSoundEnabled(!soundEnabled)}
+                            className={`flex items-center justify-center gap-2 p-3 rounded-lg backdrop-blur-sm transition-all ${soundEnabled
+                                ? 'bg-white text-red-600 shadow-md'
+                                : 'bg-white/10 text-white hover:bg-white/20'
+                                }`}
+                            title={soundEnabled ? "Sesli uyarı açık" : "Sesli uyarı kapalı"}
+                        >
+                            {soundEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
+                            <span className="font-medium">
+                                {soundEnabled ? 'Ses Açık' : 'Ses Kapalı'}
+                            </span>
+                        </button>
                     </div>
                 </div>
             </div>
