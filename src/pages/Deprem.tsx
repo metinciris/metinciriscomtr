@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { PageContainer } from '../components/PageContainer';
-import { Activity, RefreshCw, AlertTriangle, MapPin, Clock, AlertOctagon } from 'lucide-react';
+import { Activity, RefreshCw, AlertTriangle, MapPin, Clock, AlertOctagon, Zap } from 'lucide-react';
 
 interface Earthquake {
     earthquake_id: string;
@@ -85,6 +85,22 @@ export function Deprem() {
         return title.toLocaleLowerCase('tr-TR').includes('isparta');
     };
 
+    const isToday = (dateStr: string) => {
+        const date = new Date(dateStr);
+        const today = new Date();
+        return date.getDate() === today.getDate() &&
+            date.getMonth() === today.getMonth() &&
+            date.getFullYear() === today.getFullYear();
+    };
+
+    const isRecent = (dateStr: string) => {
+        const date = new Date(dateStr);
+        const now = new Date();
+        const diffInMs = now.getTime() - date.getTime();
+        const diffInHours = diffInMs / (1000 * 60 * 60);
+        return diffInHours < 1;
+    };
+
     const formatDate = (dateStr: string) => {
         try {
             const date = new Date(dateStr);
@@ -110,14 +126,32 @@ export function Deprem() {
     };
 
     // Row background color based on magnitude
-    const getRowStyle = (mag: number, isIspartaLocation: boolean) => {
-        if (isIspartaLocation) return 'bg-red-50 border-l-4 border-l-red-600 shadow-sm'; // Isparta always highlighted
+    const getRowStyle = (mag: number, isIspartaLocation: boolean, isTodayEq: boolean, isRecentEq: boolean) => {
+        let baseStyle = '';
 
-        if (mag >= 6) return 'bg-red-100/80 hover:bg-red-200/80 border-l-4 border-l-red-800';
-        if (mag >= 5) return 'bg-red-50 hover:bg-red-100 border-l-4 border-l-red-500';
-        if (mag >= 4) return 'bg-orange-50 hover:bg-orange-100 border-l-4 border-l-orange-400';
-        if (mag >= 3) return 'bg-yellow-50 hover:bg-yellow-100 border-l-4 border-l-yellow-400';
-        return 'bg-green-50 hover:bg-green-100 border-l-4 border-l-green-400';
+        if (isIspartaLocation) {
+            baseStyle = 'bg-red-50 border-l-4 border-l-red-600 shadow-sm';
+        } else if (mag >= 6) {
+            baseStyle = 'bg-red-100/80 hover:bg-red-200/80 border-l-4 border-l-red-800';
+        } else if (mag >= 5) {
+            baseStyle = 'bg-red-50 hover:bg-red-100 border-l-4 border-l-red-500';
+        } else if (mag >= 4) {
+            baseStyle = 'bg-orange-50 hover:bg-orange-100 border-l-4 border-l-orange-400';
+        } else if (mag >= 3) {
+            baseStyle = 'bg-yellow-50 hover:bg-yellow-100 border-l-4 border-l-yellow-400';
+        } else {
+            baseStyle = 'bg-green-50 hover:bg-green-100 border-l-4 border-l-green-400';
+        }
+
+        if (isTodayEq) {
+            baseStyle += ' ring-2 ring-blue-400 ring-inset';
+        }
+
+        if (isRecentEq) {
+            baseStyle += ' animate-pulse bg-blue-50';
+        }
+
+        return baseStyle;
     };
 
     return (
@@ -182,9 +216,9 @@ export function Deprem() {
                     <table className="w-full">
                         <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
                             <tr className="border-b-2 border-gray-300">
-                                <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 uppercase tracking-wider">
-                                    <Clock size={16} className="inline mr-2" />
-                                    Tarih / Saat
+                                <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 uppercase tracking-wider w-1/3">
+                                    <MapPin size={16} className="inline mr-2" />
+                                    Yer
                                 </th>
                                 <th className="px-6 py-4 text-center text-sm font-bold text-gray-700 uppercase tracking-wider">
                                     Büyüklük
@@ -193,8 +227,8 @@ export function Deprem() {
                                     Derinlik (km)
                                 </th>
                                 <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 uppercase tracking-wider">
-                                    <MapPin size={16} className="inline mr-2" />
-                                    Yer
+                                    <Clock size={16} className="inline mr-2" />
+                                    Tarih / Saat
                                 </th>
                             </tr>
                         </thead>
@@ -216,15 +250,35 @@ export function Deprem() {
                             ) : (
                                 earthquakes.map((eq, index) => {
                                     const highlight = isIsparta(eq.title);
-                                    const rowStyle = getRowStyle(eq.mag, highlight);
+                                    const today = isToday(eq.date_time);
+                                    const recent = isRecent(eq.date_time);
+                                    const rowStyle = getRowStyle(eq.mag, highlight, today, recent);
 
                                     return (
                                         <tr
                                             key={eq.earthquake_id || index}
                                             className={`transition-all duration-150 ${rowStyle}`}
                                         >
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                                {formatDate(eq.date_time)}
+                                            <td
+                                                className={`px-6 py-4 ${highlight
+                                                    ? 'font-bold text-red-900 text-base'
+                                                    : 'text-gray-800'
+                                                    }`}
+                                            >
+                                                <div className="flex items-start gap-2">
+                                                    {highlight && (
+                                                        <span className="inline-block px-2 py-0.5 bg-red-600 text-white text-xs font-bold rounded uppercase mt-0.5 shadow-sm">
+                                                            Isparta
+                                                        </span>
+                                                    )}
+                                                    {recent && (
+                                                        <span className="inline-flex items-center px-2 py-0.5 bg-blue-600 text-white text-xs font-bold rounded uppercase mt-0.5 shadow-sm animate-pulse">
+                                                            <Zap size={12} className="mr-1" />
+                                                            YENİ
+                                                        </span>
+                                                    )}
+                                                    <span>{eq.title}</span>
+                                                </div>
                                             </td>
                                             <td className="px-6 py-4 text-center">
                                                 <div className="flex items-center justify-center gap-2">
@@ -246,19 +300,14 @@ export function Deprem() {
                                             <td className="px-6 py-4 text-center text-gray-700 font-medium">
                                                 {eq.depth.toFixed(1)}
                                             </td>
-                                            <td
-                                                className={`px-6 py-4 ${highlight
-                                                    ? 'font-bold text-red-900 text-base'
-                                                    : 'text-gray-800'
-                                                    }`}
-                                            >
-                                                <div className="flex items-start gap-2">
-                                                    {highlight && (
-                                                        <span className="inline-block px-2 py-0.5 bg-red-600 text-white text-xs font-bold rounded uppercase mt-0.5 shadow-sm">
-                                                            Isparta
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                                <div className="flex flex-col">
+                                                    <span>{formatDate(eq.date_time)}</span>
+                                                    {today && (
+                                                        <span className="text-xs text-blue-600 font-bold mt-1">
+                                                            BUGÜN
                                                         </span>
                                                     )}
-                                                    <span>{eq.title}</span>
                                                 </div>
                                             </td>
                                         </tr>
@@ -274,7 +323,9 @@ export function Deprem() {
             <div className="mt-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg shadow-sm">
                 <p className="text-sm text-blue-800">
                     <strong>Not:</strong> Veriler Kandilli Rasathanesi ve Orhanaydogdu API'dan alınmaktadır.
-                    Isparta ili ile ilgili depremler özel olarak vurgulanmaktadır.
+                    <br />
+                    <span className="font-bold">Bugünkü depremler</span> mavi çerçeve ile gösterilir.
+                    <span className="font-bold ml-2">Son 1 saat</span> içindeki depremler "YENİ" etiketi ile belirtilir.
                     <br />
                     <span className="inline-block w-3 h-3 bg-green-200 border border-green-400 mr-1 ml-2 rounded-full"></span> &lt; 3.0
                     <span className="inline-block w-3 h-3 bg-yellow-200 border border-yellow-400 mr-1 ml-2 rounded-full"></span> 3.0 - 4.0
