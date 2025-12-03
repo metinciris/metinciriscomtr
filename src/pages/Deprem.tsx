@@ -261,6 +261,20 @@ export function Deprem() {
         }
     });
 
+    // Split data logic
+    const top50 = sortedEarthquakes.slice(0, 50);
+    const olderRecords = sortedEarthquakes.slice(50);
+    const olderSignificant = olderRecords.filter(eq => eq.mag >= 3.0);
+
+    // Determine what to show
+    const displayedEarthquakes = showHistory
+        ? sortedEarthquakes // Show all when history is expanded
+        : top50;
+
+    // Find Isparta earthquakes for banner
+    const ispartaQuakes = earthquakes.filter(eq => isIsparta(eq.title));
+    const latestIsparta = ispartaQuakes.length > 0 ? ispartaQuakes[0] : null;
+
     return (
         <PageContainer>
             {/* Isparta Banner */}
