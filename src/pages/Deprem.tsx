@@ -296,7 +296,7 @@ export function Deprem() {
             )}
 
             {/* Header */}
-            <div className="bg-gradient-to-r from-[#E74C3C] via-[#C0392B] to-[#E74C3C] text-white p-8 mb-8 rounded-xl shadow-lg">
+            <div className="bg-gradient-to-r from-red-600 to-red-700 text-white p-8 mb-8 rounded-xl shadow-lg">
                 <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
                     <div className="flex-1">
                         <h1 className="text-white mb-3 text-4xl font-bold flex items-center gap-3">
