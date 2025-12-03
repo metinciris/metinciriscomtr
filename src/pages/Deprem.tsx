@@ -31,6 +31,7 @@ export function Deprem() {
     const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
     const [error, setError] = useState<string | null>(null);
     const [soundEnabled, setSoundEnabled] = useState(false);
+    const [visibleCount, setVisibleCount] = useState(50);
     const latestEqDateRef = useRef<string | null>(null);
 
     const playBeep = (frequency = 440, duration = 0.1) => {
@@ -234,7 +235,7 @@ export function Deprem() {
                             Kandilli Rasathanesi canlı verileri
                         </p>
                         <p className="text-white/80 text-sm">
-                            Son 50 kayıt ve son 24 saatteki 3.0+ depremler • 30 saniyede bir güncellenir
+                            Son 50 kayıt ve son 10 gündeki 3.0+ depremler • 30 saniyede bir güncellenir
                         </p>
                     </div>
                     <div className="flex flex-col gap-2">
@@ -333,7 +334,7 @@ export function Deprem() {
                                     </td>
                                 </tr>
                             ) : (
-                                earthquakes.map((eq, index) => {
+                                earthquakes.slice(0, visibleCount).map((eq, index) => {
                                     const highlight = isIsparta(eq.title);
                                     const today = isToday(eq.date_time);
                                     const recent = isRecent(eq.date_time);
@@ -435,6 +436,16 @@ export function Deprem() {
                         </tbody>
                     </table>
                 </div>
+                {earthquakes.length > visibleCount && (
+                    <div className="p-4 text-center border-t border-gray-200 bg-gray-50">
+                        <button
+                            onClick={() => setVisibleCount(prev => prev + 50)}
+                            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition-colors"
+                        >
+                            Daha Fazla Göster
+                        </button>
+                    </div>
+                )}
             </div>
 
             {/* Info Footer */}
@@ -446,6 +457,7 @@ export function Deprem() {
                     <span className="font-bold ml-2">Son 1 saat</span> içindeki depremler "YENİ" etiketi ile belirtilir.
                     <br />
                     <span className="font-bold text-red-700 mt-2 block">Isparta ilinde deprem varsa Kırmızı renkle yazılır.</span>
+                    <span className="block mt-1">On gün içinde 3 ve üzeri deprem varsa en altta gösterilmiştir.</span>
                 </p>
             </div>
         </PageContainer>
