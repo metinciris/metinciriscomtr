@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { PageContainer } from '../components/PageContainer';
-import { Activity, RefreshCw, AlertTriangle, MapPin, Clock } from 'lucide-react';
+import { Activity, RefreshCw, AlertTriangle, MapPin, Clock, AlertOctagon } from 'lucide-react';
 
 interface Earthquake {
     earthquake_id: string;
@@ -100,11 +100,24 @@ export function Deprem() {
         }
     };
 
-    const getMagnitudeColor = (mag: number) => {
-        if (mag >= 5) return 'bg-red-600 text-white';
-        if (mag >= 4) return 'bg-orange-500 text-white';
-        if (mag >= 3) return 'bg-yellow-500 text-gray-900';
-        return 'bg-green-500 text-white';
+    // Badge color for magnitude (Text on light background for readability)
+    const getMagnitudeBadgeStyle = (mag: number) => {
+        if (mag >= 6) return 'bg-red-100 text-red-900 border border-red-300 ring-2 ring-red-500';
+        if (mag >= 5) return 'bg-red-100 text-red-800 border border-red-200 ring-1 ring-red-400';
+        if (mag >= 4) return 'bg-orange-100 text-orange-800 border border-orange-200';
+        if (mag >= 3) return 'bg-yellow-100 text-yellow-800 border border-yellow-200';
+        return 'bg-green-100 text-green-800 border border-green-200';
+    };
+
+    // Row background color based on magnitude
+    const getRowStyle = (mag: number, isIspartaLocation: boolean) => {
+        if (isIspartaLocation) return 'bg-red-50 border-l-4 border-l-red-600 shadow-sm'; // Isparta always highlighted
+
+        if (mag >= 6) return 'bg-red-100/80 hover:bg-red-200/80 border-l-4 border-l-red-800';
+        if (mag >= 5) return 'bg-red-50 hover:bg-red-100 border-l-4 border-l-red-500';
+        if (mag >= 4) return 'bg-orange-50 hover:bg-orange-100 border-l-4 border-l-orange-400';
+        if (mag >= 3) return 'bg-yellow-50 hover:bg-yellow-100 border-l-4 border-l-yellow-400';
+        return 'bg-green-50 hover:bg-green-100 border-l-4 border-l-green-400';
     };
 
     return (
@@ -203,40 +216,45 @@ export function Deprem() {
                             ) : (
                                 earthquakes.map((eq, index) => {
                                     const highlight = isIsparta(eq.title);
+                                    const rowStyle = getRowStyle(eq.mag, highlight);
+
                                     return (
                                         <tr
                                             key={eq.earthquake_id || index}
-                                            className={`hover:bg-gray-50 transition-all duration-150 ${highlight
-                                                    ? 'bg-red-50 border-l-4 border-l-red-500 shadow-sm'
-                                                    : index % 2 === 0
-                                                        ? 'bg-white'
-                                                        : 'bg-gray-50/50'
-                                                }`}
+                                            className={`transition-all duration-150 ${rowStyle}`}
                                         >
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                                 {formatDate(eq.date_time)}
                                             </td>
                                             <td className="px-6 py-4 text-center">
-                                                <span
-                                                    className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-bold shadow-sm ${getMagnitudeColor(
-                                                        eq.mag
-                                                    )}`}
-                                                >
-                                                    {eq.mag.toFixed(1)}
-                                                </span>
+                                                <div className="flex items-center justify-center gap-2">
+                                                    <span
+                                                        className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-bold shadow-sm ${getMagnitudeBadgeStyle(
+                                                            eq.mag
+                                                        )}`}
+                                                    >
+                                                        {eq.mag.toFixed(1)}
+                                                    </span>
+                                                    {eq.mag >= 6 && (
+                                                        <AlertOctagon className="text-red-700 animate-pulse" size={24} />
+                                                    )}
+                                                    {eq.mag >= 5 && eq.mag < 6 && (
+                                                        <AlertTriangle className="text-red-600" size={20} />
+                                                    )}
+                                                </div>
                                             </td>
                                             <td className="px-6 py-4 text-center text-gray-700 font-medium">
                                                 {eq.depth.toFixed(1)}
                                             </td>
                                             <td
                                                 className={`px-6 py-4 ${highlight
-                                                        ? 'font-bold text-red-700 text-base'
-                                                        : 'text-gray-700'
+                                                    ? 'font-bold text-red-900 text-base'
+                                                    : 'text-gray-800'
                                                     }`}
                                             >
                                                 <div className="flex items-start gap-2">
                                                     {highlight && (
-                                                        <span className="inline-block px-2 py-0.5 bg-red-600 text-white text-xs font-bold rounded uppercase mt-0.5">
+                                                        <span className="inline-block px-2 py-0.5 bg-red-600 text-white text-xs font-bold rounded uppercase mt-0.5 shadow-sm">
                                                             Isparta
                                                         </span>
                                                     )}
@@ -253,10 +271,15 @@ export function Deprem() {
             </div>
 
             {/* Info Footer */}
-            <div className="mt-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg">
+            <div className="mt-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg shadow-sm">
                 <p className="text-sm text-blue-800">
                     <strong>Not:</strong> Veriler Kandilli Rasathanesi ve Orhanaydogdu API'dan alınmaktadır.
-                    Isparta ili ile ilgili depremler kırmızı renkle vurgulanmaktadır.
+                    Isparta ili ile ilgili depremler özel olarak vurgulanmaktadır.
+                    <br />
+                    <span className="inline-block w-3 h-3 bg-green-200 border border-green-400 mr-1 ml-2 rounded-full"></span> &lt; 3.0
+                    <span className="inline-block w-3 h-3 bg-yellow-200 border border-yellow-400 mr-1 ml-2 rounded-full"></span> 3.0 - 4.0
+                    <span className="inline-block w-3 h-3 bg-orange-200 border border-orange-400 mr-1 ml-2 rounded-full"></span> 4.0 - 5.0
+                    <span className="inline-block w-3 h-3 bg-red-200 border border-red-400 mr-1 ml-2 rounded-full"></span> &gt; 5.0
                 </p>
             </div>
         </PageContainer>
