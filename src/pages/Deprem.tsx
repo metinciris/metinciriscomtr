@@ -26,6 +26,7 @@ interface APIResponse {
 
 export function Deprem() {
     const [earthquakes, setEarthquakes] = useState<Earthquake[]>([]);
+    // Loading state for data fetching
     const [loading, setLoading] = useState(true);
     const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
     const [error, setError] = useState<string | null>(null);
