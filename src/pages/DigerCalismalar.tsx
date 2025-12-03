@@ -1,7 +1,7 @@
 import React from 'react';
 import { PageContainer } from '../components/PageContainer';
 import { MetroTile } from '../components/MetroTile';
-import { FileBarChart, Activity, FileText } from 'lucide-react';
+import { FileBarChart, Activity, FileText, AlertCircle } from 'lucide-react';
 
 interface DigerCalismalarProps {
     onNavigate?: (page: string) => void;
@@ -58,6 +58,14 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
                     color="bg-[#9B59B6]"
                     size="medium"
                     onClick={() => handleNavigate('gist-raporlama')}
+                />
+                <MetroTile
+                    title="Deprem"
+                    subtitle="Son depremler (Kandilli)"
+                    icon={<AlertCircle size={40} />}
+                    color="bg-[#C0392B]"
+                    size="medium"
+                    onClick={() => handleNavigate('deprem')}
                 />
 
             </div>

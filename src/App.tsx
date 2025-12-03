@@ -95,6 +95,9 @@ const RcbCalculator = React.lazy(() =>
 const Makale = React.lazy(() =>
   import('./pages/Makale').then((m) => ({ default: m.Makale })),
 );
+const Deprem = React.lazy(() =>
+  import('./pages/Deprem').then((m) => ({ default: m.Deprem })),
+);
 
 // Default export olan sayfalar (Podcast, GistRaporlama)
 const Podcast = React.lazy(() => import('./pages/Podcast'));
@@ -188,6 +191,9 @@ export default function App() {
 
       case 'makale':
         return <Makale onNavigate={navigate} />;
+
+      case 'deprem':
+        return <Deprem />;
 
       case 'home':
       default:
