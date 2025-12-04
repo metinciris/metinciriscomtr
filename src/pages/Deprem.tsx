@@ -496,7 +496,10 @@ export function Deprem() {
                                                 <div className="flex flex-col">
                                                     <div className="flex items-start gap-2">
                                                         {highlight && (
-                                                            <span className="inline-block px-2 py-0.5 bg-red-600 text-white text-xs font-bold rounded uppercase mt-0.5 shadow-sm">
+                                                            <span
+                                                                className="inline-block px-2 py-0.5 text-white text-xs font-bold rounded uppercase mt-0.5 shadow-sm"
+                                                                style={{ backgroundColor: '#dc2626' }}
+                                                            >
                                                                 Isparta
                                                             </span>
                                                         )}
