@@ -31,7 +31,7 @@ interface APIResponse {
 type SortKey = 'date_time' | 'mag' | 'distance';
 type SortDirection = 'asc' | 'desc';
 
-const CountdownTimer = ({ duration, resetKey }: { duration: number; resetKey: any }) => {
+const CountdownTimer = ({ duration, resetKey, size = 32 }: { duration: number; resetKey: any; size?: number }) => {
     const [progress, setProgress] = useState(0);
 
     useEffect(() => {
@@ -46,27 +46,27 @@ const CountdownTimer = ({ duration, resetKey }: { duration: number; resetKey: an
         return () => clearInterval(interval);
     }, [resetKey, duration]);
 
-    const radius = 8;
+    const radius = (size / 2) - 3; // Adjust radius based on size, keeping stroke width in mind
     const circumference = 2 * Math.PI * radius;
     const strokeDashoffset = circumference - (progress / 100) * circumference;
 
     return (
-        <div className="relative w-[18px] h-[18px] flex items-center justify-center">
+        <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
             <svg className="transform -rotate-90 w-full h-full">
                 <circle
-                    cx="9"
-                    cy="9"
+                    cx={size / 2}
+                    cy={size / 2}
                     r={radius}
                     stroke="rgba(255,255,255,0.2)"
-                    strokeWidth="2"
+                    strokeWidth="3"
                     fill="transparent"
                 />
                 <circle
-                    cx="9"
-                    cy="9"
+                    cx={size / 2}
+                    cy={size / 2}
                     r={radius}
                     stroke="white"
-                    strokeWidth="2"
+                    strokeWidth="3"
                     fill="transparent"
                     strokeDasharray={circumference}
                     strokeDashoffset={strokeDashoffset}
@@ -375,16 +375,13 @@ export function Deprem() {
                         </p>
                     </div>
                     <div className="flex flex-col gap-2">
-                        <div className="bg-black/20 backdrop-blur-sm rounded-lg p-4 min-w-[200px]">
-                            <div className="flex items-center justify-center gap-2 mb-2">
+                        <div className="bg-black/20 backdrop-blur-sm rounded-lg p-4 min-w-[200px] flex flex-col items-center justify-center min-h-[120px]">
+                            <div className="flex items-center justify-center mb-3 h-[40px]">
                                 {loading ? (
-                                    <RefreshCw size={18} className="animate-spin" />
+                                    <RefreshCw size={32} className="animate-spin" />
                                 ) : (
-                                    <CountdownTimer duration={30000} resetKey={lastUpdated} />
+                                    <CountdownTimer duration={30000} resetKey={lastUpdated} size={32} />
                                 )}
-                                <span className="font-semibold">
-                                    {loading ? 'Yenileniyor...' : 'Canlı'}
-                                </span>
                             </div>
                             <div className="text-center text-sm text-white/90">
                                 <Clock size={14} className="inline mr-1" />
