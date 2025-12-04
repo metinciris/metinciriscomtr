@@ -138,17 +138,45 @@ export function Deprem() {
         }
     };
 
-    const playBeepSequence = (count: number) => {
-        if (!soundEnabled || count <= 0) return;
+    const soundQueue = useRef<number[]>([]);
+    const isPlaying = useRef(false);
 
-        let beepsPlayed = 0;
-        const interval = setInterval(() => {
-            playBeep(880, 0.15); // Higher pitch for alert
-            beepsPlayed++;
-            if (beepsPlayed >= count) {
-                clearInterval(interval);
+    const processSoundQueue = async () => {
+        if (isPlaying.current || soundQueue.current.length === 0) return;
+
+        isPlaying.current = true;
+
+        while (soundQueue.current.length > 0) {
+            const mag = soundQueue.current.shift();
+            if (mag) {
+                await playBeepSequence(Math.floor(mag));
+                if (soundQueue.current.length > 0) {
+                    // Wait 1 second between different earthquake alerts
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
             }
-        }, 300); // 300ms between beeps
+        }
+
+        isPlaying.current = false;
+    };
+
+    const playBeepSequence = (count: number): Promise<void> => {
+        return new Promise((resolve) => {
+            if (!soundEnabled || count <= 0) {
+                resolve();
+                return;
+            }
+
+            let beepsPlayed = 0;
+            const interval = setInterval(() => {
+                playBeep(880, 0.15); // Higher pitch for alert
+                beepsPlayed++;
+                if (beepsPlayed >= count) {
+                    clearInterval(interval);
+                    resolve();
+                }
+            }, 300); // 300ms between beeps
+        });
     };
 
     const fetchData = async () => {
@@ -193,14 +221,19 @@ export function Deprem() {
             // Check for new earthquake (using the very first one from live/merged)
             if (uniqueEarthquakes.length > 0) {
                 const newestEq = uniqueEarthquakes[0];
-                if (latestEqDateRef.current && newestEq.date_time !== latestEqDateRef.current) {
-                    // New earthquake detected!
-                    const newEqDate = new Date(newestEq.date_time);
-                    const oldEqDate = new Date(latestEqDateRef.current);
+                if (latestEqDateRef.current) {
+                    const lastDate = new Date(latestEqDateRef.current);
+                    // Find all new earthquakes since last check
+                    const newQuakes = uniqueEarthquakes.filter(eq => new Date(eq.date_time) > lastDate);
 
-                    if (newEqDate > oldEqDate) {
-                        const beepCount = Math.floor(newestEq.mag);
-                        playBeepSequence(beepCount);
+                    if (newQuakes.length > 0) {
+                        // Add all new magnitudes to queue
+                        // Reverse to play oldest to newest? Or newest first?
+                        // Let's play them in the order they appear (newest first)
+                        newQuakes.forEach(eq => {
+                            soundQueue.current.push(eq.mag);
+                        });
+                        processSoundQueue();
                     }
                 }
                 latestEqDateRef.current = newestEq.date_time;
