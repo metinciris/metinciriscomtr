@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { PageContainer } from '../components/PageContainer';
 import { Star } from 'lucide-react';
+import { StarExplosion } from '../components/StarExplosion';
 
 declare global {
   interface Window {
@@ -25,6 +26,9 @@ export function HastaneYemek() {
 
   const [lunchCountdown, setLunchCountdown] = useState(0);
   const [dinnerCountdown, setDinnerCountdown] = useState(0);
+
+  const [showLunchExplosion, setShowLunchExplosion] = useState(false);
+  const [showDinnerExplosion, setShowDinnerExplosion] = useState(false);
 
   const lunchTableRef = useRef<HTMLDivElement>(null);
   const dinnerTableRef = useRef<HTMLDivElement>(null);
@@ -197,13 +201,21 @@ export function HastaneYemek() {
         setLunchCountdown(WAIT_TIME);
         setLunchRating(0);
         setHoveredLunchStar(0);
+        setShowLunchExplosion(true);
       } else {
         localStorage.setItem('votedTimestampAksam', timestamp.toString());
         setDinnerSubmitted(true);
         setDinnerCountdown(WAIT_TIME);
         setDinnerRating(0);
         setHoveredDinnerStar(0);
+        setShowDinnerExplosion(true);
       }
+
+      // Oylama sonrası tabloyu yenile (Google Sheets'in güncellenmesi için kısa bir gecikme)
+      setTimeout(() => {
+        drawAllTables();
+      }, 1000);
+
     } catch (error) {
       console.error('Form gönderimi hatası:', error);
     }
@@ -276,7 +288,11 @@ export function HastaneYemek() {
               lunchSubmitted
             )}
 
-            <div className="flex justify-center min-h-[48px]">
+            <div className="flex justify-center min-h-[48px] relative">
+              <StarExplosion
+                active={showLunchExplosion}
+                onComplete={() => setShowLunchExplosion(false)}
+              />
               {!lunchSubmitted ? (
                 <button
                   onClick={() => handleSubmit('lunch')}
@@ -320,7 +336,11 @@ export function HastaneYemek() {
               dinnerSubmitted
             )}
 
-            <div className="flex justify-center min-h-[48px]">
+            <div className="flex justify-center min-h-[48px] relative">
+              <StarExplosion
+                active={showDinnerExplosion}
+                onComplete={() => setShowDinnerExplosion(false)}
+              />
               {!dinnerSubmitted ? (
                 <button
                   onClick={() => handleSubmit('dinner')}
