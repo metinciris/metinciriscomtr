@@ -383,8 +383,8 @@ export function Deprem() {
                                     <CountdownTimer duration={30000} resetKey={lastUpdated} size={32} />
                                 )}
                             </div>
-                            <div className="text-center text-sm text-white/90">
-                                <Clock size={14} className="inline mr-1" />
+                            <div className="flex items-center justify-center gap-1 text-sm text-white/90">
+                                <Clock size={14} />
                                 {lastUpdated.toLocaleTimeString('tr-TR')}
                             </div>
                             {earthquakes.length > 0 && (
