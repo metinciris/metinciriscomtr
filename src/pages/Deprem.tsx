@@ -269,17 +269,28 @@ export function Deprem() {
         ? sortedEarthquakes // Show all when history is expanded
         : top50;
 
-    // Find Isparta earthquakes for banner
-    const ispartaQuakes = earthquakes.filter(eq => {
+    // Find Isparta or nearby earthquakes for banner
+    const bannerQuakes = earthquakes.filter(eq => {
         const titleLower = eq.title.toLocaleLowerCase('tr-TR');
-        return titleLower.includes('isparta') || titleLower.includes('ısparta');
+        const isIsparta = titleLower.includes('isparta') || titleLower.includes('ısparta');
+        const distance = calculateDistance(ISPARTA_COORDS.lat, ISPARTA_COORDS.lng, eq.geojson.coordinates[1], eq.geojson.coordinates[0]);
+
+        return isIsparta || distance < 100;
     });
-    const latestIsparta = ispartaQuakes.length > 0 ? ispartaQuakes[0] : null;
+    const latestBannerEq = bannerQuakes.length > 0 ? bannerQuakes[0] : null;
+
+    const getBannerTitle = (eq: Earthquake) => {
+        const titleLower = eq.title.toLocaleLowerCase('tr-TR');
+        if (titleLower.includes('isparta') || titleLower.includes('ısparta')) {
+            return "Isparta'da Deprem!";
+        }
+        return "Isparta'ya Yakın Deprem!";
+    };
 
     return (
         <PageContainer>
             {/* Isparta Banner */}
-            {latestIsparta && (
+            {latestBannerEq && (
                 <div
                     className="text-white p-4 mb-6 rounded-xl shadow-lg border-2 border-red-400"
                     style={{ background: 'linear-gradient(to right, #dc2626, #b91c1c)' }}
@@ -287,12 +298,12 @@ export function Deprem() {
                     <div className="flex items-center gap-4">
                         <AlertOctagon size={32} className="flex-shrink-0 animate-pulse" />
                         <div>
-                            <h3 className="font-bold text-lg uppercase tracking-wide">Isparta'da Deprem!</h3>
+                            <h3 className="font-bold text-lg uppercase tracking-wide">{getBannerTitle(latestBannerEq)}</h3>
                             <p className="font-medium">
-                                {latestIsparta.title} - Büyüklük: <span className="text-xl font-bold">{latestIsparta.mag}</span>
+                                {latestBannerEq.title} - Büyüklük: <span className="text-xl font-bold">{latestBannerEq.mag}</span>
                             </p>
                             <p className="text-sm opacity-90">
-                                {formatDate(latestIsparta.date_time)} ({getTimeAgo(latestIsparta.date_time)})
+                                {formatDate(latestBannerEq.date_time)} ({getTimeAgo(latestBannerEq.date_time)})
                             </p>
                         </div>
                     </div>
