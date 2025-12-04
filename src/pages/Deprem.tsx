@@ -325,7 +325,7 @@ export function Deprem() {
                             Kandilli Rasathanesi canlı verileri
                         </p>
                         <p className="text-white/80 text-sm">
-                            30 saniyede bir güncellenir, ses açıkken ,depren olunca şiddeti kadar tık sesi gelir.
+                            30 saniyede bir güncellenir. Ses açıkken deprem bildirimi: Deprem şiddeti kadar tık sesi.
                         </p>
                     </div>
                     <div className="flex flex-col gap-2">
