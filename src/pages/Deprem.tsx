@@ -280,9 +280,9 @@ export function Deprem() {
         <PageContainer>
             {/* Isparta Banner */}
             {latestIsparta && (
-                <div className="bg-red-600 text-white p-4 mb-6 rounded-xl shadow-lg animate-pulse border-2 border-red-400">
+                <div className="bg-gradient-to-r from-red-600 to-red-700 text-white p-4 mb-6 rounded-xl shadow-lg border-2 border-red-400">
                     <div className="flex items-center gap-4">
-                        <AlertOctagon size={32} className="flex-shrink-0" />
+                        <AlertOctagon size={32} className="flex-shrink-0 animate-pulse" />
                         <div>
                             <h3 className="font-bold text-lg uppercase tracking-wide">Isparta'da Deprem!</h3>
                             <p className="font-medium">
@@ -298,8 +298,7 @@ export function Deprem() {
 
             {/* Header */}
             <div
-                className="text-white p-8 mb-8 rounded-xl shadow-lg"
-                style={{ background: 'linear-gradient(to right, #dc2626, #b91c1c)' }}
+                className="text-white p-8 mb-8 rounded-xl shadow-lg bg-gradient-to-r from-red-600 to-red-700"
             >
                 <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
                     <div className="flex-1">
@@ -311,7 +310,7 @@ export function Deprem() {
                             Kandilli Rasathanesi canlı verileri
                         </p>
                         <p className="text-white/80 text-sm">
-                            Son 50 kayıt ve daha eski 3.0+ depremler • 30 saniyede bir güncellenir
+                            30 saniyede bir güncellenir, ses açıkken ,depren olunca şiddeti kadar tık sesi gelir.
                         </p>
                     </div>
                     <div className="flex flex-col gap-2">
