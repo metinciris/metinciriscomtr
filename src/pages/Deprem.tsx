@@ -31,6 +31,52 @@ interface APIResponse {
 type SortKey = 'date_time' | 'mag' | 'distance';
 type SortDirection = 'asc' | 'desc';
 
+const CountdownTimer = ({ duration, resetKey }: { duration: number; resetKey: any }) => {
+    const [progress, setProgress] = useState(0);
+
+    useEffect(() => {
+        setProgress(0);
+        const startTime = Date.now();
+        const interval = setInterval(() => {
+            const elapsed = Date.now() - startTime;
+            const newProgress = Math.min((elapsed / duration) * 100, 100);
+            setProgress(newProgress);
+        }, 100);
+
+        return () => clearInterval(interval);
+    }, [resetKey, duration]);
+
+    const radius = 8;
+    const circumference = 2 * Math.PI * radius;
+    const strokeDashoffset = circumference - (progress / 100) * circumference;
+
+    return (
+        <div className="relative w-[18px] h-[18px] flex items-center justify-center">
+            <svg className="transform -rotate-90 w-full h-full">
+                <circle
+                    cx="9"
+                    cy="9"
+                    r={radius}
+                    stroke="rgba(255,255,255,0.2)"
+                    strokeWidth="2"
+                    fill="transparent"
+                />
+                <circle
+                    cx="9"
+                    cy="9"
+                    r={radius}
+                    stroke="white"
+                    strokeWidth="2"
+                    fill="transparent"
+                    strokeDasharray={circumference}
+                    strokeDashoffset={strokeDashoffset}
+                    style={{ transition: 'stroke-dashoffset 0.1s linear' }}
+                />
+            </svg>
+        </div>
+    );
+};
+
 export function Deprem() {
     const [earthquakes, setEarthquakes] = useState<Earthquake[]>([]);
     // Loading state for data fetching
@@ -331,7 +377,11 @@ export function Deprem() {
                     <div className="flex flex-col gap-2">
                         <div className="bg-black/20 backdrop-blur-sm rounded-lg p-4 min-w-[200px]">
                             <div className="flex items-center justify-center gap-2 mb-2">
-                                <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+                                {loading ? (
+                                    <RefreshCw size={18} className="animate-spin" />
+                                ) : (
+                                    <CountdownTimer duration={30000} resetKey={lastUpdated} />
+                                )}
                                 <span className="font-semibold">
                                     {loading ? 'Yenileniyor...' : 'Canlı'}
                                 </span>
