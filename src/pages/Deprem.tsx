@@ -280,7 +280,10 @@ export function Deprem() {
         <PageContainer>
             {/* Isparta Banner */}
             {latestIsparta && (
-                <div className="bg-gradient-to-r from-red-600 to-red-700 text-white p-4 mb-6 rounded-xl shadow-lg border-2 border-red-400">
+                <div
+                    className="text-white p-4 mb-6 rounded-xl shadow-lg border-2 border-red-400"
+                    style={{ background: 'linear-gradient(to right, #dc2626, #b91c1c)' }}
+                >
                     <div className="flex items-center gap-4">
                         <AlertOctagon size={32} className="flex-shrink-0 animate-pulse" />
                         <div>
@@ -298,7 +301,8 @@ export function Deprem() {
 
             {/* Header */}
             <div
-                className="text-white p-8 mb-8 rounded-xl shadow-lg bg-gradient-to-r from-red-600 to-red-700"
+                className="text-white p-8 mb-8 rounded-xl shadow-lg"
+                style={{ background: 'linear-gradient(to right, #dc2626, #b91c1c)' }}
             >
                 <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
                     <div className="flex-1">
