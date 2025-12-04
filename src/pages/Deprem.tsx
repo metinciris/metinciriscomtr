@@ -181,9 +181,7 @@ export function Deprem() {
         return () => clearInterval(intervalId);
     }, [soundEnabled]);
 
-    const isIsparta = (title: string) => {
-        return title.toLocaleLowerCase('tr-TR').includes('isparta');
-    };
+
 
     const isToday = (dateStr: string) => {
         const date = new Date(dateStr);
@@ -272,7 +270,10 @@ export function Deprem() {
         : top50;
 
     // Find Isparta earthquakes for banner
-    const ispartaQuakes = earthquakes.filter(eq => isIsparta(eq.title));
+    const ispartaQuakes = earthquakes.filter(eq => {
+        const titleLower = eq.title.toLocaleLowerCase('tr-TR');
+        return titleLower.includes('isparta') || titleLower.includes('ısparta');
+    });
     const latestIsparta = ispartaQuakes.length > 0 ? ispartaQuakes[0] : null;
 
     return (
@@ -441,10 +442,17 @@ export function Deprem() {
                                 </tr>
                             ) : (
                                 displayedEarthquakes.map((eq, index) => {
-                                    const highlight = isIsparta(eq.title);
+                                    const distance = calculateDistance(ISPARTA_COORDS.lat, ISPARTA_COORDS.lng, eq.geojson.coordinates[1], eq.geojson.coordinates[0]);
+
+                                    // Isparta check with better Turkish character handling
+                                    const titleLower = eq.title.toLocaleLowerCase('tr-TR');
+                                    const isIspartaTitle = titleLower.includes('isparta') || titleLower.includes('ısparta');
+
+                                    // Highlight if title contains Isparta OR distance is less than 100km
+                                    const highlight = isIspartaTitle || distance < 100;
+
                                     const today = isToday(eq.date_time);
                                     const recent = isRecent(eq.date_time);
-                                    const distance = calculateDistance(ISPARTA_COORDS.lat, ISPARTA_COORDS.lng, eq.geojson.coordinates[1], eq.geojson.coordinates[0]);
 
                                     const getRowColor = (mag: number, isIspartaLocation: boolean, isTodayEq: boolean, isRecentEq: boolean) => {
                                         if (isIspartaLocation) return '#fee2e2'; // red-100
