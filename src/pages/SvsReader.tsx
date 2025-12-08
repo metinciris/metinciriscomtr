@@ -119,6 +119,12 @@ export function SvsReader() {
             const width = image.getWidth();
             const height = image.getHeight();
 
+            // Get image metadata
+            const samplesPerPixel = image.getSamplesPerPixel();
+            const photometricInterpretation = image.fileDirectory.PhotometricInterpretation;
+
+            console.log('Image info:', { width, height, samplesPerPixel, photometricInterpretation });
+
             // Create viewer
             viewerInstance.current = window.OpenSeadragon({
                 element: viewerRef.current,
@@ -146,27 +152,51 @@ export function SvsReader() {
                 springStiffness: 10,
             });
 
-            // Read the full image (for smaller files) or use tiled approach
-            const rasters = await image.readRasters();
+            // Read rasters with interleaved option for proper color handling
+            const rasters = await image.readRasters({ interleave: true });
             const rgba = new Uint8ClampedArray(width * height * 4);
 
-            // Handle different band configurations
-            const numBands = rasters.length;
-            for (let i = 0; i < width * height; i++) {
-                if (numBands >= 3) {
-                    // RGB or RGBA
-                    rgba[i * 4] = rasters[0][i];     // R
-                    rgba[i * 4 + 1] = rasters[1][i]; // G
-                    rgba[i * 4 + 2] = rasters[2][i]; // B
-                    rgba[i * 4 + 3] = numBands >= 4 ? rasters[3][i] : 255; // A
-                } else {
-                    // Grayscale
-                    const val = rasters[0][i];
+            // rasters is now a single Uint8Array with interleaved values
+            const data = rasters as Uint8Array;
+            const pixelCount = width * height;
+
+            // PhotometricInterpretation values:
+            // 0 = WhiteIsZero (inverted grayscale)
+            // 1 = BlackIsZero (normal grayscale)
+            // 2 = RGB
+            // 3 = Palette color
+            // 5 = CMYK
+            // 6 = YCbCr
+
+            if (samplesPerPixel >= 3) {
+                // RGB or RGBA - data is interleaved as RGBRGBRGB... or RGBARGBARGBA...
+                for (let i = 0; i < pixelCount; i++) {
+                    const srcIdx = i * samplesPerPixel;
+                    const dstIdx = i * 4;
+
+                    // SVS files use RGB order
+                    rgba[dstIdx] = data[srcIdx];         // R
+                    rgba[dstIdx + 1] = data[srcIdx + 1]; // G
+                    rgba[dstIdx + 2] = data[srcIdx + 2]; // B
+                    rgba[dstIdx + 3] = samplesPerPixel >= 4 ? data[srcIdx + 3] : 255; // A
+                }
+            } else if (samplesPerPixel === 1) {
+                // Grayscale
+                for (let i = 0; i < pixelCount; i++) {
+                    let val = data[i];
+
+                    // Handle inverted grayscale (WhiteIsZero)
+                    if (photometricInterpretation === 0) {
+                        val = 255 - val;
+                    }
+
                     rgba[i * 4] = val;
                     rgba[i * 4 + 1] = val;
                     rgba[i * 4 + 2] = val;
                     rgba[i * 4 + 3] = 255;
                 }
+            } else {
+                throw new Error(`Desteklenmeyen kanal sayısı: ${samplesPerPixel}`);
             }
 
             // Create canvas and draw image
