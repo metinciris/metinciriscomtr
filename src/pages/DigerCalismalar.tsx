@@ -1,7 +1,7 @@
 import React from 'react';
 import { PageContainer } from '../components/PageContainer';
 import { MetroTile } from '../components/MetroTile';
-import { FileBarChart, Activity, FileText, AlertCircle } from 'lucide-react';
+import { FileBarChart, Activity, FileText, AlertCircle, Microscope } from 'lucide-react';
 
 interface DigerCalismalarProps {
     onNavigate?: (page: string) => void;
@@ -71,8 +71,9 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
                 <MetroTile
                     title="SVS Mikroskopi"
                     subtitle="Sanal slayt görüntüleyici"
-                    icon={<Activity size={40} />}
-                    color="bg-[#1a1a2e]"
+                    icon={<Microscope size={40} />}
+                    color=""
+                    style={{ backgroundColor: '#0f3460' }}
                     size="medium"
                     onClick={() => handleNavigate('svs-reader')}
                 />

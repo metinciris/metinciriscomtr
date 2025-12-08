@@ -23,6 +23,7 @@ declare global {
 
 export function SvsReader() {
     const viewerRef = useRef<HTMLDivElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
     const viewerInstance = useRef<any>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -31,6 +32,7 @@ export function SvsReader() {
     const [fileName, setFileName] = useState<string | null>(null);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [scriptsLoaded, setScriptsLoaded] = useState(false);
+    const [imageLoaded, setImageLoaded] = useState(false);
 
     // Load OpenSeadragon and GeoTIFF scripts
     useEffect(() => {
@@ -92,6 +94,7 @@ export function SvsReader() {
         setIsLoading(true);
         setError(null);
         setFileName(file.name);
+        setImageLoaded(false);
 
         // Destroy existing viewer
         if (viewerInstance.current) {
@@ -115,9 +118,6 @@ export function SvsReader() {
             const image = await tiff.getImage(0);
             const width = image.getWidth();
             const height = image.getHeight();
-
-            // Create a custom tile source for OpenSeadragon
-            const tileSize = 256;
 
             // Create viewer
             viewerInstance.current = window.OpenSeadragon({
@@ -188,9 +188,10 @@ export function SvsReader() {
             });
 
             setIsLoading(false);
+            setImageLoaded(true);
         } catch (err: any) {
             console.error('SVS loading error:', err);
-            setError(err.message || 'Dosya yüklenirken bir hata oluştu.');
+            setError(err.message || 'Dosya yüklenirken bir hata oluştu. Dosya formatı desteklenmiyor olabilir.');
             setIsLoading(false);
         }
     }, []);
@@ -198,6 +199,13 @@ export function SvsReader() {
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
+            // Check file extension
+            const validExtensions = ['.svs', '.tif', '.tiff', '.ndpi', '.scn', '.mrxs', '.vms', '.vmu'];
+            const ext = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+            if (!validExtensions.includes(ext)) {
+                setError(`Desteklenmeyen dosya formatı: ${ext}. Lütfen SVS, TIFF veya benzeri bir dosya seçin.`);
+                return;
+            }
             initViewer(file);
         }
     };
@@ -205,10 +213,14 @@ export function SvsReader() {
     const handleDrop = useCallback((event: React.DragEvent<HTMLDivElement>) => {
         event.preventDefault();
         const file = event.dataTransfer.files[0];
-        if (file && (file.name.endsWith('.svs') || file.name.endsWith('.tif') || file.name.endsWith('.tiff'))) {
-            initViewer(file);
-        } else {
-            setError('Lütfen geçerli bir SVS veya TIFF dosyası yükleyin.');
+        if (file) {
+            const validExtensions = ['.svs', '.tif', '.tiff', '.ndpi', '.scn', '.mrxs', '.vms', '.vmu'];
+            const ext = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+            if (validExtensions.includes(ext)) {
+                initViewer(file);
+            } else {
+                setError(`Desteklenmeyen dosya formatı: ${ext}. Lütfen SVS, TIFF veya benzeri bir dosya seçin.`);
+            }
         }
     }, [initViewer]);
 
@@ -237,7 +249,7 @@ export function SvsReader() {
     };
 
     const toggleFullscreen = async () => {
-        const container = viewerRef.current?.parentElement;
+        const container = containerRef.current;
         if (!container) return;
 
         if (!document.fullscreenElement) {
@@ -254,24 +266,293 @@ export function SvsReader() {
         }
         setFileName(null);
         setError(null);
+        setImageLoaded(false);
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
         }
     };
 
+    // Styles object to avoid CSS conflicts
+    const styles = {
+        page: {
+            backgroundColor: '#0a0a0f',
+            color: '#ffffff',
+            minHeight: '100vh',
+            padding: '1rem',
+        } as React.CSSProperties,
+        header: {
+            background: 'linear-gradient(to right, #1a1a2e, #16213e, #0f3460)',
+            color: '#ffffff',
+            padding: '2rem',
+            marginBottom: '1.5rem',
+            borderRadius: '0.75rem',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            border: '1px solid rgba(233, 69, 96, 0.2)',
+        } as React.CSSProperties,
+        headerTitle: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '1rem',
+            marginBottom: '1rem',
+        } as React.CSSProperties,
+        headerIcon: {
+            padding: '0.75rem',
+            backgroundColor: 'rgba(233, 69, 96, 0.2)',
+            borderRadius: '0.75rem',
+        } as React.CSSProperties,
+        h1: {
+            fontSize: '2rem',
+            fontWeight: 'bold',
+            background: 'linear-gradient(to right, #ffffff, #e94560)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+            margin: 0,
+        } as React.CSSProperties,
+        headerDesc: {
+            color: 'rgba(255, 255, 255, 0.8)',
+            maxWidth: '48rem',
+            fontSize: '1rem',
+            lineHeight: 1.6,
+            margin: 0,
+        } as React.CSSProperties,
+        viewerContainer: {
+            position: 'relative',
+            backgroundColor: '#0a0a0f',
+            borderRadius: '0.75rem',
+            overflow: 'hidden',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            height: imageLoaded ? 'calc(100vh - 200px)' : '70vh',
+            minHeight: '500px',
+        } as React.CSSProperties,
+        toolbar: {
+            position: 'absolute',
+            top: '1rem',
+            left: '1rem',
+            right: '1rem',
+            zIndex: 20,
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '1rem',
+        } as React.CSSProperties,
+        fileControls: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+        } as React.CSSProperties,
+        uploadButton: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            padding: '0.5rem 1rem',
+            backgroundColor: '#e94560',
+            color: '#ffffff',
+            borderRadius: '0.5rem',
+            cursor: 'pointer',
+            transition: 'all 0.3s',
+            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+            border: 'none',
+            fontSize: '0.875rem',
+            fontWeight: 500,
+        } as React.CSSProperties,
+        fileNameBadge: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            padding: '0.5rem 0.75rem',
+            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+            backdropFilter: 'blur(4px)',
+            borderRadius: '0.5rem',
+            color: 'rgba(255, 255, 255, 0.9)',
+            fontSize: '0.875rem',
+        } as React.CSSProperties,
+        closeButton: {
+            padding: '0.25rem',
+            backgroundColor: 'transparent',
+            border: 'none',
+            cursor: 'pointer',
+            borderRadius: '0.25rem',
+            color: '#ffffff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+        } as React.CSSProperties,
+        viewControls: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.25rem',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            backdropFilter: 'blur(4px)',
+            borderRadius: '0.5rem',
+            padding: '0.25rem',
+        } as React.CSSProperties,
+        controlButton: {
+            padding: '0.5rem',
+            color: '#ffffff',
+            backgroundColor: 'transparent',
+            border: 'none',
+            borderRadius: '0.5rem',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'background-color 0.2s',
+        } as React.CSSProperties,
+        divider: {
+            width: '1px',
+            height: '1.5rem',
+            backgroundColor: 'rgba(255, 255, 255, 0.2)',
+            margin: '0 0.25rem',
+        } as React.CSSProperties,
+        viewer: {
+            width: '100%',
+            height: '100%',
+            backgroundColor: '#0a0a0f',
+        } as React.CSSProperties,
+        emptyState: {
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'rgba(255, 255, 255, 0.6)',
+        } as React.CSSProperties,
+        dropZone: {
+            padding: '2rem',
+            border: '2px dashed rgba(255, 255, 255, 0.2)',
+            borderRadius: '1rem',
+            backgroundColor: 'rgba(255, 255, 255, 0.05)',
+            backdropFilter: 'blur(4px)',
+            transition: 'all 0.3s',
+            textAlign: 'center',
+        } as React.CSSProperties,
+        dropIcon: {
+            padding: '1rem',
+            backgroundColor: 'rgba(233, 69, 96, 0.2)',
+            borderRadius: '50%',
+            marginBottom: '1rem',
+        } as React.CSSProperties,
+        dropTitle: {
+            fontSize: '1.25rem',
+            fontWeight: 500,
+            color: '#ffffff',
+            marginBottom: '0.5rem',
+        } as React.CSSProperties,
+        dropSubtitle: {
+            fontSize: '0.875rem',
+            color: 'rgba(255, 255, 255, 0.5)',
+            margin: 0,
+        } as React.CSSProperties,
+        loadingState: {
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            zIndex: 10,
+        } as React.CSSProperties,
+        loadingText: {
+            color: '#ffffff',
+            fontSize: '1.125rem',
+            marginTop: '1rem',
+        } as React.CSSProperties,
+        loadingSubtext: {
+            color: 'rgba(255, 255, 255, 0.5)',
+            fontSize: '0.875rem',
+            marginTop: '0.5rem',
+        } as React.CSSProperties,
+        errorState: {
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10,
+        } as React.CSSProperties,
+        errorBox: {
+            padding: '1.5rem',
+            backgroundColor: 'rgba(239, 68, 68, 0.2)',
+            border: '1px solid rgba(239, 68, 68, 0.3)',
+            borderRadius: '0.75rem',
+            maxWidth: '28rem',
+            textAlign: 'center',
+        } as React.CSSProperties,
+        errorTitle: {
+            color: '#f87171',
+            fontWeight: 500,
+            marginBottom: '0.5rem',
+        } as React.CSSProperties,
+        errorMessage: {
+            color: 'rgba(255, 255, 255, 0.7)',
+            fontSize: '0.875rem',
+            marginBottom: '1rem',
+        } as React.CSSProperties,
+        retryButton: {
+            padding: '0.5rem 1rem',
+            backgroundColor: 'rgba(239, 68, 68, 0.3)',
+            color: '#ffffff',
+            border: 'none',
+            borderRadius: '0.5rem',
+            cursor: 'pointer',
+            transition: 'background-color 0.2s',
+        } as React.CSSProperties,
+        infoGrid: {
+            marginTop: '1.5rem',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+            gap: '1rem',
+        } as React.CSSProperties,
+        infoCard: {
+            padding: '1.5rem',
+            background: 'linear-gradient(to bottom right, #1a1a2e, #16213e)',
+            borderRadius: '0.75rem',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+        } as React.CSSProperties,
+        infoTitle: {
+            color: '#ffffff',
+            fontWeight: 600,
+            marginBottom: '0.5rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            fontSize: '0.95rem',
+        } as React.CSSProperties,
+        infoText: {
+            color: 'rgba(255, 255, 255, 0.6)',
+            fontSize: '0.875rem',
+            lineHeight: 1.5,
+            margin: 0,
+        } as React.CSSProperties,
+        scriptsLoading: {
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            color: 'rgba(250, 204, 21, 0.8)',
+            fontSize: '0.875rem',
+            marginTop: '0.5rem',
+        } as React.CSSProperties,
+    };
+
     return (
-        <PageContainer>
+        <div style={styles.page}>
             {/* Header */}
-            <div className="bg-gradient-to-r from-[#1a1a2e] via-[#16213e] to-[#0f3460] text-white p-8 md:p-12 mb-8 rounded-xl shadow-2xl border border-[#e94560]/20">
-                <div className="flex items-center gap-4 mb-4">
-                    <div className="p-3 bg-[#e94560]/20 rounded-xl">
-                        <Microscope className="w-10 h-10 text-[#e94560]" />
+            <div style={styles.header}>
+                <div style={styles.headerTitle}>
+                    <div style={styles.headerIcon}>
+                        <Microscope style={{ width: 40, height: 40, color: '#e94560' }} />
                     </div>
-                    <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-white to-[#e94560] bg-clip-text text-transparent">
+                    <h1 style={styles.h1}>
                         SVS Sanal Mikroskopi
                     </h1>
                 </div>
-                <p className="text-white/80 max-w-3xl text-lg">
+                <p style={styles.headerDesc}>
                     Aperio SVS ve TIFF formatındaki dijital patoloji slaytlarını tarayıcınızda görüntüleyin.
                     Dosyalar yalnızca tarayıcınızda işlenir, sunucuya yüklenmez.
                 </p>
@@ -279,38 +560,38 @@ export function SvsReader() {
 
             {/* Main Viewer Area */}
             <div
-                className="relative bg-[#0a0a0f] rounded-xl overflow-hidden shadow-2xl border border-white/10"
-                style={{ minHeight: '70vh' }}
+                ref={containerRef}
+                style={styles.viewerContainer}
             >
                 {/* Toolbar */}
-                <div className="absolute top-4 left-4 right-4 z-20 flex flex-wrap items-center justify-between gap-4">
+                <div style={styles.toolbar}>
                     {/* Left: File controls */}
-                    <div className="flex items-center gap-2">
+                    <div style={styles.fileControls}>
                         <input
                             ref={fileInputRef}
                             type="file"
-                            accept=".svs,.tif,.tiff"
+                            accept=".svs,.tif,.tiff,.ndpi,.scn,.mrxs,.vms,.vmu"
                             onChange={handleFileChange}
-                            className="hidden"
+                            style={{ display: 'none' }}
                             id="svs-file-input"
                         />
                         <label
                             htmlFor="svs-file-input"
-                            className="flex items-center gap-2 px-4 py-2 bg-[#e94560] hover:bg-[#ff6b6b] text-white rounded-lg cursor-pointer transition-all duration-300 shadow-lg hover:shadow-[#e94560]/30"
+                            style={styles.uploadButton}
                         >
-                            <Upload className="w-5 h-5" />
-                            <span className="hidden sm:inline">Dosya Seç</span>
+                            <Upload style={{ width: 20, height: 20 }} />
+                            <span>Dosya Seç</span>
                         </label>
 
                         {fileName && (
-                            <div className="flex items-center gap-2 px-3 py-2 bg-white/10 backdrop-blur-sm rounded-lg text-white/90 text-sm">
-                                <span className="max-w-[150px] truncate">{fileName}</span>
+                            <div style={styles.fileNameBadge}>
+                                <span style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{fileName}</span>
                                 <button
                                     onClick={clearFile}
-                                    className="p-1 hover:bg-white/20 rounded transition-colors"
+                                    style={styles.closeButton}
                                     title="Dosyayı Kapat"
                                 >
-                                    <X className="w-4 h-4" />
+                                    <X style={{ width: 16, height: 16 }} />
                                 </button>
                             </div>
                         )}
@@ -318,35 +599,35 @@ export function SvsReader() {
 
                     {/* Right: View controls */}
                     {fileName && !isLoading && !error && (
-                        <div className="flex items-center gap-1 bg-black/50 backdrop-blur-sm rounded-lg p-1">
+                        <div style={styles.viewControls}>
                             <button
                                 onClick={zoomIn}
-                                className="p-2 text-white hover:bg-white/20 rounded-lg transition-colors"
+                                style={styles.controlButton}
                                 title="Yakınlaştır"
                             >
-                                <ZoomIn className="w-5 h-5" />
+                                <ZoomIn style={{ width: 20, height: 20 }} />
                             </button>
                             <button
                                 onClick={zoomOut}
-                                className="p-2 text-white hover:bg-white/20 rounded-lg transition-colors"
+                                style={styles.controlButton}
                                 title="Uzaklaştır"
                             >
-                                <ZoomOut className="w-5 h-5" />
+                                <ZoomOut style={{ width: 20, height: 20 }} />
                             </button>
                             <button
                                 onClick={resetView}
-                                className="p-2 text-white hover:bg-white/20 rounded-lg transition-colors"
+                                style={styles.controlButton}
                                 title="Görünümü Sıfırla"
                             >
-                                <Home className="w-5 h-5" />
+                                <Home style={{ width: 20, height: 20 }} />
                             </button>
-                            <div className="w-px h-6 bg-white/20 mx-1" />
+                            <div style={styles.divider} />
                             <button
                                 onClick={toggleFullscreen}
-                                className="p-2 text-white hover:bg-white/20 rounded-lg transition-colors"
+                                style={styles.controlButton}
                                 title={isFullscreen ? 'Tam Ekrandan Çık' : 'Tam Ekran'}
                             >
-                                {isFullscreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
+                                {isFullscreen ? <Minimize2 style={{ width: 20, height: 20 }} /> : <Maximize2 style={{ width: 20, height: 20 }} />}
                             </button>
                         </div>
                     )}
@@ -357,42 +638,37 @@ export function SvsReader() {
                     ref={viewerRef}
                     onDrop={handleDrop}
                     onDragOver={handleDragOver}
-                    className="w-full h-full"
-                    style={{ minHeight: '70vh' }}
+                    style={styles.viewer}
                 >
                     {/* Empty State */}
                     {!fileName && !isLoading && (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center text-white/60">
-                            <div className="p-8 border-2 border-dashed border-white/20 rounded-2xl bg-white/5 backdrop-blur-sm transition-all hover:border-[#e94560]/50 hover:bg-[#e94560]/5">
-                                <div className="flex flex-col items-center gap-4">
-                                    <div className="p-4 bg-[#e94560]/20 rounded-full">
-                                        <Upload className="w-12 h-12 text-[#e94560]" />
-                                    </div>
-                                    <div className="text-center">
-                                        <p className="text-xl font-medium text-white mb-2">
-                                            SVS veya TIFF dosyası yükleyin
-                                        </p>
-                                        <p className="text-sm text-white/50">
-                                            Dosyayı buraya sürükleyin veya yukarıdaki butona tıklayın
-                                        </p>
-                                    </div>
-                                    {!scriptsLoaded && (
-                                        <div className="flex items-center gap-2 text-yellow-400/80 text-sm mt-2">
-                                            <Loader2 className="w-4 h-4 animate-spin" />
-                                            <span>Kütüphaneler yükleniyor...</span>
-                                        </div>
-                                    )}
+                        <div style={styles.emptyState}>
+                            <div style={styles.dropZone}>
+                                <div style={styles.dropIcon}>
+                                    <Upload style={{ width: 48, height: 48, color: '#e94560' }} />
                                 </div>
+                                <p style={styles.dropTitle}>
+                                    SVS veya TIFF dosyası yükleyin
+                                </p>
+                                <p style={styles.dropSubtitle}>
+                                    Dosyayı buraya sürükleyin veya yukarıdaki butona tıklayın
+                                </p>
+                                {!scriptsLoaded && (
+                                    <div style={styles.scriptsLoading}>
+                                        <Loader2 style={{ width: 16, height: 16, animation: 'spin 1s linear infinite' }} />
+                                        <span>Kütüphaneler yükleniyor...</span>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}
 
                     {/* Loading State */}
                     {isLoading && (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-10">
-                            <Loader2 className="w-16 h-16 text-[#e94560] animate-spin mb-4" />
-                            <p className="text-white text-lg">Dosya işleniyor...</p>
-                            <p className="text-white/50 text-sm mt-2">
+                        <div style={styles.loadingState}>
+                            <Loader2 style={{ width: 64, height: 64, color: '#e94560', animation: 'spin 1s linear infinite' }} />
+                            <p style={styles.loadingText}>Dosya işleniyor...</p>
+                            <p style={styles.loadingSubtext}>
                                 Büyük dosyalar için bu işlem birkaç dakika sürebilir.
                             </p>
                         </div>
@@ -400,14 +676,14 @@ export function SvsReader() {
 
                     {/* Error State */}
                     {error && (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
-                            <div className="p-6 bg-red-500/20 border border-red-500/30 rounded-xl max-w-md text-center">
-                                <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-                                <p className="text-red-400 font-medium mb-2">Hata</p>
-                                <p className="text-white/70 text-sm">{error}</p>
+                        <div style={styles.errorState}>
+                            <div style={styles.errorBox}>
+                                <AlertCircle style={{ width: 48, height: 48, color: '#f87171', margin: '0 auto 1rem' }} />
+                                <p style={styles.errorTitle}>Hata</p>
+                                <p style={styles.errorMessage}>{error}</p>
                                 <button
                                     onClick={clearFile}
-                                    className="mt-4 px-4 py-2 bg-red-500/30 hover:bg-red-500/50 text-white rounded-lg transition-colors"
+                                    style={styles.retryButton}
                                 >
                                     Yeniden Dene
                                 </button>
@@ -417,37 +693,47 @@ export function SvsReader() {
                 </div>
             </div>
 
-            {/* Info Section */}
-            <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="p-6 bg-gradient-to-br from-[#1a1a2e] to-[#16213e] rounded-xl border border-white/10">
-                    <h3 className="text-white font-semibold mb-2 flex items-center gap-2">
-                        <Microscope className="w-5 h-5 text-[#e94560]" />
-                        Desteklenen Formatlar
-                    </h3>
-                    <p className="text-white/60 text-sm">
-                        Aperio SVS, BigTIFF ve standart TIFF formatları desteklenmektedir.
-                    </p>
+            {/* Info Section - Only show when no image is loaded */}
+            {!imageLoaded && (
+                <div style={styles.infoGrid}>
+                    <div style={styles.infoCard}>
+                        <h3 style={styles.infoTitle}>
+                            <Microscope style={{ width: 20, height: 20, color: '#e94560' }} />
+                            Desteklenen Formatlar
+                        </h3>
+                        <p style={styles.infoText}>
+                            Aperio SVS, BigTIFF, NDPI ve standart TIFF formatları desteklenmektedir.
+                        </p>
+                    </div>
+                    <div style={styles.infoCard}>
+                        <h3 style={styles.infoTitle}>
+                            <Home style={{ width: 20, height: 20, color: '#e94560' }} />
+                            Navigasyon
+                        </h3>
+                        <p style={styles.infoText}>
+                            Fare tekerleği ile yakınlaştırın, sürükleyerek kaydırın. Çift tıklama ile hızlı zoom.
+                        </p>
+                    </div>
+                    <div style={styles.infoCard}>
+                        <h3 style={styles.infoTitle}>
+                            <AlertCircle style={{ width: 20, height: 20, color: '#e94560' }} />
+                            Gizlilik
+                        </h3>
+                        <p style={styles.infoText}>
+                            Tüm işlemler tarayıcınızda gerçekleşir. Dosyalarınız sunucuya yüklenmez.
+                        </p>
+                    </div>
                 </div>
-                <div className="p-6 bg-gradient-to-br from-[#1a1a2e] to-[#16213e] rounded-xl border border-white/10">
-                    <h3 className="text-white font-semibold mb-2 flex items-center gap-2">
-                        <Home className="w-5 h-5 text-[#e94560]" />
-                        Navigasyon
-                    </h3>
-                    <p className="text-white/60 text-sm">
-                        Fare tekerleği ile yakınlaştırın, sürükleyerek kaydırın. Çift tıklama ile hızlı zoom.
-                    </p>
-                </div>
-                <div className="p-6 bg-gradient-to-br from-[#1a1a2e] to-[#16213e] rounded-xl border border-white/10">
-                    <h3 className="text-white font-semibold mb-2 flex items-center gap-2">
-                        <AlertCircle className="w-5 h-5 text-[#e94560]" />
-                        Gizlilik
-                    </h3>
-                    <p className="text-white/60 text-sm">
-                        Tüm işlemler tarayıcınızda gerçekleşir. Dosyalarınız sunucuya yüklenmez.
-                    </p>
-                </div>
-            </div>
-        </PageContainer>
+            )}
+
+            {/* Add keyframes for spin animation */}
+            <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
+        </div>
     );
 }
 
