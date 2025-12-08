@@ -19,7 +19,7 @@ import {
   X,
 } from 'lucide-react';
 
-// OpenSeadragon & GeoTIFF CDN'den gelecek
+// OpenSeadragon & GeoTIFF global (CDN)
 declare global {
   interface Window {
     OpenSeadragon: any;
@@ -40,7 +40,7 @@ export function SvsReader() {
   const [scriptsLoaded, setScriptsLoaded] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
 
-  // OpenSeadragon ve GeoTIFF scriptlerini yükle
+  // Script’leri yükle
   useEffect(() => {
     const loadScript = (src: string, id: string): Promise<void> =>
       new Promise((resolve, reject) => {
@@ -110,7 +110,7 @@ export function SvsReader() {
     setFileName(file.name);
     setImageLoaded(false);
 
-    // Eski viewer'ı temizle
+    // Eski viewer’ı temizle
     if (viewerInstance.current) {
       viewerInstance.current.destroy();
       viewerInstance.current = null;
@@ -125,7 +125,7 @@ export function SvsReader() {
         throw new Error('Dosyada görüntü bulunamadı.');
       }
 
-      // En büyük level'i bul (piksel sayısına göre)
+      // En büyük level’i bul
       let targetIndex = 0;
       let maxPixels = 0;
       for (let i = 0; i < imageCount; i++) {
@@ -146,7 +146,22 @@ export function SvsReader() {
       const fd = image.fileDirectory;
       const samplesPerPixel = image.getSamplesPerPixel();
       const bitsField = fd.BitsPerSample;
-      const bits = Array.isArray(bitsField) ? bitsField[0] : bitsField;
+
+      // BitsPerSample: 8, [8,8,8], Uint16Array([...]) vs. hepsini yakala
+      let bits: number;
+      if (typeof bitsField === 'number') {
+        bits = bitsField;
+      } else if (Array.isArray(bitsField)) {
+        bits = bitsField[0];
+      } else if (
+        bitsField &&
+        typeof (bitsField as any).length === 'number'
+      ) {
+        bits = (bitsField as any)[0];
+      } else {
+        bits = 8; // fallback
+      }
+
       const photometric = fd.PhotometricInterpretation;
 
       console.log('SVS metadata', {
@@ -160,8 +175,8 @@ export function SvsReader() {
         targetIndex,
       });
 
-      // Büyük görüntüler için otomatik downsample
-      const MAX_DIM = 4000; // En uzun kenar en fazla 4000 px
+      // Büyük slaytları RAM’i patlatmadan göstermek için max kenarı kısıtla
+      const MAX_DIM = 4000; // en uzun kenar 4000 px’e indirilir
       const scale = Math.min(
         1,
         MAX_DIM / origWidth,
@@ -172,7 +187,7 @@ export function SvsReader() {
 
       console.log('Render size', { width, height, scale });
 
-      // Raster oku (geotiff.js downsample'ı kendi yapacak)
+      // Raster oku (GeoTIFF YCbCr vs ise de içte convert ediyor)
       const rasters = await image.readRasters({
         interleave: true,
         width,
@@ -184,8 +199,8 @@ export function SvsReader() {
 
       const normalize16To8 = (v: number) => v >> 8; // ≈ v/257
 
+      // Renkli
       if (samplesPerPixel >= 3) {
-        // Renkli görüntü (RGB / YCbCr vs.)
         if (bits === 8) {
           const data = rasters as Uint8Array;
           for (let i = 0; i < pixelCount; i++) {
@@ -194,7 +209,7 @@ export function SvsReader() {
             rgba[dst] = data[src];         // R
             rgba[dst + 1] = data[src + 1]; // G
             rgba[dst + 2] = data[src + 2]; // B
-            rgba[dst + 3] = 255;           // A
+            rgba[dst + 3] = 255;
           }
         } else if (bits === 16) {
           const data = rasters as Uint16Array;
@@ -207,21 +222,26 @@ export function SvsReader() {
             rgba[dst + 3] = 255;
           }
         } else {
-          console.warn(
-            'Beklenmeyen bit derinliği (RGB):',
-            bitsField
-          );
-          throw new Error(
-            `Bu SVS bit derinliği şu anda desteklenmiyor: ${bitsField}`
-          );
+          // Çok egzotik bit derinliği gelirse 8-bit gibi davran (deneme)
+          console.warn('Beklenmeyen bits, 8-bit gibi işleniyor:', bitsField);
+          const dataAny = rasters as any;
+          for (let i = 0; i < pixelCount; i++) {
+            const src = i * samplesPerPixel;
+            const dst = i * 4;
+            rgba[dst] = dataAny[src] ?? 0;
+            rgba[dst + 1] = dataAny[src + 1] ?? 0;
+            rgba[dst + 2] = dataAny[src + 2] ?? 0;
+            rgba[dst + 3] = 255;
+          }
         }
-      } else if (samplesPerPixel === 1) {
-        // Gri tonlama
+      }
+      // Gri
+      else if (samplesPerPixel === 1) {
         if (bits === 8) {
           const data = rasters as Uint8Array;
           for (let i = 0; i < pixelCount; i++) {
             let val = data[i];
-            // WhiteIsZero ise invert et
+            // Photometric 0 = WhiteIsZero → tersle
             if (photometric === 0) {
               val = 255 - val;
             }
@@ -242,13 +262,17 @@ export function SvsReader() {
             rgba[dst + 3] = 255;
           }
         } else {
-          console.warn(
-            'Beklenmeyen bit derinliği (gri):',
-            bitsField
-          );
-          throw new Error(
-            `Bu SVS gri ton bit derinliği şu anda desteklenmiyor: ${bitsField}`
-          );
+          console.warn('Beklenmeyen bits (gri), 8-bit gibi işleniyor:', bitsField);
+          const dataAny = rasters as any;
+          for (let i = 0; i < pixelCount; i++) {
+            let val = dataAny[i] ?? 0;
+            if (photometric === 0) {
+              val = 255 - val;
+            }
+            const dst = i * 4;
+            rgba[dst] = rgba[dst + 1] = rgba[dst + 2] = val;
+            rgba[dst + 3] = 255;
+          }
         }
       } else {
         throw new Error(
@@ -256,7 +280,7 @@ export function SvsReader() {
         );
       }
 
-      // Canvas oluşturup çiz
+      // Canvas’a çiz
       const canvas = document.createElement('canvas');
       canvas.width = width;
       canvas.height = height;
@@ -422,7 +446,7 @@ export function SvsReader() {
     }
   };
 
-  // inline stiller (senin tema ile uyumlu)
+  // Stil (aynı tema)
   const styles = {
     page: {
       backgroundColor: '#0a0a0f',
@@ -558,108 +582,6 @@ export function SvsReader() {
       backgroundColor: 'rgba(255, 255, 255, 0.2)',
       margin: '0 0.25rem',
     } as React.CSSProperties,
-    viewer: {
-      width: '100%',
-      height: '100%',
-      backgroundColor: '#0a0a0f',
-    } as React.CSSProperties,
-    emptyState: {
-      position: 'absolute',
-      inset: 0,
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      color: 'rgba(255, 255, 255, 0.6)',
-      padding: '1.5rem',
-      textAlign: 'center',
-    } as React.CSSProperties,
-    dropZone: {
-      padding: '2rem',
-      border: '2px dashed rgba(255, 255, 255, 0.2)',
-      borderRadius: '1rem',
-      backgroundColor: 'rgba(255, 255, 255, 0.05)',
-      backdropFilter: 'blur(4px)',
-      transition: 'all 0.3s',
-    } as React.CSSProperties,
-    dropIcon: {
-      padding: '1rem',
-      backgroundColor: 'rgba(233, 69, 96, 0.2)',
-      borderRadius: '50%',
-      marginBottom: '1rem',
-    } as React.CSSProperties,
-    dropTitle: {
-      fontSize: '1.25rem',
-      fontWeight: 500,
-      color: '#ffffff',
-      marginBottom: '0.5rem',
-    } as React.CSSProperties,
-    dropSubtitle: {
-      fontSize: '0.875rem',
-      color: 'rgba(255, 255, 255, 0.5)',
-      margin: 0,
-    } as React.CSSProperties,
-    loadingState: {
-      position: 'absolute',
-      inset: 0,
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: 'rgba(0, 0, 0, 0.8)',
-      zIndex: 10,
-    } as React.CSSProperties,
-    loadingText: {
-      color: '#ffffff',
-      fontSize: '1.125rem',
-      marginTop: '1rem',
-    } as React.CSSProperties,
-    loadingSubtext: {
-      color: 'rgba(255, 255, 255, 0.5)',
-      fontSize: '0.875rem',
-      marginTop: '0.5rem',
-    } as React.CSSProperties,
-    errorState: {
-      position: 'absolute',
-      inset: 0,
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 10,
-    } as React.CSSProperties,
-    errorBox: {
-      padding: '1.5rem',
-      backgroundColor: 'rgba(239, 68, 68, 0.2)',
-      border: '1px solid rgba(239, 68, 68, 0.3)',
-      borderRadius: '0.75rem',
-      maxWidth: '28rem',
-      textAlign: 'center',
-    } as React.CSSProperties,
-    errorTitle: {
-      color: '#f87171',
-      fontWeight: 500,
-      marginBottom: '0.5rem',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: '0.5rem',
-    } as React.CSSProperties,
-    errorMessage: {
-      color: 'rgba(255, 255, 255, 0.7)',
-      fontSize: '0.875rem',
-      marginBottom: '1rem',
-      whiteSpace: 'pre-wrap',
-    } as React.CSSProperties,
-    retryButton: {
-      padding: '0.5rem 1rem',
-      backgroundColor: 'rgba(239, 68, 68, 0.3)',
-      color: '#ffffff',
-      border: 'none',
-      borderRadius: '0.5rem',
-      cursor: 'pointer',
-      transition: 'background-color 0.2s',
-    } as React.CSSProperties,
   };
 
   return (
@@ -750,17 +672,7 @@ export function SvsReader() {
             </div>
 
             {fileName && !isLoading && !error && (
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.25rem',
-                  backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                  backdropFilter: 'blur(4px)',
-                  borderRadius: '0.5rem',
-                  padding: '0.25rem',
-                }}
-              >
+              <div style={styles.viewControls}>
                 <button
                   type="button"
                   style={styles.controlButton}
