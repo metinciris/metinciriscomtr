@@ -102,6 +102,9 @@ const Deprem = React.lazy(() =>
 // Default export olan sayfalar (Podcast, GistRaporlama)
 const Podcast = React.lazy(() => import('./pages/Podcast'));
 const GistRaporlama = React.lazy(() => import('./pages/GistRaporlama'));
+const SvsReader = React.lazy(() =>
+  import('./pages/SvsReader').then((m) => ({ default: m.SvsReader })),
+);
 
 export default function App() {
   const [currentPage, setCurrentPage] = React.useState('home');
@@ -194,6 +197,9 @@ export default function App() {
 
       case 'deprem':
         return <Deprem />;
+
+      case 'svs-reader':
+        return <SvsReader />;
 
       case 'home':
       default:

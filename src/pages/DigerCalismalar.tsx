@@ -68,6 +68,14 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
                     size="medium"
                     onClick={() => handleNavigate('deprem')}
                 />
+                <MetroTile
+                    title="SVS Mikroskopi"
+                    subtitle="Sanal slayt görüntüleyici"
+                    icon={<Activity size={40} />}
+                    color="bg-[#1a1a2e]"
+                    size="medium"
+                    onClick={() => handleNavigate('svs-reader')}
+                />
 
             </div>
         </PageContainer>

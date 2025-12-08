@@ -1,6 +1,7 @@
 {
   "name": "Web Site Yenileme Projesi",
   "version": "0.1.0",
+  "homepage": "https://metinciris.com.tr",
   "type": "module",
   "private": true,
   "dependencies": {
