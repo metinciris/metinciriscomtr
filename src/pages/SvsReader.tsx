@@ -42,6 +42,14 @@ export function SvsReader() {
   const [scriptsLoaded, setScriptsLoaded] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
 
+  // Son seçilen görüntü için meta veriler (hata mesajında kullanacağız)
+  const lastMetaRef = useRef<{
+    width?: number;
+    height?: number;
+    compression?: number;
+    fileSizeMB?: number;
+  }>({});
+
   // OpenSeadragon ve GeoTIFF scriptlerini yükle
   useEffect(() => {
     const loadScript = (src: string, id: string): Promise<void> =>
@@ -112,6 +120,11 @@ export function SvsReader() {
     setFileName(file.name);
     setImageLoaded(false);
 
+    // Meta bilgileri baştan temizle
+    lastMetaRef.current = {
+      fileSizeMB: file.size / (1024 * 1024),
+    };
+
     // Eski viewer’ı temizle
     if (viewerInstance.current) {
       viewerInstance.current.destroy();
@@ -144,11 +157,15 @@ export function SvsReader() {
       const image = await tiff.getImage(targetIndex);
       const origWidth = image.getWidth();
       const origHeight = image.getHeight();
-
       const fd = image.fileDirectory;
       const samplesPerPixel = image.getSamplesPerPixel();
       const bitsField = fd.BitsPerSample;
       const photometric = fd.PhotometricInterpretation;
+      const compression = (fd as any).Compression as number | undefined;
+
+      lastMetaRef.current.width = origWidth;
+      lastMetaRef.current.height = origHeight;
+      lastMetaRef.current.compression = compression;
 
       console.log('SVS metadata', {
         origWidth,
@@ -156,9 +173,25 @@ export function SvsReader() {
         samplesPerPixel,
         bitsField,
         photometric,
+        compression,
         imageCount,
         targetIndex,
       });
+
+      // Eğer Aperio JPEG2000 ise (33003 / 33005), tarayıcıda desteklenmiyor
+      if (compression === 33003 || compression === 33005) {
+        const mb = (lastMetaRef.current.fileSizeMB ?? 0).toFixed(1);
+        const metaLine = `Genişlik: ${origWidth} px, Yükseklik: ${origHeight} px, Dosya boyutu: ${mb} MB.`;
+        setIsLoading(false);
+        setImageLoaded(false);
+        setError(
+          `Bu SVS dosyası tarayıcıda desteklenmeyen bir sıkıştırma kullanıyor.\n\n` +
+            `Sıkıştırma tipi: Aperio JPEG2000 (kod ${compression}).\n` +
+            `${metaLine}\n\n` +
+            `Bu slaytı görüntülemek için önce masaüstünde standart TIFF / SVS formatına dönüştürmeniz gerekebilir.`
+        );
+        return;
+      }
 
       // RAM patlamasın diye en uzun kenarı sınırla
       const MAX_DIM = 4000; // istersen artırabilirsin
@@ -242,10 +275,46 @@ export function SvsReader() {
       setImageLoaded(true);
     } catch (err: any) {
       console.error('SVS yükleme hatası:', err);
-      setError(
-        err?.message ||
-          'Dosya yüklenirken bir hata oluştu.\nDosya formatı desteklenmiyor olabilir.'
-      );
+
+      const meta = lastMetaRef.current;
+      const mb = (meta.fileSizeMB ?? 0).toFixed(1);
+      const dim =
+        meta.width && meta.height
+          ? `Genişlik: ${meta.width} px, Yükseklik: ${meta.height} px.`
+          : '';
+
+      // Tarayıcı bellek limiti
+      const msg = String(err?.message || '');
+      if (
+        msg.includes('Array buffer allocation failed') ||
+        err?.name === 'RangeError'
+      ) {
+        setError(
+          `Bu slayt tarayıcının bellek limitlerini aşıyor.\n\n` +
+            `${dim}\nDosya boyutu: ${mb} MB.\n\n` +
+            `Daha küçük boyutlu veya daha düşük çözünürlüklü bir kopyasını denemeniz gerekebilir.`
+        );
+      } else if (msg.startsWith('Unknown compression method identifier')) {
+        // Diğer bilinmeyen sıkıştırmalar
+        const comp = meta.compression;
+        setError(
+          `Bu SVS dosyasının sıkıştırma biçimi tarayıcıda tanınmıyor.\n\n` +
+            (comp != null
+              ? `Sıkıştırma kodu: ${comp}.\n`
+              : '') +
+            `${dim}\nDosya boyutu: ${mb} MB.\n\n` +
+            `Bu slaytı görüntülemek için önce masaüstünde desteklenen bir format (örn. JPEG sıkıştırmalı TIFF) haline dönüştürmeniz gerekebilir.`
+        );
+      } else {
+        // Genel hata
+        setError(
+          `Görüntü işlenirken beklenmeyen bir hata oluştu.\n\n` +
+            (dim ? dim + '\n' : '') +
+            `Dosya boyutu: ${mb} MB.\n\n` +
+            `Teknik detay: ${msg || 'bilinmiyor.'}`
+        );
+      }
+
       setIsLoading(false);
       setImageLoaded(false);
     }
@@ -349,7 +418,7 @@ export function SvsReader() {
     }
   };
 
-  // Stil – daha modern layout
+  // Stil – modern layout (bir önceki sürümle aynı)
   const styles = {
     pageOuter: {
       background:
@@ -845,8 +914,8 @@ export function SvsReader() {
                   />
                   <div style={styles.loadingText}>Slayt işleniyor…</div>
                   <div style={styles.loadingSub}>
-                    Büyük (.svs) dosyalarda çözümleme ve yeniden ölçekleme birkaç
-                    saniye sürebilir.
+                    Büyük (.svs) dosyalarda çözümleme ve yeniden ölçekleme
+                    birkaç saniye sürebilir.
                   </div>
                 </div>
               )}
@@ -906,7 +975,7 @@ export function SvsReader() {
                 <p style={styles.infoText}>
                   Büyük slaytlarda tarayıcı belleğini korumak için en uzun kenar
                   yaklaşık 4&nbsp;000 piksele yeniden ölçeklenir. Bu ayar istenirse
-                  kod içinde kolayca artırılabilir.
+                  kod içinde kolayca değiştirilebilir.
                 </p>
               </article>
 
@@ -916,7 +985,7 @@ export function SvsReader() {
                   <span>Gizlilik</span>
                 </div>
                 <p style={styles.infoText}>
-                  Tüm işleme işlemleri tarayıcınızda gerçekleşir. Dosyalar
+                  Tüm işleme adımları tarayıcınızda gerçekleşir. Dosyalar
                   sunucuya yüklenmez, saklanmaz veya üçüncü taraflarla
                   paylaşılmaz; sekmeyi kapattığınızda bellekten silinir.
                 </p>
