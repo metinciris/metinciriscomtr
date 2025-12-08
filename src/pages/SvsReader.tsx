@@ -19,7 +19,7 @@ import {
   X,
 } from 'lucide-react';
 
-// OpenSeadragon & GeoTIFF global (CDN)
+// OpenSeadragon & GeoTIFF UMD (CDN'den)
 declare global {
   interface Window {
     OpenSeadragon: any;
@@ -40,7 +40,7 @@ export function SvsReader() {
   const [scriptsLoaded, setScriptsLoaded] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
 
-  // Script’leri yükle
+  // OpenSeadragon ve GeoTIFF scriptlerini yükle
   useEffect(() => {
     const loadScript = (src: string, id: string): Promise<void> =>
       new Promise((resolve, reject) => {
@@ -125,7 +125,7 @@ export function SvsReader() {
         throw new Error('Dosyada görüntü bulunamadı.');
       }
 
-      // En büyük level’i bul
+      // En büyük level’i bul (piksel sayısına göre)
       let targetIndex = 0;
       let maxPixels = 0;
       for (let i = 0; i < imageCount; i++) {
@@ -146,22 +146,6 @@ export function SvsReader() {
       const fd = image.fileDirectory;
       const samplesPerPixel = image.getSamplesPerPixel();
       const bitsField = fd.BitsPerSample;
-
-      // BitsPerSample: 8, [8,8,8], Uint16Array([...]) vs. hepsini yakala
-      let bits: number;
-      if (typeof bitsField === 'number') {
-        bits = bitsField;
-      } else if (Array.isArray(bitsField)) {
-        bits = bitsField[0];
-      } else if (
-        bitsField &&
-        typeof (bitsField as any).length === 'number'
-      ) {
-        bits = (bitsField as any)[0];
-      } else {
-        bits = 8; // fallback
-      }
-
       const photometric = fd.PhotometricInterpretation;
 
       console.log('SVS metadata', {
@@ -169,14 +153,13 @@ export function SvsReader() {
         origHeight,
         samplesPerPixel,
         bitsField,
-        bits,
         photometric,
         imageCount,
         targetIndex,
       });
 
-      // Büyük slaytları RAM’i patlatmadan göstermek için max kenarı kısıtla
-      const MAX_DIM = 4000; // en uzun kenar 4000 px’e indirilir
+      // RAM patlamasın diye en uzun kenarı sınırla
+      const MAX_DIM = 4000; // istersen 6000-8000 yapabilirsin
       const scale = Math.min(
         1,
         MAX_DIM / origWidth,
@@ -187,97 +170,26 @@ export function SvsReader() {
 
       console.log('Render size', { width, height, scale });
 
-      // Raster oku (GeoTIFF YCbCr vs ise de içte convert ediyor)
-      const rasters = await image.readRasters({
-        interleave: true,
+      // === ASIL FARK BURADA ===
+      // readRasters yerine readRGB kullanıyoruz → YCbCr / palette vs. otomatik RGB'ye dönüşüyor
+      const rgb: any = await image.readRGB({
         width,
         height,
+        interleave: true,
       });
 
+      // readRGB interleaved = [R,G,B,R,G,B,...]
+      const data = rgb as Uint8Array;
       const pixelCount = width * height;
       const rgba = new Uint8ClampedArray(pixelCount * 4);
 
-      const normalize16To8 = (v: number) => v >> 8; // ≈ v/257
-
-      // Renkli
-      if (samplesPerPixel >= 3) {
-        if (bits === 8) {
-          const data = rasters as Uint8Array;
-          for (let i = 0; i < pixelCount; i++) {
-            const src = i * samplesPerPixel;
-            const dst = i * 4;
-            rgba[dst] = data[src];         // R
-            rgba[dst + 1] = data[src + 1]; // G
-            rgba[dst + 2] = data[src + 2]; // B
-            rgba[dst + 3] = 255;
-          }
-        } else if (bits === 16) {
-          const data = rasters as Uint16Array;
-          for (let i = 0; i < pixelCount; i++) {
-            const src = i * samplesPerPixel;
-            const dst = i * 4;
-            rgba[dst] = normalize16To8(data[src]);
-            rgba[dst + 1] = normalize16To8(data[src + 1]);
-            rgba[dst + 2] = normalize16To8(data[src + 2]);
-            rgba[dst + 3] = 255;
-          }
-        } else {
-          // Çok egzotik bit derinliği gelirse 8-bit gibi davran (deneme)
-          console.warn('Beklenmeyen bits, 8-bit gibi işleniyor:', bitsField);
-          const dataAny = rasters as any;
-          for (let i = 0; i < pixelCount; i++) {
-            const src = i * samplesPerPixel;
-            const dst = i * 4;
-            rgba[dst] = dataAny[src] ?? 0;
-            rgba[dst + 1] = dataAny[src + 1] ?? 0;
-            rgba[dst + 2] = dataAny[src + 2] ?? 0;
-            rgba[dst + 3] = 255;
-          }
-        }
-      }
-      // Gri
-      else if (samplesPerPixel === 1) {
-        if (bits === 8) {
-          const data = rasters as Uint8Array;
-          for (let i = 0; i < pixelCount; i++) {
-            let val = data[i];
-            // Photometric 0 = WhiteIsZero → tersle
-            if (photometric === 0) {
-              val = 255 - val;
-            }
-            const dst = i * 4;
-            rgba[dst] = rgba[dst + 1] = rgba[dst + 2] = val;
-            rgba[dst + 3] = 255;
-          }
-        } else if (bits === 16) {
-          const data = rasters as Uint16Array;
-          for (let i = 0; i < pixelCount; i++) {
-            let v16 = data[i];
-            if (photometric === 0) {
-              v16 = 65535 - v16;
-            }
-            const val = normalize16To8(v16);
-            const dst = i * 4;
-            rgba[dst] = rgba[dst + 1] = rgba[dst + 2] = val;
-            rgba[dst + 3] = 255;
-          }
-        } else {
-          console.warn('Beklenmeyen bits (gri), 8-bit gibi işleniyor:', bitsField);
-          const dataAny = rasters as any;
-          for (let i = 0; i < pixelCount; i++) {
-            let val = dataAny[i] ?? 0;
-            if (photometric === 0) {
-              val = 255 - val;
-            }
-            const dst = i * 4;
-            rgba[dst] = rgba[dst + 1] = rgba[dst + 2] = val;
-            rgba[dst + 3] = 255;
-          }
-        }
-      } else {
-        throw new Error(
-          `Desteklenmeyen kanal sayısı (SamplesPerPixel = ${samplesPerPixel})`
-        );
+      for (let i = 0; i < pixelCount; i++) {
+        const src = i * 3;
+        const dst = i * 4;
+        rgba[dst] = data[src];       // R
+        rgba[dst + 1] = data[src+1]; // G
+        rgba[dst + 2] = data[src+2]; // B
+        rgba[dst + 3] = 255;         // A
       }
 
       // Canvas’a çiz
@@ -339,20 +251,21 @@ export function SvsReader() {
     }
   }, []);
 
+  const validExtensions = [
+    '.svs',
+    '.tif',
+    '.tiff',
+    '.ndpi',
+    '.scn',
+    '.mrxs',
+    '.vms',
+    '.vmu',
+  ];
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const validExtensions = [
-      '.svs',
-      '.tif',
-      '.tiff',
-      '.ndpi',
-      '.scn',
-      '.mrxs',
-      '.vms',
-      '.vmu',
-    ];
     const ext = file.name
       .toLowerCase()
       .substring(file.name.lastIndexOf('.'));
@@ -373,16 +286,6 @@ export function SvsReader() {
       const file = event.dataTransfer.files[0];
       if (!file) return;
 
-      const validExtensions = [
-        '.svs',
-        '.tif',
-        '.tiff',
-        '.ndpi',
-        '.scn',
-        '.mrxs',
-        '.vms',
-        '.vmu',
-      ];
       const ext = file.name
         .toLowerCase()
         .substring(file.name.lastIndexOf('.'));
@@ -446,7 +349,7 @@ export function SvsReader() {
     }
   };
 
-  // Stil (aynı tema)
+  // Stil (senin tema ile uyumlu, önceki sürüme benzer)
   const styles = {
     page: {
       backgroundColor: '#0a0a0f',
@@ -596,8 +499,8 @@ export function SvsReader() {
               <h1 style={styles.h1}>SVS Sanal Mikroskopi</h1>
               <p style={styles.headerDesc}>
                 Aperio SVS ve TIFF formatındaki dijital patoloji slaytlarını
-                tarayıcınızda görüntüleyin. Dosyalar yalnızca tarayıcınızda
-                işlenir, sunucuya yüklenmez.
+                tarayıcınızda görüntüleyin. Dosyalar sadece tarayıcınızda
+                işlenir, hiçbir yere yüklenmez.
               </p>
               {!scriptsLoaded && (
                 <div
