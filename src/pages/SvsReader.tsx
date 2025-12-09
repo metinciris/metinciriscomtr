@@ -42,10 +42,11 @@ export function SvsReader() {
   const [error, setError] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [currentFile, setCurrentFile] = useState<File | null>(null);
-  const [isFullscreen, setIsFullscreen] = useState(false); // Restored
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [scriptsLoaded, setScriptsLoaded] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isDownscaled, setIsDownscaled] = useState(false);
+  const [isWarningDismissed, setIsWarningDismissed] = useState(false);
 
   // Son seçilen görüntü için meta veriler (hata mesajında kullanacağız)
   const lastMetaRef = useRef<{
@@ -124,6 +125,7 @@ export function SvsReader() {
     setCurrentFile(file);
     setImageLoaded(false);
     setIsDownscaled(false);
+    setIsWarningDismissed(false);
 
     // Meta bilgileri baştan temizle
     lastMetaRef.current = {
@@ -499,39 +501,41 @@ export function SvsReader() {
             >
               {/* Toolbar */}
               <div className="svs-toolbar">
-                {/* Sol: dosya kontrolleri */}
-                <div className="svs-file-controls">
-                  <label className="svs-upload-button">
-                    <Upload size={16} />
-                    <span>
-                      {scriptsLoaded ? 'Slayt Yükle' : 'Yükleniyor...'}
-                    </span>
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept=".svs,.tif,.tiff,.ndpi,.scn,.mrxs,.vms,.vmu"
-                      style={{ display: 'none' }}
-                      onChange={handleFileChange}
-                      disabled={!scriptsLoaded}
-                    />
-                  </label>
-                  {fileName && (
-                    <div className="svs-file-name-badge">
-                      <span className="svs-chip">yerel dosya</span>
-                      <span className="svs-file-name-text" title={fileName}>
-                        {fileName}
+                {/* Sol: dosya kontrolleri (Tam ekranda gizle) */}
+                {!isFullscreen && (
+                  <div className="svs-file-controls">
+                    <label className="svs-upload-button">
+                      <Upload size={16} />
+                      <span>
+                        {scriptsLoaded ? 'Slayt Yükle' : 'Yükleniyor...'}
                       </span>
-                      <button
-                        type="button"
-                        className="svs-close-button"
-                        onClick={clearFile}
-                        aria-label="Dosyayı kapat"
-                      >
-                        <X size={14} />
-                      </button>
-                    </div>
-                  )}
-                </div>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept=".svs,.tif,.tiff,.ndpi,.scn,.mrxs,.vms,.vmu"
+                        style={{ display: 'none' }}
+                        onChange={handleFileChange}
+                        disabled={!scriptsLoaded}
+                      />
+                    </label>
+                    {fileName && (
+                      <div className="svs-file-name-badge">
+                        <span className="svs-chip">yerel dosya</span>
+                        <span className="svs-file-name-text" title={fileName}>
+                          {fileName}
+                        </span>
+                        <button
+                          type="button"
+                          className="svs-close-button"
+                          onClick={clearFile}
+                          aria-label="Dosyayı kapat"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Sağ: görünüm kontrolleri */}
                 {fileName && !isLoading && !error && (
@@ -646,13 +650,24 @@ export function SvsReader() {
               )}
 
               {/* Warning Badge (Optimized Level) */}
-              {isDownscaled && !isLoading && !error && (
+              {isDownscaled && !isLoading && !error && !isWarningDismissed && (
                 <div className="svs-warning-badge">
                   <AlertTriangle size={14} />
                   <span>Yüksek performans için optimize edilmiş katman yüklendi.</span>
-                  <button className="svs-warning-btn" onClick={reloadFullRes}>
-                    Orijinalini Zorla (Riskli)
-                  </button>
+                  <div className="svs-warning-actions">
+                    <button
+                      className="svs-warning-btn"
+                      onClick={reloadFullRes}
+                    >
+                      Orijinalini Zorla (Riskli)
+                    </button>
+                    <button
+                      className="svs-warning-btn-secondary"
+                      onClick={() => setIsWarningDismissed(true)}
+                    >
+                      Bu şekilde kalsın
+                    </button>
+                  </div>
                 </div>
               )}
             </section>
