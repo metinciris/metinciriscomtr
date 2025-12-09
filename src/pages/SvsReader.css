@@ -1,0 +1,437 @@
+/* src/pages/SvsReader.css */
+
+.svs-page-outer {
+    background: radial-gradient(circle at top left, #1e293b 0, #020617 45%, #000 100%);
+    color: #e5e7eb;
+    min-height: 100vh;
+    padding: 2rem 1rem 3rem;
+}
+
+.svs-page-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.svs-header {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 1.75rem 1.75rem 1.5rem;
+    border-radius: 1rem;
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 64, 175, 0.65));
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.6);
+    margin-bottom: 1.75rem;
+}
+
+.svs-header-top {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.svs-header-title-block {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex: 1 1 260px;
+}
+
+.svs-header-icon {
+    padding: 0.8rem;
+    border-radius: 0.9rem;
+    background: radial-gradient(circle at 30% 10%, rgba(248, 250, 252, 0.18), rgba(15, 23, 42, 0.8));
+    border: 1px solid rgba(248, 250, 252, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.svs-h1 {
+    font-size: 1.9rem;
+    line-height: 1.2;
+    font-weight: 700;
+    margin: 0;
+    background: linear-gradient(to right, #f9fafb, #e5e7eb, #f97316);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.svs-header-desc {
+    margin-top: 0.35rem;
+    font-size: 0.95rem;
+    max-width: 30rem;
+    color: rgba(226, 232, 240, 0.85);
+}
+
+.svs-header-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.svs-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.7rem;
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.45);
+    font-size: 0.75rem;
+    color: rgba(226, 232, 240, 0.9);
+    background-color: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(10px);
+}
+
+.svs-scripts-loading {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    color: rgba(252, 211, 77, 0.9);
+    margin-top: 0.25rem;
+}
+
+.svs-main-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.svs-viewer-card {
+    position: relative;
+    border-radius: 1rem;
+    border: 1px solid rgba(148, 163, 184, 0.45);
+    background: radial-gradient(circle at top left, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.98));
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.7);
+    overflow: hidden;
+    min-height: 480px;
+    height: 60vh;
+    /* Default, can be overridden by inline style or modifier */
+    max-height: calc(100vh - 220px);
+}
+
+.svs-viewer-card.loaded {
+    height: 68vh;
+}
+
+.svs-viewer-container {
+    width: 100%;
+    height: 100%;
+}
+
+.svs-toolbar {
+    position: absolute;
+    top: 0.85rem;
+    left: 0.85rem;
+    right: 0.85rem;
+    z-index: 20;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.svs-file-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.svs-upload-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.95rem;
+    border-radius: 999px;
+    border: 1px solid rgba(248, 250, 252, 0.15);
+    background: linear-gradient(135deg, #f97316, #ec4899);
+    color: #f9fafb;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 500;
+    box-shadow: 0 12px 25px rgba(236, 72, 153, 0.35);
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.svs-upload-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 14px 28px rgba(236, 72, 153, 0.45);
+}
+
+.svs-file-name-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.7rem;
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.6);
+    background-color: rgba(15, 23, 42, 0.9);
+    color: rgba(226, 232, 240, 0.9);
+    font-size: 0.75rem;
+    max-width: 260px;
+    white-space: nowrap;
+}
+
+.svs-file-name-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.svs-chip {
+    padding: 0.18rem 0.45rem;
+    border-radius: 999px;
+    background-color: rgba(34, 197, 94, 0.15);
+    color: rgba(74, 222, 128, 0.95);
+    font-size: 0.7rem;
+    font-weight: 500;
+}
+
+.svs-close-button {
+    padding: 0.15rem;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: rgba(148, 163, 184, 0.9);
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.svs-close-button:hover {
+    color: #f87171;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.svs-view-controls {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem;
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.6);
+    background-color: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(12px);
+}
+
+.svs-control-button {
+    padding: 0.4rem;
+    border-radius: 999px;
+    border: none;
+    background: transparent;
+    color: rgba(226, 232, 240, 0.9);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.15s ease;
+}
+
+.svs-control-button:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+.svs-divider {
+    width: 1px;
+    height: 1.35rem;
+    background-color: rgba(148, 163, 184, 0.6);
+}
+
+.svs-empty-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.svs-empty-box {
+    pointer-events: auto;
+    padding: 2.25rem 2rem;
+    border-radius: 1rem;
+    border: 1px dashed rgba(148, 163, 184, 0.7);
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.96));
+    text-align: center;
+    max-width: 420px;
+}
+
+.svs-empty-icon-wrap {
+    padding: 0.9rem;
+    border-radius: 999px;
+    background-color: rgba(59, 130, 246, 0.15);
+    border: 1px solid rgba(96, 165, 250, 0.6);
+    display: inline-flex;
+    margin-bottom: 0.75rem;
+}
+
+.svs-empty-title {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #f9fafb;
+}
+
+.svs-empty-text {
+    margin-top: 0.4rem;
+    font-size: 0.85rem;
+    color: rgba(148, 163, 184, 0.9);
+}
+
+.svs-loading-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 23, 42, 0.92);
+    z-index: 10;
+}
+
+.svs-loading-text {
+    color: #f9fafb;
+    font-size: 1rem;
+    margin-top: 0.8rem;
+}
+
+.svs-loading-sub {
+    color: rgba(148, 163, 184, 0.9);
+    font-size: 0.8rem;
+    margin-top: 0.35rem;
+}
+
+.svs-error-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+.svs-error-box {
+    padding: 1.5rem 1.75rem;
+    border-radius: 1rem;
+    border: 1px solid rgba(248, 113, 113, 0.8);
+    background: radial-gradient(circle at top left, rgba(127, 29, 29, 0.95), rgba(15, 23, 42, 0.95));
+    max-width: 420px;
+    text-align: center;
+}
+
+.svs-error-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    color: #fecaca;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+}
+
+.svs-error-text {
+    font-size: 0.8rem;
+    color: rgba(254, 242, 242, 0.9);
+    margin-bottom: 0.9rem;
+    white-space: pre-wrap;
+}
+
+.svs-retry-button {
+    padding: 0.45rem 1.1rem;
+    border-radius: 999px;
+    border: none;
+    background-color: rgba(248, 113, 113, 0.9);
+    color: #111827;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.svs-retry-button:hover {
+    background-color: rgba(248, 113, 113, 1);
+}
+
+.svs-info-grid {
+    margin-top: 1.5rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+}
+
+.svs-info-card {
+    padding: 1.1rem 1.2rem;
+    border-radius: 0.9rem;
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    background: linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.9));
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.6);
+}
+
+.svs-info-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #e5e7eb;
+    margin-bottom: 0.35rem;
+}
+
+.svs-info-text {
+    font-size: 0.8rem;
+    color: rgba(148, 163, 184, 0.95);
+    line-height: 1.5;
+}
+
+/* Animations that were inline */
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (max-width: 640px) {
+    .svs-viewer-card {
+        height: 60vh !important;
+    }
+}
+
+.svs-warning-badge {
+    position: absolute;
+    bottom: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(234, 179, 8, 0.95);
+    color: #000;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.8rem;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.svs-warning-btn {
+    background: #000;
+    color: #fff;
+    border: none;
+    padding: 0.2rem 0.6rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.75rem;
+}
+
+.svs-warning-btn:hover {
+    background: #333;
+}
