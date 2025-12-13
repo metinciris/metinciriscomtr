@@ -111,12 +111,11 @@ export function Deprem() {
   const [soundEnabled, setSoundEnabled] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
 
-  // Sayfa açılınca zamana göre sırala
-const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: SortDirection }>({
-  key: 'date_time',
-  direction: 'desc' // en yeni en üstte
-});
-
+  // Default: en yeni en üstte
+  const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: SortDirection }>({
+    key: 'date_time',
+    direction: 'desc'
+  });
 
   // Son 7 gün toggle
   const [sevenDays, setSevenDays] = useState(false);
@@ -125,8 +124,6 @@ const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: SortDire
 
   // Isparta Coordinates
   const ISPARTA_COORDS = { lat: 37.7648, lng: 30.5567 };
-
-  // Sabit eşik: Isparta ili veya 100 km yakın
   const ISPARTA_RADIUS_KM = 100;
 
   const deg2rad = (deg: number) => deg * (Math.PI / 180);
@@ -274,6 +271,18 @@ const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: SortDire
     return r;
   };
 
+  // Title'dan "Isparta ili mi?" tespiti (örn: "Yalvaç (Isparta)")
+  const isIspartaProvinceFromTitle = (title: string) => {
+    const t = title.toLocaleLowerCase('tr-TR').trim();
+    return (
+      t.includes('(isparta)') ||
+      t.endsWith(' isparta') ||
+      t.includes(' isparta ') ||
+      t.includes('ısparta') ||
+      t.includes('(ısparta)')
+    );
+  };
+
   const fetchData = async () => {
     setLoading(true);
     setError(null);
@@ -323,10 +332,10 @@ const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: SortDire
                 eq.geojson.coordinates[1],
                 eq.geojson.coordinates[0]
               );
-              const titleLower = eq.title.toLocaleLowerCase('tr-TR');
-              const isIspartaTitle = titleLower.includes('isparta') || titleLower.includes('ısparta');
 
-              const near100 = isIspartaTitle || dist <= ISPARTA_RADIUS_KM;
+              const isIspartaProvince = isIspartaProvinceFromTitle(eq.title);
+              const near100 = isIspartaProvince || dist <= ISPARTA_RADIUS_KM;
+
               soundQueue.current.push({ mag: eq.mag, near100 });
             });
             processSoundQueue();
@@ -432,18 +441,17 @@ const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: SortDire
 
   const displayedEarthquakes = showHistory ? sortedEarthquakes : top50;
 
-  // Banner: only if Isparta title OR within 100 km
+  // Banner: only if ISPARTA or YAKIN (<=100 km)
   const bannerQuakes = useMemo(() => {
     const filtered = earthquakes.filter(eq => {
-      const titleLower = eq.title.toLocaleLowerCase('tr-TR');
-      const isIsparta = titleLower.includes('isparta') || titleLower.includes('ısparta');
-      const distance = calculateDistance(
+      const dist = calculateDistance(
         ISPARTA_COORDS.lat,
         ISPARTA_COORDS.lng,
         eq.geojson.coordinates[1],
         eq.geojson.coordinates[0]
       );
-      return isIsparta || distance <= ISPARTA_RADIUS_KM;
+      const isIspartaProv = isIspartaProvinceFromTitle(eq.title);
+      return isIspartaProv || dist <= ISPARTA_RADIUS_KM;
     });
 
     return filtered.sort((a, b) => new Date(b.date_time).getTime() - new Date(a.date_time).getTime());
@@ -452,15 +460,13 @@ const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: SortDire
   const latestBannerEq = bannerQuakes.length > 0 ? bannerQuakes[0] : null;
 
   const getBannerTitle = (eq: Earthquake) => {
-    const titleLower = eq.title.toLocaleLowerCase('tr-TR');
-    const isIspartaTitle = titleLower.includes('isparta') || titleLower.includes('ısparta');
-    if (isIspartaTitle) return "Isparta'da Deprem!";
-    return "Isparta'ya Yakın Deprem!";
+    const isIspartaProv = isIspartaProvinceFromTitle(eq.title);
+    return isIspartaProv ? "Isparta'da Deprem!" : "Isparta'ya Yakın Deprem!";
   };
 
   return (
     <PageContainer>
-      {/* Isparta Banner */}
+      {/* Banner */}
       {latestBannerEq && (
         <div
           className="text-white p-4 mb-4 rounded-xl shadow-lg border-2 border-red-400"
@@ -511,7 +517,7 @@ const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: SortDire
               </button>
 
               <div className="text-xs text-white/80 bg-black/20 border border-white/20 rounded-lg px-2 py-1.5">
-                Isparta ili veya {ISPARTA_RADIUS_KM} km yakını vurgulanır
+                ISPARTA: il içi • YAKIN: {ISPARTA_RADIUS_KM} km
               </div>
             </div>
           </div>
@@ -623,6 +629,7 @@ const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: SortDire
                 <th
                   className="px-6 py-4 text-left text-sm font-bold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors select-none"
                   onClick={() => handleSort('date_time')}
+                  title="İlk tık: en yeni en üstte"
                 >
                   <div className="flex items-center gap-1">
                     <Clock size={16} className="inline mr-2" />
@@ -660,16 +667,14 @@ const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: SortDire
                     eq.geojson.coordinates[0]
                   );
 
-                  const titleLower = eq.title.toLocaleLowerCase('tr-TR');
-                  const isIspartaTitle = titleLower.includes('isparta') || titleLower.includes('ısparta');
-
-                  // highlight if Isparta title OR within 100 km
-                  const highlight = isIspartaTitle || distance <= ISPARTA_RADIUS_KM;
+                  const isIspartaProvince = isIspartaProvinceFromTitle(eq.title);
+                  const isNear = !isIspartaProvince && distance <= ISPARTA_RADIUS_KM;
 
                   const recent = isRecent(eq.date_time);
 
-                  const getRowColor = (mag: number, isIspartaLocation: boolean) => {
-                    if (isIspartaLocation) return '#fee2e2';
+                  const getRowColor = (mag: number) => {
+                    if (isIspartaProvince) return '#fee2e2'; // ISPARTA: kırmızımsı
+                    if (isNear) return '#ffedd5'; // YAKIN: turuncumsu
                     if (mag >= 6) return '#fca5a5';
                     if (mag >= 5) return '#fee2e2';
                     if (mag >= 4) return '#ffedd5';
@@ -677,10 +682,11 @@ const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: SortDire
                     return '#dcfce7';
                   };
 
-                  const rowColor = getRowColor(eq.mag, highlight);
+                  const rowColor = getRowColor(eq.mag);
 
                   let rowClasses = 'transition-all duration-150 border-l-4';
-                  if (highlight) rowClasses += ' border-l-red-600 shadow-sm';
+                  if (isIspartaProvince) rowClasses += ' border-l-red-700 shadow-sm';
+                  else if (isNear) rowClasses += ' border-l-orange-600 shadow-sm';
                   else if (eq.mag >= 6) rowClasses += ' border-l-red-800';
                   else if (eq.mag >= 5) rowClasses += ' border-l-red-500';
                   else if (eq.mag >= 4) rowClasses += ' border-l-orange-400';
@@ -689,6 +695,9 @@ const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: SortDire
 
                   if (recent) rowClasses += ' animate-pulse';
 
+                  const labelText = isIspartaProvince ? 'ISPARTA' : isNear ? 'YAKIN' : null;
+                  const labelBg = isIspartaProvince ? '#dc2626' : '#ea580c';
+
                   return (
                     <tr
                       key={eq.earthquake_id || index}
@@ -696,19 +705,19 @@ const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: SortDire
                       style={{ backgroundColor: rowColor }}
                     >
                       <td
-                        className={`px-6 py-4 border-r border-gray-300 border-b border-gray-300 ${highlight
-                          ? 'font-bold text-red-900 text-base'
+                        className={`px-6 py-4 border-r border-gray-300 border-b border-gray-300 ${labelText
+                          ? 'font-bold text-gray-900 text-base'
                           : 'text-gray-800'
                           }`}
                       >
                         <div className="flex flex-col">
                           <div className="flex items-start gap-2">
-                            {highlight && (
+                            {labelText && (
                               <span
                                 className="inline-block px-2 py-0.5 text-white text-xs font-bold rounded uppercase mt-0.5 shadow-sm"
-                                style={{ backgroundColor: '#dc2626' }}
+                                style={{ backgroundColor: labelBg }}
                               >
-                                Isparta
+                                {labelText}
                               </span>
                             )}
                             {recent && (
@@ -806,7 +815,7 @@ const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: SortDire
           <span className="font-bold">Son 1 saat</span> içindeki depremler <span className="font-bold">"YENİ"</span> etiketi ile belirtilir.
           <br />
           <span className="font-bold text-red-700 mt-2 block">
-            Isparta ilinde deprem varsa Kırmızı renkle yazılır.
+            Isparta ilinde deprem varsa <span className="font-bold">ISPARTA</span> etiketi ile gösterilir. Yakın depremler <span className="font-bold">YAKIN</span> etiketi ile belirtilir.
           </span>
         </p>
       </div>
