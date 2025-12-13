@@ -148,7 +148,7 @@ export function Deprem() {
     }
   };
 
-  // 2 saat+ için dakika göstermiyoruz (sadece saat)
+  // 2 saat+ için dakika göstermiyoruz
   const getTimeAgo = (dateStr: string) => {
     const date = new Date(dateStr);
     const now = new Date();
@@ -159,7 +159,6 @@ export function Deprem() {
 
     if (totalMinutes < 60) return `${totalMinutes} dk önce`;
     if (totalMinutes < 120) {
-      // 1-2 saat arası: dakikayı gösterelim (istersen bunu da kapatırız)
       if (minutes <= 0) return `${hours} saat önce`;
       return `${hours} saat ${minutes} dk önce`;
     }
@@ -182,7 +181,7 @@ export function Deprem() {
     return 'bg-green-100 text-green-800 border border-green-200';
   };
 
-  // Karar: “Isparta/ısparta” geçen HER ŞEY il içi
+  // “Isparta/ısparta” geçen HER ŞEY il içi
   const getRelation = (title: string, distanceKm: number): 'ISPARTA' | 'YAKIN' | null => {
     const t = title.toLocaleLowerCase('tr-TR');
     if (t.includes('isparta') || t.includes('ısparta')) return 'ISPARTA';
@@ -190,13 +189,11 @@ export function Deprem() {
     return null;
   };
 
-  // Tablo satır rengi (şiddet + ilişki)
+  // Satır/şiddet renkleri
   const getRowColor = (mag: number, relation: 'ISPARTA' | 'YAKIN' | null) => {
-    // ilişki öncelikli (ama çok kırmızı değil)
     if (relation === 'ISPARTA') return '#ffe4e6'; // rose-100
     if (relation === 'YAKIN') return '#ffedd5'; // orange-100
 
-    // şiddet rengi
     if (mag >= 6) return '#fecaca'; // red-200
     if (mag >= 5) return '#fee2e2'; // red-100
     if (mag >= 4) return '#ffedd5'; // orange-100
@@ -204,7 +201,7 @@ export function Deprem() {
     return '#dcfce7'; // green-100
   };
 
-  // “En büyük” kartları da aynı renk dilini kullansın (şiddet rengi)
+  // En büyük kartları: aynı renk dilini kullansın
   const getSeverityBg = (mag: number, relation: 'ISPARTA' | 'YAKIN' | null) => {
     return getRowColor(mag, relation);
   };
@@ -381,7 +378,7 @@ export function Deprem() {
     setError(null);
 
     try {
-      // Son 7 gün çekiyoruz; UI top 50 ile “son depremler” gibi görünür
+      // Son 7 gün
       const end = new Date();
       const start = new Date(end.getTime() - 7 * 24 * 60 * 60 * 1000);
 
@@ -409,7 +406,7 @@ export function Deprem() {
       for (const eq of mapped) uniqueMap.set(eq.earthquake_id, eq);
       const uniqueEarthquakes = Array.from(uniqueMap.values());
 
-      // Default sort by date desc (en yeni üstte)
+      // Default: date desc
       uniqueEarthquakes.sort((a, b) => new Date(b.date_time).getTime() - new Date(a.date_time).getTime());
 
       // New quake detection + sound queue
@@ -475,7 +472,7 @@ export function Deprem() {
   const top50 = sortedEarthquakes.slice(0, 50);
   const displayedEarthquakes = showHistory ? sortedEarthquakes : top50;
 
-  // Banner: ISPARTA/YAKIN varsa en güncelini göster
+  // Banner: ISPARTA/YAKIN varsa en günceli
   const latestBannerEq = useMemo(() => {
     for (const eq of sortedEarthquakes) {
       const distance = calculateDistance(ISPARTA_COORDS.lat, ISPARTA_COORDS.lng, eq.geojson.coordinates[1], eq.geojson.coordinates[0]);
@@ -514,10 +511,17 @@ export function Deprem() {
     }, null as Earthquake | null);
   }, [earthquakes]);
 
+  // ✅ OKUNURLUK FIX: Kart içi tüm metinleri koyu renge zorluyoruz
   const renderMaxCard = (title: string, eq: Earthquake | null) => {
     if (!eq) {
       return (
-        <div className="rounded-lg p-3 border" style={{ backgroundColor: 'rgba(255,255,255,0.10)', borderColor: 'rgba(255,255,255,0.18)' }}>
+        <div
+          className="rounded-lg p-3 border"
+          style={{
+            backgroundColor: 'rgba(255,255,255,0.10)',
+            borderColor: 'rgba(255,255,255,0.18)'
+          }}
+        >
           <div className="text-xs font-bold text-white/90">{title}</div>
           <div className="text-xs text-white/70 mt-1">Veri yok</div>
         </div>
@@ -533,22 +537,22 @@ export function Deprem() {
         className="rounded-lg p-3 border shadow-sm"
         style={{
           backgroundColor: bg,
-          borderColor: 'rgba(0,0,0,0.10)'
+          borderColor: 'rgba(0,0,0,0.12)'
         }}
       >
-        <div className="text-xs font-extrabold text-gray-900 mb-1">{title}</div>
+        <div className="text-xs font-extrabold text-slate-900 mb-1">{title}</div>
 
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-2">
-            <span className="text-2xl font-extrabold text-gray-900 leading-none">{eq.mag.toFixed(1)}</span>
-            <span className="text-xs text-gray-700">{getTimeAgo(eq.date_time)}</span>
+            <span className="text-2xl font-extrabold text-slate-900 leading-none">{eq.mag.toFixed(1)}</span>
+            <span className="text-xs text-slate-700 font-semibold">{getTimeAgo(eq.date_time)}</span>
           </div>
 
           {rel && (
             <span
               className="inline-flex items-center px-2.5 py-1 text-[11px] font-extrabold rounded-md uppercase tracking-wide shadow-md border"
               style={{
-                backgroundColor: rel === 'ISPARTA' ? '#be123c' : '#c2410c', // rose-700 / orange-700
+                backgroundColor: rel === 'ISPARTA' ? '#be123c' : '#c2410c',
                 color: '#ffffff',
                 borderColor: 'rgba(0,0,0,0.12)',
                 textShadow: '0 1px 1px rgba(0,0,0,0.35)'
@@ -559,11 +563,11 @@ export function Deprem() {
           )}
         </div>
 
-        <div className="text-xs text-gray-900 mt-1 leading-snug break-words font-semibold">
+        <div className="text-xs text-slate-900 mt-1 leading-snug break-words font-semibold">
           {eq.title}
         </div>
 
-        <div className="text-[11px] text-gray-700 mt-1 flex items-center justify-between gap-2">
+        <div className="text-[11px] text-slate-700 mt-1 flex items-center justify-between gap-2 font-medium">
           <span className="font-mono">{Math.round(distance)} km</span>
           <span className="whitespace-nowrap">{formatDate(eq.date_time)}</span>
         </div>
@@ -597,7 +601,7 @@ export function Deprem() {
         </div>
       )}
 
-      {/* Header (indigo/lacivert) */}
+      {/* Header */}
       <div
         className="text-white p-6 mb-8 rounded-xl shadow-lg"
         style={{ background: 'linear-gradient(to right, #0f172a, #1e3a8a)' }}
@@ -613,7 +617,7 @@ export function Deprem() {
               30 saniyede bir güncellenir. Ses açıkken deprem bildirimi: Deprem şiddeti kadar tık sesi.
             </p>
 
-            {/* Legend banner (çok kısa) */}
+            {/* Legend banner */}
             <div className="mt-3 flex flex-wrap gap-2 text-[11px] font-extrabold">
               <span className="px-2 py-1 rounded-md border" style={{ backgroundColor: '#dcfce7', borderColor: 'rgba(0,0,0,0.08)', color: '#14532d' }}>
                 &lt;3 düşük
@@ -652,7 +656,7 @@ export function Deprem() {
                 </div>
               </div>
 
-              {/* Ses butonu: iki durumda da okunur */}
+              {/* Ses butonu */}
               <button
                 onClick={() => setSoundEnabled(!soundEnabled)}
                 className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all shadow-md border hover:shadow-lg"
@@ -665,16 +669,13 @@ export function Deprem() {
                 title={soundEnabled ? 'Sesli uyarı açık' : 'Sesli uyarı kapalı'}
               >
                 {soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
-                <span
-                  className="font-extrabold text-sm tracking-wide"
-                  style={{ textShadow: '0 1px 1px rgba(0,0,0,0.35)' }}
-                >
+                <span className="font-extrabold text-sm tracking-wide" style={{ textShadow: '0 1px 1px rgba(0,0,0,0.35)' }}>
                   {soundEnabled ? 'Ses Açık' : 'Ses Kapalı'}
                 </span>
               </button>
             </div>
 
-            {/* En büyük kartları (arka plan şiddet rengi) */}
+            {/* En büyük kartları */}
             <div className="grid grid-cols-1 gap-2">
               {renderMaxCard('Son 24 saatte en büyük deprem', max24h)}
               {renderMaxCard('Son 7 günün en büyük depremi', max7d)}
@@ -683,7 +684,7 @@ export function Deprem() {
         </div>
       </div>
 
-      {/* Error Message */}
+      {/* Error */}
       {error && (
         <div className="bg-red-50 border-l-4 border-red-500 p-6 mb-6 rounded-r-lg shadow">
           <div className="flex items-start gap-3">
@@ -713,6 +714,20 @@ export function Deprem() {
                   Yer
                 </th>
 
+                {/* ✅ Kolon sırası: Büyüklük önce */}
+                <th
+                  className="px-6 py-4 text-center text-sm font-bold text-gray-700 uppercase tracking-wider border-r border-gray-300 cursor-pointer hover:bg-gray-200 transition-colors select-none"
+                  onClick={() => handleSort('mag')}
+                  title="İlk tık: en büyük üstte"
+                >
+                  <div className="flex items-center justify-center gap-1">
+                    Büyüklük
+                    {sortConfig.key === 'mag' &&
+                      (sortConfig.direction === 'desc' ? <ArrowDown size={14} /> : <ArrowUp size={14} />)}
+                    {sortConfig.key !== 'mag' && <ArrowUpDown size={14} className="text-gray-400" />}
+                  </div>
+                </th>
+
                 <th
                   className="px-6 py-4 text-center text-sm font-bold text-gray-700 uppercase tracking-wider border-r border-gray-300 cursor-pointer hover:bg-gray-200 transition-colors select-none"
                   onClick={() => handleSort('distance')}
@@ -724,19 +739,6 @@ export function Deprem() {
                     {sortConfig.key === 'distance' &&
                       (sortConfig.direction === 'desc' ? <ArrowDown size={14} /> : <ArrowUp size={14} />)}
                     {sortConfig.key !== 'distance' && <ArrowUpDown size={14} className="text-gray-400" />}
-                  </div>
-                </th>
-
-                <th
-                  className="px-6 py-4 text-center text-sm font-bold text-gray-700 uppercase tracking-wider border-r border-gray-300 cursor-pointer hover:bg-gray-200 transition-colors select-none"
-                  onClick={() => handleSort('mag')}
-                  title="İlk tık: en büyük üstte"
-                >
-                  <div className="flex items-center justify-center gap-1">
-                    Büyüklük
-                    {sortConfig.key === 'mag' &&
-                      (sortConfig.direction === 'desc' ? <ArrowDown size={14} /> : <ArrowUp size={14} />)}
-                    {sortConfig.key !== 'mag' && <ArrowUpDown size={14} className="text-gray-400" />}
                   </div>
                 </th>
 
@@ -801,6 +803,7 @@ export function Deprem() {
 
                   return (
                     <tr key={eq.earthquake_id || index} className={rowClasses} style={{ backgroundColor: rowColor }}>
+                      {/* Yer */}
                       <td
                         className={`px-6 py-4 border-r border-gray-300 border-b border-gray-300 ${
                           rel ? 'font-bold text-gray-900 text-base' : 'text-gray-800'
@@ -839,10 +842,7 @@ export function Deprem() {
                         </div>
                       </td>
 
-                      <td className="px-6 py-4 text-center border-r border-gray-300 border-b border-gray-300 font-mono text-gray-700">
-                        {Math.round(distance)} km
-                      </td>
-
+                      {/* ✅ Büyüklük (ikinci kolon) */}
                       <td className="px-6 py-4 text-center border-r border-gray-300 border-b border-gray-300">
                         <div className="flex items-center justify-center gap-2">
                           <span
@@ -858,10 +858,17 @@ export function Deprem() {
                         </div>
                       </td>
 
+                      {/* ✅ Uzaklık (üçüncü kolon) */}
+                      <td className="px-6 py-4 text-center border-r border-gray-300 border-b border-gray-300 font-mono text-gray-700">
+                        {Math.round(distance)} km
+                      </td>
+
+                      {/* Derinlik */}
                       <td className="px-6 py-4 text-center text-gray-700 font-medium border-r border-gray-300 border-b border-gray-300">
                         {Number.isFinite(eq.depth) ? eq.depth.toFixed(1) : '0.0'}
                       </td>
 
+                      {/* Tarih */}
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-b border-gray-300">
                         <span>{formatDate(eq.date_time)}</span>
                       </td>
