@@ -35,9 +35,6 @@ interface Earthquake {
   };
 }
 
-/**
- * AFAD Event Service response item (event/filter).
- */
 interface AfadEvent {
   eventID: string;
   location: string;
@@ -114,22 +111,22 @@ export function Deprem() {
   const [soundEnabled, setSoundEnabled] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
 
+  // Sayfa açılınca yakınlığa göre sıralı gelsin: distance ASC
   const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: SortDirection }>({
-    key: 'date_time',
-    direction: 'desc'
+    key: 'distance',
+    direction: 'asc'
   });
-
-  // Isparta radius selector: 50 / 100 / 150 km
-  const [radiusKm, setRadiusKm] = useState<50 | 100 | 150>(100);
 
   // Son 7 gün toggle
   const [sevenDays, setSevenDays] = useState(false);
 
-  // Latest EQ ref for new-quake detection
   const latestEqDateRef = useRef<string | null>(null);
 
   // Isparta Coordinates
   const ISPARTA_COORDS = { lat: 37.7648, lng: 30.5567 };
+
+  // Sabit eşik: Isparta ili veya 100 km yakın
+  const ISPARTA_RADIUS_KM = 100;
 
   const deg2rad = (deg: number) => deg * (Math.PI / 180);
 
@@ -193,15 +190,15 @@ export function Deprem() {
     });
   };
 
-  // Isparta 150 km içinde “yakın” işareti: sadece 1 uzun bip
+  // Isparta/100 km içinde “yakın” işareti: 1 uzun bip
   const playNearPreamble = async () => {
     if (!soundEnabled) return;
-    playBeep(660, 0.6); // 1 uzun
+    playBeep(660, 0.6);
     await sleep(750);
   };
 
-  // Queue: her yeni deprem için {mag, isNear150}
-  const soundQueue = useRef<Array<{ mag: number; near150: boolean }>>([]);
+  // Queue: her yeni deprem için {mag, isNear100}
+  const soundQueue = useRef<Array<{ mag: number; near100: boolean }>>([]);
   const isPlaying = useRef(false);
 
   const processSoundQueue = async () => {
@@ -211,7 +208,7 @@ export function Deprem() {
     while (soundQueue.current.length > 0) {
       const item = soundQueue.current.shift();
       if (item) {
-        if (item.near150) {
+        if (item.near100) {
           await playNearPreamble();
           await sleep(200);
         }
@@ -225,7 +222,7 @@ export function Deprem() {
     isPlaying.current = false;
   };
 
-  const toIsoNoMs = (d: Date) => d.toISOString().slice(0, 19); // YYYY-MM-DDTHH:mm:ss
+  const toIsoNoMs = (d: Date) => d.toISOString().slice(0, 19);
 
   const mapAfadToEarthquake = (ev: AfadEvent): Earthquake | null => {
     const lat = Number(ev.latitude);
@@ -258,10 +255,7 @@ export function Deprem() {
     };
   };
 
-  /**
-   * GitHub Pages için CORS fix:
-   * AFAD yerine Cloudflare Worker proxy kullanıyoruz.
-   */
+  // GH Pages CORS fix: Cloudflare Worker proxy
   const fetchWithProxy = async (pathAndQuery: string) => {
     const proxyBase = 'https://depremo.tutkumuz.workers.dev';
 
@@ -300,7 +294,6 @@ export function Deprem() {
         .map(mapAfadToEarthquake)
         .filter(Boolean) as Earthquake[];
 
-      // Deduplicate by eventID
       const uniqueMap = new Map<string, Earthquake>();
       mapped.forEach(eq => {
         const key = eq.earthquake_id || `${eq.date_time}_${eq.mag}`;
@@ -319,19 +312,21 @@ export function Deprem() {
 
           const newQuakes = uniqueEarthquakes
             .filter(eq => new Date(eq.date_time) > lastDate)
-            // oldest -> newest (daha anlaşılır)
             .sort((a, b) => new Date(a.date_time).getTime() - new Date(b.date_time).getTime());
 
           if (newQuakes.length > 0) {
             newQuakes.forEach(eq => {
-              const d = calculateDistance(
+              const dist = calculateDistance(
                 ISPARTA_COORDS.lat,
                 ISPARTA_COORDS.lng,
                 eq.geojson.coordinates[1],
                 eq.geojson.coordinates[0]
               );
-              const near150 = d <= 150;
-              soundQueue.current.push({ mag: eq.mag, near150 });
+              const titleLower = eq.title.toLocaleLowerCase('tr-TR');
+              const isIspartaTitle = titleLower.includes('isparta') || titleLower.includes('ısparta');
+
+              const near100 = isIspartaTitle || dist <= ISPARTA_RADIUS_KM;
+              soundQueue.current.push({ mag: eq.mag, near100 });
             });
             processSoundQueue();
           }
@@ -430,14 +425,13 @@ export function Deprem() {
     return copy;
   }, [earthquakes, sortConfig]);
 
-  // Show only first 50 unless “Daha Fazla”
   const top50 = sortedEarthquakes.slice(0, 50);
   const olderRecords = sortedEarthquakes.slice(50);
   const olderSignificant = olderRecords.filter(eq => eq.mag >= 3.0);
 
   const displayedEarthquakes = showHistory ? sortedEarthquakes : top50;
 
-  // Banner: only show if there is at least one quake within selected radius / Isparta title
+  // Banner: only if Isparta title OR within 100 km
   const bannerQuakes = useMemo(() => {
     const filtered = earthquakes.filter(eq => {
       const titleLower = eq.title.toLocaleLowerCase('tr-TR');
@@ -448,24 +442,24 @@ export function Deprem() {
         eq.geojson.coordinates[1],
         eq.geojson.coordinates[0]
       );
-      return isIsparta || distance <= radiusKm;
+      return isIsparta || distance <= ISPARTA_RADIUS_KM;
     });
 
     return filtered.sort((a, b) => new Date(b.date_time).getTime() - new Date(a.date_time).getTime());
-  }, [earthquakes, radiusKm]);
+  }, [earthquakes]);
 
   const latestBannerEq = bannerQuakes.length > 0 ? bannerQuakes[0] : null;
 
   const getBannerTitle = (eq: Earthquake) => {
-    const d = calculateDistance(ISPARTA_COORDS.lat, ISPARTA_COORDS.lng, eq.geojson.coordinates[1], eq.geojson.coordinates[0]);
-    if (d <= 50) return "Isparta Çok Yakınında Deprem!";
-    if (d <= 100) return "Isparta'ya Yakın Deprem!";
-    return "Isparta Bölgesinde Deprem!";
+    const titleLower = eq.title.toLocaleLowerCase('tr-TR');
+    const isIspartaTitle = titleLower.includes('isparta') || titleLower.includes('ısparta');
+    if (isIspartaTitle) return "Isparta'da Deprem!";
+    return "Isparta'ya Yakın Deprem!";
   };
 
   return (
     <PageContainer>
-      {/* Banner: only if within selected radius */}
+      {/* Isparta Banner */}
       {latestBannerEq && (
         <div
           className="text-white p-4 mb-4 rounded-xl shadow-lg border-2 border-red-400"
@@ -473,27 +467,8 @@ export function Deprem() {
         >
           <div className="flex items-center gap-4">
             <AlertOctagon size={30} className="flex-shrink-0 animate-pulse" />
-            <div className="flex-1">
-              <div className="flex items-center justify-between gap-3">
-                <h3 className="font-bold text-base uppercase tracking-wide">
-                  {getBannerTitle(latestBannerEq)}
-                </h3>
-
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-white/80 hidden sm:inline">Eşik</span>
-                  <select
-                    value={radiusKm}
-                    onChange={(e) => setRadiusKm(Number(e.target.value) as 50 | 100 | 150)}
-                    className="text-sm bg-white/10 border border-white/20 rounded-lg px-2 py-1 outline-none"
-                    title="Isparta merkeze uzaklık eşiği"
-                  >
-                    <option value={50}>50 km</option>
-                    <option value={100}>100 km</option>
-                    <option value={150}>150 km</option>
-                  </select>
-                </div>
-              </div>
-
+            <div>
+              <h3 className="font-bold text-base uppercase tracking-wide">{getBannerTitle(latestBannerEq)}</h3>
               <p className="font-medium mt-1">
                 {latestBannerEq.title} — Büyüklük: <span className="text-lg font-bold">{latestBannerEq.mag.toFixed(1)}</span>
               </p>
@@ -505,7 +480,7 @@ export function Deprem() {
         </div>
       )}
 
-      {/* Header - more compact */}
+      {/* Header - compact */}
       <div
         className="text-white p-5 mb-5 rounded-xl shadow-lg"
         style={{ background: 'linear-gradient(to right, #dc2626, #b91c1c)' }}
@@ -534,18 +509,8 @@ export function Deprem() {
                 {sevenDays ? 'Son 7 Gün: Açık' : 'Son 7 Gün'}
               </button>
 
-              <div className="flex items-center gap-2 bg-black/20 border border-white/20 rounded-lg px-2 py-1.5">
-                <span className="text-xs text-white/80">Isparta</span>
-                <select
-                  value={radiusKm}
-                  onChange={(e) => setRadiusKm(Number(e.target.value) as 50 | 100 | 150)}
-                  className="text-sm bg-transparent outline-none"
-                  title="Isparta merkeze uzaklık eşiği"
-                >
-                  <option value={50}>50 km</option>
-                  <option value={100}>100 km</option>
-                  <option value={150}>150 km</option>
-                </select>
+              <div className="text-xs text-white/80 bg-black/20 border border-white/20 rounded-lg px-2 py-1.5">
+                Isparta ili veya {ISPARTA_RADIUS_KM} km yakını vurgulanır
               </div>
             </div>
           </div>
@@ -697,8 +662,8 @@ export function Deprem() {
                   const titleLower = eq.title.toLocaleLowerCase('tr-TR');
                   const isIspartaTitle = titleLower.includes('isparta') || titleLower.includes('ısparta');
 
-                  // highlight if Isparta title OR within selected radius
-                  const highlight = isIspartaTitle || distance <= radiusKm;
+                  // highlight if Isparta title OR within 100 km
+                  const highlight = isIspartaTitle || distance <= ISPARTA_RADIUS_KM;
 
                   const recent = isRecent(eq.date_time);
 
@@ -832,7 +797,7 @@ export function Deprem() {
         )}
       </div>
 
-      {/* Info Footer (updated per request) */}
+      {/* Footer */}
       <div className="mt-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg shadow-sm">
         <p className="text-sm text-blue-800">
           <strong>Not:</strong> Veriler AFAD Event Service üzerinden alınmaktadır.
