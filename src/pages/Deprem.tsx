@@ -117,12 +117,10 @@ export function Deprem() {
     direction: 'desc'
   });
 
-  // Son 7 gün toggle
   const [sevenDays, setSevenDays] = useState(false);
 
   const latestEqDateRef = useRef<string | null>(null);
 
-  // Isparta Coordinates
   const ISPARTA_COORDS = { lat: 37.7648, lng: 30.5567 };
   const ISPARTA_RADIUS_KM = 100;
 
@@ -188,14 +186,13 @@ export function Deprem() {
     });
   };
 
-  // Isparta/100 km içinde “yakın” işareti: 1 uzun bip
+  // Yakın işareti: 1 uzun bip
   const playNearPreamble = async () => {
     if (!soundEnabled) return;
     playBeep(660, 0.6);
     await sleep(750);
   };
 
-  // Queue: her yeni deprem için {mag, isNear100}
   const soundQueue = useRef<Array<{ mag: number; near100: boolean }>>([]);
   const isPlaying = useRef(false);
 
@@ -211,9 +208,7 @@ export function Deprem() {
           await sleep(200);
         }
         await playBeepSequence(Math.floor(item.mag));
-        if (soundQueue.current.length > 0) {
-          await sleep(900);
-        }
+        if (soundQueue.current.length > 0) await sleep(900);
       }
     }
 
@@ -271,15 +266,15 @@ export function Deprem() {
     return r;
   };
 
-  // Title'dan "Isparta ili mi?" tespiti (örn: "Yalvaç (Isparta)")
+  // Title'dan “Isparta ili mi?” tespiti (örn: "Yalvaç (Isparta)")
   const isIspartaProvinceFromTitle = (title: string) => {
     const t = title.toLocaleLowerCase('tr-TR').trim();
     return (
       t.includes('(isparta)') ||
+      t.includes('(ısparta)') ||
       t.endsWith(' isparta') ||
       t.includes(' isparta ') ||
-      t.includes('ısparta') ||
-      t.includes('(ısparta)')
+      t.includes('ısparta')
     );
   };
 
@@ -366,7 +361,25 @@ export function Deprem() {
     const now = new Date();
     const diffInMs = now.getTime() - date.getTime();
     const diffInHours = diffInMs / (1000 * 60 * 60);
-    return diffInHours < 1;
+    return diffInHours < 1; // son 1 saat = YENİ
+  };
+
+  // İstenen: 2 saat ve üzeri dakikasız (“3 saat önce”)
+  const getTimeAgo = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffInMs = now.getTime() - date.getTime();
+    const totalMinutes = Math.max(0, Math.floor(diffInMs / (1000 * 60)));
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+
+    if (totalMinutes < 60) return `${totalMinutes} dk önce`;
+    if (totalMinutes < 120) {
+      // 1-2 saat arası: dakika göster
+      if (minutes === 0) return `${hours} saat önce`;
+      return `${hours} saat ${minutes} dk önce`;
+    }
+    return `${hours} saat önce`;
   };
 
   const formatDate = (dateStr: string) => {
@@ -382,17 +395,6 @@ export function Deprem() {
     } catch {
       return dateStr;
     }
-  };
-
-  const getTimeAgo = (dateStr: string) => {
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diffInMs = now.getTime() - date.getTime();
-    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
-    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
-
-    if (diffInMinutes < 60) return `${diffInMinutes} dk önce`;
-    return `${diffInHours} saat önce`;
   };
 
   const getMagnitudeBadgeStyle = (mag: number) => {
@@ -441,7 +443,7 @@ export function Deprem() {
 
   const displayedEarthquakes = showHistory ? sortedEarthquakes : top50;
 
-  // Banner: only if ISPARTA or YAKIN (<=100 km)
+  // Banner: only if ISPARTA or YAKIN
   const bannerQuakes = useMemo(() => {
     const filtered = earthquakes.filter(eq => {
       const dist = calculateDistance(
@@ -462,6 +464,26 @@ export function Deprem() {
   const getBannerTitle = (eq: Earthquake) => {
     const isIspartaProv = isIspartaProvinceFromTitle(eq.title);
     return isIspartaProv ? "Isparta'da Deprem!" : "Isparta'ya Yakın Deprem!";
+  };
+
+  // UI helper: ISPARTA / YAKIN / none
+  const getIspartaRelation = (eq: Earthquake) => {
+    const distance = calculateDistance(
+      ISPARTA_COORDS.lat,
+      ISPARTA_COORDS.lng,
+      eq.geojson.coordinates[1],
+      eq.geojson.coordinates[0]
+    );
+    const isIspartaProvince = isIspartaProvinceFromTitle(eq.title);
+    const isNear = !isIspartaProvince && distance <= ISPARTA_RADIUS_KM;
+
+    return {
+      distance,
+      isIspartaProvince,
+      isNear,
+      labelText: isIspartaProvince ? 'ISPARTA' : isNear ? 'YAKIN' : null,
+      labelBg: isIspartaProvince ? '#dc2626' : '#ea580c'
+    };
   };
 
   return (
@@ -582,32 +604,132 @@ export function Deprem() {
         </div>
       )}
 
-      {/* Table */}
-      <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
+      {/* MOBILE: Cards */}
+      <div className="sm:hidden space-y-3">
+        {loading && earthquakes.length === 0 ? (
+          <div className="bg-white rounded-xl border border-gray-200 shadow p-6 text-center">
+            <RefreshCw className="animate-spin mx-auto mb-3 text-gray-400" size={32} />
+            <p className="text-gray-500">Veriler yükleniyor...</p>
+          </div>
+        ) : earthquakes.length === 0 ? (
+          <div className="bg-white rounded-xl border border-gray-200 shadow p-6 text-center">
+            <AlertTriangle className="mx-auto mb-3 text-gray-300" size={32} />
+            <p className="text-gray-500">Kayıt bulunamadı.</p>
+          </div>
+        ) : (
+          displayedEarthquakes.map((eq, index) => {
+            const rel = getIspartaRelation(eq);
+            const recent = isRecent(eq.date_time);
+            const timeAgo = getTimeAgo(eq.date_time);
+
+            return (
+              <div
+                key={eq.earthquake_id || index}
+                className="bg-white rounded-xl border border-gray-200 shadow p-4"
+              >
+                {/* Top: time + NEW + relation */}
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold text-gray-900">{timeAgo}</span>
+                      {recent && (
+                        <span className="inline-flex items-center px-2 py-0.5 bg-blue-100 text-blue-900 text-xs font-bold rounded uppercase border border-blue-200">
+                          <Zap size={12} className="mr-1" />
+                          YENİ
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                      <Clock size={12} />
+                      <span>{formatDate(eq.date_time)}</span>
+                    </div>
+                  </div>
+
+                  {rel.labelText && (
+                    <span
+                      className="inline-flex items-center px-2 py-1 text-white text-xs font-bold rounded uppercase shadow-sm"
+                      style={{ backgroundColor: rel.labelBg }}
+                    >
+                      {rel.labelText}
+                    </span>
+                  )}
+                </div>
+
+                {/* Mid: magnitude + distance */}
+                <div className="mt-3 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-bold shadow-sm ${getMagnitudeBadgeStyle(eq.mag)}`}>
+                      {eq.mag.toFixed(1)}
+                    </span>
+                    {eq.mag >= 6 && <AlertOctagon className="text-red-700 animate-pulse" size={22} />}
+                    {eq.mag >= 5 && eq.mag < 6 && <AlertTriangle className="text-red-600" size={18} />}
+                  </div>
+
+                  <div className="text-sm font-mono text-gray-700">
+                    {Math.round(rel.distance)} km
+                  </div>
+                </div>
+
+                {/* Place */}
+                <div className="mt-3 flex items-start gap-2">
+                  <MapPin size={16} className="text-gray-400 mt-0.5 flex-shrink-0" />
+                  <div className="text-gray-900 font-medium whitespace-normal break-words leading-snug">
+                    {eq.title}
+                  </div>
+                </div>
+
+                {/* Depth (optional but small) */}
+                <div className="mt-2 text-xs text-gray-500">
+                  Derinlik: <span className="font-mono">{eq.depth.toFixed(1)} km</span>
+                </div>
+              </div>
+            );
+          })
+        )}
+
+        {/* Mobile pagination */}
+        {!showHistory && sortedEarthquakes.length > 50 && (
+          <div className="p-2 text-center">
+            <button
+              onClick={() => setShowHistory(true)}
+              className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-lg shadow-md transition-all"
+              style={{ backgroundColor: '#2563eb', color: 'white', fontWeight: 'bold' }}
+            >
+              <ChevronDown size={20} />
+              <span>Daha Fazla Göster ({sortedEarthquakes.length - 50} kayıt daha)</span>
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* DESKTOP: Table */}
+      <div className="hidden sm:block bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse">
             <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
               <tr className="border-b-2 border-gray-300">
-                <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 uppercase tracking-wider w-1/3 border-r border-gray-300">
-                  <MapPin size={16} className="inline mr-2" />
-                  Yer
-                </th>
-
+                {/* 1) Ne kadar önce + Yeni */}
                 <th
-                  className="px-6 py-4 text-center text-sm font-bold text-gray-700 uppercase tracking-wider border-r border-gray-300 cursor-pointer hover:bg-gray-200 transition-colors select-none"
-                  onClick={() => handleSort('distance')}
-                  title="İlk tık: en yakınlar üstte"
+                  className="px-6 py-4 text-left text-sm font-bold text-gray-700 uppercase tracking-wider border-r border-gray-300 cursor-pointer hover:bg-gray-200 transition-colors select-none"
+                  onClick={() => handleSort('date_time')}
+                  title="Sırala: Tarih/Saat"
                 >
-                  <div className="flex items-center justify-center gap-1">
-                    <Navigation size={16} className="inline mr-1" />
-                    Isparta'ya Uzaklık
-                    {sortConfig.key === 'distance' && (
+                  <div className="flex items-center gap-1">
+                    <Clock size={16} className="inline mr-2" />
+                    Ne kadar önce
+                    {sortConfig.key === 'date_time' && (
                       sortConfig.direction === 'desc' ? <ArrowDown size={14} /> : <ArrowUp size={14} />
                     )}
-                    {sortConfig.key !== 'distance' && <ArrowUpDown size={14} className="text-gray-400" />}
+                    {sortConfig.key !== 'date_time' && <ArrowUpDown size={14} className="text-gray-400" />}
                   </div>
                 </th>
 
+                {/* 2) Isparta ilişkisi */}
+                <th className="px-6 py-4 text-center text-sm font-bold text-gray-700 uppercase tracking-wider border-r border-gray-300">
+                  İlişki
+                </th>
+
+                {/* 3) Büyüklük */}
                 <th
                   className="px-6 py-4 text-center text-sm font-bold text-gray-700 uppercase tracking-wider border-r border-gray-300 cursor-pointer hover:bg-gray-200 transition-colors select-none"
                   onClick={() => handleSort('mag')}
@@ -622,23 +744,31 @@ export function Deprem() {
                   </div>
                 </th>
 
-                <th className="px-6 py-4 text-center text-sm font-bold text-gray-700 uppercase tracking-wider border-r border-gray-300">
-                  Derinlik (km)
+                {/* 4) Yer */}
+                <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 uppercase tracking-wider border-r border-gray-300">
+                  <MapPin size={16} className="inline mr-2" />
+                  Yer
                 </th>
 
+                {/* 5) Uzaklık */}
                 <th
-                  className="px-6 py-4 text-left text-sm font-bold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors select-none"
-                  onClick={() => handleSort('date_time')}
-                  title="İlk tık: en yeni en üstte"
+                  className="px-6 py-4 text-center text-sm font-bold text-gray-700 uppercase tracking-wider border-r border-gray-300 cursor-pointer hover:bg-gray-200 transition-colors select-none"
+                  onClick={() => handleSort('distance')}
+                  title="İlk tık: en yakınlar üstte"
                 >
-                  <div className="flex items-center gap-1">
-                    <Clock size={16} className="inline mr-2" />
-                    Tarih / Saat
-                    {sortConfig.key === 'date_time' && (
+                  <div className="flex items-center justify-center gap-1">
+                    <Navigation size={16} className="inline mr-1" />
+                    Uzaklık
+                    {sortConfig.key === 'distance' && (
                       sortConfig.direction === 'desc' ? <ArrowDown size={14} /> : <ArrowUp size={14} />
                     )}
-                    {sortConfig.key !== 'date_time' && <ArrowUpDown size={14} className="text-gray-400" />}
+                    {sortConfig.key !== 'distance' && <ArrowUpDown size={14} className="text-gray-400" />}
                   </div>
+                </th>
+
+                {/* 6) Tam zaman */}
+                <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 uppercase tracking-wider">
+                  Tam Zaman
                 </th>
               </tr>
             </thead>
@@ -646,122 +776,88 @@ export function Deprem() {
             <tbody className="divide-y divide-gray-300">
               {loading && earthquakes.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center">
+                  <td colSpan={6} className="px-6 py-12 text-center">
                     <RefreshCw className="animate-spin mx-auto mb-3 text-gray-400" size={32} />
                     <p className="text-gray-500">Veriler yükleniyor...</p>
                   </td>
                 </tr>
               ) : earthquakes.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
                     <AlertTriangle className="mx-auto mb-3 text-gray-300" size={32} />
                     <p>Kayıt bulunamadı.</p>
                   </td>
                 </tr>
               ) : (
                 displayedEarthquakes.map((eq, index) => {
-                  const distance = calculateDistance(
-                    ISPARTA_COORDS.lat,
-                    ISPARTA_COORDS.lng,
-                    eq.geojson.coordinates[1],
-                    eq.geojson.coordinates[0]
-                  );
-
-                  const isIspartaProvince = isIspartaProvinceFromTitle(eq.title);
-                  const isNear = !isIspartaProvince && distance <= ISPARTA_RADIUS_KM;
-
+                  const rel = getIspartaRelation(eq);
                   const recent = isRecent(eq.date_time);
 
-                  const getRowColor = (mag: number) => {
-                    if (isIspartaProvince) return '#fee2e2'; // ISPARTA: kırmızımsı
-                    if (isNear) return '#ffedd5'; // YAKIN: turuncumsu
-                    if (mag >= 6) return '#fca5a5';
-                    if (mag >= 5) return '#fee2e2';
-                    if (mag >= 4) return '#ffedd5';
-                    if (mag >= 3) return '#fef9c3';
-                    return '#dcfce7';
-                  };
-
-                  const rowColor = getRowColor(eq.mag);
-
-                  let rowClasses = 'transition-all duration-150 border-l-4';
-                  if (isIspartaProvince) rowClasses += ' border-l-red-700 shadow-sm';
-                  else if (isNear) rowClasses += ' border-l-orange-600 shadow-sm';
-                  else if (eq.mag >= 6) rowClasses += ' border-l-red-800';
-                  else if (eq.mag >= 5) rowClasses += ' border-l-red-500';
-                  else if (eq.mag >= 4) rowClasses += ' border-l-orange-400';
-                  else if (eq.mag >= 3) rowClasses += ' border-l-yellow-400';
-                  else rowClasses += ' border-l-green-400';
-
-                  if (recent) rowClasses += ' animate-pulse';
-
-                  const labelText = isIspartaProvince ? 'ISPARTA' : isNear ? 'YAKIN' : null;
-                  const labelBg = isIspartaProvince ? '#dc2626' : '#ea580c';
+                  const rowBg = rel.isIspartaProvince ? '#fee2e2' : rel.isNear ? '#ffedd5' : 'white';
 
                   return (
                     <tr
                       key={eq.earthquake_id || index}
-                      className={rowClasses}
-                      style={{ backgroundColor: rowColor }}
+                      className="transition-all duration-150"
+                      style={{ backgroundColor: rowBg }}
                     >
-                      <td
-                        className={`px-6 py-4 border-r border-gray-300 border-b border-gray-300 ${labelText
-                          ? 'font-bold text-gray-900 text-base'
-                          : 'text-gray-800'
-                          }`}
-                      >
+                      {/* Ne kadar önce + Yeni */}
+                      <td className="px-6 py-4 border-r border-gray-300">
                         <div className="flex flex-col">
-                          <div className="flex items-start gap-2">
-                            {labelText && (
-                              <span
-                                className="inline-block px-2 py-0.5 text-white text-xs font-bold rounded uppercase mt-0.5 shadow-sm"
-                                style={{ backgroundColor: labelBg }}
-                              >
-                                {labelText}
-                              </span>
-                            )}
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-gray-900">{getTimeAgo(eq.date_time)}</span>
                             {recent && (
-                              <span className="inline-flex items-center px-2 py-0.5 bg-blue-100 text-blue-900 text-xs font-bold rounded uppercase mt-0.5 shadow-sm animate-pulse border border-blue-300">
+                              <span className="inline-flex items-center px-2 py-0.5 bg-blue-100 text-blue-900 text-xs font-bold rounded uppercase border border-blue-200">
                                 <Zap size={12} className="mr-1" />
                                 YENİ
                               </span>
                             )}
-                            <span>{eq.title}</span>
                           </div>
-                          {recent && (
-                            <div className="text-xs text-gray-500 mt-1 ml-1 flex items-center gap-1">
-                              <Clock size={10} />
-                              {getTimeAgo(eq.date_time)}
-                            </div>
-                          )}
                         </div>
                       </td>
 
-                      <td className="px-6 py-4 text-center border-r border-gray-300 border-b border-gray-300 font-mono text-gray-700">
-                        {Math.round(distance)} km
+                      {/* İlişki */}
+                      <td className="px-6 py-4 text-center border-r border-gray-300">
+                        {rel.labelText ? (
+                          <span
+                            className="inline-flex items-center px-2 py-1 text-white text-xs font-bold rounded uppercase shadow-sm"
+                            style={{ backgroundColor: rel.labelBg }}
+                          >
+                            {rel.labelText}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400 text-xs">—</span>
+                        )}
                       </td>
 
-                      <td className="px-6 py-4 text-center border-r border-gray-300 border-b border-gray-300">
+                      {/* Büyüklük */}
+                      <td className="px-6 py-4 text-center border-r border-gray-300">
                         <div className="flex items-center justify-center gap-2">
-                          <span
-                            className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-bold shadow-sm ${getMagnitudeBadgeStyle(eq.mag)}`}
-                          >
+                          <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-bold shadow-sm ${getMagnitudeBadgeStyle(eq.mag)}`}>
                             {eq.mag.toFixed(1)}
                           </span>
-                          {eq.mag >= 6 && (
-                            <AlertOctagon className="text-red-700 animate-pulse" size={24} />
-                          )}
-                          {eq.mag >= 5 && eq.mag < 6 && (
-                            <AlertTriangle className="text-red-600" size={20} />
-                          )}
+                          {eq.mag >= 6 && <AlertOctagon className="text-red-700 animate-pulse" size={22} />}
+                          {eq.mag >= 5 && eq.mag < 6 && <AlertTriangle className="text-red-600" size={18} />}
                         </div>
                       </td>
 
-                      <td className="px-6 py-4 text-center text-gray-700 font-medium border-r border-gray-300 border-b border-gray-300">
-                        {eq.depth.toFixed(1)}
+                      {/* Yer */}
+                      <td className="px-6 py-4 border-r border-gray-300">
+                        <div className="whitespace-normal break-words text-gray-900 font-medium leading-snug">
+                          {eq.title}
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          Derinlik: <span className="font-mono">{eq.depth.toFixed(1)} km</span>
+                        </div>
                       </td>
 
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-b border-gray-300">
+                      {/* Uzaklık */}
+                      <td className="px-6 py-4 text-center border-r border-gray-300 font-mono text-gray-700">
+                        {Math.round(rel.distance)} km
+                      </td>
+
+                      {/* Tam zaman */}
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         {formatDate(eq.date_time)}
                       </td>
                     </tr>
@@ -777,16 +873,10 @@ export function Deprem() {
             <button
               onClick={() => setShowHistory(true)}
               className="flex items-center justify-center gap-2 mx-auto px-6 py-3 rounded-lg shadow-md transition-all transform hover:scale-105"
-              style={{
-                backgroundColor: '#2563eb',
-                color: 'white',
-                fontWeight: 'bold'
-              }}
+              style={{ backgroundColor: '#2563eb', color: 'white', fontWeight: 'bold' }}
             >
               <ChevronDown size={20} />
-              <span>
-                Daha Fazla Göster ({sortedEarthquakes.length - 50} kayıt daha)
-              </span>
+              <span>Daha Fazla Göster ({sortedEarthquakes.length - 50} kayıt daha)</span>
             </button>
           </div>
         )}
@@ -815,7 +905,7 @@ export function Deprem() {
           <span className="font-bold">Son 1 saat</span> içindeki depremler <span className="font-bold">"YENİ"</span> etiketi ile belirtilir.
           <br />
           <span className="font-bold text-red-700 mt-2 block">
-            Isparta ilinde deprem varsa <span className="font-bold">ISPARTA</span> etiketi ile gösterilir. Yakın depremler <span className="font-bold">YAKIN</span> etiketi ile belirtilir.
+            Isparta ilinde deprem varsa <span className="font-bold">ISPARTA</span>, {ISPARTA_RADIUS_KM} km içindeyse <span className="font-bold">YAKIN</span> etiketi gösterilir.
           </span>
         </p>
       </div>
