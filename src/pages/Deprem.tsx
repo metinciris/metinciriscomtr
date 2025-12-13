@@ -755,15 +755,20 @@ export function Deprem() {
                       >
                         <div className="flex flex-col">
                           <div className="flex items-start gap-2 flex-wrap">
-                            {rel && (
-                              <span
-                                className={`inline-block px-2 py-0.5 text-white text-xs font-bold rounded uppercase mt-0.5 shadow-sm ${
-                                  rel === 'ISPARTA' ? 'bg-rose-600' : 'bg-orange-500'
-                                }`}
-                              >
-                                {rel}
-                              </span>
-                            )}
+{rel && (
+  <span
+    className="inline-flex items-center px-2.5 py-1 text-[11px] font-extrabold rounded-md uppercase tracking-wide mt-0.5 shadow-md border"
+    style={{
+      backgroundColor: rel === 'ISPARTA' ? '#be123c' : '#c2410c', // rose-700 / orange-700
+      color: '#ffffff',
+      borderColor: 'rgba(0,0,0,0.12)',
+      textShadow: '0 1px 1px rgba(0,0,0,0.35)'
+    }}
+  >
+    {rel}
+  </span>
+)}
+
 
                             {recent && (
                               <span className="inline-flex items-center px-2 py-0.5 bg-blue-100 text-blue-900 text-xs font-bold rounded uppercase mt-0.5 shadow-sm animate-pulse border border-blue-300">
