@@ -181,7 +181,7 @@ export function Deprem() {
     return 'bg-green-100 text-green-800 border border-green-200';
   };
 
-  // “Isparta/ısparta” geçen HER ŞEY il içi
+  // “Isparta” sınırları içinde 
   const getRelation = (title: string, distanceKm: number): 'ISPARTA' | 'YAKIN' | null => {
     const t = title.toLocaleLowerCase('tr-TR');
     if (t.includes('isparta') || t.includes('ısparta')) return 'ISPARTA';
@@ -965,8 +965,8 @@ export function Deprem() {
           <br />
           <span className="font-bold">Son 1 saat</span> içindeki depremler <span className="font-bold">“YENİ”</span> etiketi ile belirtilir.
           <br />
-          <span className="font-bold">ISPARTA</span>: “Isparta/ısparta” geçen kayıtlar.{' '}
-          <span className="font-bold ml-2">YAKIN</span>: Isparta merkeze 100 km yakın.
+          <span className="font-bold">ISPARTA</span>: “Isparta il sınırları içinde.{' '}
+          <span className="font-bold ml-2">YAKIN</span>: Isparta merkeze 100 km'den yakın.
         </p>
       </div>
     </PageContainer>
