@@ -148,15 +148,22 @@ export function Deprem() {
     }
   };
 
+  // 2 saat+ için dakika göstermiyoruz (sadece saat)
   const getTimeAgo = (dateStr: string) => {
     const date = new Date(dateStr);
     const now = new Date();
     const diffInMs = now.getTime() - date.getTime();
-    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
-    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+    const totalMinutes = Math.floor(diffInMs / (1000 * 60));
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
 
-    if (diffInMinutes < 60) return `${diffInMinutes} dk önce`;
-    return `${diffInHours} saat önce`;
+    if (totalMinutes < 60) return `${totalMinutes} dk önce`;
+    if (totalMinutes < 120) {
+      // 1-2 saat arası: dakikayı gösterelim (istersen bunu da kapatırız)
+      if (minutes <= 0) return `${hours} saat önce`;
+      return `${hours} saat ${minutes} dk önce`;
+    }
+    return `${hours} saat önce`;
   };
 
   const isRecent = (dateStr: string) => {
@@ -175,12 +182,31 @@ export function Deprem() {
     return 'bg-green-100 text-green-800 border border-green-200';
   };
 
-  // Karar: "Isparta" geçen HER ŞEY il içi kabul
+  // Karar: “Isparta/ısparta” geçen HER ŞEY il içi
   const getRelation = (title: string, distanceKm: number): 'ISPARTA' | 'YAKIN' | null => {
     const t = title.toLocaleLowerCase('tr-TR');
     if (t.includes('isparta') || t.includes('ısparta')) return 'ISPARTA';
     if (distanceKm < NEAR_KM) return 'YAKIN';
     return null;
+  };
+
+  // Tablo satır rengi (şiddet + ilişki)
+  const getRowColor = (mag: number, relation: 'ISPARTA' | 'YAKIN' | null) => {
+    // ilişki öncelikli (ama çok kırmızı değil)
+    if (relation === 'ISPARTA') return '#ffe4e6'; // rose-100
+    if (relation === 'YAKIN') return '#ffedd5'; // orange-100
+
+    // şiddet rengi
+    if (mag >= 6) return '#fecaca'; // red-200
+    if (mag >= 5) return '#fee2e2'; // red-100
+    if (mag >= 4) return '#ffedd5'; // orange-100
+    if (mag >= 3) return '#fef9c3'; // yellow-100
+    return '#dcfce7'; // green-100
+  };
+
+  // “En büyük” kartları da aynı renk dilini kullansın (şiddet rengi)
+  const getSeverityBg = (mag: number, relation: 'ISPARTA' | 'YAKIN' | null) => {
+    return getRowColor(mag, relation);
   };
 
   // Sorting: first click defaults (distance asc, mag desc, date desc)
@@ -355,7 +381,7 @@ export function Deprem() {
     setError(null);
 
     try {
-      // Son 7 gün çekiyoruz; UI zaten “son depremler” top 50 ile sınırlı
+      // Son 7 gün çekiyoruz; UI top 50 ile “son depremler” gibi görünür
       const end = new Date();
       const start = new Date(end.getTime() - 7 * 24 * 60 * 60 * 1000);
 
@@ -426,7 +452,7 @@ export function Deprem() {
     const intervalId = setInterval(() => fetchData(), 30000);
     return () => clearInterval(intervalId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [soundEnabled]);
 
   const sortedEarthquakes = useMemo(() => {
     const list = [...earthquakes];
@@ -488,16 +514,10 @@ export function Deprem() {
     }, null as Earthquake | null);
   }, [earthquakes]);
 
-  const renderMaxCard = (title: string, eq: Earthquake | null, variant: 'day' | 'week') => {
-    // yumuşak arka planlar (kırmızı yok)
-    const base =
-      variant === 'day'
-        ? 'bg-white/15 border-white/25'
-        : 'bg-black/20 border-white/20';
-
+  const renderMaxCard = (title: string, eq: Earthquake | null) => {
     if (!eq) {
       return (
-        <div className={`rounded-lg p-3 border ${base}`}>
+        <div className="rounded-lg p-3 border" style={{ backgroundColor: 'rgba(255,255,255,0.10)', borderColor: 'rgba(255,255,255,0.18)' }}>
           <div className="text-xs font-bold text-white/90">{title}</div>
           <div className="text-xs text-white/70 mt-1">Veri yok</div>
         </div>
@@ -506,33 +526,44 @@ export function Deprem() {
 
     const distance = calculateDistance(ISPARTA_COORDS.lat, ISPARTA_COORDS.lng, eq.geojson.coordinates[1], eq.geojson.coordinates[0]);
     const rel = getRelation(eq.title, distance);
+    const bg = getSeverityBg(eq.mag, rel);
 
     return (
-      <div className={`rounded-lg p-3 border ${base}`}>
-        <div className="text-xs font-bold text-white/90 mb-1">{title}</div>
+      <div
+        className="rounded-lg p-3 border shadow-sm"
+        style={{
+          backgroundColor: bg,
+          borderColor: 'rgba(0,0,0,0.10)'
+        }}
+      >
+        <div className="text-xs font-extrabold text-gray-900 mb-1">{title}</div>
 
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-2">
-            <span className="text-2xl font-extrabold text-white leading-none">{eq.mag.toFixed(1)}</span>
-            <span className="text-xs text-white/80">{getTimeAgo(eq.date_time)}</span>
+            <span className="text-2xl font-extrabold text-gray-900 leading-none">{eq.mag.toFixed(1)}</span>
+            <span className="text-xs text-gray-700">{getTimeAgo(eq.date_time)}</span>
           </div>
 
           {rel && (
             <span
-              className={`inline-flex items-center px-2 py-0.5 text-xs font-bold rounded uppercase shadow-sm ${
-                rel === 'ISPARTA' ? 'bg-white text-red-700' : 'bg-white text-orange-700'
-              }`}
+              className="inline-flex items-center px-2.5 py-1 text-[11px] font-extrabold rounded-md uppercase tracking-wide shadow-md border"
+              style={{
+                backgroundColor: rel === 'ISPARTA' ? '#be123c' : '#c2410c', // rose-700 / orange-700
+                color: '#ffffff',
+                borderColor: 'rgba(0,0,0,0.12)',
+                textShadow: '0 1px 1px rgba(0,0,0,0.35)'
+              }}
             >
               {rel}
             </span>
           )}
         </div>
 
-        <div className="text-xs text-white/85 mt-1 leading-snug break-words">
+        <div className="text-xs text-gray-900 mt-1 leading-snug break-words font-semibold">
           {eq.title}
         </div>
 
-        <div className="text-[11px] text-white/70 mt-1 flex items-center justify-between gap-2">
+        <div className="text-[11px] text-gray-700 mt-1 flex items-center justify-between gap-2">
           <span className="font-mono">{Math.round(distance)} km</span>
           <span className="whitespace-nowrap">{formatDate(eq.date_time)}</span>
         </div>
@@ -542,7 +573,7 @@ export function Deprem() {
 
   return (
     <PageContainer>
-      {/* Banner (kırmızı sadece burada kalsın) */}
+      {/* Banner (kırmızı sadece burada) */}
       {latestBannerEq && (
         <div
           className="text-white p-4 mb-6 rounded-xl shadow-lg border"
@@ -566,7 +597,7 @@ export function Deprem() {
         </div>
       )}
 
-      {/* Header (kırmızı yerine lacivert/indigo) */}
+      {/* Header (indigo/lacivert) */}
       <div
         className="text-white p-6 mb-8 rounded-xl shadow-lg"
         style={{ background: 'linear-gradient(to right, #0f172a, #1e3a8a)' }}
@@ -581,9 +612,28 @@ export function Deprem() {
             <p className="text-white/80 text-sm">
               30 saniyede bir güncellenir. Ses açıkken deprem bildirimi: Deprem şiddeti kadar tık sesi.
             </p>
+
+            {/* Legend banner (çok kısa) */}
+            <div className="mt-3 flex flex-wrap gap-2 text-[11px] font-extrabold">
+              <span className="px-2 py-1 rounded-md border" style={{ backgroundColor: '#dcfce7', borderColor: 'rgba(0,0,0,0.08)', color: '#14532d' }}>
+                &lt;3 düşük
+              </span>
+              <span className="px-2 py-1 rounded-md border" style={{ backgroundColor: '#fef9c3', borderColor: 'rgba(0,0,0,0.08)', color: '#713f12' }}>
+                3–3.9 orta
+              </span>
+              <span className="px-2 py-1 rounded-md border" style={{ backgroundColor: '#ffedd5', borderColor: 'rgba(0,0,0,0.08)', color: '#7c2d12' }}>
+                4–4.9 belirgin
+              </span>
+              <span className="px-2 py-1 rounded-md border" style={{ backgroundColor: '#fee2e2', borderColor: 'rgba(0,0,0,0.08)', color: '#7f1d1d' }}>
+                5–5.9 güçlü
+              </span>
+              <span className="px-2 py-1 rounded-md border" style={{ backgroundColor: '#fecaca', borderColor: 'rgba(0,0,0,0.08)', color: '#7f1d1d' }}>
+                6+ çok güçlü
+              </span>
+            </div>
           </div>
 
-          <div className="flex flex-col gap-2 md:min-w-[320px]">
+          <div className="flex flex-col gap-2 md:min-w-[340px]">
             <div className="bg-white/10 border border-white/15 rounded-lg p-3 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="flex items-center justify-center h-[34px] w-[34px]">
@@ -602,33 +652,32 @@ export function Deprem() {
                 </div>
               </div>
 
-<button
-  onClick={() => setSoundEnabled(!soundEnabled)}
-  className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all shadow-md border hover:shadow-lg"
-  style={{
-    backgroundColor: soundEnabled ? 'rgba(34, 197, 94, 0.18)' : 'rgba(255, 255, 255, 0.10)', // green-ish / glass
-    color: soundEnabled ? '#dcfce7' : '#ffffff', // green-100 / white
-    borderColor: soundEnabled ? 'rgba(34, 197, 94, 0.45)' : 'rgba(255, 255, 255, 0.18)',
-    boxShadow: soundEnabled ? '0 0 0 3px rgba(34, 197, 94, 0.20)' : undefined
-  }}
-  title={soundEnabled ? 'Sesli uyarı açık' : 'Sesli uyarı kapalı'}
->
-
+              {/* Ses butonu: iki durumda da okunur */}
+              <button
+                onClick={() => setSoundEnabled(!soundEnabled)}
+                className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all shadow-md border hover:shadow-lg"
+                style={{
+                  backgroundColor: soundEnabled ? 'rgba(34, 197, 94, 0.18)' : 'rgba(255, 255, 255, 0.10)',
+                  color: '#ffffff',
+                  borderColor: soundEnabled ? 'rgba(34, 197, 94, 0.45)' : 'rgba(255, 255, 255, 0.18)',
+                  boxShadow: soundEnabled ? '0 0 0 3px rgba(34, 197, 94, 0.20)' : undefined
+                }}
+                title={soundEnabled ? 'Sesli uyarı açık' : 'Sesli uyarı kapalı'}
+              >
                 {soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
                 <span
-  className="font-extrabold text-sm tracking-wide"
-  style={{ textShadow: soundEnabled ? '0 1px 1px rgba(0,0,0,0.25)' : '0 1px 1px rgba(0,0,0,0.35)' }}
->
-  {soundEnabled ? 'Ses Açık' : 'Ses Kapalı'}
-</span>
-
+                  className="font-extrabold text-sm tracking-wide"
+                  style={{ textShadow: '0 1px 1px rgba(0,0,0,0.35)' }}
+                >
+                  {soundEnabled ? 'Ses Açık' : 'Ses Kapalı'}
+                </span>
               </button>
             </div>
 
-            {/* En büyük kartları (farklı arka plan) */}
+            {/* En büyük kartları (arka plan şiddet rengi) */}
             <div className="grid grid-cols-1 gap-2">
-              {renderMaxCard('Son 24 saatte en büyük deprem', max24h, 'day')}
-              {renderMaxCard('Son 7 günün en büyük depremi', max7d, 'week')}
+              {renderMaxCard('Son 24 saatte en büyük deprem', max24h)}
+              {renderMaxCard('Son 7 günün en büyük depremi', max7d)}
             </div>
           </div>
         </div>
@@ -667,11 +716,13 @@ export function Deprem() {
                 <th
                   className="px-6 py-4 text-center text-sm font-bold text-gray-700 uppercase tracking-wider border-r border-gray-300 cursor-pointer hover:bg-gray-200 transition-colors select-none"
                   onClick={() => handleSort('distance')}
+                  title="İlk tık: en yakın üstte"
                 >
                   <div className="flex items-center justify-center gap-1">
                     <Navigation size={16} className="inline mr-1" />
                     Isparta'ya Uzaklık
-                    {sortConfig.key === 'distance' && (sortConfig.direction === 'desc' ? <ArrowDown size={14} /> : <ArrowUp size={14} />)}
+                    {sortConfig.key === 'distance' &&
+                      (sortConfig.direction === 'desc' ? <ArrowDown size={14} /> : <ArrowUp size={14} />)}
                     {sortConfig.key !== 'distance' && <ArrowUpDown size={14} className="text-gray-400" />}
                   </div>
                 </th>
@@ -679,10 +730,12 @@ export function Deprem() {
                 <th
                   className="px-6 py-4 text-center text-sm font-bold text-gray-700 uppercase tracking-wider border-r border-gray-300 cursor-pointer hover:bg-gray-200 transition-colors select-none"
                   onClick={() => handleSort('mag')}
+                  title="İlk tık: en büyük üstte"
                 >
                   <div className="flex items-center justify-center gap-1">
                     Büyüklük
-                    {sortConfig.key === 'mag' && (sortConfig.direction === 'desc' ? <ArrowDown size={14} /> : <ArrowUp size={14} />)}
+                    {sortConfig.key === 'mag' &&
+                      (sortConfig.direction === 'desc' ? <ArrowDown size={14} /> : <ArrowUp size={14} />)}
                     {sortConfig.key !== 'mag' && <ArrowUpDown size={14} className="text-gray-400" />}
                   </div>
                 </th>
@@ -694,11 +747,13 @@ export function Deprem() {
                 <th
                   className="px-6 py-4 text-left text-sm font-bold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors select-none"
                   onClick={() => handleSort('date_time')}
+                  title="Varsayılan: en yeni üstte"
                 >
                   <div className="flex items-center gap-1">
                     <Clock size={16} className="inline mr-2" />
                     Tarih / Saat
-                    {sortConfig.key === 'date_time' && (sortConfig.direction === 'desc' ? <ArrowDown size={14} /> : <ArrowUp size={14} />)}
+                    {sortConfig.key === 'date_time' &&
+                      (sortConfig.direction === 'desc' ? <ArrowDown size={14} /> : <ArrowUp size={14} />)}
                     {sortConfig.key !== 'date_time' && <ArrowUpDown size={14} className="text-gray-400" />}
                   </div>
                 </th>
@@ -728,20 +783,9 @@ export function Deprem() {
                     eq.geojson.coordinates[1],
                     eq.geojson.coordinates[0]
                   );
+
                   const rel = getRelation(eq.title, distance);
                   const recent = isRecent(eq.date_time);
-
-                  const getRowColor = (mag: number, relation: 'ISPARTA' | 'YAKIN' | null) => {
-                    // ISPARTA/YAKIN satırlarını da çok kırmızı yapmayalım:
-                    if (relation === 'ISPARTA') return '#ffe4e6'; // rose-100
-                    if (relation === 'YAKIN') return '#ffedd5'; // orange-100
-                    if (mag >= 6) return '#fecaca'; // red-200
-                    if (mag >= 5) return '#fee2e2'; // red-100
-                    if (mag >= 4) return '#ffedd5'; // orange-100
-                    if (mag >= 3) return '#fef9c3'; // yellow-100
-                    return '#dcfce7'; // green-100
-                  };
-
                   const rowColor = getRowColor(eq.mag, rel);
 
                   let rowClasses = 'transition-all duration-150 border-l-4';
@@ -759,25 +803,24 @@ export function Deprem() {
                     <tr key={eq.earthquake_id || index} className={rowClasses} style={{ backgroundColor: rowColor }}>
                       <td
                         className={`px-6 py-4 border-r border-gray-300 border-b border-gray-300 ${
-                          rel ? 'font-bold text-gray-900' : 'text-gray-800'
+                          rel ? 'font-bold text-gray-900 text-base' : 'text-gray-800'
                         }`}
                       >
                         <div className="flex flex-col">
                           <div className="flex items-start gap-2 flex-wrap">
-{rel && (
-  <span
-    className="inline-flex items-center px-2.5 py-1 text-[11px] font-extrabold rounded-md uppercase tracking-wide mt-0.5 shadow-md border"
-    style={{
-      backgroundColor: rel === 'ISPARTA' ? '#be123c' : '#c2410c', // rose-700 / orange-700
-      color: '#ffffff',
-      borderColor: 'rgba(0,0,0,0.12)',
-      textShadow: '0 1px 1px rgba(0,0,0,0.35)'
-    }}
-  >
-    {rel}
-  </span>
-)}
-
+                            {rel && (
+                              <span
+                                className="inline-flex items-center px-2.5 py-1 text-[11px] font-extrabold rounded-md uppercase tracking-wide mt-0.5 shadow-md border"
+                                style={{
+                                  backgroundColor: rel === 'ISPARTA' ? '#be123c' : '#c2410c',
+                                  color: '#ffffff',
+                                  borderColor: 'rgba(0,0,0,0.12)',
+                                  textShadow: '0 1px 1px rgba(0,0,0,0.35)'
+                                }}
+                              >
+                                {rel}
+                              </span>
+                            )}
 
                             {recent && (
                               <span className="inline-flex items-center px-2 py-0.5 bg-blue-100 text-blue-900 text-xs font-bold rounded uppercase mt-0.5 shadow-sm animate-pulse border border-blue-300">
@@ -802,7 +845,11 @@ export function Deprem() {
 
                       <td className="px-6 py-4 text-center border-r border-gray-300 border-b border-gray-300">
                         <div className="flex items-center justify-center gap-2">
-                          <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-bold shadow-sm ${getMagnitudeBadgeStyle(eq.mag)}`}>
+                          <span
+                            className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-bold shadow-sm ${getMagnitudeBadgeStyle(
+                              eq.mag
+                            )}`}
+                          >
                             {eq.mag.toFixed(1)}
                           </span>
 
