@@ -602,17 +602,26 @@ export function Deprem() {
                 </div>
               </div>
 
-              <button
-                onClick={() => setSoundEnabled(!soundEnabled)}
-                className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all shadow-md border ${
-                  soundEnabled
-                    ? 'bg-white text-slate-900 border-white/30'
-                    : 'bg-white/10 text-white border-white/15 hover:bg-white/15'
-                }`}
-                title={soundEnabled ? 'Sesli uyarı açık' : 'Sesli uyarı kapalı'}
-              >
+<button
+  onClick={() => setSoundEnabled(!soundEnabled)}
+  className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all shadow-md border hover:shadow-lg"
+  style={{
+    backgroundColor: soundEnabled ? 'rgba(34, 197, 94, 0.18)' : 'rgba(255, 255, 255, 0.10)', // green-ish / glass
+    color: soundEnabled ? '#dcfce7' : '#ffffff', // green-100 / white
+    borderColor: soundEnabled ? 'rgba(34, 197, 94, 0.45)' : 'rgba(255, 255, 255, 0.18)',
+    boxShadow: soundEnabled ? '0 0 0 3px rgba(34, 197, 94, 0.20)' : undefined
+  }}
+  title={soundEnabled ? 'Sesli uyarı açık' : 'Sesli uyarı kapalı'}
+>
+
                 {soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
-                <span className="font-bold text-sm">{soundEnabled ? 'Ses Açık' : 'Ses Kapalı'}</span>
+                <span
+  className="font-extrabold text-sm tracking-wide"
+  style={{ textShadow: soundEnabled ? '0 1px 1px rgba(0,0,0,0.25)' : '0 1px 1px rgba(0,0,0,0.35)' }}
+>
+  {soundEnabled ? 'Ses Açık' : 'Ses Kapalı'}
+</span>
+
               </button>
             </div>
 
