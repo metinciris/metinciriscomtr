@@ -961,12 +961,12 @@ export function Deprem() {
       {/* Footer */}
       <div className="mt-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg shadow-sm">
         <p className="text-sm text-blue-800">
-          <strong>Not:</strong> Kaynak: AFAD Event Service.
+          <strong>Not:</strong> Kaynak: "AFAD Event Service"
           <br />
           <span className="font-bold">Son 1 saat</span> içindeki depremler <span className="font-bold">“YENİ”</span> etiketi ile belirtilir.
           <br />
-          <span className="font-bold">ISPARTA</span>: “Isparta il sınırları içinde.{' '}
-          <span className="font-bold ml-2">YAKIN</span>: Isparta merkeze 100 km'den yakın.
+          <span className="font-bold">ISPARTA</span>: Isparta il sınırları içinde.{' '}
+          <span className="font-bold ml-2">YAKIN</span>: Isparta dışı ama 100 km'den yakın.
         </p>
       </div>
     </PageContainer>
