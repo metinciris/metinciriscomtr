@@ -35,6 +35,9 @@ interface Earthquake {
   };
 }
 
+/**
+ * AFAD Event Service response item (event/filter).
+ */
 interface AfadEvent {
   eventID: string;
   location: string;
@@ -190,17 +193,11 @@ export function Deprem() {
     });
   };
 
-  // 1 uzun + 2 kısa (Isparta 150 km içinde “yakın” işareti)
+  // Isparta 150 km içinde “yakın” işareti: sadece 1 uzun bip
   const playNearPreamble = async () => {
     if (!soundEnabled) return;
-    // uzun
-    playBeep(660, 0.5);
-    await sleep(650);
-    // 2 kısa
-    playBeep(880, 0.15);
-    await sleep(250);
-    playBeep(880, 0.15);
-    await sleep(250);
+    playBeep(660, 0.6); // 1 uzun
+    await sleep(750);
   };
 
   // Queue: her yeni deprem için {mag, isNear150}
@@ -216,7 +213,7 @@ export function Deprem() {
       if (item) {
         if (item.near150) {
           await playNearPreamble();
-          await sleep(250);
+          await sleep(200);
         }
         await playBeepSequence(Math.floor(item.mag));
         if (soundQueue.current.length > 0) {
@@ -261,23 +258,25 @@ export function Deprem() {
     };
   };
 
-  const fetchWithFallback = async (pathAndQuery: string) => {
-    // Primary
-    const primary = `https://deprem.afad.gov.tr${pathAndQuery}`;
-    // Gateway fallback (CORS/availability)
-    const gateway = `https://servisnet.afad.gov.tr/apigateway/deprem${pathAndQuery}`;
+  /**
+   * GitHub Pages için CORS fix:
+   * AFAD yerine Cloudflare Worker proxy kullanıyoruz.
+   */
+  const fetchWithProxy = async (pathAndQuery: string) => {
+    const proxyBase = 'https://depremo.tutkumuz.workers.dev';
 
-    // try primary
-    try {
-      const r1 = await fetch(primary);
-      if (r1.ok) return r1;
-      // non-OK: fallback
-    } catch { /* ignore */ }
+    const qIndex = pathAndQuery.indexOf('?');
+    const query = qIndex >= 0 ? pathAndQuery.slice(qIndex + 1) : '';
 
-    // try gateway
-    const r2 = await fetch(gateway);
-    if (!r2.ok) throw new Error(`AFAD cevap vermiyor. (HTTP ${r2.status})`);
-    return r2;
+    const proxyUrl = `${proxyBase}/?${query}`;
+
+    const r = await fetch(proxyUrl, {
+      method: 'GET',
+      headers: { 'Accept': 'application/json' }
+    });
+
+    if (!r.ok) throw new Error(`AFAD cevap vermiyor. (HTTP ${r.status})`);
+    return r;
   };
 
   const fetchData = async () => {
@@ -294,7 +293,7 @@ export function Deprem() {
         `&end=${encodeURIComponent(toIsoNoMs(end))}` +
         `&format=json`;
 
-      const resp = await fetchWithFallback(path);
+      const resp = await fetchWithProxy(path);
       const afadData: AfadEvent[] = await resp.json();
 
       const mapped = (afadData || [])
@@ -320,7 +319,7 @@ export function Deprem() {
 
           const newQuakes = uniqueEarthquakes
             .filter(eq => new Date(eq.date_time) > lastDate)
-            // oldest -> newest çalması daha anlaşılır
+            // oldest -> newest (daha anlaşılır)
             .sort((a, b) => new Date(a.date_time).getTime() - new Date(b.date_time).getTime());
 
           if (newQuakes.length > 0) {
@@ -355,7 +354,6 @@ export function Deprem() {
     fetchData();
     const intervalId = setInterval(() => fetchData(), 30000);
     return () => clearInterval(intervalId);
-    // sevenDays değişince yeniden çek
   }, [soundEnabled, sevenDays]);
 
   const isRecent = (dateStr: string) => {
@@ -439,19 +437,21 @@ export function Deprem() {
 
   const displayedEarthquakes = showHistory ? sortedEarthquakes : top50;
 
-  // Isparta-ish: title OR within selected radius
-  const isIspartaOrNear = (eq: Earthquake) => {
-    const titleLower = eq.title.toLocaleLowerCase('tr-TR');
-    const isIsparta = titleLower.includes('isparta') || titleLower.includes('ısparta');
-    const distance = calculateDistance(ISPARTA_COORDS.lat, ISPARTA_COORDS.lng, eq.geojson.coordinates[1], eq.geojson.coordinates[0]);
-    return isIsparta || distance <= radiusKm;
-  };
-
   // Banner: only show if there is at least one quake within selected radius / Isparta title
   const bannerQuakes = useMemo(() => {
-    return earthquakes
-      .filter(isIspartaOrNear)
-      .sort((a, b) => new Date(b.date_time).getTime() - new Date(a.date_time).getTime());
+    const filtered = earthquakes.filter(eq => {
+      const titleLower = eq.title.toLocaleLowerCase('tr-TR');
+      const isIsparta = titleLower.includes('isparta') || titleLower.includes('ısparta');
+      const distance = calculateDistance(
+        ISPARTA_COORDS.lat,
+        ISPARTA_COORDS.lng,
+        eq.geojson.coordinates[1],
+        eq.geojson.coordinates[0]
+      );
+      return isIsparta || distance <= radiusKm;
+    });
+
+    return filtered.sort((a, b) => new Date(b.date_time).getTime() - new Date(a.date_time).getTime());
   }, [earthquakes, radiusKm]);
 
   const latestBannerEq = bannerQuakes.length > 0 ? bannerQuakes[0] : null;
@@ -479,7 +479,6 @@ export function Deprem() {
                   {getBannerTitle(latestBannerEq)}
                 </h3>
 
-                {/* Radius selector */}
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-white/80 hidden sm:inline">Eşik</span>
                   <select
@@ -521,7 +520,6 @@ export function Deprem() {
               AFAD canlı verileri • 30 sn yenilenir • Ses açıkken: şiddet kadar tık
             </p>
 
-            {/* Son 7 gün toggle */}
             <div className="mt-3 flex items-center gap-2">
               <button
                 onClick={() => setSevenDays(s => !s)}
@@ -536,7 +534,6 @@ export function Deprem() {
                 {sevenDays ? 'Son 7 Gün: Açık' : 'Son 7 Gün'}
               </button>
 
-              {/* Radius selector (also available even if banner hidden) */}
               <div className="flex items-center gap-2 bg-black/20 border border-white/20 rounded-lg px-2 py-1.5">
                 <span className="text-xs text-white/80">Isparta</span>
                 <select
@@ -553,7 +550,6 @@ export function Deprem() {
             </div>
           </div>
 
-          {/* Right compact status */}
           <div className="flex items-center gap-3">
             <div className="bg-black/20 backdrop-blur-sm rounded-lg px-4 py-3 min-w-[170px] flex items-center gap-3">
               <div className="flex items-center justify-center w-[34px]">
@@ -836,7 +832,7 @@ export function Deprem() {
         )}
       </div>
 
-      {/* Info Footer (updated) */}
+      {/* Info Footer (updated per request) */}
       <div className="mt-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg shadow-sm">
         <p className="text-sm text-blue-800">
           <strong>Not:</strong> Veriler AFAD Event Service üzerinden alınmaktadır.
