@@ -111,11 +111,12 @@ export function Deprem() {
   const [soundEnabled, setSoundEnabled] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
 
-  // Sayfa açılınca yakınlığa göre sıralı gelsin: distance ASC
-  const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: SortDirection }>({
-    key: 'distance',
-    direction: 'asc'
-  });
+  // Sayfa açılınca zamana göre sırala
+const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: SortDirection }>({
+  key: 'date_time',
+  direction: 'desc' // en yeni en üstte
+});
+
 
   // Son 7 gün toggle
   const [sevenDays, setSevenDays] = useState(false);
