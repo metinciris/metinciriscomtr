@@ -609,7 +609,7 @@ export function Deprem() {
           </div>
 
           <div className="text-[11px] mt-1 flex items-center justify-between gap-2 font-medium" style={{ color: '#334155' }}>
-            <span className="font-mono">{Math.round(distance)} km</span>
+            <span className="font-mono">Isparta&apos;dan uzaklık: {Math.round(distance)} km</span>
             <span className="whitespace-nowrap">{formatDate(eq.date_time)}</span>
           </div>
         </div>
