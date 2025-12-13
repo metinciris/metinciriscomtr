@@ -181,7 +181,7 @@ export function Deprem() {
     return 'bg-green-100 text-green-800 border border-green-200';
   };
 
-  // “Isparta” sınırları içinde 
+  // “Isparta/ısparta” geçen HER ŞEY il içi
   const getRelation = (title: string, distanceKm: number): 'ISPARTA' | 'YAKIN' | null => {
     const t = title.toLocaleLowerCase('tr-TR');
     if (t.includes('isparta') || t.includes('ısparta')) return 'ISPARTA';
@@ -530,7 +530,7 @@ export function Deprem() {
     }, null as Earthquake | null);
   }, [earthquakes]);
 
-  // ✅ OKUNURLUK KESİN ÇÖZÜM: overlay + inline renkler
+  // ✅ Kart okunurluğu kesin: overlay + inline renkler + OSM "Haritada aç"
   const renderMaxCard = (title: string, eq: Earthquake | null) => {
     if (!eq) {
       return (
@@ -562,6 +562,10 @@ export function Deprem() {
     );
     const rel = getRelation(eq.title, distance);
     const bg = getSeverityBg(eq.mag, rel);
+
+    const lat = eq.geojson.coordinates[1];
+    const lon = eq.geojson.coordinates[0];
+    const osmUrl = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=10/${lat}/${lon}`;
 
     return (
       <div
@@ -608,9 +612,25 @@ export function Deprem() {
             {eq.title}
           </div>
 
-          <div className="text-[11px] mt-1 flex items-center justify-between gap-2 font-medium" style={{ color: '#334155' }}>
+          <div
+            className="text-[11px] mt-1 flex items-center justify-between gap-2 font-medium"
+            style={{ color: '#334155' }}
+          >
             <span className="font-mono">Isparta&apos;dan uzaklık: {Math.round(distance)} km</span>
-            <span className="whitespace-nowrap">{formatDate(eq.date_time)}</span>
+
+            <span className="flex items-center gap-2">
+              <span className="whitespace-nowrap">{formatDate(eq.date_time)}</span>
+              <a
+                href={osmUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-bold underline"
+                style={{ color: '#1d4ed8' }}
+                title="OpenStreetMap'te aç"
+              >
+                Haritada aç
+              </a>
+            </span>
           </div>
         </div>
       </div>
@@ -793,7 +813,7 @@ export function Deprem() {
                 >
                   <div className="flex items-center justify-center gap-1">
                     <Navigation size={16} className="inline mr-1" />
-                    Isparta'ya Uzaklık
+                    Isparta&apos;ya Uzaklık
                     {sortConfig.key === 'distance' &&
                       (sortConfig.direction === 'desc' ? <ArrowDown size={14} /> : <ArrowUp size={14} />)}
                     {sortConfig.key !== 'distance' && <ArrowUpDown size={14} className="text-gray-400" />}
@@ -961,12 +981,12 @@ export function Deprem() {
       {/* Footer */}
       <div className="mt-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg shadow-sm">
         <p className="text-sm text-blue-800">
-          <strong>Not:</strong> Kaynak: "AFAD Event Service"
+          <strong>Not:</strong> Kaynak: AFAD Event Service.
           <br />
           <span className="font-bold">Son 1 saat</span> içindeki depremler <span className="font-bold">“YENİ”</span> etiketi ile belirtilir.
           <br />
-          <span className="font-bold">ISPARTA</span>: Isparta il sınırları içinde.{' '}
-          <span className="font-bold ml-2">YAKIN</span>: Isparta dışı ama 100 km'den yakın.
+          <span className="font-bold">ISPARTA</span>: “Isparta/ısparta” geçen kayıtlar.{' '}
+          <span className="font-bold ml-2">YAKIN</span>: Isparta merkeze 100 km yakın.
         </p>
       </div>
     </PageContainer>
