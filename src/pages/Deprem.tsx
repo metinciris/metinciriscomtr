@@ -143,22 +143,23 @@ const CountdownTimer = ({
 function NotificationToggle({ enabled, onToggle }: { enabled: boolean; onToggle: () => void }) {
   return (
     <button
-      type="button"
-      role="switch"
-      aria-checked={enabled}
-      onClick={onToggle}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onToggle();
-        }
-      }}
-      className="group inline-flex items-center gap-3 select-none shrink-0 rounded-full px-3 py-2
-                 bg-white/10 border border-white/15 backdrop-blur-sm
-                 shadow-sm hover:bg-white/15 active:scale-[0.98]
-                 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
-      title={enabled ? 'Bildirim Açık' : 'Bildirim Kapalı'}
-    >
+  type="button"
+  role="switch"
+  aria-checked={enabled}
+  onClick={onToggle}
+  onKeyDown={(e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onToggle();
+    }
+  }}
+  className="group inline-flex items-center gap-3 select-none shrink-0 rounded-full px-3 py-2
+             bg-white/10 border border-white/15 backdrop-blur-sm
+             shadow-sm hover:bg-white/15 active:scale-[0.98]
+             focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50
+             whitespace-nowrap"
+>
+
       {/* iOS-like switch */}
       <span
         className={[
@@ -919,14 +920,15 @@ export function Deprem() {
       {/* =====================================================
           12.1 Banner (ISPARTA/YAKIN varsa)
           ===================================================== */}
-      {latestBannerEq && (
-        <div
-          className="text-white p-4 mb-5 rounded-xl shadow-lg border"
-          style={{
-            background: 'linear-gradient(to right, #ef4444, #b91c1c)',
-            borderColor: 'rgba(255,255,255,0.18)'
-          }}
-        >
+{latestBannerEq && (
+  <div
+    className="text-white p-4 mt-2 mb-6 rounded-xl shadow-lg border"
+    style={{
+      background: 'linear-gradient(to right, #ef4444, #b91c1c)',
+      borderColor: 'rgba(255,255,255,0.18)'
+    }}
+  >
+
           <div className="flex items-center gap-4">
             <AlertOctagon size={30} className="flex-shrink-0 animate-pulse" />
             <div>
@@ -947,10 +949,10 @@ export function Deprem() {
           12.2 Üst Pano (modern 3 sütun)
           ===================================================== */}
       <div
-        className="text-white p-5 mb-5 rounded-xl shadow-lg"
+        className="text-white p-5 mb-6 rounded-xl shadow-lg"
         style={{ background: 'linear-gradient(to right, #0f172a, #1e3a8a)' }}
       >
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_auto_auto] md:items-center">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:items-center">
           {/* SOL: başlık */}
           <div className="min-w-0">
             <h1 className="text-white text-3xl font-bold flex items-center gap-3">
@@ -964,7 +966,7 @@ export function Deprem() {
           </div>
 
           {/* ORTA: Bildirim toggle */}
-          <div className="flex justify-start md:justify-center">
+          <div className="flex justify-center md:justify-center">
             <NotificationToggle
               enabled={notificationsEnabled}
               onToggle={() => setNotificationsEnabled((v) => !v)}
