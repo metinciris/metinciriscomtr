@@ -96,32 +96,56 @@ function SoundToggle({
   return (
     <button
       type="button"
+      role="switch"
+      aria-checked={enabled}
       onClick={onToggle}
-      aria-pressed={enabled}
-      className="inline-flex items-center gap-2 select-none shrink-0"
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onToggle();
+        }
+      }}
+      className="inline-flex items-center gap-3 select-none shrink-0 rounded-full px-2 py-1
+                 bg-white/10 border border-white/15 backdrop-blur-sm
+                 shadow-sm hover:bg-white/15 active:scale-[0.98]
+                 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
       title={enabled ? 'Ses Açık' : 'Ses Kapalı'}
     >
-      <span className="text-white/90">{enabled ? <Volume2 size={18} /> : <VolumeX size={18} />}</span>
-
+      {/* iOS-style switch */}
       <span
-        className={`relative inline-flex h-7 w-12 items-center rounded-full border transition-all ${
-          enabled ? 'bg-green-500/25 border-green-400/50' : 'bg-white/10 border-white/20'
-        }`}
+        className={[
+          "relative inline-flex h-7 w-[46px] items-center rounded-full transition-colors",
+          enabled ? "bg-green-500" : "bg-white/25"
+        ].join(" ")}
+        style={{
+          boxShadow: "inset 0 1px 2px rgba(0,0,0,0.35)"
+        }}
       >
         <span
-          className={`inline-block h-6 w-6 transform rounded-full bg-white shadow transition-transform ${
-            enabled ? 'translate-x-5' : 'translate-x-1'
-          }`}
+          className={[
+            "inline-block h-6 w-6 rounded-full bg-white transition-transform",
+            enabled ? "translate-x-[18px]" : "translate-x-[2px]"
+          ].join(" ")}
+          style={{
+            boxShadow: "0 2px 8px rgba(0,0,0,0.35)"
+          }}
         />
       </span>
 
-      <span className="font-extrabold text-sm text-white/95 sm:hidden">Ses</span>
-      <span className="font-extrabold text-sm text-white/95 hidden sm:inline">
+      {/* icon */}
+      <span className="text-white/90">
+        {enabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
+      </span>
+
+      {/* label: mobil kısa, desktop uzun */}
+      <span className="font-extrabold text-sm text-white sm:hidden">Ses</span>
+      <span className="font-extrabold text-sm text-white hidden sm:inline">
         {enabled ? 'Ses Açık' : 'Ses Kapalı'}
       </span>
     </button>
   );
 }
+
 
 type SoundItem = { mag: number; isNear: boolean; eq: Earthquake };
 
