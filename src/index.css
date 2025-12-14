@@ -2843,3 +2843,17 @@ html {
 .animate-fade-in {
   animation: fade-in 180ms ease-out;
 }
+@keyframes fade-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+.animate-fade-out {
+  animation: fade-out 220ms ease-in;
+}
