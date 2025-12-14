@@ -1124,22 +1124,25 @@ export function Deprem() {
             </div>
 
             {/* ORTA: bildirim toggle */}
-            <div className="flex justify-center relative">
-              <NotificationToggle
-                enabled={notificationsEnabled}
-                onToggle={() => setNotificationsEnabled((v) => !v)}
-              />
+<div className="flex flex-col items-center gap-2">
+  <NotificationToggle
+    enabled={notificationsEnabled}
+    onToggle={() => setNotificationsEnabled((v) => !v)}
+  />
 
-              {/* Bildirim açınca 1 kez gösterilen mini tooltip */}
-              {showNotifyHint && (
-                <div
-                  className="absolute top-full mt-2 px-3 py-2 rounded-lg text-xs font-semibold
-                             bg-black/70 text-white shadow-lg border border-white/10"
-                >
-                  🔔 Bildirim açık — yeni depremler sesle bildirilecek
-                </div>
-              )}
-            </div>
+  {/* Bildirim açılınca 1 kez görünen açıklama (AKIŞ İÇİNDE) */}
+  {showNotifyHint && (
+    <div
+      className="px-3 py-1.5 rounded-md text-xs font-semibold
+                 bg-black/70 text-white shadow
+                 border border-white/10
+                 animate-fade-in"
+    >
+      🔔 Bildirim açık — yeni depremler sesle bildirilecek
+    </div>
+  )}
+</div>
+
 
             {/* SAĞ: countdown + saat + sayı */}
             <div className="flex justify-start md:justify-end md:justify-self-end">
