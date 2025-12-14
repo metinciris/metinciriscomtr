@@ -798,28 +798,30 @@ export function Deprem() {
    * - sadece ISPARTA/YAKIN
    * - en yeni solda
    */
-  const alertEarthquakes = useMemo(() => {
-    const list = earthquakes
-      .map((eq) => {
-        const distance = distanceMap.get(eq.earthquake_id) ?? 999999;
-        const rel = getRelation(eq.title, distance);
-        return { eq, rel, distance };
-      })
-      .filter((x) => x.rel !== null);
+/**
+ * ÜST ALARM DEPREMİ — SADECE 1 TANE
+ * ------------------------------------------------
+ * KURAL:
+ * - Sadece EN YENİ Isparta / YAKIN deprem
+ * - Mobil + Desktop AYNI
+ * - Liste, slice, scroll YOK
+ */
+const latestAlertEarthquake = useMemo(() => {
+  for (const eq of earthquakes) {
+    const distance = distanceMap.get(eq.earthquake_id) ?? 999999;
+    const rel = getRelation(eq.title, distance);
 
-    list.sort((a, b) => new Date(b.eq.date_time).getTime() - new Date(a.eq.date_time).getTime());
-    return list;
-  }, [earthquakes, distanceMap]);
+    if (rel) {
+      return {
+        eq,
+        rel,
+        distance
+      };
+    }
+  }
 
-  // Üst şeritte “ekranda kaç kart gösterelim?”
-  const alertVisibleCount = isDesktop ? 2 : 1;
-  const alertVisibleList = alertEarthquakes.slice(0, alertVisibleCount);
-  const alertHiddenCount = Math.max(0, alertEarthquakes.length - alertVisibleCount);
-
-  // Üst şerit “yeni mi” (son 1 saat içinde Isparta/Yakın var mı)
-  const alertIsFresh = useMemo(() => {
-    return alertEarthquakes.some((x) => isRecent(x.eq.date_time));
-  }, [alertEarthquakes]);
+  return null;
+}, [earthquakes, distanceMap]);
 
   // Mobil karo sıralaması (separate)
   const mobileSorted = useMemo(() => {
@@ -980,123 +982,68 @@ export function Deprem() {
             A) ÜST ALARM ŞERİDİ (ISPARTA/YAKIN)
             - ÇÖKMEYİ ÖNLE: sadece 1/2 kart göster + “+N daha…”
            ===================================================== */}
-        {alertEarthquakes.length > 0 && (
-          <div className={['mt-1', SECTION_GAP].join(' ')}>
-            <div className="flex items-center justify-between mb-2">
-              <div
-                className="text-xs font-extrabold uppercase tracking-wide"
-                style={{ color: alertIsFresh ? '#b91c1c' : '#92400e' }}
-              >
-                Isparta / Yakın Depremler
-              </div>
+        {latestAlertEarthquake && (
+  <div className="mt-1 mb-5">
+    <div className="text-xs font-extrabold uppercase tracking-wide mb-2 text-red-700">
+      Isparta / Yakın Deprem
+    </div>
 
-              <div className="flex items-center gap-2">
-                {/* “+N daha” etiketi */}
-                {alertHiddenCount > 0 && (
-                  <div className="text-xs font-bold text-slate-700 bg-white border rounded-lg px-2 py-1 shadow-sm">
-                    +{alertHiddenCount} tane daha…
-                  </div>
-                )}
-
-                {/* oklar: 2’den fazla varsa kaydır */}
-                {alertEarthquakes.length > alertVisibleCount && (
-                  <>
-                    <button
-                      onClick={() => scrollAlertStrip('left')}
-                      className="p-2 rounded-lg border bg-white hover:bg-gray-50 shadow-sm"
-                      title="Sola"
-                    >
-                      <ChevronLeft size={16} />
-                    </button>
-                    <button
-                      onClick={() => scrollAlertStrip('right')}
-                      className="p-2 rounded-lg border bg-white hover:bg-gray-50 shadow-sm"
-                      title="Sağa"
-                    >
-                      <ChevronRight size={16} />
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-
-            {/* Şerit içerik (scrollable) */}
-            <div
-              ref={alertStripRef}
-              className={[
-                // ÖNEMLİ: flex-nowrap -> hepsi tek satırda kalsın, taşarsa scroll olsun
-                'flex flex-nowrap gap-3 overflow-x-auto scroll-smooth',
-                'pb-1',
-                'snap-x snap-mandatory'
-              ].join(' ')}
+    <div
+      className="rounded-xl border shadow-sm overflow-hidden"
+      style={{
+        backgroundColor:
+          latestAlertEarthquake.rel === 'ISPARTA'
+            ? '#ffe4e6'
+            : '#ffedd5',
+        borderColor: 'rgba(0,0,0,0.12)'
+      }}
+    >
+      <div className="p-4 flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <span
+              className="inline-flex items-center px-2 py-1 text-[11px] font-extrabold rounded-md uppercase"
+              style={{
+                backgroundColor:
+                  latestAlertEarthquake.rel === 'ISPARTA'
+                    ? '#be123c'
+                    : '#c2410c',
+                color: '#fff'
+              }}
             >
-              {/* Burada FULL listeyi değil, sadece görünen kadarını basıyoruz.
-                  Ama oklarla “scroll” etmek istersen full liste basmak gerekir.
-                  Çözüm: full listeyi basıp, kartları min-width verip “görüntü alanı gibi” davranmasını sağlamak.
-                  Fakat senin “8’i birden gözükmesin” şikayetin flex-wrap/width yüzündendi.
-                  Bu yüzden full listeyi basıyoruz ama:
-                  - flex-nowrap
-                  - kart: flex-none
-                  - min-width
-                  Böylece aynı anda sadece 1-2 kart görünür.
-              */}
-              {alertEarthquakes.map(({ eq, rel, distance }) => {
-                const baseBg = rel === 'ISPARTA' ? '#ffe4e6' : '#ffedd5';
-                const strongBg = rel === 'ISPARTA' ? '#ef4444' : '#f97316';
+              {latestAlertEarthquake.rel}
+            </span>
 
-                const isSingle = alertEarthquakes.length === 1;
-
-                return (
-                  <div
-                    key={eq.earthquake_id}
-                    className={[
-                      'snap-start',
-                      // flex-none: kartlar satırda “sıkışıp 8 tane aynı anda görünmesin”
-                      'flex-none',
-                      'rounded-xl border shadow-sm overflow-hidden',
-                      isSingle ? 'w-full' : 'w-[88%] sm:w-[420px] md:w-[460px]' // mobilde 1 kart gibi, desktop’ta 2 kart gibi
-                    ].join(' ')}
-                    style={{ backgroundColor: baseBg, borderColor: 'rgba(0,0,0,0.12)' }}
-                  >
-                    <div className="p-3">
-                      <div className="flex items-center justify-between gap-2">
-                        <span
-                          className="inline-flex items-center px-2 py-1 text-[11px] font-extrabold rounded-md uppercase tracking-wide border"
-                          style={{
-                            backgroundColor: strongBg,
-                            color: '#fff',
-                            borderColor: 'rgba(0,0,0,0.12)',
-                            textShadow: '0 1px 1px rgba(0,0,0,0.35)'
-                          }}
-                        >
-                          {rel}
-                        </span>
-
-                        <span className="text-xs font-semibold text-slate-700">{getTimeAgo(eq.date_time)}</span>
-                      </div>
-
-                      <div className="mt-2 flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <div className="text-sm font-extrabold text-slate-900 break-words">{eq.title}</div>
-                          <div className="text-[11px] text-slate-700 mt-1">
-                            Isparta: <span className="font-mono font-bold">{Math.round(distance)} km</span>
-                          </div>
-                        </div>
-
-                        <div className="shrink-0 text-right">
-                          <div className="text-3xl font-black leading-none" style={{ color: '#0f172a' }}>
-                            {eq.mag.toFixed(1)}
-                          </div>
-                          <div className="text-[11px] text-slate-700 font-semibold">Mw / ML</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+            <span className="text-xs text-slate-700 font-semibold">
+              {getTimeAgo(latestAlertEarthquake.eq.date_time)}
+            </span>
           </div>
-        )}
+
+          <div className="text-sm font-extrabold text-slate-900 break-words">
+            {latestAlertEarthquake.eq.title}
+          </div>
+
+          <div className="text-xs text-slate-700 mt-1">
+            Isparta’ya uzaklık:{' '}
+            <span className="font-mono font-bold">
+              {Math.round(latestAlertEarthquake.distance)} km
+            </span>
+          </div>
+        </div>
+
+        <div className="shrink-0 text-right">
+          <div className="text-4xl font-black leading-none text-slate-900">
+            {latestAlertEarthquake.eq.mag.toFixed(1)}
+          </div>
+          <div className="text-[11px] font-semibold text-slate-700">
+            Mw / ML
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
 
         {/* =====================================================
             B) ÜST PANEL (Sayfa başlığı burada)
