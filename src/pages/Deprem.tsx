@@ -813,22 +813,24 @@ return hasTZ ? str : `${str}Z`;
                 </div>
               </div>
 
-              <button
-                onClick={() => setSoundEnabled(!soundEnabled)}
-                className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all shadow-md border hover:shadow-lg"
-                style={{
-                  backgroundColor: soundEnabled ? 'rgba(34, 197, 94, 0.18)' : 'rgba(255, 255, 255, 0.10)',
-                  color: '#ffffff',
-                  borderColor: soundEnabled ? 'rgba(34, 197, 94, 0.45)' : 'rgba(255, 255, 255, 0.18)',
-                  boxShadow: soundEnabled ? '0 0 0 3px rgba(34, 197, 94, 0.20)' : undefined
-                }}
-                title={soundEnabled ? 'Sesli uyarı açık' : 'Sesli uyarı kapalı'}
-              >
-                {soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
-                <span className="font-extrabold text-sm tracking-wide" style={{ textShadow: '0 1px 1px rgba(0,0,0,0.35)' }}>
-                  {soundEnabled ? 'Ses Açık' : 'Ses Kapalı'}
-                </span>
-              </button>
+<button
+  onClick={() => setSoundEnabled(!soundEnabled)}
+  className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all shadow-md border"
+  title={soundEnabled ? 'Ses Açık' : 'Ses Kapalı'}
+>
+  {soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
+
+  {/* Mobil */}
+  <span className="font-extrabold text-sm sm:hidden">
+    Ses
+  </span>
+
+  {/* Masaüstü */}
+  <span className="font-extrabold text-sm hidden sm:inline">
+    {soundEnabled ? 'Ses Açık' : 'Ses Kapalı'}
+  </span>
+</button>
+
             </div>
           </div>
 
