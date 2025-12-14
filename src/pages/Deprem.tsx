@@ -952,14 +952,14 @@ const scrollAlertStripBy = (dir: 'left' | 'right') => {
 
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => scrollAlertStripBy'left')}
+                      onClick={() => scrollAlertStripBy('left')}
                       className="p-2 rounded-lg border bg-white hover:bg-gray-50 shadow-sm"
                       title="Sola"
                     >
                       <ChevronLeft size={16} />
                     </button>
                     <button
-                      onClick={() => scrollAlertStripBy'right')}
+                      onClick={() => scrollAlertStripBy('right')}
                       className="p-2 rounded-lg border bg-white hover:bg-gray-50 shadow-sm"
                       title="Sağa"
                     >
