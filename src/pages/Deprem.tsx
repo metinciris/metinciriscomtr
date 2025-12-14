@@ -922,7 +922,7 @@ export function Deprem() {
           ===================================================== */}
 {latestBannerEq && (
   <div
-    className="text-white p-4 mt-2 mb-5 rounded-xl shadow-lg border"
+    className="text-white p-4 mt-6 mb-5 rounded-xl shadow-lg border"
     style={{
       background: 'linear-gradient(to right, #ef4444, #b91c1c)',
       borderColor: 'rgba(255,255,255,0.18)'
