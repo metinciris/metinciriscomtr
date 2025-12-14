@@ -777,7 +777,7 @@ export function Deprem() {
                     {lastUpdated.toLocaleTimeString('tr-TR')}
                   </div>
                   <div className="text-xs text-white/75">
-                    {earthquakes.length > 0 ? `Son 7 günde ${earthquakes.length} kayıt` : ''}
+                    {earthquakes.length > 0 ? `Son 7 günde ${earthquakes.length} deprem` : ''}
                   </div>
                 </div>
               </div>
