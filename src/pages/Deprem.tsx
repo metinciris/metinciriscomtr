@@ -483,6 +483,19 @@ export function Deprem() {
   const isPlaying = useRef(false);
 
   const alertStripRef = useRef<HTMLDivElement | null>(null);
+// Ok butonlarıyla şeridi yana kaydırmak için
+const scrollAlertStripBy = (dir: 'left' | 'right') => {
+  const el = alertStripRef.current;
+  if (!el) return;
+
+  // Mobilde ekrana yakın, desktop'ta sabit kaydırma
+  const step = isDesktop ? 480 : Math.round(window.innerWidth * 0.9);
+
+  el.scrollBy({
+    left: dir === 'left' ? -step : step,
+    behavior: 'smooth'
+  });
+};
 
   /* ============================================================
      10) Ses (WebAudio) — basit ve stabil
@@ -939,14 +952,14 @@ export function Deprem() {
 
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => scrollAlertStrip('left')}
+                      onClick={() => scrollAlertStripBy'left')}
                       className="p-2 rounded-lg border bg-white hover:bg-gray-50 shadow-sm"
                       title="Sola"
                     >
                       <ChevronLeft size={16} />
                     </button>
                     <button
-                      onClick={() => scrollAlertStrip('right')}
+                      onClick={() => scrollAlertStripBy'right')}
                       className="p-2 rounded-lg border bg-white hover:bg-gray-50 shadow-sm"
                       title="Sağa"
                     >
@@ -957,7 +970,7 @@ export function Deprem() {
 
                 <div
                   ref={alertStripRef}
-                  className="flex flex-nowrap gap-3 overflow-x-auto scroll-smooth pb-1"
+                  className="flex flex-row flex-nowrap gap-3 overflow-x-auto overflow-y-hidden snap-x snap-mandatory scroll-smooth pb-1 items-stretch"
                 >
                   {alertEarthquakes.slice(1).map((it) => (
                     <div
