@@ -530,7 +530,7 @@ export function Deprem() {
     }, null as Earthquake | null);
   }, [earthquakes]);
 
-  // ✅ Kart okunurluğu kesin: overlay + inline renkler + OSM "Haritada aç"
+  // ✅ Kart okunurluğu: overlay + inline renkler + OSM "Haritada aç"
   const renderMaxCard = (title: string, eq: Earthquake | null) => {
     if (!eq) {
       return (
@@ -575,7 +575,6 @@ export function Deprem() {
           borderColor: 'rgba(0,0,0,0.12)'
         }}
       >
-        {/* beyaz overlay -> header içindeki text-white mirasını etkisiz */}
         <div className="absolute inset-0" style={{ backgroundColor: 'rgba(255,255,255,0.72)' }} />
 
         <div className="relative">
@@ -612,12 +611,8 @@ export function Deprem() {
             {eq.title}
           </div>
 
-          <div
-            className="text-[11px] mt-1 flex items-center justify-between gap-2 font-medium"
-            style={{ color: '#334155' }}
-          >
+          <div className="text-[11px] mt-1 flex items-center justify-between gap-2 font-medium" style={{ color: '#334155' }}>
             <span className="font-mono">Isparta&apos;dan uzaklık: {Math.round(distance)} km</span>
-
             <span className="flex items-center gap-2">
               <span className="whitespace-nowrap">{formatDate(eq.date_time)}</span>
               <a
@@ -631,6 +626,34 @@ export function Deprem() {
                 Haritada aç
               </a>
             </span>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderSeverityBar = () => {
+    const items = [
+      { label: '<3 düşük', bg: '#dcfce7', fg: '#14532d' },
+      { label: '3–3.9 orta', bg: '#fef9c3', fg: '#713f12' },
+      { label: '4–4.9 belirgin', bg: '#ffedd5', fg: '#7c2d12' },
+      { label: '5–5.9 güçlü', bg: '#fee2e2', fg: '#7f1d1d' },
+      { label: '6+ çok güçlü', bg: '#fecaca', fg: '#7f1d1d' }
+    ];
+
+    return (
+      <div className="w-full mt-2">
+        <div className="rounded-lg overflow-hidden border border-white/15 bg-white/10">
+          <div className="flex flex-wrap">
+            {items.map((it, idx) => (
+              <div
+                key={idx}
+                className="flex-1 min-w-[140px] px-3 py-2 text-[11px] font-extrabold text-center"
+                style={{ backgroundColor: it.bg, color: it.fg }}
+              >
+                {it.label}
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -666,75 +689,44 @@ export function Deprem() {
 
       {/* Header */}
       <div
-        className="text-white p-6 mb-8 rounded-xl shadow-lg"
+        className="text-white p-5 mb-8 rounded-xl shadow-lg"
         style={{ background: 'linear-gradient(to right, #0f172a, #1e3a8a)' }}
       >
-        <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
-          <div className="flex-1">
-            <h1 className="text-white mb-2 text-3xl font-bold flex items-center gap-3">
-              <Activity size={34} className="animate-pulse" />
-              Son Depremler
-            </h1>
-            <p className="text-white/90 text-base mb-1">AFAD Event Service canlı verileri</p>
-            <p className="text-white/80 text-sm">
-              30 saniyede bir güncellenir. Ses açıkken deprem bildirimi: Deprem şiddeti kadar tık sesi.
-            </p>
+        <div className="flex flex-col gap-3">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex-1">
+              <h1 className="text-white text-3xl font-bold flex items-center gap-3">
+                <Activity size={34} className="animate-pulse" />
+                Son Depremler
+              </h1>
 
-            {/* Legend */}
-            <div className="mt-3 flex flex-wrap gap-2 text-[11px] font-extrabold">
-              <span
-                className="px-2 py-1 rounded-md border"
-                style={{ backgroundColor: '#dcfce7', borderColor: 'rgba(0,0,0,0.08)', color: '#14532d' }}
-              >
-                &lt;3 düşük
-              </span>
-              <span
-                className="px-2 py-1 rounded-md border"
-                style={{ backgroundColor: '#fef9c3', borderColor: 'rgba(0,0,0,0.08)', color: '#713f12' }}
-              >
-                3–3.9 orta
-              </span>
-              <span
-                className="px-2 py-1 rounded-md border"
-                style={{ backgroundColor: '#ffedd5', borderColor: 'rgba(0,0,0,0.08)', color: '#7c2d12' }}
-              >
-                4–4.9 belirgin
-              </span>
-              <span
-                className="px-2 py-1 rounded-md border"
-                style={{ backgroundColor: '#fee2e2', borderColor: 'rgba(0,0,0,0.08)', color: '#7f1d1d' }}
-              >
-                5–5.9 güçlü
-              </span>
-              <span
-                className="px-2 py-1 rounded-md border"
-                style={{ backgroundColor: '#fecaca', borderColor: 'rgba(0,0,0,0.08)', color: '#7f1d1d' }}
-              >
-                6+ çok güçlü
-              </span>
+              {/* İstenen tek cümle */}
+              <p className="text-white/85 text-sm mt-1">
+                Ses açıkken deprem bildirimi: Deprem şiddeti kadar tık sesi.
+              </p>
             </div>
-          </div>
 
-          <div className="flex flex-col gap-2 md:min-w-[340px]">
-            <div className="bg-white/10 border border-white/15 rounded-lg p-3 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center justify-center h-[34px] w-[34px]">
+            {/* Sağ üst: saat + sayaç + ses */}
+            <div className="flex items-center gap-3">
+              <div className="bg-white/10 border border-white/15 rounded-lg px-3 py-2 flex items-center gap-3">
+                <div className="flex items-center justify-center h-[30px] w-[30px]">
                   {loading ? (
-                    <RefreshCw size={26} className="animate-spin" />
+                    <RefreshCw size={22} className="animate-spin" />
                   ) : (
-                    <CountdownTimer duration={30000} resetKey={lastUpdated} size={30} />
+                    <CountdownTimer duration={30000} resetKey={lastUpdated} size={28} />
                   )}
                 </div>
-                <div>
+                <div className="leading-tight">
                   <div className="flex items-center gap-1 text-sm text-white/90">
                     <Clock size={14} />
                     {lastUpdated.toLocaleTimeString('tr-TR')}
                   </div>
-                  <div className="text-xs text-white/70">{earthquakes.length > 0 ? `${earthquakes.length} kayıt` : ''}</div>
+                  <div className="text-xs text-white/75">
+                    {earthquakes.length > 0 ? `Son 7 günde ${earthquakes.length} kayıt` : ''}
+                  </div>
                 </div>
               </div>
 
-              {/* Ses butonu */}
               <button
                 onClick={() => setSoundEnabled(!soundEnabled)}
                 className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all shadow-md border hover:shadow-lg"
@@ -752,13 +744,16 @@ export function Deprem() {
                 </span>
               </button>
             </div>
-
-            {/* En büyük kartları */}
-            <div className="grid grid-cols-1 gap-2">
-              {renderMaxCard('Son 24 saatte en büyük deprem', max24h)}
-              {renderMaxCard('Son 7 günün en büyük depremi', max7d)}
-            </div>
           </div>
+
+          {/* En büyük kartları: mobilde alt alta, masaüstünde yan yana */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {renderMaxCard('Son 24 saatte en büyük deprem', max24h)}
+            {renderMaxCard('Son 7 günün en büyük depremi', max7d)}
+          </div>
+
+          {/* Şiddet barı: kartların altına */}
+          {renderSeverityBar()}
         </div>
       </div>
 
