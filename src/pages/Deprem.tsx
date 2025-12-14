@@ -179,8 +179,9 @@ export function Deprem() {
     const hasTZ =
       /[zZ]$/.test(str) || /[+-]\d{2}:\d{2}$/.test(str) || /[+-]\d{4}$/.test(str);
 
-    // AFAD TS kabul → yoksa +03:00 ekle
-    return hasTZ ? str : `${str}+03:00`;
+// AFAD event-service'ten gelen timezone'suz timestamp'leri UTC kabul et → "Z" ekle
+return hasTZ ? str : `${str}Z`;
+
   };
   // =====================================================
 
