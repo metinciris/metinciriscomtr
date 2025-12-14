@@ -893,7 +893,7 @@ export function Deprem() {
     ];
 
     return (
-      <div className="w-full mb-3">
+      <div className="w-full mb-5">
         <div className="rounded-lg overflow-hidden border border-gray-200 bg-white shadow-sm">
           <div className="flex flex-wrap">
             {items.map((it, idx) => (
@@ -922,7 +922,7 @@ export function Deprem() {
           ===================================================== */}
 {latestBannerEq && (
   <div
-    className="text-white p-4 mt-2 mb-6 rounded-xl shadow-lg border"
+    className="text-white p-4 mt-2 mb-5 rounded-xl shadow-lg border"
     style={{
       background: 'linear-gradient(to right, #ef4444, #b91c1c)',
       borderColor: 'rgba(255,255,255,0.18)'
@@ -949,7 +949,7 @@ export function Deprem() {
           12.2 Üst Pano (modern 3 sütun)
           ===================================================== */}
       <div
-        className="text-white p-5 mb-6 rounded-xl shadow-lg"
+        className="text-white p-5 mb-5 rounded-xl shadow-lg"
         style={{ background: 'linear-gradient(to right, #0f172a, #1e3a8a)' }}
       >
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:items-center">
