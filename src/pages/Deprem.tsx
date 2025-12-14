@@ -123,6 +123,67 @@ export function Deprem() {
 
   const latestEqDateRef = useRef<string | null>(null);
 
+  // ====== İstanbul saatine sabitleme yardımcıları ======
+  const IST_TZ = 'Europe/Istanbul';
+
+  // "YYYY-MM-DDTHH:mm:ss" (İstanbul TZ) üretir
+  const toIstanbulParam = (d: Date) => {
+    const parts = new Intl.DateTimeFormat('sv-SE', {
+      timeZone: IST_TZ,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    }).formatToParts(d);
+
+    const get = (t: string) => parts.find(p => p.type === t)?.value ?? '00';
+    return `${get('year')}-${get('month')}-${get('day')}T${get('hour')}:${get('minute')}:${get('second')}`;
+  };
+
+  const formatTimeIstanbul = (d: Date) => {
+    return new Intl.DateTimeFormat('tr-TR', {
+      timeZone: IST_TZ,
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    }).format(d);
+  };
+
+  const formatDateIstanbul = (dateStr: string) => {
+    try {
+      const date = new Date(dateStr);
+      return new Intl.DateTimeFormat('tr-TR', {
+        timeZone: IST_TZ,
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      }).format(date);
+    } catch {
+      return dateStr;
+    }
+  };
+
+  // AFAD "Tarih(TS)" timezone içermez: her zaman +03:00 olarak parse ediyoruz
+  const normalizeDateString = (s: any): string => {
+    if (!s) return '';
+    let str = String(s).trim();
+
+    // "YYYY-MM-DD HH:mm:ss" -> "YYYY-MM-DDTHH:mm:ss"
+    if (str.includes(' ') && !str.includes('T')) str = str.replace(' ', 'T');
+
+    // Timezone var mı?
+    const hasTZ =
+      /[zZ]$/.test(str) || /[+-]\d{2}:\d{2}$/.test(str) || /[+-]\d{4}$/.test(str);
+
+    // AFAD TS kabul → yoksa +03:00 ekle
+    return hasTZ ? str : `${str}+03:00`;
+  };
+  // =====================================================
+
   const deg2rad = (deg: number) => deg * (Math.PI / 180);
 
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
@@ -137,27 +198,6 @@ export function Deprem() {
         Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
-  };
-
-  const normalizeDateString = (s: any): string => {
-    if (!s) return '';
-    const str = String(s);
-    return str.includes(' ') && !str.includes('T') ? str.replace(' ', 'T') : str;
-  };
-
-  const formatDate = (dateStr: string) => {
-    try {
-      const date = new Date(dateStr);
-      return date.toLocaleString('tr-TR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    } catch {
-      return dateStr;
-    }
   };
 
   // 2 saat+ için dakika göstermiyoruz
@@ -213,9 +253,7 @@ export function Deprem() {
     return '#dcfce7'; // green-100
   };
 
-  const getSeverityBg = (mag: number, relation: 'ISPARTA' | 'YAKIN' | null) => {
-    return getRowColor(mag, relation);
-  };
+  const getSeverityBg = (mag: number, relation: 'ISPARTA' | 'YAKIN' | null) => getRowColor(mag, relation);
 
   // Sorting: first click defaults (distance asc, mag desc, date desc)
   const handleSort = (key: SortKey) => {
@@ -300,7 +338,7 @@ export function Deprem() {
       relation
     });
 
-    // Bir sonraki bildirime kadar kalsın; ayrıca 30sn sonra otomatik gizle (ekranı kirletmesin)
+    // Bir sonraki bildirime kadar kalsın; ayrıca 30sn sonra otomatik gizle
     if (lastAlertHideTimer.current) window.clearTimeout(lastAlertHideTimer.current);
     lastAlertHideTimer.current = window.setTimeout(() => setLastAlert(null), 30000);
   };
@@ -313,7 +351,6 @@ export function Deprem() {
       const item = soundQueue.current.shift();
       if (!item) break;
 
-      // ✅ Sesin hangi deprem için çaldığını göster
       const distanceKm = calculateDistance(
         ISPARTA_COORDS.lat,
         ISPARTA_COORDS.lng,
@@ -413,20 +450,13 @@ export function Deprem() {
     setError(null);
 
     try {
-      // Son 7 gün
+      // Son 7 gün (İstanbul saatine göre start/end param üret)
       const end = new Date();
       const start = new Date(end.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-      const toParam = (d: Date) => {
-        const pad = (n: number) => String(n).padStart(2, '0');
-        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(
-          d.getMinutes()
-        )}:${pad(d.getSeconds())}`;
-      };
-
       const qs = new URLSearchParams({
-        start: toParam(start),
-        end: toParam(end),
+        start: toIstanbulParam(start),
+        end: toIstanbulParam(end),
         format: 'json'
       });
 
@@ -566,7 +596,6 @@ export function Deprem() {
     }, null as Earthquake | null);
   }, [earthquakes]);
 
-  // ✅ Kart okunurluğu: overlay + inline renkler + OSM "Haritada aç"
   const renderMaxCard = (title: string, eq: Earthquake | null) => {
     if (!eq) {
       return (
@@ -650,7 +679,7 @@ export function Deprem() {
           <div className="text-[11px] mt-1 flex items-center justify-between gap-2 font-medium" style={{ color: '#334155' }}>
             <span className="font-mono">Isparta&apos;dan uzaklık: {Math.round(distance)} km</span>
             <span className="flex items-center gap-2">
-              <span className="whitespace-nowrap">{formatDate(eq.date_time)}</span>
+              <span className="whitespace-nowrap">{formatDateIstanbul(eq.date_time)}</span>
               <a
                 href={osmUrl}
                 target="_blank"
@@ -668,7 +697,7 @@ export function Deprem() {
     );
   };
 
-  // ✅ Daha dengeli bar: desktop'ta 5 eşit parça, mobilde 2 satıra daha düzgün kırılır
+  // ✅ Daha dengeli bar (mobilde daha düzgün kırılır)
   const renderSeverityBar = () => {
     const items = [
       { label: '<3 düşük', bg: '#dcfce7', fg: '#14532d' },
@@ -717,7 +746,7 @@ export function Deprem() {
                 <span className="text-xl font-bold">{latestBannerEq.mag.toFixed(1)}</span>
               </p>
               <p className="text-sm opacity-90">
-                {formatDate(latestBannerEq.date_time)} ({getTimeAgo(latestBannerEq.date_time)})
+                {formatDateIstanbul(latestBannerEq.date_time)} ({getTimeAgo(latestBannerEq.date_time)})
               </p>
             </div>
           </div>
@@ -741,7 +770,7 @@ export function Deprem() {
                 Ses açıkken deprem bildirimi: Deprem şiddeti kadar tık sesi.
               </p>
 
-              {/* ✅ Son ses bildirimi (hangi deprem?) */}
+              {/* ✅ Son ses bildirimi */}
               {soundEnabled && lastAlert && (
                 <div
                   className="mt-2 inline-flex items-start gap-2 rounded-lg border px-3 py-2 max-w-[920px]"
@@ -754,7 +783,8 @@ export function Deprem() {
                       {lastAlert.relation ? ` • ${lastAlert.relation}` : ''}
                     </div>
                     <div className="text-white/85 break-words">
-                      {lastAlert.title} • Isparta&apos;dan {Math.round(lastAlert.distanceKm)} km
+                      {lastAlert.title} • Isparta&apos;dan {Math.round(lastAlert.distanceKm)} km •{' '}
+                      {formatDateIstanbul(lastAlert.date_time)}
                     </div>
                   </div>
                 </div>
@@ -774,10 +804,10 @@ export function Deprem() {
                 <div className="leading-tight">
                   <div className="flex items-center gap-1 text-sm text-white/90">
                     <Clock size={14} />
-                    {lastUpdated.toLocaleTimeString('tr-TR')}
+                    {formatTimeIstanbul(lastUpdated)}
                   </div>
                   <div className="text-xs text-white/75">
-                    {earthquakes.length > 0 ? `Son 7 günde ${earthquakes.length} deprem` : ''}
+                    {earthquakes.length > 0 ? `Son 7 günde ${earthquakes.length} kayıt` : ''}
                   </div>
                 </div>
               </div>
@@ -807,7 +837,6 @@ export function Deprem() {
             {renderMaxCard('Son 7 günün en büyük depremi', max7d)}
           </div>
 
-          {/* Şiddet barı */}
           {renderSeverityBar()}
         </div>
       </div>
@@ -880,7 +909,7 @@ export function Deprem() {
                 >
                   <div className="flex items-center gap-1">
                     <Clock size={16} className="inline mr-2" />
-                    Tarih / Saat
+                    Tarih / Saat (TS)
                     {sortConfig.key === 'date_time' &&
                       (sortConfig.direction === 'desc' ? <ArrowDown size={14} /> : <ArrowUp size={14} />)}
                     {sortConfig.key !== 'date_time' && <ArrowUpDown size={14} className="text-gray-400" />}
@@ -992,7 +1021,7 @@ export function Deprem() {
                       </td>
 
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-b border-gray-300">
-                        <span>{formatDate(eq.date_time)}</span>
+                        <span>{formatDateIstanbul(eq.date_time)}</span>
                       </td>
                     </tr>
                   );
@@ -1031,6 +1060,8 @@ export function Deprem() {
           <br />
           <span className="font-bold">ISPARTA</span>: “Isparta/ısparta” geçen kayıtlar.{' '}
           <span className="font-bold ml-2">YAKIN</span>: Isparta merkeze 100 km yakın.
+          <br />
+          <span className="font-medium">Tüm saatler İstanbul saatine (TS) göre gösterilir.</span>
         </p>
       </div>
     </PageContainer>
