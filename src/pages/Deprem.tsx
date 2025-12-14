@@ -1132,14 +1132,15 @@ export function Deprem() {
 
   {/* Bildirim açılınca 1 kez görünen açıklama (AKIŞ İÇİNDE) */}
   {showNotifyHint && (
-    <div
-      className="px-3 py-1.5 rounded-md text-xs font-semibold
-                 bg-black/70 text-white shadow
-                 border border-white/10
-                 animate-fade-in"
-    >
-      🔔 Bildirim açık — yeni depremler sesle bildirilecek
-    </div>
+<div
+  className="px-3 py-1.5 rounded-md text-xs font-semibold
+             bg-black/70 text-white shadow
+             border border-white/10
+             animate-fade-in"
+>
+  🔔 Bildirim açık — yeni depremler sesle bildirilecek
+</div>
+
   )}
 </div>
 
