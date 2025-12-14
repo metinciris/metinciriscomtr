@@ -1,36 +1,26 @@
 /**
- * Deprem.tsx — Stabil + Desktop Tablo Garantili + Mobil Sıralamalı
- * ==============================================================
- * Bu dosya özellikle “desktop tablo bazen görünmüyor” ve “üst şerit 8 kartla çöküyor”
- * sorunlarını çözmek için revize edildi.
+ * Deprem.tsx — FINAL
+ * ============================================================
+ * İSTEKLER (son durum):
+ * ------------------------------------------------------------
+ * ✅ Üstte Isparta/Yakın: EKRANDA 1 kart (en yeni).
+ * ✅ Eğer başka Isparta/Yakın deprem varsa: "+N diğer" butonu.
+ * ✅ Butona basınca: çökmeden, mobilde 1 / desktop'ta 2 görünecek şekilde
+ *    yatay kaydırmalı şerit açılır (oklarla kaydırma).
+ * ✅ Desktop tablo görünürlüğü Tailwind breakpoint'e bağlı değil:
+ *    matchMedia ile "gerçek desktop" tespiti yapılıyor.
+ * ✅ Mobil liste "karo" sisteminde: yer + zaman önce + büyüklük belirgin,
+ *    karta tıklayınca detay açılıyor.
+ * ✅ Mobil sıralama: select değil, 3 buton (tam satır).
+ * ✅ "Son Depremler Listesi" H2 kaldırıldı.
+ * ✅ Şiddet renk barı tablonun üstünde.
  *
- * NELER DÜZELTİLDİ?
- * --------------------------------------------------------------
- * ✅ Desktop tablo render’ı Tailwind breakpoint’e bağlı değil.
- *    - Bazı ortamlarda md:block / md:hidden beklenmedik davranabiliyor.
- *    - Bunun yerine matchMedia ile gerçek ekran genişliği ölçülüyor.
- *
- * ✅ Isparta / Yakın üst şeritte:
- *    - Mobilde 1 kart, desktop’ta 2 kart “görüntü alanı” gibi çalışır.
- *    - Fazlası için “+N tane daha…” etiketi.
- *    - Oklarla kaydırma devam eder.
- *
- * ✅ Mobil karo listesinde sıralama var:
- *    - En Yeni, En Büyük, En Yakın
- *
- * ✅ Bildirim (ses) toggle:
- *    - “Bildirim Açık/Kapalı”
- *    - Açıkken: deprem şiddeti kadar tık
- *    - Isparta/Yakın ise: başına 1 uzun tık (preamble)
- *
- * ✅ Şiddet renk barı tablonun üstünde
- * ✅ En büyük deprem kartları şiddet rengiyle uyumlu
- *
- * NOT:
- * --------------------------------------------------------------
- * - localStorage YOK
- * - Saat / tarih Europe/Istanbul
- * - AFAD fetch Cloudflare Worker proxy ile
+ * NOTLAR:
+ * ------------------------------------------------------------
+ * - LocalStorage yok.
+ * - Zaman: Europe/Istanbul formatında gösterilir.
+ * - Zaman normalizasyonu: timezone yoksa Z EKLEMEYİZ (3 saat geri kalma yapıyordu).
+ * - AFAD verisi Cloudflare Worker proxy üzerinden çekilir.
  */
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -55,15 +45,14 @@ import {
 } from 'lucide-react';
 
 /* ============================================================
-   1) TIPLER
+   1) Tipler
    ============================================================ */
-
 interface Earthquake {
   earthquake_id: string;
   title: string;
   mag: number;
   depth: number;
-  date_time: string; // ISO-ish string (timezone yoksa da “local” gibi yorumlayacağız)
+  date_time: string;
   geojson: {
     type: string;
     coordinates: [number, number]; // [lng, lat]
@@ -75,37 +64,22 @@ type SortDirection = 'asc' | 'desc';
 type Relation = 'ISPARTA' | 'YAKIN' | null;
 
 /* ============================================================
-   2) SABİTLER
+   2) Sabitler
    ============================================================ */
-
-// Isparta merkez
 const ISPARTA_COORDS = { lat: 37.7648, lng: 30.5567 };
 const NEAR_KM = 100;
 const IST_TZ = 'Europe/Istanbul';
-
-// AFAD proxy (senin worker)
 const AFAD_PROXY = 'https://depremo.tutkumuz.workers.dev';
 
-// Genel aralık ayarı: bloklar arası mesafe eşit olsun diye
-// (Senin “bloklar arası eşit aralık” isteğini buradan tek yerden kontrol ediyoruz.)
-const SECTION_GAP = 'mb-5'; // istersen mb-6 yap
-const PAGE_TOP_PULL = '-mt-4'; // navbar’a biraz yaklaşsın
+// Tasarımda bloklar arası boşluk — tek yerden yönet
+const SECTION_GAP = 'mb-5';
+
+// Navbar’a biraz yaklaşması için (istersen 0 yap)
+const PAGE_TOP_PULL = '-mt-4';
 
 /* ============================================================
-   3) RESPONSIVE GARANTİ: Tailwind md’ye güvenmeyelim
+   3) Responsive garanti (Tailwind md’ye takılma)
    ============================================================ */
-/**
- * Neden?
- * - Kullanıcıda desktop olmasına rağmen tablo “hidden md:block” yüzünden görünmedi.
- * - Bu genelde:
- *   - tailwind build ayarı,
- *   - responsive variant üretimi,
- *   - CSS order,
- *   - viewport ölçek ayarı gibi durumlarda can sıkıyor.
- *
- * Çözüm:
- * - matchMedia ile gerçek piksel genişliği kontrol edip render’ı JS ile yapıyoruz.
- */
 function useIsDesktop(minWidth = 768) {
   const [isDesktop, setIsDesktop] = useState<boolean>(() => {
     if (typeof window === 'undefined') return true;
@@ -117,10 +91,8 @@ function useIsDesktop(minWidth = 768) {
     const mq = window.matchMedia(`(min-width:${minWidth}px)`);
     const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
 
-    // İlk değer
     setIsDesktop(mq.matches);
 
-    // Listener (eski Safari fallback)
     if (mq.addEventListener) mq.addEventListener('change', handler);
     else mq.addListener(handler);
 
@@ -134,7 +106,7 @@ function useIsDesktop(minWidth = 768) {
 }
 
 /* ============================================================
-   4) 30sn COUNTDOWN (Kaybolmasın)
+   4) 30sn countdown (kaybolmasın)
    ============================================================ */
 const CountdownTimer = ({
   duration,
@@ -192,15 +164,9 @@ const CountdownTimer = ({
 };
 
 /* ============================================================
-   5) BİLDİRİM TOGGLE
+   5) Bildirim toggle
    ============================================================ */
-function NotificationToggle({
-  enabled,
-  onToggle
-}: {
-  enabled: boolean;
-  onToggle: () => void;
-}) {
+function NotificationToggle({ enabled, onToggle }: { enabled: boolean; onToggle: () => void }) {
   return (
     <button
       type="button"
@@ -217,7 +183,7 @@ function NotificationToggle({
         'group inline-flex items-center gap-3 select-none shrink-0 rounded-full px-3 py-2',
         'border backdrop-blur-sm shadow-sm active:scale-[0.98]',
         'focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50',
-        // Kullanıcının istediği: kırılmayı azalt
+        // kırılmayı azalt (senin dediğin)
         'whitespace-nowrap',
         enabled
           ? 'bg-green-500/20 border-green-300/40 ring-2 ring-green-300/40'
@@ -225,7 +191,7 @@ function NotificationToggle({
       ].join(' ')}
       title={enabled ? 'Bildirim Açık' : 'Bildirim Kapalı'}
     >
-      {/* Switch gövdesi */}
+      {/* Switch */}
       <span
         className={[
           'relative inline-flex h-7 w-[46px] items-center rounded-full transition-colors',
@@ -233,7 +199,6 @@ function NotificationToggle({
         ].join(' ')}
         style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.35)' }}
       >
-        {/* Switch topu */}
         <span
           className={[
             'inline-block h-6 w-6 rounded-full bg-white transition-transform',
@@ -243,15 +208,13 @@ function NotificationToggle({
         />
       </span>
 
-      {/* ikon */}
+      {/* Icon */}
       <span className="text-white/90">{enabled ? <Volume2 size={18} /> : <VolumeX size={18} />}</span>
 
-      {/* yazı */}
-      <span className="font-extrabold text-sm text-white">
-        {enabled ? 'Bildirim Açık' : 'Bildirim Kapalı'}
-      </span>
+      {/* Text */}
+      <span className="font-extrabold text-sm text-white">{enabled ? 'Bildirim Açık' : 'Bildirim Kapalı'}</span>
 
-      {/* hafif teşvik */}
+      {/* Hafif teşvik */}
       <span className="hidden sm:inline text-xs text-white/70 group-hover:text-white/80 transition">
         {enabled ? '• tık uyarısı aktif' : '• açarsan uyarı veririm'}
       </span>
@@ -260,13 +223,13 @@ function NotificationToggle({
 }
 
 /* ============================================================
-   6) ZAMAN / MESAFE / RENK
+   6) Tarih/saat/mesafe/renk yardımcıları
    ============================================================ */
 
 /**
- * KRİTİK ZAMAN NOTU:
+ * ZAMAN NORMALİZASYONU:
  * - Eskiden timezone yoksa "Z" eklemek 3 saat geri kaydırıyordu.
- * - Bu yüzden: sadece format düzelt (space->T), Z EKLEME.
+ * - O yüzden: sadece format düzelt (space->T), Z EKLEME.
  */
 const normalizeDateString = (s: any): string => {
   if (!s) return '';
@@ -275,14 +238,13 @@ const normalizeDateString = (s: any): string => {
   return str;
 };
 
-const formatTimeIstanbul = (d: Date) => {
-  return new Intl.DateTimeFormat('tr-TR', {
+const formatTimeIstanbul = (d: Date) =>
+  new Intl.DateTimeFormat('tr-TR', {
     timeZone: IST_TZ,
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit'
   }).format(d);
-};
 
 const formatDateIstanbul = (dateStr: string) => {
   try {
@@ -300,7 +262,6 @@ const formatDateIstanbul = (dateStr: string) => {
   }
 };
 
-// AFAD query param için TS’e göre YYYY-MM-DDTHH:mm:ss üret
 const toIstanbulParam = (d: Date) => {
   const parts = new Intl.DateTimeFormat('sv-SE', {
     timeZone: IST_TZ,
@@ -329,7 +290,6 @@ const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: numbe
   return R * c;
 };
 
-// “kaç dk önce”
 const getTimeAgo = (dateStr: string) => {
   const date = new Date(dateStr);
   const now = new Date();
@@ -339,10 +299,7 @@ const getTimeAgo = (dateStr: string) => {
   const minutes = totalMinutes % 60;
 
   if (totalMinutes < 60) return `${totalMinutes} dk önce`;
-  if (totalMinutes < 120) {
-    if (minutes <= 0) return `${hours} saat önce`;
-    return `${hours} saat ${minutes} dk önce`;
-  }
+  if (totalMinutes < 120) return minutes <= 0 ? `${hours} saat önce` : `${hours} saat ${minutes} dk önce`;
   return `${hours} saat önce`;
 };
 
@@ -360,16 +317,13 @@ const getRelation = (title: string, distanceKm: number): Relation => {
   return null;
 };
 
-/**
- * Renk skalası (tablo + kartlar uyumlu olsun diye tek fonksiyon)
- * - Bu renkleri “şiddet barı” da anlatıyor.
- */
+// Şiddet rengi (tablo + kartlar uyumlu tek kaynak)
 const getSeverityColor = (mag: number) => {
-  if (mag >= 6) return '#fecaca'; // red-200
-  if (mag >= 5) return '#fee2e2'; // red-100
-  if (mag >= 4) return '#ffedd5'; // orange-100
-  if (mag >= 3) return '#fef9c3'; // yellow-100
-  return '#dcfce7'; // green-100
+  if (mag >= 6) return '#fecaca';
+  if (mag >= 5) return '#fee2e2';
+  if (mag >= 4) return '#ffedd5';
+  if (mag >= 3) return '#fef9c3';
+  return '#dcfce7';
 };
 
 const getMagnitudeBadgeStyle = (mag: number) => {
@@ -381,7 +335,7 @@ const getMagnitudeBadgeStyle = (mag: number) => {
 };
 
 /* ============================================================
-   7) AFAD RAW -> Earthquake[]
+   7) AFAD map
    ============================================================ */
 const mapAfadToEarthquakes = (raw: any): Earthquake[] => {
   const out: Earthquake[] = [];
@@ -404,7 +358,7 @@ const mapAfadToEarthquakes = (raw: any): Earthquake[] => {
     });
   };
 
-  // 1) FeatureCollection
+  // FeatureCollection
   if (raw?.features && Array.isArray(raw.features)) {
     for (const f of raw.features) {
       const p = f?.properties ?? {};
@@ -428,7 +382,7 @@ const mapAfadToEarthquakes = (raw: any): Earthquake[] => {
     return out;
   }
 
-  // 2) Array
+  // Array
   if (Array.isArray(raw)) {
     for (const e of raw) {
       const lon = e?.longitude ?? e?.lon ?? e?.lng ?? e?.geojson?.coordinates?.[0] ?? e?.coordinates?.[0];
@@ -447,14 +401,14 @@ const mapAfadToEarthquakes = (raw: any): Earthquake[] => {
     return out;
   }
 
-  // 3) raw.result
+  // raw.result
   if (raw?.result && Array.isArray(raw.result)) return mapAfadToEarthquakes(raw.result);
 
   return out;
 };
 
 /* ============================================================
-   8) ŞİDDET BAR (tablo/karo üstünde)
+   8) Şiddet bar
    ============================================================ */
 function SeverityBar() {
   const items = [
@@ -485,25 +439,21 @@ function SeverityBar() {
 }
 
 /* ============================================================
-   9) ANA BİLEŞEN
+   9) Ana bileşen
    ============================================================ */
 export function Deprem() {
-  // ---- responsive tespit ----
   const isDesktop = useIsDesktop(768);
 
   /* ------------------------------
-     state
+     State
   ------------------------------ */
   const [earthquakes, setEarthquakes] = useState<Earthquake[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [error, setError] = useState<string | null>(null);
 
-  // Bildirim (ses)
+  // Bildirim
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
-
-  // “Daha fazla göster” (mobil & desktop)
-  const [showHistory, setShowHistory] = useState(false);
 
   // Desktop tablo sıralama
   const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: SortDirection }>({
@@ -511,35 +461,32 @@ export function Deprem() {
     direction: 'desc'
   });
 
-  // Mobil sıralama (karo)
+  // Mobil sıralama (3 buton)
   const [mobileSort, setMobileSort] = useState<'newest' | 'largest' | 'nearest'>('newest');
 
-  // Mobil accordion: tek kart açık
+  // Mobil accordion
   const [openMobileId, setOpenMobileId] = useState<string | null>(null);
 
+  // 50 / hepsi
+  const [showHistory, setShowHistory] = useState(false);
+
+  // Üst şeritte “diğerlerini göster” aç/kapat
+  const [showMoreIspartaStrip, setShowMoreIspartaStrip] = useState(false);
+
   /* ------------------------------
-     ref (render tetiklemesin)
+     Refs (render tetiklemesin)
   ------------------------------ */
   const seenIdsRef = useRef<Set<string>>(new Set());
 
-  // audio context tek instance
   const audioCtxRef = useRef<AudioContext | null>(null);
-
-  // ses kuyruğu + kilit
   const soundQueue = useRef<Earthquake[]>([]);
   const isPlaying = useRef(false);
 
-  // üst alarm şeridi scroll ref
   const alertStripRef = useRef<HTMLDivElement | null>(null);
 
-  // “bildirim açık” küçük hint animasyonu (flow içinde)
-  const [notifyHintPhase, setNotifyHintPhase] = useState<'hidden' | 'show' | 'hide'>('hidden');
-  const notifyHintTimer = useRef<number | null>(null);
-
   /* ============================================================
-     10) AUDIO
+     10) Ses (WebAudio) — basit ve stabil
      ============================================================ */
-
   const ensureAudio = async () => {
     if (!notificationsEnabled) return null;
     const Ctor = window.AudioContext || (window as any).webkitAudioContext;
@@ -547,7 +494,6 @@ export function Deprem() {
 
     if (!audioCtxRef.current) audioCtxRef.current = new Ctor();
 
-    // iOS/Chrome: suspended -> resume
     if (audioCtxRef.current.state === 'suspended') {
       try {
         await audioCtxRef.current.resume();
@@ -558,42 +504,40 @@ export function Deprem() {
     return audioCtxRef.current;
   };
 
+  const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
   const playBeep = async (frequency: number, duration: number, gainLevel = 0.1) => {
     if (!notificationsEnabled) return;
-
     try {
-      const audioCtx = await ensureAudio();
-      if (!audioCtx) return;
+      const ctx = await ensureAudio();
+      if (!ctx) return;
 
-      const oscillator = audioCtx.createOscillator();
-      const gainNode = audioCtx.createGain();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
 
-      oscillator.type = 'sine';
-      oscillator.frequency.value = frequency;
+      osc.type = 'sine';
+      osc.frequency.value = frequency;
 
-      gainNode.gain.setValueAtTime(gainLevel, audioCtx.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+      gain.gain.setValueAtTime(gainLevel, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + duration);
 
-      oscillator.connect(gainNode);
-      gainNode.connect(audioCtx.destination);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
 
-      oscillator.start();
-      oscillator.stop(audioCtx.currentTime + duration);
+      osc.start();
+      osc.stop(ctx.currentTime + duration);
     } catch (e) {
       console.error('Audio error:', e);
     }
   };
 
-  const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
-  // ISPARTA/YAKIN preamble: 1 uzun tık
+  // Isparta/Yakın ise önce 1 uzun “uyarı”
   const playNearPreamble = async () => {
     if (!notificationsEnabled) return;
     await playBeep(440, 0.55, 0.11);
     await sleep(650);
   };
 
-  // mag kadar tık (floor)
   const playBeepSequence = async (count: number) => {
     if (!notificationsEnabled || count <= 0) return;
     for (let i = 0; i < count; i++) {
@@ -602,11 +546,6 @@ export function Deprem() {
     }
   };
 
-  /**
-   * processSoundQueue:
-   * - Kuyrukta biriken yeni depremleri sırayla çalar.
-   * - Isparta/Yakın ise önce uzun uyarı.
-   */
   const processSoundQueue = async (distanceMap: Map<string, number>) => {
     if (isPlaying.current) return;
     if (!notificationsEnabled || soundQueue.current.length === 0) return;
@@ -635,7 +574,7 @@ export function Deprem() {
   };
 
   /* ============================================================
-     11) FETCH
+     11) Fetch
      ============================================================ */
   const fetchData = async () => {
     setLoading(true);
@@ -657,44 +596,32 @@ export function Deprem() {
       const raw = await resp.json();
       const mapped = mapAfadToEarthquakes(raw);
 
-      // Deduplicate
+      // deduplicate
       const uniqueMap = new Map<string, Earthquake>();
       for (const eq of mapped) uniqueMap.set(eq.earthquake_id, eq);
 
       const list = Array.from(uniqueMap.values());
 
-      // default: en yeni üstte (mantık olarak iyi)
+      // default: newest first
       list.sort((a, b) => new Date(b.date_time).getTime() - new Date(a.date_time).getTime());
 
-      /**
-       * Yeni deprem tespiti:
-       * - ID bazlı set
-       * - Önceden görmediğimiz ID’leri “newOnes” sayıyoruz
-       */
+      // yeni deprem tespiti (ID bazlı)
       const newOnes: Earthquake[] = [];
       for (const eq of list) {
-        if (!seenIdsRef.current.has(eq.earthquake_id)) {
-          newOnes.push(eq);
-        }
+        if (!seenIdsRef.current.has(eq.earthquake_id)) newOnes.push(eq);
       }
 
-      // “first load” durumunda her şeyi yeni saymamak için:
-      // Eğer seenIds boşsa, sadece set’i doldur (ses çalma yok)
+      // ilk yükleme: hepsini “görüldü” say (ses çalma yok)
       if (seenIdsRef.current.size === 0) {
         list.forEach((eq) => seenIdsRef.current.add(eq.earthquake_id));
       } else {
-        // seenIds güncelle
         list.forEach((eq) => seenIdsRef.current.add(eq.earthquake_id));
       }
 
       setEarthquakes(list);
 
-      /**
-       * Ses kuyruğu için distanceMap lazım.
-       * - distanceMap memo ile aşağıda oluşuyor,
-       * - ama burada “anlık” lazımsa hızlıca hesaplayıp geçiyoruz.
-       */
-      const distanceMapForSound = new Map<string, number>();
+      // ses için distanceMap
+      const dmap = new Map<string, number>();
       for (const eq of list) {
         const d = calculateDistance(
           ISPARTA_COORDS.lat,
@@ -702,13 +629,12 @@ export function Deprem() {
           eq.geojson.coordinates[1],
           eq.geojson.coordinates[0]
         );
-        distanceMapForSound.set(eq.earthquake_id, d);
+        dmap.set(eq.earthquake_id, d);
       }
 
-      // bildirim açıksa: yeni gelenleri kuyruğa ekle
       if (notificationsEnabled && newOnes.length > 0) {
         newOnes.forEach((eq) => soundQueue.current.push(eq));
-        processSoundQueue(distanceMapForSound);
+        processSoundQueue(dmap);
       }
     } catch (err: any) {
       console.error('Deprem verisi hatası:', err);
@@ -720,7 +646,6 @@ export function Deprem() {
     }
   };
 
-  // interval: 1 kere kur
   useEffect(() => {
     fetchData();
     const id = setInterval(() => fetchData(), 30000);
@@ -728,33 +653,9 @@ export function Deprem() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /**
-   * Bildirim açılınca küçük “hint” yazısı:
-   * - Üst üste binmesin diye absolute yok, normal flow.
-   * - 2.5 sn sonra kaybolsun (fade-out).
-   */
-  useEffect(() => {
-    if (notifyHintTimer.current) window.clearTimeout(notifyHintTimer.current);
-
-    if (notificationsEnabled) {
-      setNotifyHintPhase('show');
-      notifyHintTimer.current = window.setTimeout(() => {
-        setNotifyHintPhase('hide');
-        notifyHintTimer.current = window.setTimeout(() => setNotifyHintPhase('hidden'), 500);
-      }, 2500);
-    } else {
-      setNotifyHintPhase('hidden');
-    }
-
-    return () => {
-      if (notifyHintTimer.current) window.clearTimeout(notifyHintTimer.current);
-    };
-  }, [notificationsEnabled]);
-
   /* ============================================================
-     12) MEMO: distance map + sorted list + üst şerit listesi
+     12) Memo: distanceMap, üst isparta listesi, tablo sıralaması
      ============================================================ */
-
   const distanceMap = useMemo(() => {
     const m = new Map<string, number>();
     for (const eq of earthquakes) {
@@ -769,6 +670,37 @@ export function Deprem() {
     return m;
   }, [earthquakes]);
 
+  /**
+   * Üstte kullanılacak Isparta/Yakın listesi
+   * - Burada hepsini tutuyoruz (kullanıcı "diğerleri de görünsün" dedi)
+   * - Ama ekranda: 1 kart + isteğe bağlı “diğerleri şerit”
+   */
+  const alertEarthquakes = useMemo(() => {
+    const list = earthquakes
+      .map((eq) => {
+        const distance = distanceMap.get(eq.earthquake_id) ?? 999999;
+        const rel = getRelation(eq.title, distance);
+        return { eq, rel, distance };
+      })
+      .filter((x) => x.rel !== null) as Array<{ eq: Earthquake; rel: Exclude<Relation, null>; distance: number }>;
+
+    list.sort((a, b) => new Date(b.eq.date_time).getTime() - new Date(a.eq.date_time).getTime());
+    return list;
+  }, [earthquakes, distanceMap]);
+
+  const latestAlert = alertEarthquakes[0] ?? null;
+  const otherAlertCount = Math.max(0, alertEarthquakes.length - 1);
+
+  // Şerit: mobil 1 kart görünsün, desktop 2 kart görünsün (çökme olmasın)
+  const stripCardWidthClass = isDesktop ? 'w-[460px]' : 'w-[88%]';
+
+  const scrollAlertStrip = (dir: 'left' | 'right') => {
+    const el = alertStripRef.current;
+    if (!el) return;
+    const delta = dir === 'left' ? -420 : 420;
+    el.scrollBy({ left: delta, behavior: 'smooth' });
+  };
+
   // Desktop tablo sıralaması
   const sortedEarthquakes = useMemo(() => {
     const list = [...earthquakes];
@@ -778,11 +710,10 @@ export function Deprem() {
         return sortConfig.direction === 'asc' ? a.mag - b.mag : b.mag - a.mag;
       }
       if (sortConfig.key === 'distance') {
-        const distA = distanceMap.get(a.earthquake_id) ?? 0;
-        const distB = distanceMap.get(b.earthquake_id) ?? 0;
-        return sortConfig.direction === 'asc' ? distA - distB : distB - distA;
+        const da = distanceMap.get(a.earthquake_id) ?? 999999;
+        const db = distanceMap.get(b.earthquake_id) ?? 999999;
+        return sortConfig.direction === 'asc' ? da - db : db - da;
       }
-      // date_time
       const ta = new Date(a.date_time).getTime();
       const tb = new Date(b.date_time).getTime();
       return sortConfig.direction === 'asc' ? ta - tb : tb - ta;
@@ -793,37 +724,7 @@ export function Deprem() {
 
   const displayedEarthquakes = showHistory ? sortedEarthquakes : sortedEarthquakes.slice(0, 50);
 
-  /**
-   * ÜST ALARM ŞERİDİ:
-   * - sadece ISPARTA/YAKIN
-   * - en yeni solda
-   */
-/**
- * ÜST ALARM DEPREMİ — SADECE 1 TANE
- * ------------------------------------------------
- * KURAL:
- * - Sadece EN YENİ Isparta / YAKIN deprem
- * - Mobil + Desktop AYNI
- * - Liste, slice, scroll YOK
- */
-const latestAlertEarthquake = useMemo(() => {
-  for (const eq of earthquakes) {
-    const distance = distanceMap.get(eq.earthquake_id) ?? 999999;
-    const rel = getRelation(eq.title, distance);
-
-    if (rel) {
-      return {
-        eq,
-        rel,
-        distance
-      };
-    }
-  }
-
-  return null;
-}, [earthquakes, distanceMap]);
-
-  // Mobil karo sıralaması (separate)
+  // Mobil sıralama (karo)
   const mobileSorted = useMemo(() => {
     const list = [...earthquakes];
 
@@ -847,9 +748,8 @@ const latestAlertEarthquake = useMemo(() => {
   }, [earthquakes, mobileSort, distanceMap]);
 
   /* ============================================================
-     13) MAX KARTLAR
+     13) Max kartlar
      ============================================================ */
-
   const max24h = useMemo(() => {
     const now = Date.now();
     const list = earthquakes.filter((eq) => new Date(eq.date_time).getTime() >= now - 24 * 60 * 60 * 1000);
@@ -927,7 +827,7 @@ const latestAlertEarthquake = useMemo(() => {
           </div>
 
           <div className="text-[11px] mt-1 flex items-center justify-between gap-2 font-medium" style={{ color: '#334155' }}>
-            <span className="font-mono">Isparta&apos;dan uzaklık: {Math.round(distance)} km</span>
+            <span className="font-mono">Isparta uzaklık: {Math.round(distance)} km</span>
 
             <span className="flex items-center gap-2">
               <span className="whitespace-nowrap">{formatDateIstanbul(eq.date_time)}</span>
@@ -937,7 +837,6 @@ const latestAlertEarthquake = useMemo(() => {
                 rel="noopener noreferrer"
                 className="font-bold underline"
                 style={{ color: '#1d4ed8' }}
-                title="OpenStreetMap'te aç"
               >
                 Haritada aç
               </a>
@@ -949,7 +848,7 @@ const latestAlertEarthquake = useMemo(() => {
   };
 
   /* ============================================================
-     14) UI: Sort handler (desktop tablo)
+     14) Tablo sort
      ============================================================ */
   const handleSort = (key: SortKey) => {
     setSortConfig((current) => {
@@ -962,99 +861,162 @@ const latestAlertEarthquake = useMemo(() => {
   };
 
   /* ============================================================
-     15) ÜST ŞERİT SCROLL
-     ============================================================ */
-  const scrollAlertStrip = (dir: 'left' | 'right') => {
-    const el = alertStripRef.current;
-    if (!el) return;
-    const delta = dir === 'left' ? -360 : 360;
-    el.scrollBy({ left: delta, behavior: 'smooth' });
-  };
-
-  /* ============================================================
-     16) RENDER
+     15) Render
      ============================================================ */
   return (
     <PageContainer>
-      {/* PageContainer üst padding etkisini telafi (navbar’a yaklaşsın) */}
       <div className={PAGE_TOP_PULL}>
         {/* =====================================================
-            A) ÜST ALARM ŞERİDİ (ISPARTA/YAKIN)
-            - ÇÖKMEYİ ÖNLE: sadece 1/2 kart göster + “+N daha…”
+            A) ÜST: Isparta/Yakın (1 kart + "+N diğer" ile açılan şerit)
            ===================================================== */}
-        {latestAlertEarthquake && (
-  <div className="mt-1 mb-5">
-    <div className="text-xs font-extrabold uppercase tracking-wide mb-2 text-red-700">
-      Isparta / Yakın Deprem
-    </div>
+        {latestAlert && (
+          <div className={SECTION_GAP}>
+            <div className="flex items-center justify-between mb-2 gap-3">
+              <div className="text-xs font-extrabold uppercase tracking-wide text-slate-700">
+                Isparta / Yakın Deprem
+              </div>
 
-    <div
-      className="rounded-xl border shadow-sm overflow-hidden"
-      style={{
-        backgroundColor:
-          latestAlertEarthquake.rel === 'ISPARTA'
-            ? '#ffe4e6'
-            : '#ffedd5',
-        borderColor: 'rgba(0,0,0,0.12)'
-      }}
-    >
-      <div className="p-4 flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <span
-              className="inline-flex items-center px-2 py-1 text-[11px] font-extrabold rounded-md uppercase"
+              {/* +N diğer butonu */}
+              {otherAlertCount > 0 && (
+                <button
+                  onClick={() => setShowMoreIspartaStrip((v) => !v)}
+                  className="text-xs font-extrabold px-2.5 py-1.5 rounded-lg border bg-white shadow-sm hover:bg-gray-50"
+                  title="Diğer Isparta/Yakın depremleri göster/gizle"
+                >
+                  {showMoreIspartaStrip ? 'Kapat' : `+${otherAlertCount} diğer`}
+                </button>
+              )}
+            </div>
+
+            {/* En yeni tek kart */}
+            <div
+              className="rounded-xl border shadow-sm overflow-hidden"
               style={{
-                backgroundColor:
-                  latestAlertEarthquake.rel === 'ISPARTA'
-                    ? '#be123c'
-                    : '#c2410c',
-                color: '#fff'
+                backgroundColor: latestAlert.rel === 'ISPARTA' ? '#ffe4e6' : '#ffedd5',
+                borderColor: 'rgba(0,0,0,0.12)'
               }}
             >
-              {latestAlertEarthquake.rel}
-            </span>
+              <div className="p-4 flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span
+                      className="inline-flex items-center px-2 py-1 text-[11px] font-extrabold rounded-md uppercase"
+                      style={{
+                        backgroundColor: latestAlert.rel === 'ISPARTA' ? '#be123c' : '#c2410c',
+                        color: '#fff'
+                      }}
+                    >
+                      {latestAlert.rel}
+                    </span>
 
-            <span className="text-xs text-slate-700 font-semibold">
-              {getTimeAgo(latestAlertEarthquake.eq.date_time)}
-            </span>
-          </div>
+                    <span className="text-xs text-slate-700 font-semibold">{getTimeAgo(latestAlert.eq.date_time)}</span>
+                  </div>
 
-          <div className="text-sm font-extrabold text-slate-900 break-words">
-            {latestAlertEarthquake.eq.title}
-          </div>
+                  <div className="text-sm font-extrabold text-slate-900 break-words">{latestAlert.eq.title}</div>
 
-          <div className="text-xs text-slate-700 mt-1">
-            Isparta’ya uzaklık:{' '}
-            <span className="font-mono font-bold">
-              {Math.round(latestAlertEarthquake.distance)} km
-            </span>
-          </div>
-        </div>
+                  <div className="text-xs text-slate-700 mt-1">
+                    Isparta’ya uzaklık:{' '}
+                    <span className="font-mono font-bold">{Math.round(latestAlert.distance)} km</span>
+                  </div>
+                </div>
 
-        <div className="shrink-0 text-right">
-          <div className="text-4xl font-black leading-none text-slate-900">
-            {latestAlertEarthquake.eq.mag.toFixed(1)}
-          </div>
-          <div className="text-[11px] font-semibold text-slate-700">
-            Mw / ML
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-)}
+                <div className="shrink-0 text-right">
+                  <div className="text-4xl font-black leading-none text-slate-900">
+                    {latestAlert.eq.mag.toFixed(1)}
+                  </div>
+                  <div className="text-[11px] font-semibold text-slate-700">Mw / ML</div>
+                </div>
+              </div>
+            </div>
 
+            {/* Diğerleri (isteğe bağlı açılan şerit) */}
+            {showMoreIspartaStrip && otherAlertCount > 0 && (
+              <div className="mt-3">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="text-xs font-bold text-slate-600">
+                    Diğer Isparta/Yakın depremler
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => scrollAlertStrip('left')}
+                      className="p-2 rounded-lg border bg-white hover:bg-gray-50 shadow-sm"
+                      title="Sola"
+                    >
+                      <ChevronLeft size={16} />
+                    </button>
+                    <button
+                      onClick={() => scrollAlertStrip('right')}
+                      className="p-2 rounded-lg border bg-white hover:bg-gray-50 shadow-sm"
+                      title="Sağa"
+                    >
+                      <ChevronRight size={16} />
+                    </button>
+                  </div>
+                </div>
+
+                <div
+                  ref={alertStripRef}
+                  className="flex flex-nowrap gap-3 overflow-x-auto scroll-smooth pb-1"
+                >
+                  {alertEarthquakes.slice(1).map((it) => (
+                    <div
+                      key={it.eq.earthquake_id}
+                      className={`flex-none ${stripCardWidthClass} rounded-xl border shadow-sm overflow-hidden`}
+                      style={{
+                        backgroundColor: it.rel === 'ISPARTA' ? '#ffe4e6' : '#ffedd5',
+                        borderColor: 'rgba(0,0,0,0.12)'
+                      }}
+                    >
+                      <div className="p-3 flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span
+                              className="inline-flex items-center px-2 py-1 text-[11px] font-extrabold rounded-md uppercase"
+                              style={{
+                                backgroundColor: it.rel === 'ISPARTA' ? '#be123c' : '#c2410c',
+                                color: '#fff'
+                              }}
+                            >
+                              {it.rel}
+                            </span>
+
+                            <span className="text-xs text-slate-700 font-semibold">{getTimeAgo(it.eq.date_time)}</span>
+                          </div>
+
+                          <div className="mt-1 text-sm font-extrabold text-slate-900 break-words line-clamp-2">
+                            {it.eq.title}
+                          </div>
+
+                          <div className="text-xs text-slate-700 mt-1">
+                            <span className="font-mono font-bold">{Math.round(it.distance)} km</span>
+                          </div>
+                        </div>
+
+                        <div className="shrink-0 text-right">
+                          <div className="text-3xl font-black leading-none text-slate-900">
+                            {it.eq.mag.toFixed(1)}
+                          </div>
+                          <div className="text-[11px] font-semibold text-slate-700">Mw/ML</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* =====================================================
-            B) ÜST PANEL (Sayfa başlığı burada)
-            - 3 sütun: Sol başlık, Orta bildirim, Sağ sayaç/saat/sayı
+            B) ÜST PANEL (Başlık + Bildirim + Sağ sayaç)
            ===================================================== */}
         <div
           className={['text-white p-5 rounded-xl shadow-lg', SECTION_GAP].join(' ')}
           style={{ background: 'linear-gradient(to right, #0f172a, #1e3a8a)' }}
         >
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:items-center">
-            {/* SOL */}
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_auto_auto] md:items-center">
+            {/* Sol */}
             <div className="min-w-0">
               <h1 className="text-white text-3xl font-bold flex items-center gap-3">
                 <Activity size={34} className="animate-pulse" />
@@ -1070,32 +1032,21 @@ const latestAlertEarthquake = useMemo(() => {
               </p>
             </div>
 
-            {/* ORTA (tam ortalansın) */}
+            {/* Orta */}
             <div className="flex flex-col items-center gap-2">
               <div className="text-xs font-extrabold text-white/80 uppercase tracking-wide">Bildirim</div>
-
               <NotificationToggle enabled={notificationsEnabled} onToggle={() => setNotificationsEnabled((v) => !v)} />
-
-              {/* Üst üste binmesin: flow içinde */}
-              {notifyHintPhase !== 'hidden' && (
-                <div
-                  className={[
-                    'px-3 py-1.5 rounded-md text-xs font-semibold text-center',
-                    'bg-black/70 text-white shadow border border-white/10',
-                    notifyHintPhase === 'show' ? 'animate-fade-in' : 'animate-fade-out'
-                  ].join(' ')}
-                >
-                  🔔 Bildirim açık — yeni depremler sesle bildirilecek
-                </div>
-              )}
             </div>
 
-            {/* SAĞ */}
+            {/* Sağ */}
             <div className="flex justify-start md:justify-end md:justify-self-end">
               <div className="bg-white/10 border border-white/15 rounded-lg px-3 py-2 flex items-center gap-3">
-                {/* 30sn animasyon */}
                 <div className="flex items-center justify-center h-[30px] w-[30px]">
-                  {loading ? <RefreshCw size={22} className="animate-spin" /> : <CountdownTimer duration={30000} resetKey={lastUpdated} size={28} />}
+                  {loading ? (
+                    <RefreshCw size={22} className="animate-spin" />
+                  ) : (
+                    <CountdownTimer duration={30000} resetKey={lastUpdated} size={28} />
+                  )}
                 </div>
 
                 <div className="leading-tight text-left md:text-right">
@@ -1117,7 +1068,7 @@ const latestAlertEarthquake = useMemo(() => {
         </div>
 
         {/* =====================================================
-            C) HATA
+            C) Hata
            ===================================================== */}
         {error && (
           <div className={['bg-red-50 border-l-4 border-red-500 p-6 rounded-r-lg shadow', SECTION_GAP].join(' ')}>
@@ -1139,33 +1090,43 @@ const latestAlertEarthquake = useMemo(() => {
         )}
 
         {/* =====================================================
-            D) ŞİDDET BAR (Tablo/Karo üstü)
+            D) Şiddet barı
            ===================================================== */}
         <SeverityBar />
 
         {/* =====================================================
-            E) MOBİL KARO SİSTEMİ
-            - isDesktop false iken göster
+            E) MOBİL KARO
            ===================================================== */}
         {!isDesktop && (
-          <div className={[SECTION_GAP].join(' ')}>
+          <div className={SECTION_GAP}>
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
                 <MapPin size={18} />
                 Son Depremler
               </h2>
+            </div>
 
-              {/* Mobil sıralama */}
-              <select
-                value={mobileSort}
-                onChange={(e) => setMobileSort(e.target.value as any)}
-                className="text-sm font-bold border rounded-lg px-2 py-2 bg-white shadow-sm"
-                title="Mobil sıralama"
-              >
-                <option value="newest">En Yeni</option>
-                <option value="largest">En Büyük</option>
-                <option value="nearest">En Yakın</option>
-              </select>
+            {/* Mobil sıralama: 3 buton, tam satır */}
+            <div className="flex w-full gap-2 mb-3">
+              {[
+                { key: 'newest', label: 'En Yeni' },
+                { key: 'largest', label: 'En Büyük' },
+                { key: 'nearest', label: 'En Yakın' }
+              ].map((b) => {
+                const active = mobileSort === (b.key as any);
+                return (
+                  <button
+                    key={b.key}
+                    onClick={() => setMobileSort(b.key as any)}
+                    className={[
+                      'flex-1 px-3 py-2 rounded-xl text-sm font-extrabold border shadow-sm',
+                      active ? 'bg-blue-600 text-white border-blue-700' : 'bg-white text-slate-800 border-gray-200 hover:bg-gray-50'
+                    ].join(' ')}
+                  >
+                    {b.label}
+                  </button>
+                );
+              })}
             </div>
 
             {loading && earthquakes.length === 0 ? (
@@ -1198,7 +1159,7 @@ const latestAlertEarthquake = useMemo(() => {
                       className="rounded-xl border shadow-sm overflow-hidden bg-white"
                       style={{ borderColor: 'rgba(0,0,0,0.12)' }}
                     >
-                      {/* KART ÖN YÜZÜ */}
+                      {/* Ön yüz */}
                       <button
                         type="button"
                         onClick={() => setOpenMobileId(isOpen ? null : eq.earthquake_id)}
@@ -1237,14 +1198,14 @@ const latestAlertEarthquake = useMemo(() => {
                           </div>
                         </div>
 
-                        {/* BÜYÜKLÜK */}
+                        {/* büyüklük */}
                         <div className="shrink-0 text-right">
                           <div className="text-4xl font-black leading-none text-slate-900">{eq.mag.toFixed(1)}</div>
                           <div className="text-[11px] font-semibold text-slate-700">Mw / ML</div>
                         </div>
                       </button>
 
-                      {/* AÇILAN DETAY */}
+                      {/* detay */}
                       {isOpen && (
                         <div className="p-4 bg-white border-t">
                           <div className="grid grid-cols-2 gap-3 text-sm">
@@ -1272,7 +1233,6 @@ const latestAlertEarthquake = useMemo(() => {
                               target="_blank"
                               rel="noopener noreferrer"
                               className="inline-flex items-center gap-1 font-bold underline text-blue-700"
-                              title="OpenStreetMap'te aç"
                             >
                               <Navigation size={16} />
                               Harita
@@ -1302,17 +1262,11 @@ const latestAlertEarthquake = useMemo(() => {
         )}
 
         {/* =====================================================
-            F) DESKTOP TABLO
-            - isDesktop true iken göster (JS ile garantili)
+            F) DESKTOP TABLO (H2 kaldırıldı)
            ===================================================== */}
         {isDesktop && (
           <div className={SECTION_GAP}>
-            <h2 className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
-              <MapPin size={18} />
-              Son Depremler Listesi
-            </h2>
-
-            <div className={['bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200'].join(' ')}>
+            <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
                   <thead className="bg-gradient-to-r from-gray-50 to-gray-100 sticky top-0 z-10">
@@ -1486,7 +1440,7 @@ const latestAlertEarthquake = useMemo(() => {
         )}
 
         {/* =====================================================
-            FOOTER
+            Footer
            ===================================================== */}
         <div className="p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg shadow-sm">
           <p className="text-sm text-blue-800">
@@ -1499,23 +1453,3 @@ const latestAlertEarthquake = useMemo(() => {
     </PageContainer>
   );
 }
-
-/* ============================================================
-   CSS NOTU (ÖNEMLİ)
-   ------------------------------------------------------------
-   Bu dosyada animate-fade-in / animate-fade-out class'ları kullanıldı.
-   src/index.css dosyanın en altına şunu ekle:
-
-   @keyframes fadeIn {
-     from { opacity: 0; transform: translateY(-2px); }
-     to   { opacity: 1; transform: translateY(0); }
-   }
-   @keyframes fadeOut {
-     from { opacity: 1; transform: translateY(0); }
-     to   { opacity: 0; transform: translateY(-2px); }
-   }
-   .animate-fade-in  { animation: fadeIn  0.25s ease-out forwards; }
-   .animate-fade-out { animation: fadeOut 0.40s ease-out forwards; }
-
-   (Sen “3️⃣ küçük ama güzel animasyon” için bunu sormuştun; bu en temiz yol.)
-============================================================ */
