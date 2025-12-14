@@ -793,45 +793,32 @@ return hasTZ ? str : `${str}Z`;
             </div>
 
             {/* Sağ üst: saat + sayaç + ses */}
-            <div className="flex items-center gap-3">
-              <div className="bg-white/10 border border-white/15 rounded-lg px-3 py-2 flex items-center gap-3">
-                <div className="flex items-center justify-center h-[30px] w-[30px]">
-                  {loading ? (
-                    <RefreshCw size={22} className="animate-spin" />
-                  ) : (
-                    <CountdownTimer duration={30000} resetKey={lastUpdated} size={28} />
-                  )}
-                </div>
-                <div className="leading-tight">
-                  <div className="flex items-center gap-1 text-sm text-white/90">
-                    <Clock size={14} />
-                    {formatTimeIstanbul(lastUpdated)}
-                  </div>
-                  <div className="text-xs text-white/75">
-                    {earthquakes.length > 0 ? `Son 7 günde ${earthquakes.length} deprem` : ''}
-                  </div>
-                </div>
-              </div>
+            <div className="flex items-center gap-3 flex-wrap justify-end">
+  {/* ✅ Ses toggle SOLDa */}
+  <SoundToggle enabled={soundEnabled} onToggle={() => setSoundEnabled(!soundEnabled)} />
 
-<button
-  onClick={() => setSoundEnabled(!soundEnabled)}
-  className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all shadow-md border"
-  title={soundEnabled ? 'Ses Açık' : 'Ses Kapalı'}
->
-  {soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
+  {/* Sayaç + saat kutusu */}
+  <div className="bg-white/10 border border-white/15 rounded-lg px-3 py-2 flex items-center gap-3">
+    <div className="flex items-center justify-center h-[30px] w-[30px]">
+      {loading ? (
+        <RefreshCw size={22} className="animate-spin" />
+      ) : (
+        <CountdownTimer duration={30000} resetKey={lastUpdated} size={28} />
+      )}
+    </div>
 
-  {/* Mobil */}
-  <span className="font-extrabold text-sm sm:hidden">
-    Ses
-  </span>
+    <div className="leading-tight">
+      <div className="flex items-center gap-1 text-sm text-white/90">
+        <Clock size={14} />
+        {formatTimeIstanbul(lastUpdated)}
+      </div>
+      <div className="text-xs text-white/75">
+        {earthquakes.length > 0 ? `Son 7 günde ${earthquakes.length} kayıt` : ''}
+      </div>
+    </div>
+  </div>
+</div>
 
-  {/* Masaüstü */}
-  <span className="font-extrabold text-sm hidden sm:inline">
-    {soundEnabled ? 'Ses Açık' : 'Ses Kapalı'}
-  </span>
-</button>
-
-            </div>
           </div>
 
           {/* En büyük kartları: mobilde alt alta, masaüstünde yan yana */}
