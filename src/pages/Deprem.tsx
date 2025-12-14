@@ -86,13 +86,8 @@ const CountdownTimer = ({
   );
 };
 
-function SoundToggle({
-  enabled,
-  onToggle
-}: {
-  enabled: boolean;
-  onToggle: () => void;
-}) {
+// Daha iOS-like görünüm (dokunma/klik ile toggle)
+function SoundToggle({ enabled, onToggle }: { enabled: boolean; onToggle: () => void }) {
   return (
     <button
       type="button"
@@ -111,33 +106,24 @@ function SoundToggle({
                  focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
       title={enabled ? 'Ses Açık' : 'Ses Kapalı'}
     >
-      {/* iOS-style switch */}
       <span
         className={[
-          "relative inline-flex h-7 w-[46px] items-center rounded-full transition-colors",
-          enabled ? "bg-green-500" : "bg-white/25"
-        ].join(" ")}
-        style={{
-          boxShadow: "inset 0 1px 2px rgba(0,0,0,0.35)"
-        }}
+          'relative inline-flex h-7 w-[46px] items-center rounded-full transition-colors',
+          enabled ? 'bg-green-500' : 'bg-white/25'
+        ].join(' ')}
+        style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.35)' }}
       >
         <span
           className={[
-            "inline-block h-6 w-6 rounded-full bg-white transition-transform",
-            enabled ? "translate-x-[18px]" : "translate-x-[2px]"
-          ].join(" ")}
-          style={{
-            boxShadow: "0 2px 8px rgba(0,0,0,0.35)"
-          }}
+            'inline-block h-6 w-6 rounded-full bg-white transition-transform',
+            enabled ? 'translate-x-[18px]' : 'translate-x-[2px]'
+          ].join(' ')}
+          style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.35)' }}
         />
       </span>
 
-      {/* icon */}
-      <span className="text-white/90">
-        {enabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
-      </span>
+      <span className="text-white/90">{enabled ? <Volume2 size={18} /> : <VolumeX size={18} />}</span>
 
-      {/* label: mobil kısa, desktop uzun */}
       <span className="font-extrabold text-sm text-white sm:hidden">Ses</span>
       <span className="font-extrabold text-sm text-white hidden sm:inline">
         {enabled ? 'Ses Açık' : 'Ses Kapalı'}
@@ -145,7 +131,6 @@ function SoundToggle({
     </button>
   );
 }
-
 
 type SoundItem = { mag: number; isNear: boolean; eq: Earthquake };
 
@@ -177,7 +162,7 @@ export function Deprem() {
   const ISPARTA_COORDS = { lat: 37.7648, lng: 30.5567 };
   const NEAR_KM = 100;
 
-  // ✅ AFAD Proxy / Worker URL
+  // AFAD Proxy (Cloudflare Worker)
   const AFAD_PROXY = 'https://depremo.tutkumuz.workers.dev';
 
   const latestEqDateRef = useRef<string | null>(null);
@@ -229,7 +214,6 @@ export function Deprem() {
   const normalizeDateString = (s: any): string => {
     if (!s) return '';
     let str = String(s).trim();
-
     if (str.includes(' ') && !str.includes('T')) str = str.replace(' ', 'T');
 
     const hasTZ =
@@ -305,8 +289,6 @@ export function Deprem() {
     if (mag >= 3) return '#fef9c3';
     return '#dcfce7';
   };
-
-  const getSeverityBg = (mag: number, relation: 'ISPARTA' | 'YAKIN' | null) => getRowColor(mag, relation);
 
   const handleSort = (key: SortKey) => {
     setSortConfig(current => {
@@ -409,9 +391,7 @@ export function Deprem() {
       const rel = getRelation(item.eq.title, distanceKm);
       showLastAlert(item.eq, rel, distanceKm);
 
-      if (item.isNear) {
-        await playNearPreamble();
-      }
+      if (item.isNear) await playNearPreamble();
       await playBeepSequence(Math.floor(item.mag));
 
       if (soundQueue.current.length > 0) await sleep(900);
@@ -421,7 +401,6 @@ export function Deprem() {
   };
   // ---- /SOUND ----
 
-  // Map AFAD shapes -> Earthquake[]
   const mapAfadToEarthquakes = (raw: any): Earthquake[] => {
     const out: Earthquake[] = [];
 
@@ -640,7 +619,7 @@ export function Deprem() {
 
     const distance = calculateDistance(ISPARTA_COORDS.lat, ISPARTA_COORDS.lng, eq.geojson.coordinates[1], eq.geojson.coordinates[0]);
     const rel = getRelation(eq.title, distance);
-    const bg = getSeverityBg(eq.mag, rel);
+    const bg = getRowColor(eq.mag, rel);
 
     const lat = eq.geojson.coordinates[1];
     const lon = eq.geojson.coordinates[0];
@@ -654,42 +633,15 @@ export function Deprem() {
             {title}
           </div>
 
-<div className="flex flex-col gap-3 md:grid md:grid-cols-[1fr_auto_auto] md:items-start md:gap-5">
-  {/* SOL */}
-  <div className="min-w-0">
-    {/* burası: başlık + açıklama + (varsa) lastAlert */}
-    ...
-  </div>
-
-  {/* ORTA: Desktop'ta ortada dursun, mobilde sağ blok gibi davranmasın */}
-  <div className="md:self-start md:pt-1">
-    <SoundToggle enabled={soundEnabled} onToggle={() => setSoundEnabled(!soundEnabled)} />
-  </div>
-
-  {/* SAĞ */}
-  <div className="md:self-start">
-    <div className="bg-white/10 border border-white/15 rounded-lg px-3 py-2 flex items-center gap-3">
-      <div className="flex items-center justify-center h-[30px] w-[30px]">
-        {loading ? (
-          <RefreshCw size={22} className="animate-spin" />
-        ) : (
-          <CountdownTimer duration={30000} resetKey={lastUpdated} size={28} />
-        )}
-      </div>
-
-      <div className="leading-tight">
-        <div className="flex items-center gap-1 text-sm text-white/90">
-          <Clock size={14} />
-          {formatTimeIstanbul(lastUpdated)}
-        </div>
-        <div className="text-xs text-white/75">
-          {earthquakes.length > 0 ? `Son 7 günde ${earthquakes.length} deprem` : ''}
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-2xl font-extrabold leading-none" style={{ color: '#0f172a' }}>
+                {eq.mag.toFixed(1)}
+              </span>
+              <span className="text-xs font-semibold" style={{ color: '#334155' }}>
+                {getTimeAgo(eq.date_time)}
+              </span>
+            </div>
 
             {rel && (
               <span
@@ -786,8 +738,10 @@ export function Deprem() {
       {/* Header */}
       <div className="text-white p-5 mb-8 rounded-xl shadow-lg" style={{ background: 'linear-gradient(to right, #0f172a, #1e3a8a)' }}>
         <div className="flex flex-col gap-3">
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex-1">
+          {/* Üst satır: mobilde alt alta, desktop'ta grid */}
+          <div className="flex flex-col gap-3 md:grid md:grid-cols-[1fr_auto_auto] md:items-start md:gap-5">
+            {/* SOL */}
+            <div className="min-w-0">
               <h1 className="text-white text-3xl font-bold flex items-center gap-3">
                 <Activity size={34} className="animate-pulse" />
                 Son Depremler
@@ -816,14 +770,20 @@ export function Deprem() {
               )}
             </div>
 
-            {/* Sağ üst: Ses toggle + sayaç/saat */}
-            <div className="flex items-center gap-3 flex-wrap justify-end">
-              {/* ✅ Ses toggle: artık sağdan taşmaz */}
+            {/* ORTA: Desktop'ta ortada dursun */}
+            <div className="md:self-center">
               <SoundToggle enabled={soundEnabled} onToggle={() => setSoundEnabled(!soundEnabled)} />
+            </div>
 
+            {/* SAĞ: sayaç/saat */}
+            <div className="md:self-start">
               <div className="bg-white/10 border border-white/15 rounded-lg px-3 py-2 flex items-center gap-3">
                 <div className="flex items-center justify-center h-[30px] w-[30px]">
-                  {loading ? <RefreshCw size={22} className="animate-spin" /> : <CountdownTimer duration={30000} resetKey={lastUpdated} size={28} />}
+                  {loading ? (
+                    <RefreshCw size={22} className="animate-spin" />
+                  ) : (
+                    <CountdownTimer duration={30000} resetKey={lastUpdated} size={28} />
+                  )}
                 </div>
 
                 <div className="leading-tight">
