@@ -1,3 +1,23 @@
+/**
+ * Deprem.tsx
+ * ----------
+ * Amaç:
+ * - AFAD Event Service verisini (Cloudflare Worker proxy üzerinden) çekip tabloda göstermek
+ * - Isparta merkezine uzaklık hesaplamak
+ * - ISPARTA/YAKIN etiketlemek (Isparta geçen her şey ISPARTA kabul edilir)
+ * - 30 saniyede bir otomatik yenilemek
+ * - Ses açıkken: yeni deprem gelirse "şiddeti kadar tık" sesi çalmak
+ *   - Eğer deprem ISPARTA veya YAKIN ise tıklardan önce 1 uzun + 2 kısa "yakın" işareti çalmak
+ * - En büyük deprem kartları:
+ *   - Son 24 saatte en büyük deprem
+ *   - Son 7 günün en büyük depremi
+ *   - Bu kartlarda "Haritada aç" (OpenStreetMap) linki vermek
+ *
+ * ÖNEMLİ:
+ * - Bu dosyada localStorage yok (GitHub Pages / bazı tarayıcı ayarlarında storage engellenebiliyor)
+ * - Tarih/saat İstanbul saat diliminde gösterilir: Europe/Istanbul
+ */
+
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { PageContainer } from '../components/PageContainer';
 import {
@@ -17,21 +37,49 @@ import {
   Navigation
 } from 'lucide-react';
 
+/* =========================================================
+   1) Tipler / Model
+   ========================================================= */
+
+/**
+ * Uygulama içinde kullanacağımız tek tip:
+ * - earthquake_id: benzersiz id (AFAD eventID ya da fallback)
+ * - title: yer açıklaması
+ * - mag: büyüklük
+ * - depth: derinlik (km)
+ * - date_time: ISO string (normalize edilmiş)
+ * - geojson: [lng, lat]
+ */
 interface Earthquake {
   earthquake_id: string;
   title: string;
   mag: number;
   depth: number;
-  date_time: string; // ISO-like string (we normalize)
+  date_time: string;
   geojson: {
     type: string;
     coordinates: [number, number]; // [lng, lat]
   };
 }
 
+/**
+ * Tablo sıralama anahtarları:
+ * - date_time: tarih/saat
+ * - mag: büyüklük
+ * - distance: Isparta uzaklık
+ */
 type SortKey = 'date_time' | 'mag' | 'distance';
 type SortDirection = 'asc' | 'desc';
 
+/* =========================================================
+   2) Küçük UI bileşenleri
+   ========================================================= */
+
+/**
+ * 30 saniyelik yenileme animasyonu:
+ * - duration: ms (30000)
+ * - resetKey: her fetch sonunda değişir (lastUpdated) -> progress sıfırlanır
+ */
 const CountdownTimer = ({
   duration,
   resetKey,
@@ -46,6 +94,7 @@ const CountdownTimer = ({
   useEffect(() => {
     setProgress(0);
     const startTime = Date.now();
+
     const interval = setInterval(() => {
       const elapsed = Date.now() - startTime;
       const newProgress = Math.min((elapsed / duration) * 100, 100);
@@ -86,7 +135,11 @@ const CountdownTimer = ({
   );
 };
 
-// iOS-like toggle (tap/click)
+/**
+ * Ses aç/kapat toggle (tıklamayla çalışan, iOS benzeri görünüm).
+ * - enabled: boolean
+ * - onToggle: click / Enter / Space ile çalışır
+ */
 function SoundToggle({ enabled, onToggle }: { enabled: boolean; onToggle: () => void }) {
   return (
     <button
@@ -106,6 +159,7 @@ function SoundToggle({ enabled, onToggle }: { enabled: boolean; onToggle: () => 
                  focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
       title={enabled ? 'Ses Açık' : 'Ses Kapalı'}
     >
+      {/* Switch gövdesi */}
       <span
         className={[
           'relative inline-flex h-7 w-[46px] items-center rounded-full transition-colors',
@@ -113,6 +167,7 @@ function SoundToggle({ enabled, onToggle }: { enabled: boolean; onToggle: () => 
         ].join(' ')}
         style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.35)' }}
       >
+        {/* Switch topu */}
         <span
           className={[
             'inline-block h-6 w-6 rounded-full bg-white transition-transform',
@@ -122,18 +177,32 @@ function SoundToggle({ enabled, onToggle }: { enabled: boolean; onToggle: () => 
         />
       </span>
 
+      {/* ikon */}
       <span className="text-white/90">{enabled ? <Volume2 size={18} /> : <VolumeX size={18} />}</span>
 
+      {/* Mobilde kısa yazı, desktop'ta uzun yazı */}
       <span className="font-extrabold text-sm text-white sm:hidden">Ses</span>
-      <span className="font-extrabold text-sm text-white hidden sm:inline">
-        {enabled ? 'Ses Açık' : 'Ses Kapalı'}
-      </span>
+      <span className="font-extrabold text-sm text-white hidden sm:inline">{enabled ? 'Ses Açık' : 'Ses Kapalı'}</span>
     </button>
   );
 }
 
+/* =========================================================
+   3) Ses kuyruğu ve “Son bildirim” bilgisi için tipler
+   ========================================================= */
+
+/**
+ * SoundItem:
+ * - eq: deprem objesi
+ * - mag: büyüklük (kaç tık)
+ * - isNear: ISPARTA/YAKIN ise true => tıklardan önce 1 uzun + 2 kısa
+ */
 type SoundItem = { mag: number; isNear: boolean; eq: Earthquake };
 
+/**
+ * lastAlert:
+ * - Ses açıkken, en son bildirim sesi çalınan depremi UI’da göstermek için
+ */
 type LastAlertInfo = {
   title: string;
   mag: number;
@@ -142,34 +211,100 @@ type LastAlertInfo = {
   relation: 'ISPARTA' | 'YAKIN' | null;
 };
 
+/* =========================================================
+   4) Ana Sayfa Bileşeni
+   ========================================================= */
+
 export function Deprem() {
+  /* ------------------------------
+     4.1 State’ler
+     ------------------------------ */
+
+  // Tüm depremler (son 7 gün)
   const [earthquakes, setEarthquakes] = useState<Earthquake[]>([]);
+
+  // Veri yükleniyor mu?
   const [loading, setLoading] = useState(true);
+
+  // Son başarılı fetch zamanı (UI’da saat göstermek için)
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+
+  // Hata mesajı
   const [error, setError] = useState<string | null>(null);
 
+  // Ses açık/kapalı
   const [soundEnabled, setSoundEnabled] = useState(false);
+
+  // "Daha fazla göster" (ilk 50 kayıt / tüm kayıtlar)
   const [showHistory, setShowHistory] = useState(false);
 
-  const [lastAlert, setLastAlert] = useState<LastAlertInfo | null>(null);
-  const lastAlertHideTimer = useRef<number | null>(null);
-
+  // Tablo sıralama bilgisi
   const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: SortDirection }>({
     key: 'date_time',
-    direction: 'desc'
+    direction: 'desc' // Sayfa açılınca en yeni en üstte
   });
 
-  // === Settings ===
+  // Son çalınan bildirim (ses açıkken)
+  const [lastAlert, setLastAlert] = useState<LastAlertInfo | null>(null);
+
+  /* ------------------------------
+     4.2 Sabitler / Konfig
+     ------------------------------ */
+
+  // Isparta merkez koordinatları
   const ISPARTA_COORDS = { lat: 37.7648, lng: 30.5567 };
+
+  // Yakınlık eşiği (km)
   const NEAR_KM = 100;
 
-  // Cloudflare Worker / Proxy endpoint
-  // (Senin worker adresin buysa bırak; değilse kendi adresini yaz)
-  const AFAD_PROXY = 'https://depremo.tutkumuz.workers.dev';
-
-  // === İstanbul TZ helpers ===
+  // İstanbul saat dilimi
   const IST_TZ = 'Europe/Istanbul';
 
+  /**
+   * AFAD_PROXY:
+   * - Tarayıcıdan AFAD’a doğrudan istek atınca CORS sorun çıkabildiği için
+   *   Cloudflare Worker üzerinden proxy yapıyoruz.
+   * - Burası senin worker domainin
+   */
+  const AFAD_PROXY = 'https://depremo.tutkumuz.workers.dev';
+
+  /* ------------------------------
+     4.3 Ref’ler (state dışı, render tetiklemesin)
+     ------------------------------ */
+
+  /**
+   * latestEqDateRef:
+   * - Bir önceki kontrolde gördüğümüz en yeni depremin zamanı
+   * - Yeni depremleri bulup ses kuyruğuna eklemek için kullanılır
+   */
+  const latestEqDateRef = useRef<string | null>(null);
+
+  /**
+   * Sound queue:
+   * - Yeni depremler geldiğinde sıraya ekleriz
+   * - processSoundQueue sırayla çalar
+   */
+  const soundQueue = useRef<SoundItem[]>([]);
+
+  /**
+   * Ses çalıyor mu?
+   * - Aynı anda iki kez processSoundQueue çalışmasın diye kilit
+   */
+  const isPlaying = useRef(false);
+
+  /**
+   * lastAlert'ın ekranda kalma süresi için timer id
+   */
+  const lastAlertHideTimer = useRef<number | null>(null);
+
+  /* =========================================================
+     5) Yardımcı Fonksiyonlar (Tarih / Saat / Mesafe / UI)
+     ========================================================= */
+
+  /**
+   * formatTimeIstanbul:
+   * - lastUpdated gibi Date objesini "20:11:36" formatında TS gösterir
+   */
   const formatTimeIstanbul = (d: Date) => {
     return new Intl.DateTimeFormat('tr-TR', {
       timeZone: IST_TZ,
@@ -179,6 +314,10 @@ export function Deprem() {
     }).format(d);
   };
 
+  /**
+   * formatDateIstanbul:
+   * - ISO string'i TS (Europe/Istanbul) olarak formatlar
+   */
   const formatDateIstanbul = (dateStr: string) => {
     try {
       const date = new Date(dateStr);
@@ -195,6 +334,11 @@ export function Deprem() {
     }
   };
 
+  /**
+   * toIstanbulParam:
+   * - AFAD proxy query paramları için İstanbul saatine göre YYYY-MM-DDTHH:mm:ss üretir
+   * - sv-SE, parçalı ve sıfır dolgulu verdiği için pratik
+   */
   const toIstanbulParam = (d: Date) => {
     const parts = new Intl.DateTimeFormat('sv-SE', {
       timeZone: IST_TZ,
@@ -210,19 +354,27 @@ export function Deprem() {
     return `${get('year')}-${get('month')}-${get('day')}T${get('hour')}:${get('minute')}:${get('second')}`;
   };
 
-  // ✅ AFAD event-service timezone’suz timestamp → UTC kabul et (Z ekle)
+  /**
+   * normalizeDateString:
+   * - AFAD tarafı bazen timezone içermeyen timestamp döndürür
+   * - JS new Date("2025-12-14T10:57:40") bunu "local" yorumlar ve kayar
+   * - Biz AFAD'ın verdiğini "UTC gibi" kabul edip sonuna 'Z' ekliyoruz
+   * - Sonrasında formatDateIstanbul zaten doğru TS'ye çevirir
+   */
   const normalizeDateString = (s: any): string => {
     if (!s) return '';
     let str = String(s).trim();
+    // "YYYY-MM-DD HH:mm:ss" geldiyse T yap
     if (str.includes(' ') && !str.includes('T')) str = str.replace(' ', 'T');
 
     const hasTZ =
       /[zZ]$/.test(str) || /[+-]\d{2}:\d{2}$/.test(str) || /[+-]\d{4}$/.test(str);
 
+    // timezone yoksa "Z" ekle (UTC kabul)
     return hasTZ ? str : `${str}Z`;
   };
 
-  // === distance ===
+  // ---- Mesafe hesaplama (Haversine) ----
   const deg2rad = (deg: number) => deg * (Math.PI / 180);
 
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
@@ -231,15 +383,18 @@ export function Deprem() {
     const dLon = deg2rad(lon2 - lon1);
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(deg2rad(lat1)) *
-        Math.cos(deg2rad(lat2)) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
+      Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
   };
 
-  // === UI helpers ===
+  /**
+   * getTimeAgo:
+   * - "dk önce" / "saat önce" şeklinde.
+   * - 2 saat ve üstünde dakika göstermiyoruz.
+   */
   const getTimeAgo = (dateStr: string) => {
     const date = new Date(dateStr);
     const now = new Date();
@@ -256,15 +411,22 @@ export function Deprem() {
     return `${hours} saat önce`;
   };
 
+  /**
+   * isRecent:
+   * - Son 1 saat içinde mi? => "YENİ" etiketi için
+   */
   const isRecent = (dateStr: string) => {
     const date = new Date(dateStr);
     const now = new Date();
-    const diffInMs = now.getTime() - date.getTime();
-    const diffInHours = diffInMs / (1000 * 60 * 60);
+    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
     return diffInHours < 1;
   };
 
-  // “Isparta/ısparta” geçen her şey: ISPARTA
+  /**
+   * getRelation:
+   * - "isparta" veya "ısparta" geçiyorsa => ISPARTA (senin isteğin)
+   * - Değilse, 100 km içindeyse => YAKIN
+   */
   const getRelation = (title: string, distanceKm: number): 'ISPARTA' | 'YAKIN' | null => {
     const t = title.toLocaleLowerCase('tr-TR');
     if (t.includes('isparta') || t.includes('ısparta')) return 'ISPARTA';
@@ -272,6 +434,10 @@ export function Deprem() {
     return null;
   };
 
+  /**
+   * getMagnitudeBadgeStyle:
+   * - Büyüklük pill rengi
+   */
   const getMagnitudeBadgeStyle = (mag: number) => {
     if (mag >= 6) return 'bg-red-100 text-red-900 border border-red-300 ring-2 ring-red-500';
     if (mag >= 5) return 'bg-red-100 text-red-800 border border-red-200 ring-1 ring-red-400';
@@ -280,16 +446,28 @@ export function Deprem() {
     return 'bg-green-100 text-green-800 border border-green-200';
   };
 
+  /**
+   * getRowColor:
+   * - Satır arka planları (çok kırmızı olmasın diye pastel)
+   */
   const getRowColor = (mag: number, relation: 'ISPARTA' | 'YAKIN' | null) => {
-    if (relation === 'ISPARTA') return '#ffe4e6';
-    if (relation === 'YAKIN') return '#ffedd5';
-    if (mag >= 6) return '#fecaca';
-    if (mag >= 5) return '#fee2e2';
-    if (mag >= 4) return '#ffedd5';
-    if (mag >= 3) return '#fef9c3';
-    return '#dcfce7';
+    if (relation === 'ISPARTA') return '#ffe4e6'; // rose-100
+    if (relation === 'YAKIN') return '#ffedd5'; // orange-100
+    if (mag >= 6) return '#fecaca'; // red-200
+    if (mag >= 5) return '#fee2e2'; // red-100
+    if (mag >= 4) return '#ffedd5'; // orange-100
+    if (mag >= 3) return '#fef9c3'; // yellow-100
+    return '#dcfce7'; // green-100
   };
 
+  /**
+   * handleSort:
+   * - Tabloda sütun başlığına tıklayınca sıralama değişir
+   * - İlk tıkta:
+   *   - mag => desc (en büyük üstte)
+   *   - distance => asc (en yakın üstte)
+   *   - date_time => desc (en yeni üstte)
+   */
   const handleSort = (key: SortKey) => {
     setSortConfig((current) => {
       if (current.key === key) {
@@ -300,7 +478,15 @@ export function Deprem() {
     });
   };
 
-  // === Sound ===
+  /* =========================================================
+     6) Ses Fonksiyonları (WebAudio)
+     ========================================================= */
+
+  /**
+   * playBeep:
+   * - Kısa bir sinüs sesi üretir
+   * - Not: iOS bazı durumlarda kullanıcı etkileşimi ister, sen zaten toggle ile etkileşim yapıyorsun
+   */
   const playBeep = (frequency = 440, duration = 0.1) => {
     if (!soundEnabled) return;
 
@@ -328,18 +514,29 @@ export function Deprem() {
     }
   };
 
+  // Basit sleep helper
   const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+  /**
+   * playNearPreamble:
+   * - ISPARTA/YAKIN durumunda önce "yakın" işareti:
+   *   1 uzun + 2 kısa
+   */
   const playNearPreamble = async () => {
     if (!soundEnabled) return;
-    playBeep(440, 0.55); // 1 uzun
+    playBeep(440, 0.55);
     await sleep(700);
-    playBeep(660, 0.12); // 2 kısa
+    playBeep(660, 0.12);
     await sleep(250);
     playBeep(660, 0.12);
     await sleep(300);
   };
 
+  /**
+   * playBeepSequence:
+   * - Deprem büyüklüğü kadar kısa tık sesi
+   * - Örn: mag=4.7 => floor=4 => 4 tık
+   */
   const playBeepSequence = (count: number): Promise<void> => {
     return new Promise((resolve) => {
       if (!soundEnabled || count <= 0) {
@@ -358,9 +555,10 @@ export function Deprem() {
     });
   };
 
-  const soundQueue = useRef<SoundItem[]>([]);
-  const isPlaying = useRef(false);
-
+  /**
+   * showLastAlert:
+   * - Son bildirim bilgisi UI’da bir süre görünsün
+   */
   const showLastAlert = (eq: Earthquake, relation: 'ISPARTA' | 'YAKIN' | null, distanceKm: number) => {
     setLastAlert({
       title: eq.title,
@@ -374,6 +572,14 @@ export function Deprem() {
     lastAlertHideTimer.current = window.setTimeout(() => setLastAlert(null), 30000);
   };
 
+  /**
+   * processSoundQueue:
+   * - Kuyruktaki depremleri sırayla çalar
+   * - Her deprem için:
+   *   1) lastAlert UI güncelle
+   *   2) isNear ise preamble
+   *   3) büyüklük kadar tık
+   */
   const processSoundQueue = async () => {
     if (isPlaying.current || soundQueue.current.length === 0) return;
     isPlaying.current = true;
@@ -389,6 +595,7 @@ export function Deprem() {
         item.eq.geojson.coordinates[0]
       );
       const rel = getRelation(item.eq.title, distanceKm);
+
       showLastAlert(item.eq, rel, distanceKm);
 
       if (item.isNear) await playNearPreamble();
@@ -400,10 +607,22 @@ export function Deprem() {
     isPlaying.current = false;
   };
 
-  // === Data mapping ===
+  /* =========================================================
+     7) AFAD verisini map’lemek (raw -> Earthquake[])
+     ========================================================= */
+
+  /**
+   * mapAfadToEarthquakes:
+   * - Worker’ın döndüreceği format zamanla değişebilir
+   * - O yüzden birkaç olasılığı destekliyoruz:
+   *   1) GeoJSON FeatureCollection (features[])
+   *   2) Array
+   *   3) raw.result array
+   */
   const mapAfadToEarthquakes = (raw: any): Earthquake[] => {
     const out: Earthquake[] = [];
 
+    // Tek kayıt push helper
     const pushOne = (id: any, title: any, mag: any, depth: any, date: any, lon: any, lat: any) => {
       const lngNum = Number(lon);
       const latNum = Number(lat);
@@ -422,7 +641,7 @@ export function Deprem() {
       });
     };
 
-    // GeoJSON FeatureCollection
+    // 1) GeoJSON FeatureCollection
     if (raw?.features && Array.isArray(raw.features)) {
       for (const f of raw.features) {
         const p = f?.properties ?? {};
@@ -446,11 +665,12 @@ export function Deprem() {
       return out;
     }
 
-    // Array
+    // 2) Array
     if (Array.isArray(raw)) {
       for (const e of raw) {
         const lon = e?.longitude ?? e?.lon ?? e?.lng ?? e?.geojson?.coordinates?.[0] ?? e?.coordinates?.[0];
         const lat = e?.latitude ?? e?.lat ?? e?.geojson?.coordinates?.[1] ?? e?.coordinates?.[1];
+
         pushOne(
           e?.eventID ?? e?.eventId ?? e?.id ?? e?.earthquake_id,
           e?.location ?? e?.place ?? e?.title ?? e?.name,
@@ -464,6 +684,7 @@ export function Deprem() {
       return out;
     }
 
+    // 3) raw.result array
     if (raw?.result && Array.isArray(raw.result)) {
       return mapAfadToEarthquakes(raw.result);
     }
@@ -471,8 +692,16 @@ export function Deprem() {
     return out;
   };
 
-  const latestEqDateRef = useRef<string | null>(null);
+  /* =========================================================
+     8) Veri çekme (fetchData)
+     ========================================================= */
 
+  /**
+   * fetchData:
+   * - Son 7 gün verisini AFAD_PROXY üzerinden alır
+   * - unique + sort
+   * - new quake detection => soundQueue
+   */
   const fetchData = async () => {
     setLoading(true);
     setError(null);
@@ -493,22 +722,26 @@ export function Deprem() {
       const raw = await resp.json();
       const mapped = mapAfadToEarthquakes(raw);
 
-      // Dedup by id
+      // Deduplicate
       const uniqueMap = new Map<string, Earthquake>();
       for (const eq of mapped) uniqueMap.set(eq.earthquake_id, eq);
       const uniqueEarthquakes = Array.from(uniqueMap.values());
 
-      // Default: newest first
+      // Default sort: newest first
       uniqueEarthquakes.sort((a, b) => new Date(b.date_time).getTime() - new Date(a.date_time).getTime());
 
-      // New quake detection (for sound)
+      // New quake detection for sound
       if (uniqueEarthquakes.length > 0) {
         const newestEq = uniqueEarthquakes[0];
+
         if (latestEqDateRef.current) {
           const lastDate = new Date(latestEqDateRef.current);
+
+          // "lastDate" sonrası gelenleri bul
           const newQuakes = uniqueEarthquakes.filter((eq) => new Date(eq.date_time) > lastDate);
 
           if (newQuakes.length > 0) {
+            // Yeni depremleri sıraya ekle
             newQuakes.forEach((eq) => {
               const distance = calculateDistance(
                 ISPARTA_COORDS.lat,
@@ -519,12 +752,17 @@ export function Deprem() {
               const rel = getRelation(eq.title, distance);
               soundQueue.current.push({ mag: eq.mag, isNear: rel !== null, eq });
             });
+
+            // Ses kuyruğunu başlat
             processSoundQueue();
           }
         }
+
+        // En yeni deprem zamanını güncelle
         latestEqDateRef.current = newestEq.date_time;
       }
 
+      // State güncelle
       setEarthquakes(uniqueEarthquakes);
     } catch (err: any) {
       console.error('Deprem verisi hatası:', err);
@@ -536,6 +774,12 @@ export function Deprem() {
     }
   };
 
+  /**
+   * useEffect:
+   * - İlk yükleme
+   * - 30 sn interval
+   * - soundEnabled bağımlı: ses aç/kapatta da güncel interval kalsın
+   */
   useEffect(() => {
     fetchData();
     const intervalId = setInterval(() => fetchData(), 30000);
@@ -543,27 +787,49 @@ export function Deprem() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [soundEnabled]);
 
+  /* =========================================================
+     9) Hesaplanan veriler (memo)
+     ========================================================= */
+
+  /**
+   * sortedEarthquakes:
+   * - Sort config'e göre tablo sıralaması
+   */
   const sortedEarthquakes = useMemo(() => {
     const list = [...earthquakes];
+
     list.sort((a, b) => {
       if (sortConfig.key === 'mag') {
         return sortConfig.direction === 'asc' ? a.mag - b.mag : b.mag - a.mag;
       }
+
       if (sortConfig.key === 'distance') {
         const distA = calculateDistance(ISPARTA_COORDS.lat, ISPARTA_COORDS.lng, a.geojson.coordinates[1], a.geojson.coordinates[0]);
         const distB = calculateDistance(ISPARTA_COORDS.lat, ISPARTA_COORDS.lng, b.geojson.coordinates[1], b.geojson.coordinates[0]);
         return sortConfig.direction === 'asc' ? distA - distB : distB - distA;
       }
+
+      // date_time
       const timeA = new Date(a.date_time).getTime();
       const timeB = new Date(b.date_time).getTime();
       return sortConfig.direction === 'asc' ? timeA - timeB : timeB - timeA;
     });
+
     return list;
   }, [earthquakes, sortConfig]);
 
+  /**
+   * displayedEarthquakes:
+   * - showHistory false => ilk 50
+   * - showHistory true  => hepsi
+   */
   const top50 = sortedEarthquakes.slice(0, 50);
   const displayedEarthquakes = showHistory ? sortedEarthquakes : top50;
 
+  /**
+   * latestBannerEq:
+   * - ISPARTA veya YAKIN olan en yeni depremi banner'da göstermek için
+   */
   const latestBannerEq = useMemo(() => {
     for (const eq of sortedEarthquakes) {
       const distance = calculateDistance(ISPARTA_COORDS.lat, ISPARTA_COORDS.lng, eq.geojson.coordinates[1], eq.geojson.coordinates[0]);
@@ -573,12 +839,19 @@ export function Deprem() {
     return null;
   }, [sortedEarthquakes]);
 
+  /**
+   * Banner başlığı
+   */
   const getBannerTitle = (eq: Earthquake) => {
     const distance = calculateDistance(ISPARTA_COORDS.lat, ISPARTA_COORDS.lng, eq.geojson.coordinates[1], eq.geojson.coordinates[0]);
     const rel = getRelation(eq.title, distance);
     return rel === 'ISPARTA' ? "Isparta'da Deprem!" : "Isparta'ya Yakın Deprem!";
   };
 
+  /**
+   * max24h:
+   * - Son 24 saatte en büyük deprem
+   */
   const max24h = useMemo(() => {
     const now = Date.now();
     const list = earthquakes.filter((eq) => new Date(eq.date_time).getTime() >= now - 24 * 60 * 60 * 1000);
@@ -591,6 +864,10 @@ export function Deprem() {
     }, null as Earthquake | null);
   }, [earthquakes]);
 
+  /**
+   * max7d:
+   * - Son 7 günün en büyük depremi
+   */
   const max7d = useMemo(() => {
     if (earthquakes.length === 0) return null;
     return earthquakes.reduce((best, eq) => {
@@ -601,6 +878,16 @@ export function Deprem() {
     }, null as Earthquake | null);
   }, [earthquakes]);
 
+  /* =========================================================
+     10) Max kartları ve şiddet barı render
+     ========================================================= */
+
+  /**
+   * renderMaxCard:
+   * - En büyük deprem kartı
+   * - Arka plan: şiddete göre (tablodaki pastel renk sistemi)
+   * - Haritada aç linki (OpenStreetMap)
+   */
   const renderMaxCard = (title: string, eq: Earthquake | null) => {
     if (!eq) {
       return (
@@ -668,6 +955,7 @@ export function Deprem() {
 
           <div className="text-[11px] mt-1 flex items-center justify-between gap-2 font-medium" style={{ color: '#334155' }}>
             <span className="font-mono">Isparta&apos;dan uzaklık: {Math.round(distance)} km</span>
+
             <span className="flex items-center gap-2">
               <span className="whitespace-nowrap">{formatDateIstanbul(eq.date_time)}</span>
               <a
@@ -687,6 +975,11 @@ export function Deprem() {
     );
   };
 
+  /**
+   * renderSeverityBar:
+   * - "<3 düşük ... 6+ çok güçlü" barı
+   * - Büyük kartların altında soldan sağa kaplayan, mobilde 2 satır olabilir
+   */
   const renderSeverityBar = () => {
     const items = [
       { label: '<3 düşük', bg: '#dcfce7', fg: '#14532d' },
@@ -715,13 +1008,22 @@ export function Deprem() {
     );
   };
 
+  /* =========================================================
+     11) Render
+     ========================================================= */
+
   return (
     <PageContainer>
-      {/* Banner */}
+      {/* =====================================================
+          11.1 Isparta Banner (ISPARTA veya YAKIN varsa)
+          ===================================================== */}
       {latestBannerEq && (
         <div
           className="text-white p-4 mb-6 rounded-xl shadow-lg border"
-          style={{ background: 'linear-gradient(to right, #ef4444, #b91c1c)', borderColor: 'rgba(255,255,255,0.18)' }}
+          style={{
+            background: 'linear-gradient(to right, #ef4444, #b91c1c)',
+            borderColor: 'rgba(255,255,255,0.18)'
+          }}
         >
           <div className="flex items-center gap-4">
             <AlertOctagon size={30} className="flex-shrink-0 animate-pulse" />
@@ -739,79 +1041,96 @@ export function Deprem() {
         </div>
       )}
 
-      {/* {/* ✅ ÜST ALAN: 3'e bölünmüş (Sol: başlık+açıklama, Orta: ses, Sağ: animasyon+saat+7gün) */}
-<div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_auto_auto] md:items-center">
-  {/* 1) SOL */}
-  <div className="min-w-0">
-    <h1 className="text-white text-3xl font-bold flex items-center gap-3">
-      <Activity size={34} className="animate-pulse" />
-      Son Depremler
-    </h1>
-
-    <p className="text-white/85 text-sm mt-1">
-      Ses açıkken deprem bildirimi: Deprem şiddeti kadar tık sesi.
-    </p>
-
-    {/* Ses açıkken son bildirim bilgisi */}
-    {soundEnabled && lastAlert && (
+      {/* =====================================================
+          11.2 Header Kartı
+          - ÜST KISIM 3 PARÇA:
+            1) Sol: Başlık + açıklama + (ses açıksa son bildirim)
+            2) Orta: Ses toggle
+            3) Sağ: Animasyon + saat + Son 7 günde ... deprem
+          ===================================================== */}
       <div
-        className="mt-2 inline-flex items-start gap-2 rounded-lg border px-3 py-2 max-w-[920px]"
-        style={{ backgroundColor: 'rgba(255,255,255,0.10)', borderColor: 'rgba(255,255,255,0.18)' }}
+        className="text-white p-5 mb-8 rounded-xl shadow-lg"
+        style={{ background: 'linear-gradient(to right, #0f172a, #1e3a8a)' }}
       >
-        <Zap size={16} className="mt-[2px]" />
-        <div className="text-xs leading-snug">
-          <div className="font-extrabold text-white/95">
-            Son bildirim: {lastAlert.mag.toFixed(1)} • {getTimeAgo(lastAlert.date_time)}
-            {lastAlert.relation ? ` • ${lastAlert.relation}` : ''}
+        {/* ---- 3 parçalı üst alan ---- */}
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_auto_auto] md:items-center">
+          {/* 1) SOL */}
+          <div className="min-w-0">
+            <h1 className="text-white text-3xl font-bold flex items-center gap-3">
+              <Activity size={34} className="animate-pulse" />
+              Son Depremler
+            </h1>
+
+            <p className="text-white/85 text-sm mt-1">
+              Ses açıkken deprem bildirimi: Deprem şiddeti kadar tık sesi.
+            </p>
+
+            {/* Ses açıksa ve son bildirim varsa göster */}
+            {soundEnabled && lastAlert && (
+              <div
+                className="mt-2 inline-flex items-start gap-2 rounded-lg border px-3 py-2 max-w-[920px]"
+                style={{ backgroundColor: 'rgba(255,255,255,0.10)', borderColor: 'rgba(255,255,255,0.18)' }}
+              >
+                <Zap size={16} className="mt-[2px]" />
+                <div className="text-xs leading-snug">
+                  <div className="font-extrabold text-white/95">
+                    Son bildirim: {lastAlert.mag.toFixed(1)} • {getTimeAgo(lastAlert.date_time)}
+                    {lastAlert.relation ? ` • ${lastAlert.relation}` : ''}
+                  </div>
+                  <div className="text-white/85 break-words">
+                    {lastAlert.title} • Isparta&apos;dan {Math.round(lastAlert.distanceKm)} km •{' '}
+                    {formatDateIstanbul(lastAlert.date_time)}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-          <div className="text-white/85 break-words">
-            {lastAlert.title} • Isparta&apos;dan {Math.round(lastAlert.distanceKm)} km • {formatDateIstanbul(lastAlert.date_time)}
+
+          {/* 2) ORTA (Ses) */}
+          <div className="flex justify-start md:justify-center">
+            <SoundToggle enabled={soundEnabled} onToggle={() => setSoundEnabled(!soundEnabled)} />
+          </div>
+
+          {/* 3) SAĞ (Animasyon + Saat + 7 gün sayısı) */}
+          <div className="flex justify-start md:justify-end">
+            <div className="bg-white/10 border border-white/15 rounded-lg px-3 py-2 flex items-center gap-3">
+              {/* 30 sn animasyon */}
+              <div className="flex items-center justify-center h-[30px] w-[30px]">
+                {loading ? (
+                  <RefreshCw size={22} className="animate-spin" />
+                ) : (
+                  <CountdownTimer duration={30000} resetKey={lastUpdated} size={28} />
+                )}
+              </div>
+
+              {/* Saat + "Son 7 günde X deprem" */}
+              <div className="leading-tight text-left md:text-right">
+                <div className="flex items-center gap-1 text-sm text-white/90 md:justify-end">
+                  <Clock size={14} />
+                  {formatTimeIstanbul(lastUpdated)}
+                </div>
+
+                <div className="text-xs text-white/75">
+                  Son 7 günde {earthquakes.length} deprem
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    )}
-  </div>
 
-  {/* 2) ORTA: SES */}
-  <div className="flex justify-start md:justify-center">
-    <SoundToggle enabled={soundEnabled} onToggle={() => setSoundEnabled(!soundEnabled)} />
-  </div>
-
-  {/* 3) SAĞ: ANİMASYON + SAAT + 7 GÜN SAYISI */}
-  <div className="flex justify-start md:justify-end">
-    <div className="bg-white/10 border border-white/15 rounded-lg px-3 py-2 flex items-center gap-3">
-      <div className="flex items-center justify-center h-[30px] w-[30px]">
-        {loading ? (
-          <RefreshCw size={22} className="animate-spin" />
-        ) : (
-          <CountdownTimer duration={30000} resetKey={lastUpdated} size={28} />
-        )}
-      </div>
-
-      <div className="leading-tight text-left md:text-right">
-        <div className="flex items-center gap-1 text-sm text-white/90 md:justify-end">
-          <Clock size={14} />
-          {formatTimeIstanbul(lastUpdated)}
-        </div>
-        <div className="text-xs text-white/75">
-          Son 7 günde {earthquakes.length} deprem
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-
-        {/* Max cards */}
+        {/* ---- En büyük deprem kartları (2'li) ---- */}
         <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-2">
           {renderMaxCard('Son 24 saatte en büyük deprem', max24h)}
           {renderMaxCard('Son 7 günün en büyük depremi', max7d)}
         </div>
 
+        {/* ---- Şiddet barı ---- */}
         {renderSeverityBar()}
       </div>
 
-      {/* Error */}
+      {/* =====================================================
+          11.3 Hata mesajı
+          ===================================================== */}
       {error && (
         <div className="bg-red-50 border-l-4 border-red-500 p-6 mb-6 rounded-r-lg shadow">
           <div className="flex items-start gap-3">
@@ -819,6 +1138,7 @@ export function Deprem() {
             <div>
               <p className="text-red-700 font-semibold mb-1">Veri Yükleme Hatası</p>
               <p className="text-red-600 text-sm">{error}</p>
+
               <button
                 onClick={fetchData}
                 className="mt-3 px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-sm font-medium transition-colors"
@@ -830,18 +1150,24 @@ export function Deprem() {
         </div>
       )}
 
-      {/* Table */}
+      {/* =====================================================
+          11.4 Tablo
+          - Kolon sırası:
+            Yer | Büyüklük | Isparta'ya Uzaklık | Derinlik | Tarih/Saat (TS)
+          ===================================================== */}
       <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse">
+            {/* ---- Başlık ---- */}
             <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
               <tr className="border-b-2 border-gray-300">
+                {/* Yer */}
                 <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 uppercase tracking-wider w-1/3 border-r border-gray-300">
                   <MapPin size={16} className="inline mr-2" />
                   Yer
                 </th>
 
-                {/* ✅ önce büyüklük */}
+                {/* Büyüklük (tıklanabilir) */}
                 <th
                   className="px-6 py-4 text-center text-sm font-bold text-gray-700 uppercase tracking-wider border-r border-gray-300 cursor-pointer hover:bg-gray-200 transition-colors select-none"
                   onClick={() => handleSort('mag')}
@@ -855,7 +1181,7 @@ export function Deprem() {
                   </div>
                 </th>
 
-                {/* ✅ sonra uzaklık */}
+                {/* Uzaklık (tıklanabilir) */}
                 <th
                   className="px-6 py-4 text-center text-sm font-bold text-gray-700 uppercase tracking-wider border-r border-gray-300 cursor-pointer hover:bg-gray-200 transition-colors select-none"
                   onClick={() => handleSort('distance')}
@@ -870,10 +1196,12 @@ export function Deprem() {
                   </div>
                 </th>
 
+                {/* Derinlik */}
                 <th className="px-6 py-4 text-center text-sm font-bold text-gray-700 uppercase tracking-wider border-r border-gray-300">
                   Derinlik (km)
                 </th>
 
+                {/* Tarih/Saat (tıklanabilir) */}
                 <th
                   className="px-6 py-4 text-left text-sm font-bold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-colors select-none"
                   onClick={() => handleSort('date_time')}
@@ -890,7 +1218,9 @@ export function Deprem() {
               </tr>
             </thead>
 
+            {/* ---- Gövde ---- */}
             <tbody className="divide-y divide-gray-300">
+              {/* Loading + hiç veri yoksa */}
               {loading && earthquakes.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-12 text-center">
@@ -907,6 +1237,7 @@ export function Deprem() {
                 </tr>
               ) : (
                 displayedEarthquakes.map((eq, index) => {
+                  // Uzaklık (Isparta merkez)
                   const distance = calculateDistance(
                     ISPARTA_COORDS.lat,
                     ISPARTA_COORDS.lng,
@@ -914,10 +1245,16 @@ export function Deprem() {
                     eq.geojson.coordinates[0]
                   );
 
+                  // ISPARTA / YAKIN / null
                   const rel = getRelation(eq.title, distance);
+
+                  // Son 1 saat mi?
                   const recent = isRecent(eq.date_time);
+
+                  // Satır arka plan rengi
                   const rowColor = getRowColor(eq.mag, rel);
 
+                  // Sol bordür rengi sınıfı
                   let rowClasses = 'transition-all duration-150 border-l-4';
                   if (rel === 'ISPARTA') rowClasses += ' border-l-rose-600 shadow-sm';
                   else if (rel === 'YAKIN') rowClasses += ' border-l-orange-500 shadow-sm';
@@ -927,14 +1264,24 @@ export function Deprem() {
                   else if (eq.mag >= 3) rowClasses += ' border-l-yellow-400';
                   else rowClasses += ' border-l-green-400';
 
+                  // Yeni deprem animasyonu
                   if (recent) rowClasses += ' animate-pulse';
 
                   return (
-                    <tr key={eq.earthquake_id || index} className={rowClasses} style={{ backgroundColor: rowColor }}>
+                    <tr
+                      key={eq.earthquake_id || index}
+                      className={rowClasses}
+                      style={{ backgroundColor: rowColor }}
+                    >
                       {/* Yer */}
-                      <td className={`px-6 py-4 border-r border-gray-300 border-b border-gray-300 ${rel ? 'font-bold text-gray-900 text-base' : 'text-gray-800'}`}>
+                      <td
+                        className={`px-6 py-4 border-r border-gray-300 border-b border-gray-300 ${
+                          rel ? 'font-bold text-gray-900 text-base' : 'text-gray-800'
+                        }`}
+                      >
                         <div className="flex flex-col">
                           <div className="flex items-start gap-2 flex-wrap">
+                            {/* ISPARTA / YAKIN etiketi */}
                             {rel && (
                               <span
                                 className="inline-flex items-center px-2.5 py-1 text-[11px] font-extrabold rounded-md uppercase tracking-wide mt-0.5 shadow-md border"
@@ -949,6 +1296,7 @@ export function Deprem() {
                               </span>
                             )}
 
+                            {/* YENİ etiketi */}
                             {recent && (
                               <span className="inline-flex items-center px-2 py-0.5 bg-blue-100 text-blue-900 text-xs font-bold rounded uppercase mt-0.5 shadow-sm animate-pulse border border-blue-300">
                                 <Zap size={12} className="mr-1" />
@@ -956,9 +1304,11 @@ export function Deprem() {
                               </span>
                             )}
 
+                            {/* Yer adı */}
                             <span className="break-words">{eq.title}</span>
                           </div>
 
+                          {/* Ne kadar önce */}
                           <div className="text-xs text-gray-600 mt-1 ml-1 flex items-center gap-1">
                             <Clock size={10} />
                             {getTimeAgo(eq.date_time)}
@@ -969,7 +1319,11 @@ export function Deprem() {
                       {/* Büyüklük */}
                       <td className="px-6 py-4 text-center border-r border-gray-300 border-b border-gray-300">
                         <div className="flex items-center justify-center gap-2">
-                          <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-bold shadow-sm ${getMagnitudeBadgeStyle(eq.mag)}`}>
+                          <span
+                            className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-bold shadow-sm ${getMagnitudeBadgeStyle(
+                              eq.mag
+                            )}`}
+                          >
                             {eq.mag.toFixed(1)}
                           </span>
 
@@ -988,7 +1342,7 @@ export function Deprem() {
                         {Number.isFinite(eq.depth) ? eq.depth.toFixed(1) : '0.0'}
                       </td>
 
-                      {/* Tarih */}
+                      {/* Tarih/Saat */}
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-b border-gray-300">
                         <span>{formatDateIstanbul(eq.date_time)}</span>
                       </td>
@@ -1000,6 +1354,7 @@ export function Deprem() {
           </table>
         </div>
 
+        {/* ---- Daha fazla göster butonu ---- */}
         {!showHistory && sortedEarthquakes.length > 50 && (
           <div className="p-4 text-center border-t border-gray-200 bg-gray-50">
             <button
@@ -1013,6 +1368,7 @@ export function Deprem() {
           </div>
         )}
 
+        {/* ---- History açıkken bilgi ---- */}
         {showHistory && (
           <div className="p-4 text-center border-t border-gray-200 bg-gray-50">
             <p className="text-gray-600 italic">Tüm kayıtlar gösteriliyor.</p>
@@ -1020,7 +1376,9 @@ export function Deprem() {
         )}
       </div>
 
-      {/* Footer */}
+      {/* =====================================================
+          11.5 Footer
+          ===================================================== */}
       <div className="mt-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg shadow-sm">
         <p className="text-sm text-blue-800">
           <strong>Not:</strong> Kaynak: AFAD Event Service.
