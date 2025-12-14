@@ -86,7 +86,15 @@ const CountdownTimer = ({
   );
 };
 
-type SoundItem = { mag: number; isNear: boolean };
+type SoundItem = { mag: number; isNear: boolean; eq: Earthquake };
+
+type LastAlertInfo = {
+  title: string;
+  mag: number;
+  date_time: string;
+  distanceKm: number;
+  relation: 'ISPARTA' | 'YAKIN' | null;
+};
 
 export function Deprem() {
   const [earthquakes, setEarthquakes] = useState<Earthquake[]>([]);
@@ -95,6 +103,10 @@ export function Deprem() {
   const [error, setError] = useState<string | null>(null);
   const [soundEnabled, setSoundEnabled] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+
+  // ✅ Ses bildirimi hangi deprem için geldi?
+  const [lastAlert, setLastAlert] = useState<LastAlertInfo | null>(null);
+  const lastAlertHideTimer = useRef<number | null>(null);
 
   // Default: en yeni en üstte
   const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: SortDirection }>({
@@ -279,6 +291,20 @@ export function Deprem() {
   const soundQueue = useRef<SoundItem[]>([]);
   const isPlaying = useRef(false);
 
+  const showLastAlert = (eq: Earthquake, relation: 'ISPARTA' | 'YAKIN' | null, distanceKm: number) => {
+    setLastAlert({
+      title: eq.title,
+      mag: eq.mag,
+      date_time: eq.date_time,
+      distanceKm,
+      relation
+    });
+
+    // Bir sonraki bildirime kadar kalsın; ayrıca 30sn sonra otomatik gizle (ekranı kirletmesin)
+    if (lastAlertHideTimer.current) window.clearTimeout(lastAlertHideTimer.current);
+    lastAlertHideTimer.current = window.setTimeout(() => setLastAlert(null), 30000);
+  };
+
   const processSoundQueue = async () => {
     if (isPlaying.current || soundQueue.current.length === 0) return;
     isPlaying.current = true;
@@ -286,6 +312,16 @@ export function Deprem() {
     while (soundQueue.current.length > 0) {
       const item = soundQueue.current.shift();
       if (!item) break;
+
+      // ✅ Sesin hangi deprem için çaldığını göster
+      const distanceKm = calculateDistance(
+        ISPARTA_COORDS.lat,
+        ISPARTA_COORDS.lng,
+        item.eq.geojson.coordinates[1],
+        item.eq.geojson.coordinates[0]
+      );
+      const rel = getRelation(item.eq.title, distanceKm);
+      showLastAlert(item.eq, rel, distanceKm);
 
       if (item.isNear) {
         await playNearPreamble();
@@ -424,7 +460,7 @@ export function Deprem() {
                 eq.geojson.coordinates[0]
               );
               const rel = getRelation(eq.title, distance);
-              soundQueue.current.push({ mag: eq.mag, isNear: rel !== null });
+              soundQueue.current.push({ mag: eq.mag, isNear: rel !== null, eq });
             });
             processSoundQueue();
           }
@@ -632,6 +668,7 @@ export function Deprem() {
     );
   };
 
+  // ✅ Daha dengeli bar: desktop'ta 5 eşit parça, mobilde 2 satıra daha düzgün kırılır
   const renderSeverityBar = () => {
     const items = [
       { label: '<3 düşük', bg: '#dcfce7', fg: '#14532d' },
@@ -648,7 +685,7 @@ export function Deprem() {
             {items.map((it, idx) => (
               <div
                 key={idx}
-                className="flex-1 min-w-[140px] px-3 py-2 text-[11px] font-extrabold text-center"
+                className="px-3 py-2 text-[11px] font-extrabold text-center flex-1 basis-[20%] min-w-[120px] sm:min-w-[140px]"
                 style={{ backgroundColor: it.bg, color: it.fg }}
               >
                 {it.label}
@@ -700,10 +737,28 @@ export function Deprem() {
                 Son Depremler
               </h1>
 
-              {/* İstenen tek cümle */}
               <p className="text-white/85 text-sm mt-1">
                 Ses açıkken deprem bildirimi: Deprem şiddeti kadar tık sesi.
               </p>
+
+              {/* ✅ Son ses bildirimi (hangi deprem?) */}
+              {soundEnabled && lastAlert && (
+                <div
+                  className="mt-2 inline-flex items-start gap-2 rounded-lg border px-3 py-2 max-w-[920px]"
+                  style={{ backgroundColor: 'rgba(255,255,255,0.10)', borderColor: 'rgba(255,255,255,0.18)' }}
+                >
+                  <Zap size={16} className="mt-[2px]" />
+                  <div className="text-xs leading-snug">
+                    <div className="font-extrabold text-white/95">
+                      Son bildirim: {lastAlert.mag.toFixed(1)} • {getTimeAgo(lastAlert.date_time)}
+                      {lastAlert.relation ? ` • ${lastAlert.relation}` : ''}
+                    </div>
+                    <div className="text-white/85 break-words">
+                      {lastAlert.title} • Isparta&apos;dan {Math.round(lastAlert.distanceKm)} km
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Sağ üst: saat + sayaç + ses */}
@@ -752,7 +807,7 @@ export function Deprem() {
             {renderMaxCard('Son 7 günün en büyük depremi', max7d)}
           </div>
 
-          {/* Şiddet barı: kartların altına */}
+          {/* Şiddet barı */}
           {renderSeverityBar()}
         </div>
       </div>
@@ -787,7 +842,6 @@ export function Deprem() {
                   Yer
                 </th>
 
-                {/* Büyüklük önce */}
                 <th
                   className="px-6 py-4 text-center text-sm font-bold text-gray-700 uppercase tracking-wider border-r border-gray-300 cursor-pointer hover:bg-gray-200 transition-colors select-none"
                   onClick={() => handleSort('mag')}
@@ -876,7 +930,6 @@ export function Deprem() {
 
                   return (
                     <tr key={eq.earthquake_id || index} className={rowClasses} style={{ backgroundColor: rowColor }}>
-                      {/* Yer */}
                       <td
                         className={`px-6 py-4 border-r border-gray-300 border-b border-gray-300 ${
                           rel ? 'font-bold text-gray-900 text-base' : 'text-gray-800'
@@ -915,7 +968,6 @@ export function Deprem() {
                         </div>
                       </td>
 
-                      {/* Büyüklük */}
                       <td className="px-6 py-4 text-center border-r border-gray-300 border-b border-gray-300">
                         <div className="flex items-center justify-center gap-2">
                           <span
@@ -931,17 +983,14 @@ export function Deprem() {
                         </div>
                       </td>
 
-                      {/* Uzaklık */}
                       <td className="px-6 py-4 text-center border-r border-gray-300 border-b border-gray-300 font-mono text-gray-700">
                         {Math.round(distance)} km
                       </td>
 
-                      {/* Derinlik */}
                       <td className="px-6 py-4 text-center text-gray-700 font-medium border-r border-gray-300 border-b border-gray-300">
                         {Number.isFinite(eq.depth) ? eq.depth.toFixed(1) : '0.0'}
                       </td>
 
-                      {/* Tarih */}
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-b border-gray-300">
                         <span>{formatDate(eq.date_time)}</span>
                       </td>
