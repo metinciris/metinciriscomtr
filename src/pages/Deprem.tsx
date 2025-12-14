@@ -86,6 +86,43 @@ const CountdownTimer = ({
   );
 };
 
+function SoundToggle({
+  enabled,
+  onToggle
+}: {
+  enabled: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-pressed={enabled}
+      className="inline-flex items-center gap-2 select-none shrink-0"
+      title={enabled ? 'Ses Açık' : 'Ses Kapalı'}
+    >
+      <span className="text-white/90">{enabled ? <Volume2 size={18} /> : <VolumeX size={18} />}</span>
+
+      <span
+        className={`relative inline-flex h-7 w-12 items-center rounded-full border transition-all ${
+          enabled ? 'bg-green-500/25 border-green-400/50' : 'bg-white/10 border-white/20'
+        }`}
+      >
+        <span
+          className={`inline-block h-6 w-6 transform rounded-full bg-white shadow transition-transform ${
+            enabled ? 'translate-x-5' : 'translate-x-1'
+          }`}
+        />
+      </span>
+
+      <span className="font-extrabold text-sm text-white/95 sm:hidden">Ses</span>
+      <span className="font-extrabold text-sm text-white/95 hidden sm:inline">
+        {enabled ? 'Ses Açık' : 'Ses Kapalı'}
+      </span>
+    </button>
+  );
+}
+
 type SoundItem = { mag: number; isNear: boolean; eq: Earthquake };
 
 type LastAlertInfo = {
@@ -101,32 +138,29 @@ export function Deprem() {
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [error, setError] = useState<string | null>(null);
+
   const [soundEnabled, setSoundEnabled] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
 
-  // ✅ Ses bildirimi hangi deprem için geldi?
   const [lastAlert, setLastAlert] = useState<LastAlertInfo | null>(null);
   const lastAlertHideTimer = useRef<number | null>(null);
 
-  // Default: en yeni en üstte
   const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: SortDirection }>({
     key: 'date_time',
     direction: 'desc'
   });
 
-  // Isparta merkez koordinatları
   const ISPARTA_COORDS = { lat: 37.7648, lng: 30.5567 };
   const NEAR_KM = 100;
 
-  // Cloudflare Worker (AFAD proxy)
+  // ✅ AFAD Proxy / Worker URL
   const AFAD_PROXY = 'https://depremo.tutkumuz.workers.dev';
 
   const latestEqDateRef = useRef<string | null>(null);
 
-  // ====== İstanbul saatine sabitleme yardımcıları ======
+  // ===== İstanbul TZ helpers =====
   const IST_TZ = 'Europe/Istanbul';
 
-  // "YYYY-MM-DDTHH:mm:ss" (İstanbul TZ) üretir
   const toIstanbulParam = (d: Date) => {
     const parts = new Intl.DateTimeFormat('sv-SE', {
       timeZone: IST_TZ,
@@ -167,23 +201,19 @@ export function Deprem() {
     }
   };
 
-  // AFAD "Tarih(TS)" timezone içermez: her zaman +03:00 olarak parse ediyoruz
+  // ✅ Kritik: AFAD event-service timezone’suz timestamp → UTC kabul et (Z ekle)
   const normalizeDateString = (s: any): string => {
     if (!s) return '';
     let str = String(s).trim();
 
-    // "YYYY-MM-DD HH:mm:ss" -> "YYYY-MM-DDTHH:mm:ss"
     if (str.includes(' ') && !str.includes('T')) str = str.replace(' ', 'T');
 
-    // Timezone var mı?
     const hasTZ =
       /[zZ]$/.test(str) || /[+-]\d{2}:\d{2}$/.test(str) || /[+-]\d{4}$/.test(str);
 
-// AFAD event-service'ten gelen timezone'suz timestamp'leri UTC kabul et → "Z" ekle
-return hasTZ ? str : `${str}Z`;
-
+    return hasTZ ? str : `${str}Z`;
   };
-  // =====================================================
+  // ==============================
 
   const deg2rad = (deg: number) => deg * (Math.PI / 180);
 
@@ -201,7 +231,6 @@ return hasTZ ? str : `${str}Z`;
     return R * c;
   };
 
-  // 2 saat+ için dakika göstermiyoruz
   const getTimeAgo = (dateStr: string) => {
     const date = new Date(dateStr);
     const now = new Date();
@@ -234,7 +263,7 @@ return hasTZ ? str : `${str}Z`;
     return 'bg-green-100 text-green-800 border border-green-200';
   };
 
-  // “Isparta/ısparta” geçen HER ŞEY il içi
+  // “Isparta/ısparta” geçen her şey: ISPARTA
   const getRelation = (title: string, distanceKm: number): 'ISPARTA' | 'YAKIN' | null => {
     const t = title.toLocaleLowerCase('tr-TR');
     if (t.includes('isparta') || t.includes('ısparta')) return 'ISPARTA';
@@ -242,21 +271,19 @@ return hasTZ ? str : `${str}Z`;
     return null;
   };
 
-  // Satır/şiddet renkleri
   const getRowColor = (mag: number, relation: 'ISPARTA' | 'YAKIN' | null) => {
-    if (relation === 'ISPARTA') return '#ffe4e6'; // rose-100
-    if (relation === 'YAKIN') return '#ffedd5'; // orange-100
+    if (relation === 'ISPARTA') return '#ffe4e6';
+    if (relation === 'YAKIN') return '#ffedd5';
 
-    if (mag >= 6) return '#fecaca'; // red-200
-    if (mag >= 5) return '#fee2e2'; // red-100
-    if (mag >= 4) return '#ffedd5'; // orange-100
-    if (mag >= 3) return '#fef9c3'; // yellow-100
-    return '#dcfce7'; // green-100
+    if (mag >= 6) return '#fecaca';
+    if (mag >= 5) return '#fee2e2';
+    if (mag >= 4) return '#ffedd5';
+    if (mag >= 3) return '#fef9c3';
+    return '#dcfce7';
   };
 
   const getSeverityBg = (mag: number, relation: 'ISPARTA' | 'YAKIN' | null) => getRowColor(mag, relation);
 
-  // Sorting: first click defaults (distance asc, mag desc, date desc)
   const handleSort = (key: SortKey) => {
     setSortConfig(current => {
       if (current.key === key) {
@@ -267,7 +294,7 @@ return hasTZ ? str : `${str}Z`;
     });
   };
 
-  // Sound
+  // ---- SOUND ----
   const playBeep = (frequency = 440, duration = 0.1) => {
     if (!soundEnabled) return;
 
@@ -297,12 +324,11 @@ return hasTZ ? str : `${str}Z`;
 
   const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-  // 1 uzun + 2 kısa “yakın” işareti
   const playNearPreamble = async () => {
     if (!soundEnabled) return;
-    playBeep(440, 0.55);
+    playBeep(440, 0.55); // 1 uzun
     await sleep(700);
-    playBeep(660, 0.12);
+    playBeep(660, 0.12); // 2 kısa
     await sleep(250);
     playBeep(660, 0.12);
     await sleep(300);
@@ -314,7 +340,6 @@ return hasTZ ? str : `${str}Z`;
         resolve();
         return;
       }
-
       let beepsPlayed = 0;
       const interval = setInterval(() => {
         playBeep(880, 0.15);
@@ -339,7 +364,6 @@ return hasTZ ? str : `${str}Z`;
       relation
     });
 
-    // Bir sonraki bildirime kadar kalsın; ayrıca 30sn sonra otomatik gizle
     if (lastAlertHideTimer.current) window.clearTimeout(lastAlertHideTimer.current);
     lastAlertHideTimer.current = window.setTimeout(() => setLastAlert(null), 30000);
   };
@@ -366,15 +390,14 @@ return hasTZ ? str : `${str}Z`;
       }
       await playBeepSequence(Math.floor(item.mag));
 
-      if (soundQueue.current.length > 0) {
-        await sleep(900);
-      }
+      if (soundQueue.current.length > 0) await sleep(900);
     }
 
     isPlaying.current = false;
   };
+  // ---- /SOUND ----
 
-  // AFAD map (featurecollection / array / farklı şemalara toleranslı)
+  // Map AFAD shapes -> Earthquake[]
   const mapAfadToEarthquakes = (raw: any): Earthquake[] => {
     const out: Earthquake[] = [];
 
@@ -392,13 +415,11 @@ return hasTZ ? str : `${str}Z`;
         mag: magNum,
         depth: Number.isFinite(depthNum) ? depthNum : 0,
         date_time: normalizeDateString(date),
-        geojson: {
-          type: 'Point',
-          coordinates: [lngNum, latNum]
-        }
+        geojson: { type: 'Point', coordinates: [lngNum, latNum] }
       });
     };
 
+    // GeoJSON FeatureCollection
     if (raw?.features && Array.isArray(raw.features)) {
       for (const f of raw.features) {
         const p = f?.properties ?? {};
@@ -422,6 +443,7 @@ return hasTZ ? str : `${str}Z`;
       return out;
     }
 
+    // Array
     if (Array.isArray(raw)) {
       for (const e of raw) {
         const lon = e?.longitude ?? e?.lon ?? e?.lng ?? e?.geojson?.coordinates?.[0] ?? e?.coordinates?.[0];
@@ -451,7 +473,6 @@ return hasTZ ? str : `${str}Z`;
     setError(null);
 
     try {
-      // Son 7 gün (İstanbul saatine göre start/end param üret)
       const end = new Date();
       const start = new Date(end.getTime() - 7 * 24 * 60 * 60 * 1000);
 
@@ -467,15 +488,13 @@ return hasTZ ? str : `${str}Z`;
       const raw = await resp.json();
       const mapped = mapAfadToEarthquakes(raw);
 
-      // Deduplicate
       const uniqueMap = new Map<string, Earthquake>();
       for (const eq of mapped) uniqueMap.set(eq.earthquake_id, eq);
       const uniqueEarthquakes = Array.from(uniqueMap.values());
 
-      // Default: date desc
       uniqueEarthquakes.sort((a, b) => new Date(b.date_time).getTime() - new Date(a.date_time).getTime());
 
-      // New quake detection + sound queue
+      // New quake detection
       if (uniqueEarthquakes.length > 0) {
         const newestEq = uniqueEarthquakes[0];
         if (latestEqDateRef.current) {
@@ -524,18 +543,8 @@ return hasTZ ? str : `${str}Z`;
         return sortConfig.direction === 'asc' ? a.mag - b.mag : b.mag - a.mag;
       }
       if (sortConfig.key === 'distance') {
-        const distA = calculateDistance(
-          ISPARTA_COORDS.lat,
-          ISPARTA_COORDS.lng,
-          a.geojson.coordinates[1],
-          a.geojson.coordinates[0]
-        );
-        const distB = calculateDistance(
-          ISPARTA_COORDS.lat,
-          ISPARTA_COORDS.lng,
-          b.geojson.coordinates[1],
-          b.geojson.coordinates[0]
-        );
+        const distA = calculateDistance(ISPARTA_COORDS.lat, ISPARTA_COORDS.lng, a.geojson.coordinates[1], a.geojson.coordinates[0]);
+        const distB = calculateDistance(ISPARTA_COORDS.lat, ISPARTA_COORDS.lng, b.geojson.coordinates[1], b.geojson.coordinates[0]);
         return sortConfig.direction === 'asc' ? distA - distB : distB - distA;
       }
       const timeA = new Date(a.date_time).getTime();
@@ -548,15 +557,9 @@ return hasTZ ? str : `${str}Z`;
   const top50 = sortedEarthquakes.slice(0, 50);
   const displayedEarthquakes = showHistory ? sortedEarthquakes : top50;
 
-  // Banner: ISPARTA/YAKIN varsa en günceli
   const latestBannerEq = useMemo(() => {
     for (const eq of sortedEarthquakes) {
-      const distance = calculateDistance(
-        ISPARTA_COORDS.lat,
-        ISPARTA_COORDS.lng,
-        eq.geojson.coordinates[1],
-        eq.geojson.coordinates[0]
-      );
+      const distance = calculateDistance(ISPARTA_COORDS.lat, ISPARTA_COORDS.lng, eq.geojson.coordinates[1], eq.geojson.coordinates[0]);
       const rel = getRelation(eq.title, distance);
       if (rel) return eq;
     }
@@ -564,17 +567,11 @@ return hasTZ ? str : `${str}Z`;
   }, [sortedEarthquakes]);
 
   const getBannerTitle = (eq: Earthquake) => {
-    const distance = calculateDistance(
-      ISPARTA_COORDS.lat,
-      ISPARTA_COORDS.lng,
-      eq.geojson.coordinates[1],
-      eq.geojson.coordinates[0]
-    );
+    const distance = calculateDistance(ISPARTA_COORDS.lat, ISPARTA_COORDS.lng, eq.geojson.coordinates[1], eq.geojson.coordinates[0]);
     const rel = getRelation(eq.title, distance);
     return rel === 'ISPARTA' ? "Isparta'da Deprem!" : "Isparta'ya Yakın Deprem!";
   };
 
-  // En büyükler: 24 saat / 7 gün
   const max24h = useMemo(() => {
     const now = Date.now();
     const list = earthquakes.filter(eq => new Date(eq.date_time).getTime() >= now - 24 * 60 * 60 * 1000);
@@ -602,10 +599,7 @@ return hasTZ ? str : `${str}Z`;
       return (
         <div
           className="relative rounded-lg p-3 border shadow-sm overflow-hidden"
-          style={{
-            backgroundColor: 'rgba(255,255,255,0.10)',
-            borderColor: 'rgba(255,255,255,0.18)'
-          }}
+          style={{ backgroundColor: 'rgba(255,255,255,0.10)', borderColor: 'rgba(255,255,255,0.18)' }}
         >
           <div className="absolute inset-0" style={{ backgroundColor: 'rgba(255,255,255,0.18)' }} />
           <div className="relative">
@@ -620,12 +614,7 @@ return hasTZ ? str : `${str}Z`;
       );
     }
 
-    const distance = calculateDistance(
-      ISPARTA_COORDS.lat,
-      ISPARTA_COORDS.lng,
-      eq.geojson.coordinates[1],
-      eq.geojson.coordinates[0]
-    );
+    const distance = calculateDistance(ISPARTA_COORDS.lat, ISPARTA_COORDS.lng, eq.geojson.coordinates[1], eq.geojson.coordinates[0]);
     const rel = getRelation(eq.title, distance);
     const bg = getSeverityBg(eq.mag, rel);
 
@@ -634,15 +623,8 @@ return hasTZ ? str : `${str}Z`;
     const osmUrl = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=10/${lat}/${lon}`;
 
     return (
-      <div
-        className="relative rounded-lg p-3 border shadow-sm overflow-hidden"
-        style={{
-          backgroundColor: bg,
-          borderColor: 'rgba(0,0,0,0.12)'
-        }}
-      >
+      <div className="relative rounded-lg p-3 border shadow-sm overflow-hidden" style={{ backgroundColor: bg, borderColor: 'rgba(0,0,0,0.12)' }}>
         <div className="absolute inset-0" style={{ backgroundColor: 'rgba(255,255,255,0.72)' }} />
-
         <div className="relative">
           <div className="text-xs font-extrabold mb-1" style={{ color: '#0f172a' }}>
             {title}
@@ -698,7 +680,6 @@ return hasTZ ? str : `${str}Z`;
     );
   };
 
-  // ✅ Daha dengeli bar (mobilde daha düzgün kırılır)
   const renderSeverityBar = () => {
     const items = [
       { label: '<3 düşük', bg: '#dcfce7', fg: '#14532d' },
@@ -733,10 +714,7 @@ return hasTZ ? str : `${str}Z`;
       {latestBannerEq && (
         <div
           className="text-white p-4 mb-6 rounded-xl shadow-lg border"
-          style={{
-            background: 'linear-gradient(to right, #ef4444, #b91c1c)',
-            borderColor: 'rgba(255,255,255,0.18)'
-          }}
+          style={{ background: 'linear-gradient(to right, #ef4444, #b91c1c)', borderColor: 'rgba(255,255,255,0.18)' }}
         >
           <div className="flex items-center gap-4">
             <AlertOctagon size={30} className="flex-shrink-0 animate-pulse" />
@@ -755,10 +733,7 @@ return hasTZ ? str : `${str}Z`;
       )}
 
       {/* Header */}
-      <div
-        className="text-white p-5 mb-8 rounded-xl shadow-lg"
-        style={{ background: 'linear-gradient(to right, #0f172a, #1e3a8a)' }}
-      >
+      <div className="text-white p-5 mb-8 rounded-xl shadow-lg" style={{ background: 'linear-gradient(to right, #0f172a, #1e3a8a)' }}>
         <div className="flex flex-col gap-3">
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1">
@@ -771,7 +746,6 @@ return hasTZ ? str : `${str}Z`;
                 Ses açıkken deprem bildirimi: Deprem şiddeti kadar tık sesi.
               </p>
 
-              {/* ✅ Son ses bildirimi */}
               {soundEnabled && lastAlert && (
                 <div
                   className="mt-2 inline-flex items-start gap-2 rounded-lg border px-3 py-2 max-w-[920px]"
@@ -784,44 +758,37 @@ return hasTZ ? str : `${str}Z`;
                       {lastAlert.relation ? ` • ${lastAlert.relation}` : ''}
                     </div>
                     <div className="text-white/85 break-words">
-                      {lastAlert.title} • Isparta&apos;dan {Math.round(lastAlert.distanceKm)} km •{' '}
-                      {formatDateIstanbul(lastAlert.date_time)}
+                      {lastAlert.title} • Isparta&apos;dan {Math.round(lastAlert.distanceKm)} km • {formatDateIstanbul(lastAlert.date_time)}
                     </div>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Sağ üst: saat + sayaç + ses */}
+            {/* Sağ üst: Ses toggle + sayaç/saat */}
             <div className="flex items-center gap-3 flex-wrap justify-end">
-  {/* ✅ Ses toggle SOLDa */}
-  <SoundToggle enabled={soundEnabled} onToggle={() => setSoundEnabled(!soundEnabled)} />
+              {/* ✅ Ses toggle: artık sağdan taşmaz */}
+              <SoundToggle enabled={soundEnabled} onToggle={() => setSoundEnabled(!soundEnabled)} />
 
-  {/* Sayaç + saat kutusu */}
-  <div className="bg-white/10 border border-white/15 rounded-lg px-3 py-2 flex items-center gap-3">
-    <div className="flex items-center justify-center h-[30px] w-[30px]">
-      {loading ? (
-        <RefreshCw size={22} className="animate-spin" />
-      ) : (
-        <CountdownTimer duration={30000} resetKey={lastUpdated} size={28} />
-      )}
-    </div>
+              <div className="bg-white/10 border border-white/15 rounded-lg px-3 py-2 flex items-center gap-3">
+                <div className="flex items-center justify-center h-[30px] w-[30px]">
+                  {loading ? <RefreshCw size={22} className="animate-spin" /> : <CountdownTimer duration={30000} resetKey={lastUpdated} size={28} />}
+                </div>
 
-    <div className="leading-tight">
-      <div className="flex items-center gap-1 text-sm text-white/90">
-        <Clock size={14} />
-        {formatTimeIstanbul(lastUpdated)}
-      </div>
-      <div className="text-xs text-white/75">
-        {earthquakes.length > 0 ? `Son 7 günde ${earthquakes.length} kayıt` : ''}
-      </div>
-    </div>
-  </div>
-</div>
-
+                <div className="leading-tight">
+                  <div className="flex items-center gap-1 text-sm text-white/90">
+                    <Clock size={14} />
+                    {formatTimeIstanbul(lastUpdated)}
+                  </div>
+                  <div className="text-xs text-white/75">
+                    {earthquakes.length > 0 ? `Son 7 günde ${earthquakes.length} deprem` : ''}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* En büyük kartları: mobilde alt alta, masaüstünde yan yana */}
+          {/* Max cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {renderMaxCard('Son 24 saatte en büyük deprem', max24h)}
             {renderMaxCard('Son 7 günün en büyük depremi', max7d)}
@@ -949,11 +916,7 @@ return hasTZ ? str : `${str}Z`;
 
                   return (
                     <tr key={eq.earthquake_id || index} className={rowClasses} style={{ backgroundColor: rowColor }}>
-                      <td
-                        className={`px-6 py-4 border-r border-gray-300 border-b border-gray-300 ${
-                          rel ? 'font-bold text-gray-900 text-base' : 'text-gray-800'
-                        }`}
-                      >
+                      <td className={`px-6 py-4 border-r border-gray-300 border-b border-gray-300 ${rel ? 'font-bold text-gray-900 text-base' : 'text-gray-800'}`}>
                         <div className="flex flex-col">
                           <div className="flex items-start gap-2 flex-wrap">
                             {rel && (
@@ -989,11 +952,7 @@ return hasTZ ? str : `${str}Z`;
 
                       <td className="px-6 py-4 text-center border-r border-gray-300 border-b border-gray-300">
                         <div className="flex items-center justify-center gap-2">
-                          <span
-                            className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-bold shadow-sm ${getMagnitudeBadgeStyle(
-                              eq.mag
-                            )}`}
-                          >
+                          <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-bold shadow-sm ${getMagnitudeBadgeStyle(eq.mag)}`}>
                             {eq.mag.toFixed(1)}
                           </span>
 
@@ -1050,8 +1009,6 @@ return hasTZ ? str : `${str}Z`;
           <br />
           <span className="font-bold">ISPARTA</span>: “Isparta/ısparta” geçen kayıtlar.{' '}
           <span className="font-bold ml-2">YAKIN</span>: Isparta merkeze 100 km yakın.
-          <br />
-          <span className="font-medium">Tüm saatler İstanbul saatine (TS) göre gösterilir.</span>
         </p>
       </div>
     </PageContainer>
