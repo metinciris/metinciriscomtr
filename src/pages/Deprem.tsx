@@ -1202,13 +1202,7 @@ export function Deprem() {
             ===================================================== */}
         {renderSeverityBar()}
 
-        {/* =====================================================
-            12.5 Tablo başlığı (bölüm hissi)
-            ===================================================== */}
-        <h2 className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
-          <MapPin size={18} />
-          Son Depremler Listesi
-        </h2>
+
 
         {/* =====================================================
             12.6 Tablo
