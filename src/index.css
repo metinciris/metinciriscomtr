@@ -2839,21 +2839,13 @@ html {
   }
 }
 
-/* Tailwind class gibi kullanılabilsin diye */
-.animate-fade-in {
-  animation: fade-in 180ms ease-out;
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-2px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
-@keyframes fade-out {
-  from {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
+@keyframes fadeOut {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-2px); }
 }
-
-.animate-fade-out {
-  animation: fade-out 220ms ease-in;
-}
+.animate-fade-in  { animation: fadeIn  0.25s ease-out forwards; }
+.animate-fade-out { animation: fadeOut 0.40s ease-out forwards; }
