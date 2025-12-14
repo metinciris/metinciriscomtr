@@ -739,62 +739,69 @@ export function Deprem() {
       <div className="text-white p-5 mb-8 rounded-xl shadow-lg" style={{ background: 'linear-gradient(to right, #0f172a, #1e3a8a)' }}>
         <div className="flex flex-col gap-3">
           {/* Üst satır: mobilde alt alta, desktop'ta grid */}
-          <div className="flex flex-col gap-3 md:grid md:grid-cols-[1fr_auto_auto] md:items-start md:gap-5">
-            {/* SOL */}
-            <div className="min-w-0">
-              <h1 className="text-white text-3xl font-bold flex items-center gap-3">
-                <Activity size={34} className="animate-pulse" />
-                Son Depremler
-              </h1>
+<div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_auto_1fr] md:items-center">
+  {/* SOL */}
+  <div className="min-w-0">
+    <h1 className="text-white text-3xl font-bold flex items-center gap-3">
+      <Activity size={34} className="animate-pulse" />
+      Son Depremler
+    </h1>
 
-              <p className="text-white/85 text-sm mt-1">
-                Ses açıkken deprem bildirimi: Deprem şiddeti kadar tık sesi.
-              </p>
+    <p className="text-white/85 text-sm mt-1">
+      Ses açıkken deprem bildirimi: Deprem şiddeti kadar tık sesi.
+    </p>
 
-              {soundEnabled && lastAlert && (
-                <div
-                  className="mt-2 inline-flex items-start gap-2 rounded-lg border px-3 py-2 max-w-[920px]"
-                  style={{ backgroundColor: 'rgba(255,255,255,0.10)', borderColor: 'rgba(255,255,255,0.18)' }}
-                >
-                  <Zap size={16} className="mt-[2px]" />
-                  <div className="text-xs leading-snug">
-                    <div className="font-extrabold text-white/95">
-                      Son bildirim: {lastAlert.mag.toFixed(1)} • {getTimeAgo(lastAlert.date_time)}
-                      {lastAlert.relation ? ` • ${lastAlert.relation}` : ''}
-                    </div>
-                    <div className="text-white/85 break-words">
-                      {lastAlert.title} • Isparta&apos;dan {Math.round(lastAlert.distanceKm)} km • {formatDateIstanbul(lastAlert.date_time)}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
+    {soundEnabled && lastAlert && (
+      <div
+        className="mt-2 inline-flex items-start gap-2 rounded-lg border px-3 py-2 max-w-[920px]"
+        style={{ backgroundColor: 'rgba(255,255,255,0.10)', borderColor: 'rgba(255,255,255,0.18)' }}
+      >
+        <Zap size={16} className="mt-[2px]" />
+        <div className="text-xs leading-snug">
+          <div className="font-extrabold text-white/95">
+            Son bildirim: {lastAlert.mag.toFixed(1)} • {getTimeAgo(lastAlert.date_time)}
+            {lastAlert.relation ? ` • ${lastAlert.relation}` : ''}
+          </div>
+          <div className="text-white/85 break-words">
+            {lastAlert.title} • Isparta&apos;dan {Math.round(lastAlert.distanceKm)} km • {formatDateIstanbul(lastAlert.date_time)}
+          </div>
+        </div>
+      </div>
+    )}
+  </div>
 
-            {/* ORTA: Desktop'ta ortada dursun */}
-            <div className="md:self-center">
-              <SoundToggle enabled={soundEnabled} onToggle={() => setSoundEnabled(!soundEnabled)} />
-            </div>
+  {/* ORTA (SES) */}
+  <div className="flex justify-center md:justify-center">
+    <SoundToggle
+      enabled={soundEnabled}
+      onToggle={() => setSoundEnabled(!soundEnabled)}
+    />
+  </div>
 
-            {/* SAĞ: sayaç/saat */}
-            <div className="md:self-start">
-              <div className="bg-white/10 border border-white/15 rounded-lg px-3 py-2 flex items-center gap-3">
-                <div className="flex items-center justify-center h-[30px] w-[30px]">
-                  {loading ? (
-                    <RefreshCw size={22} className="animate-spin" />
-                  ) : (
-                    <CountdownTimer duration={30000} resetKey={lastUpdated} size={28} />
-                  )}
-                </div>
+  {/* SAĞ (SAAT + 7 GÜN SAYI) */}
+  <div className="flex justify-start md:justify-end">
+    <div className="bg-white/10 border border-white/15 rounded-lg px-3 py-2 flex items-center gap-3">
+      <div className="flex items-center justify-center h-[30px] w-[30px]">
+        {loading ? (
+          <RefreshCw size={22} className="animate-spin" />
+        ) : (
+          <CountdownTimer duration={30000} resetKey={lastUpdated} size={28} />
+        )}
+      </div>
 
-                <div className="leading-tight">
-                  <div className="flex items-center gap-1 text-sm text-white/90">
-                    <Clock size={14} />
-                    {formatTimeIstanbul(lastUpdated)}
-                  </div>
-                  <div className="text-xs text-white/75">
-                    {earthquakes.length > 0 ? `Son 7 günde ${earthquakes.length} deprem` : ''}
-                  </div>
-                </div>
+      <div className="leading-tight text-left md:text-right">
+        <div className="flex items-center gap-1 text-sm text-white/90 md:justify-end">
+          <Clock size={14} />
+          {formatTimeIstanbul(lastUpdated)}
+        </div>
+        <div className="text-xs text-white/75">
+          Son 7 günde {earthquakes.length} deprem
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
               </div>
             </div>
           </div>
