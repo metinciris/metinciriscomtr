@@ -22,7 +22,7 @@ interface Earthquake {
   title: string;
   mag: number;
   depth: number;
-  date_time: string;
+  date_time: string; // ISO-like string (we normalize)
   geojson: {
     type: string;
     coordinates: [number, number]; // [lng, lat]
@@ -86,7 +86,7 @@ const CountdownTimer = ({
   );
 };
 
-// Daha iOS-like görünüm (dokunma/klik ile toggle)
+// iOS-like toggle (tap/click)
 function SoundToggle({ enabled, onToggle }: { enabled: boolean; onToggle: () => void }) {
   return (
     <button
@@ -159,31 +159,16 @@ export function Deprem() {
     direction: 'desc'
   });
 
+  // === Settings ===
   const ISPARTA_COORDS = { lat: 37.7648, lng: 30.5567 };
   const NEAR_KM = 100;
 
-  // AFAD Proxy (Cloudflare Worker)
+  // Cloudflare Worker / Proxy endpoint
+  // (Senin worker adresin buysa bırak; değilse kendi adresini yaz)
   const AFAD_PROXY = 'https://depremo.tutkumuz.workers.dev';
 
-  const latestEqDateRef = useRef<string | null>(null);
-
-  // ===== İstanbul TZ helpers =====
+  // === İstanbul TZ helpers ===
   const IST_TZ = 'Europe/Istanbul';
-
-  const toIstanbulParam = (d: Date) => {
-    const parts = new Intl.DateTimeFormat('sv-SE', {
-      timeZone: IST_TZ,
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    }).formatToParts(d);
-
-    const get = (t: string) => parts.find(p => p.type === t)?.value ?? '00';
-    return `${get('year')}-${get('month')}-${get('day')}T${get('hour')}:${get('minute')}:${get('second')}`;
-  };
 
   const formatTimeIstanbul = (d: Date) => {
     return new Intl.DateTimeFormat('tr-TR', {
@@ -210,7 +195,22 @@ export function Deprem() {
     }
   };
 
-  // ✅ Kritik: AFAD event-service timezone’suz timestamp → UTC kabul et (Z ekle)
+  const toIstanbulParam = (d: Date) => {
+    const parts = new Intl.DateTimeFormat('sv-SE', {
+      timeZone: IST_TZ,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    }).formatToParts(d);
+
+    const get = (t: string) => parts.find((p) => p.type === t)?.value ?? '00';
+    return `${get('year')}-${get('month')}-${get('day')}T${get('hour')}:${get('minute')}:${get('second')}`;
+  };
+
+  // ✅ AFAD event-service timezone’suz timestamp → UTC kabul et (Z ekle)
   const normalizeDateString = (s: any): string => {
     if (!s) return '';
     let str = String(s).trim();
@@ -221,8 +221,8 @@ export function Deprem() {
 
     return hasTZ ? str : `${str}Z`;
   };
-  // ==============================
 
+  // === distance ===
   const deg2rad = (deg: number) => deg * (Math.PI / 180);
 
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
@@ -239,6 +239,7 @@ export function Deprem() {
     return R * c;
   };
 
+  // === UI helpers ===
   const getTimeAgo = (dateStr: string) => {
     const date = new Date(dateStr);
     const now = new Date();
@@ -263,14 +264,6 @@ export function Deprem() {
     return diffInHours < 1;
   };
 
-  const getMagnitudeBadgeStyle = (mag: number) => {
-    if (mag >= 6) return 'bg-red-100 text-red-900 border border-red-300 ring-2 ring-red-500';
-    if (mag >= 5) return 'bg-red-100 text-red-800 border border-red-200 ring-1 ring-red-400';
-    if (mag >= 4) return 'bg-orange-100 text-orange-800 border border-orange-200';
-    if (mag >= 3) return 'bg-yellow-100 text-yellow-800 border border-yellow-200';
-    return 'bg-green-100 text-green-800 border border-green-200';
-  };
-
   // “Isparta/ısparta” geçen her şey: ISPARTA
   const getRelation = (title: string, distanceKm: number): 'ISPARTA' | 'YAKIN' | null => {
     const t = title.toLocaleLowerCase('tr-TR');
@@ -279,10 +272,17 @@ export function Deprem() {
     return null;
   };
 
+  const getMagnitudeBadgeStyle = (mag: number) => {
+    if (mag >= 6) return 'bg-red-100 text-red-900 border border-red-300 ring-2 ring-red-500';
+    if (mag >= 5) return 'bg-red-100 text-red-800 border border-red-200 ring-1 ring-red-400';
+    if (mag >= 4) return 'bg-orange-100 text-orange-800 border border-orange-200';
+    if (mag >= 3) return 'bg-yellow-100 text-yellow-800 border border-yellow-200';
+    return 'bg-green-100 text-green-800 border border-green-200';
+  };
+
   const getRowColor = (mag: number, relation: 'ISPARTA' | 'YAKIN' | null) => {
     if (relation === 'ISPARTA') return '#ffe4e6';
     if (relation === 'YAKIN') return '#ffedd5';
-
     if (mag >= 6) return '#fecaca';
     if (mag >= 5) return '#fee2e2';
     if (mag >= 4) return '#ffedd5';
@@ -291,7 +291,7 @@ export function Deprem() {
   };
 
   const handleSort = (key: SortKey) => {
-    setSortConfig(current => {
+    setSortConfig((current) => {
       if (current.key === key) {
         return { key, direction: current.direction === 'desc' ? 'asc' : 'desc' };
       }
@@ -300,7 +300,7 @@ export function Deprem() {
     });
   };
 
-  // ---- SOUND ----
+  // === Sound ===
   const playBeep = (frequency = 440, duration = 0.1) => {
     if (!soundEnabled) return;
 
@@ -328,7 +328,7 @@ export function Deprem() {
     }
   };
 
-  const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+  const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
   const playNearPreamble = async () => {
     if (!soundEnabled) return;
@@ -341,7 +341,7 @@ export function Deprem() {
   };
 
   const playBeepSequence = (count: number): Promise<void> => {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       if (!soundEnabled || count <= 0) {
         resolve();
         return;
@@ -399,8 +399,8 @@ export function Deprem() {
 
     isPlaying.current = false;
   };
-  // ---- /SOUND ----
 
+  // === Data mapping ===
   const mapAfadToEarthquakes = (raw: any): Earthquake[] => {
     const out: Earthquake[] = [];
 
@@ -471,6 +471,8 @@ export function Deprem() {
     return out;
   };
 
+  const latestEqDateRef = useRef<string | null>(null);
+
   const fetchData = async () => {
     setLoading(true);
     setError(null);
@@ -491,21 +493,23 @@ export function Deprem() {
       const raw = await resp.json();
       const mapped = mapAfadToEarthquakes(raw);
 
+      // Dedup by id
       const uniqueMap = new Map<string, Earthquake>();
       for (const eq of mapped) uniqueMap.set(eq.earthquake_id, eq);
       const uniqueEarthquakes = Array.from(uniqueMap.values());
 
+      // Default: newest first
       uniqueEarthquakes.sort((a, b) => new Date(b.date_time).getTime() - new Date(a.date_time).getTime());
 
-      // New quake detection
+      // New quake detection (for sound)
       if (uniqueEarthquakes.length > 0) {
         const newestEq = uniqueEarthquakes[0];
         if (latestEqDateRef.current) {
           const lastDate = new Date(latestEqDateRef.current);
-          const newQuakes = uniqueEarthquakes.filter(eq => new Date(eq.date_time) > lastDate);
+          const newQuakes = uniqueEarthquakes.filter((eq) => new Date(eq.date_time) > lastDate);
 
           if (newQuakes.length > 0) {
-            newQuakes.forEach(eq => {
+            newQuakes.forEach((eq) => {
               const distance = calculateDistance(
                 ISPARTA_COORDS.lat,
                 ISPARTA_COORDS.lng,
@@ -577,7 +581,7 @@ export function Deprem() {
 
   const max24h = useMemo(() => {
     const now = Date.now();
-    const list = earthquakes.filter(eq => new Date(eq.date_time).getTime() >= now - 24 * 60 * 60 * 1000);
+    const list = earthquakes.filter((eq) => new Date(eq.date_time).getTime() >= now - 24 * 60 * 60 * 1000);
     if (list.length === 0) return null;
     return list.reduce((best, eq) => {
       if (!best) return eq;
@@ -735,85 +739,76 @@ export function Deprem() {
         </div>
       )}
 
-      {/* Header */}
+      {/* Header Card */}
       <div className="text-white p-5 mb-8 rounded-xl shadow-lg" style={{ background: 'linear-gradient(to right, #0f172a, #1e3a8a)' }}>
-        <div className="flex flex-col gap-3">
-          {/* Üst satır: mobilde alt alta, desktop'ta grid */}
-<div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_auto_1fr] md:items-center">
-  {/* SOL */}
-  <div className="min-w-0">
-    <h1 className="text-white text-3xl font-bold flex items-center gap-3">
-      <Activity size={34} className="animate-pulse" />
-      Son Depremler
-    </h1>
+        {/* ✅ İstenen düzen: Sol (title) - Orta (ses) - Sağ (saat + 7 gün sayısı) */}
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_auto_1fr] md:items-center">
+          {/* SOL */}
+          <div className="min-w-0">
+            <h1 className="text-white text-3xl font-bold flex items-center gap-3">
+              <Activity size={34} className="animate-pulse" />
+              Son Depremler
+            </h1>
 
-    <p className="text-white/85 text-sm mt-1">
-      Ses açıkken deprem bildirimi: Deprem şiddeti kadar tık sesi.
-    </p>
+            <p className="text-white/85 text-sm mt-1">
+              Ses açıkken deprem bildirimi: Deprem şiddeti kadar tık sesi.
+            </p>
 
-    {soundEnabled && lastAlert && (
-      <div
-        className="mt-2 inline-flex items-start gap-2 rounded-lg border px-3 py-2 max-w-[920px]"
-        style={{ backgroundColor: 'rgba(255,255,255,0.10)', borderColor: 'rgba(255,255,255,0.18)' }}
-      >
-        <Zap size={16} className="mt-[2px]" />
-        <div className="text-xs leading-snug">
-          <div className="font-extrabold text-white/95">
-            Son bildirim: {lastAlert.mag.toFixed(1)} • {getTimeAgo(lastAlert.date_time)}
-            {lastAlert.relation ? ` • ${lastAlert.relation}` : ''}
+            {soundEnabled && lastAlert && (
+              <div
+                className="mt-2 inline-flex items-start gap-2 rounded-lg border px-3 py-2 max-w-[920px]"
+                style={{ backgroundColor: 'rgba(255,255,255,0.10)', borderColor: 'rgba(255,255,255,0.18)' }}
+              >
+                <Zap size={16} className="mt-[2px]" />
+                <div className="text-xs leading-snug">
+                  <div className="font-extrabold text-white/95">
+                    Son bildirim: {lastAlert.mag.toFixed(1)} • {getTimeAgo(lastAlert.date_time)}
+                    {lastAlert.relation ? ` • ${lastAlert.relation}` : ''}
+                  </div>
+                  <div className="text-white/85 break-words">
+                    {lastAlert.title} • Isparta&apos;dan {Math.round(lastAlert.distanceKm)} km • {formatDateIstanbul(lastAlert.date_time)}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-          <div className="text-white/85 break-words">
-            {lastAlert.title} • Isparta&apos;dan {Math.round(lastAlert.distanceKm)} km • {formatDateIstanbul(lastAlert.date_time)}
+
+          {/* ORTA (Ses) */}
+          <div className="flex justify-start md:justify-center">
+            <SoundToggle enabled={soundEnabled} onToggle={() => setSoundEnabled(!soundEnabled)} />
           </div>
-        </div>
-      </div>
-    )}
-  </div>
 
-  {/* ORTA (SES) */}
-  <div className="flex justify-center md:justify-center">
-    <SoundToggle
-      enabled={soundEnabled}
-      onToggle={() => setSoundEnabled(!soundEnabled)}
-    />
-  </div>
+          {/* SAĞ (Sayaç + Saat + Son 7 gün) */}
+          <div className="flex justify-start md:justify-end">
+            <div className="bg-white/10 border border-white/15 rounded-lg px-3 py-2 flex items-center gap-3">
+              <div className="flex items-center justify-center h-[30px] w-[30px]">
+                {loading ? (
+                  <RefreshCw size={22} className="animate-spin" />
+                ) : (
+                  <CountdownTimer duration={30000} resetKey={lastUpdated} size={28} />
+                )}
+              </div>
 
-  {/* SAĞ (SAAT + 7 GÜN SAYI) */}
-  <div className="flex justify-start md:justify-end">
-    <div className="bg-white/10 border border-white/15 rounded-lg px-3 py-2 flex items-center gap-3">
-      <div className="flex items-center justify-center h-[30px] w-[30px]">
-        {loading ? (
-          <RefreshCw size={22} className="animate-spin" />
-        ) : (
-          <CountdownTimer duration={30000} resetKey={lastUpdated} size={28} />
-        )}
-      </div>
-
-      <div className="leading-tight text-left md:text-right">
-        <div className="flex items-center gap-1 text-sm text-white/90 md:justify-end">
-          <Clock size={14} />
-          {formatTimeIstanbul(lastUpdated)}
-        </div>
-        <div className="text-xs text-white/75">
-          Son 7 günde {earthquakes.length} deprem
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
+              <div className="leading-tight text-left md:text-right">
+                <div className="flex items-center gap-1 text-sm text-white/90 md:justify-end">
+                  <Clock size={14} />
+                  {formatTimeIstanbul(lastUpdated)}
+                </div>
+                <div className="text-xs text-white/75">
+                  Son 7 günde {earthquakes.length} deprem
+                </div>
               </div>
             </div>
           </div>
-
-          {/* Max cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            {renderMaxCard('Son 24 saatte en büyük deprem', max24h)}
-            {renderMaxCard('Son 7 günün en büyük depremi', max7d)}
-          </div>
-
-          {renderSeverityBar()}
         </div>
+
+        {/* Max cards */}
+        <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-2">
+          {renderMaxCard('Son 24 saatte en büyük deprem', max24h)}
+          {renderMaxCard('Son 7 günün en büyük depremi', max7d)}
+        </div>
+
+        {renderSeverityBar()}
       </div>
 
       {/* Error */}
@@ -846,6 +841,7 @@ export function Deprem() {
                   Yer
                 </th>
 
+                {/* ✅ önce büyüklük */}
                 <th
                   className="px-6 py-4 text-center text-sm font-bold text-gray-700 uppercase tracking-wider border-r border-gray-300 cursor-pointer hover:bg-gray-200 transition-colors select-none"
                   onClick={() => handleSort('mag')}
@@ -859,6 +855,7 @@ export function Deprem() {
                   </div>
                 </th>
 
+                {/* ✅ sonra uzaklık */}
                 <th
                   className="px-6 py-4 text-center text-sm font-bold text-gray-700 uppercase tracking-wider border-r border-gray-300 cursor-pointer hover:bg-gray-200 transition-colors select-none"
                   onClick={() => handleSort('distance')}
@@ -934,6 +931,7 @@ export function Deprem() {
 
                   return (
                     <tr key={eq.earthquake_id || index} className={rowClasses} style={{ backgroundColor: rowColor }}>
+                      {/* Yer */}
                       <td className={`px-6 py-4 border-r border-gray-300 border-b border-gray-300 ${rel ? 'font-bold text-gray-900 text-base' : 'text-gray-800'}`}>
                         <div className="flex flex-col">
                           <div className="flex items-start gap-2 flex-wrap">
@@ -968,6 +966,7 @@ export function Deprem() {
                         </div>
                       </td>
 
+                      {/* Büyüklük */}
                       <td className="px-6 py-4 text-center border-r border-gray-300 border-b border-gray-300">
                         <div className="flex items-center justify-center gap-2">
                           <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-bold shadow-sm ${getMagnitudeBadgeStyle(eq.mag)}`}>
@@ -979,14 +978,17 @@ export function Deprem() {
                         </div>
                       </td>
 
+                      {/* Uzaklık */}
                       <td className="px-6 py-4 text-center border-r border-gray-300 border-b border-gray-300 font-mono text-gray-700">
                         {Math.round(distance)} km
                       </td>
 
+                      {/* Derinlik */}
                       <td className="px-6 py-4 text-center text-gray-700 font-medium border-r border-gray-300 border-b border-gray-300">
                         {Number.isFinite(eq.depth) ? eq.depth.toFixed(1) : '0.0'}
                       </td>
 
+                      {/* Tarih */}
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-b border-gray-300">
                         <span>{formatDateIstanbul(eq.date_time)}</span>
                       </td>
@@ -1024,9 +1026,6 @@ export function Deprem() {
           <strong>Not:</strong> Kaynak: AFAD Event Service.
           <br />
           <span className="font-bold">Son 1 saat</span> içindeki depremler <span className="font-bold">“YENİ”</span> etiketi ile belirtilir.
-          <br />
-          <span className="font-bold">ISPARTA</span>: “Isparta/ısparta” geçen kayıtlar.{' '}
-          <span className="font-bold ml-2">YAKIN</span>: Isparta merkeze 100 km yakın.
         </p>
       </div>
     </PageContainer>
