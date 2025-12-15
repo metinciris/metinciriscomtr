@@ -879,13 +879,10 @@ const newestFocusEq = useMemo(() => {
   const bg = getSeverityColor(eq.mag);
   const ticker = `${eq.title} • M${eq.mag.toFixed(1)} • ${Math.round(distance)} km • ${formatDateIstanbul(eq.date_time)}`;
   return (
-<div className="min-w-0 flex-1 overflow-hidden">
-  <div className="deprem-marquee" style={{ gap: 48, paddingLeft: '100%' }}>
-    <span style={{ color: '#0f172a', fontWeight: 800 }}>{ticker}</span>
-    <span aria-hidden="true" style={{ color: '#0f172a', fontWeight: 800 }}>{ticker}</span>
-  </div>
-</div>
-
+    <div
+      className="mt-3 rounded-lg border shadow-sm overflow-hidden"
+      style={{ backgroundColor: bg, borderColor: 'rgba(0,0,0,0.12)' }}
+    >
       <style>{`
         @keyframes depremMarquee {
           0% { transform: translateX(0); }
@@ -917,8 +914,8 @@ const newestFocusEq = useMemo(() => {
 
         <div className="relative flex-1 overflow-hidden">
           <div className="deprem-marquee" style={{ color: '#0f172a', fontWeight: 800 }}>
-            <span className="pr-10">{line}</span>
-            <span className="pr-10">{line}</span>
+            <span className="pr-10">{ticker}</span>
+            <span className="pr-10">{ticker}</span>
           </div>
         </div>
 
