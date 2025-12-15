@@ -1017,35 +1017,26 @@ const newestFocusEq = useMemo(() => {
               ].map((b) => {
                 const active = mobileSort === (b.key as any);
                 return (
-                  <button
-                    key={b.key}
-                    onClick={() => setMobileSort(b.key as any)}
-className={[
-  'flex-1 px-3 py-2 rounded-xl text-sm font-extrabold border shadow-sm',
-  'transition-colors',
-  'focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/60',
-  'active:scale-[0.98]',
-  '[-webkit-tap-highlight-color:transparent]',
+<button
+  key={b.key}
+  onClick={() => setMobileSort(b.key as any)}
+  className={[
+    'flex-1 px-3 py-2 rounded-xl text-sm font-extrabold border shadow-sm',
+    'transition-colors',
+    'focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/60',
+    'active:scale-[0.98]',
+    '[-webkit-tap-highlight-color:transparent]'
+  ].join(' ')}
+  style={{
+    backgroundColor: active ? '#2563eb' : '#ffffff',
+    borderColor: active ? '#1d4ed8' : '#e5e7eb',
+    color: active ? '#ffffff' : '#0f172a', // ← KRİTİK
+    WebkitTextFillColor: active ? '#ffffff' : '#0f172a' // ← iOS fix
+  }}
+>
+  {b.label}
+</button>
 
-  active
-    ? [
-        'bg-blue-600 border-blue-700',
-        'text-white',
-        'active:bg-blue-700 active:text-white',
-        'focus:text-white'
-      ].join(' ')
-    : [
-        'bg-white border-gray-200',
-        'text-slate-800',
-        'hover:bg-gray-50',
-        'active:bg-gray-100 active:text-slate-900',
-        'focus:text-slate-900'
-      ].join(' ')
-].join(' ')}
-
-                  >
-                    {b.label}
-                  </button>
                 );
               })}
             </div>
