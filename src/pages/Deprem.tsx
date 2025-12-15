@@ -825,20 +825,22 @@ export function Deprem() {
                 <div className="pointer-events-none absolute left-0 top-0 h-full w-10 bg-gradient-to-r from-white to-transparent rounded-xl" />
                 <div className="pointer-events-none absolute right-0 top-0 h-full w-10 bg-gradient-to-l from-white to-transparent rounded-xl" />
 
-                <div
-                  ref={alertStripRef}
-                  className={[
-                    'grid grid-flow-col gap-3',
-                    isDesktop ? 'auto-cols-[420px]' : 'auto-cols-[85vw]',
-                    'overflow-x-auto overflow-y-hidden',
-                    'snap-x snap-mandatory scroll-smooth',
-                    'pb-1 items-stretch',
-                    '[scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden'
-                  ].join(' ')}
-                  style={{ WebkitOverflowScrolling: 'touch' }}
-                >
-                  {alertEarthquakes.map((it, idx) => renderAlertCard(it, idx))}
-                </div>
+               <div
+  ref={alertStripRef}
+  className="overflow-x-auto overflow-y-hidden pb-1"
+  style={{
+    display: 'grid',
+    gridAutoFlow: 'column',
+    gridAutoColumns: isDesktop ? '420px' : '85vw', // <-- kritik
+    gap: '12px',
+    scrollSnapType: 'x mandatory',
+    WebkitOverflowScrolling: 'touch',
+    scrollbarWidth: 'none'
+  }}
+>
+  {alertEarthquakes.map((it, idx) => renderAlertCard(it, idx))}
+</div>
+
               </div>
             </div>
           </div>
