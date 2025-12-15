@@ -165,21 +165,20 @@ const normalizeDateString = (s: any): string => {
   // "YYYY-MM-DD HH:mm:ss" -> "YYYY-MM-DDTHH:mm:ss"
   if (str.includes(' ') && !str.includes('T')) str = str.replace(' ', 'T');
 
-  // Eğer timezone yoksa AFAD'ın verdiği zamanı TS (UTC+3) kabul et ve +03:00 ekle.
-  // Böylece server/CI UTC olsa bile 3 saat geri kayma olmaz.
+  // AFAD "Tarih(TS)" zaten TS (Europe/Istanbul). Timezone yoksa +03:00 ekle.
   const hasTz = /(Z|[+\-]\d{2}:\d{2})$/.test(str);
-  const looksLikeIsoNoTz = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/.test(str);
+  const looksIsoNoTz = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?$/.test(str);
 
-  if (!hasTz && looksLikeIsoNoTz) {
-    str = `${str}+03:00`;
-  }
+  if (!hasTz && looksIsoNoTz) str = `${str}+03:00`;
 
   return str;
 };
 
 const parseDateAsIstanbul = (dateStr: string): Date => {
-  // normalizeDateString: timezone yoksa +03:00 ekler
   const s = normalizeDateString(dateStr);
+  if (!s) return new Date(NaN);
+
+  // normalizeDateString timezone'ı eklediği için artık doğrudan parse edebiliriz
   return new Date(s);
 };
 
