@@ -877,12 +877,15 @@ const newestFocusEq = useMemo(() => {
   const rel = getRelation(eq.title, distance);
   const label = rel === 'ISPARTA' ? "Isparta'da Deprem" : "Isparta'ya Yakın Deprem";
   const bg = getSeverityColor(eq.mag);
-  const line = `${label} • ${eq.title} • M ${eq.mag.toFixed(1)} • ${Math.round(distance)} km uzakta • ${formatDateIstanbul(eq.date_time)}`;
+  const ticker = `${eq.title} • M${eq.mag.toFixed(1)} • ${Math.round(distance)} km • ${formatDateIstanbul(eq.date_time)}`;
   return (
-    <div
-      className="mt-3 rounded-lg border shadow-sm overflow-hidden"
-      style={{ backgroundColor: bg, borderColor: 'rgba(0,0,0,0.12)' }}
-    >
+<div className="min-w-0 flex-1 overflow-hidden">
+  <div className="deprem-marquee" style={{ gap: 48, paddingLeft: '100%' }}>
+    <span style={{ color: '#0f172a', fontWeight: 800 }}>{ticker}</span>
+    <span aria-hidden="true" style={{ color: '#0f172a', fontWeight: 800 }}>{ticker}</span>
+  </div>
+</div>
+
       <style>{`
         @keyframes depremMarquee {
           0% { transform: translateX(0); }
@@ -892,7 +895,7 @@ const newestFocusEq = useMemo(() => {
           display: inline-flex;
           white-space: nowrap;
           will-change: transform;
-          animation: depremMarquee 18s linear infinite;
+          animation: depremMarquee 22s linear infinite;
         }
         @media (prefers-reduced-motion: reduce) {
           .deprem-marquee { animation: none; }
