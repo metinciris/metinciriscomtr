@@ -639,6 +639,14 @@ export function Deprem() {
     }, null as Earthquake | null);
   }, [earthquakes]);
 
+
+  const newestEq = useMemo(() => {
+    if (earthquakes.length === 0) return null;
+    return earthquakes.reduce((latest, eq) =>
+      parseDateAsIstanbul(eq.date_time).getTime() > parseDateAsIstanbul(latest.date_time).getTime() ? eq : latest
+    );
+  }, [earthquakes]);
+
   const renderMaxCard = (title: string, eq: Earthquake | null) => {
     if (!eq) {
       return (
@@ -729,6 +737,53 @@ export function Deprem() {
       </div>
     );
   };
+
+  const renderNewestMiniCard = (eq: Earthquake | null) => {
+    if (!eq) return null;
+
+    const d = calculateDistance(ISPARTA_COORDS.lat, ISPARTA_COORDS.lng, eq.geojson.coordinates[1], eq.geojson.coordinates[0]);
+    const distance = Math.round(d);
+    const bg = getSeverityColor(eq.mag);
+
+    const lat = eq.geojson.coordinates[1];
+    const lon = eq.geojson.coordinates[0];
+    const osmUrl = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=10/${lat}/${lon}`;
+
+    return (
+      <div
+        className="hidden md:block rounded-xl border shadow-sm p-3"
+        style={{ backgroundColor: bg, borderColor: 'rgba(0,0,0,0.12)', minWidth: 260 }}
+      >
+        <div className="text-xs font-extrabold mb-1" style={{ color: '#0f172a' }}>
+          En Yeni Deprem
+        </div>
+
+        <div className="text-sm font-extrabold text-slate-900 break-words line-clamp-2">{eq.title}</div>
+
+        <div className="mt-2 flex items-start justify-between gap-3">
+          <div className="text-xs font-semibold text-slate-700">
+            {getTimeAgo(eq.date_time)}
+            <div className="mt-1">
+              <span className="font-mono font-black text-slate-900">{distance} km</span> uzakta
+            </div>
+            <div className="mt-1 text-[11px] text-slate-600 font-semibold whitespace-nowrap">{formatDateIstanbul(eq.date_time)}</div>
+          </div>
+
+          <div className="shrink-0 text-right">
+            <div className="rounded-xl border px-3 py-2 shadow-sm" style={{ backgroundColor: 'rgba(255,255,255,0.92)', borderColor: 'rgba(0,0,0,0.12)' }}>
+              <div className="text-3xl font-black leading-none" style={{ color: '#0f172a' }}>
+                {eq.mag.toFixed(1)}
+              </div>
+            </div>
+            <a href={osmUrl} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center font-extrabold text-xs underline" style={{ color: '#1d4ed8' }}>
+              Haritada aç
+            </a>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
 
   const handleSort = (key: SortKey) => {
     setSortConfig((current) => {
@@ -865,7 +920,7 @@ export function Deprem() {
 
         {/* ÜST PANEL */}
         <div className={['text-white p-5 rounded-xl shadow-lg', SECTION_GAP].join(' ')} style={{ background: 'linear-gradient(to right, #0f172a, #1e3a8a)' }}>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_auto_auto] md:items-center">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_auto_auto_auto] md:items-center">
             <div className="min-w-0">
               <h1 className="text-white text-3xl font-bold flex items-center gap-3">
                 <Activity size={34} className="animate-pulse" />
@@ -881,6 +936,9 @@ export function Deprem() {
               <div className="text-xs font-extrabold text-white/80 uppercase tracking-wide">Bildirim</div>
               <NotificationToggle enabled={notificationsEnabled} onToggle={() => setNotificationsEnabled((v) => !v)} />
             </div>
+
+
+            {isDesktop && renderNewestMiniCard(newestEq)}
 
             <div className="flex justify-start md:justify-end md:justify-self-end">
               <div className="bg-white/10 border border-white/15 rounded-lg px-3 py-2 flex items-center gap-3">
