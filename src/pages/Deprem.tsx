@@ -1,18 +1,19 @@
 /**
- * Deprem.tsx — Mobil “Diğerleri” şeridi düzeltildi (A: 85vw)
- * ============================================================
+ * Deprem.tsx — Isparta/Yakın kartları yeniden tasarlandı + Mobil/desktop kaydırma düzeltildi
+ * =======================================================================================
  * HEDEF:
- * - Üstte en yeni Isparta/Yakın deprem tek kart.
- * - "+N diğer" tıklanınca alt satır açılır:
- *   - MOBİL: aynı anda 1 kart görünür (85vw), sağda devamı belli olur.
- *   - Parmağla kaydırma + ok ile bir sonraki karta geçilir (snap).
- *   - Kartlarda Harita butonu var.
- * - DESKTOP: mevcut yapı korunur.
- *
- * NOT:
- * - LocalStorage yok.
+ * - MOBİL:
+ *   - Isparta/Yakın: üstte tek kart görünür, yatay kaydırma ile sıradaki (zaman sırası) tek tek gelir (snap).
+ *   - Mw/ML yazısı kaldırıldı, büyüklük çok daha büyük ve belirgin.
+ * - DESKTOP:
+ *   - Isparta/Yakın kartları üstte şerit gibi: ekranda max ~3 kart + sağdan devamı belli olur.
+ *   - Oklarla tek tek kaydırma (snap + scrollBy).
+ * - GENEL:
+ *   - Kart renkleri deprem şiddeti renkleri ile uyumlu (tek kaynak severity renk sistemi).
+ *   - “xx km” yerine “xx km uzakta”.
  * - Saatler Europe/Istanbul.
- * - Zaman normalizasyonunda timezone eklenmiyor (3 saat geri kalma sorununu engeller).
+ * - Zaman normalizasyonunda timezone string’e EKLENMİYOR (eski 3 saat kayma problemlerini tetiklememek için).
+ *   Ancak cihaz timezone’una bağlı kalmamak için “naive” tarihleri Istanbul kabul ederek Date’e çeviriyoruz.
  */
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -61,6 +62,8 @@ type Relation = 'ISPARTA' | 'YAKIN' | null;
 const ISPARTA_COORDS = { lat: 37.7648, lng: 30.5567 };
 const NEAR_KM = 100;
 const IST_TZ = 'Europe/Istanbul';
+
+// Sende proxy kullanımı vardı; aynen korudum.
 const AFAD_PROXY = 'https://depremo.tutkumuz.workers.dev';
 
 // Bloklar arası boşluğu tek yerden yönet
@@ -70,7 +73,7 @@ const SECTION_GAP = 'mb-5';
 const PAGE_TOP_PULL = '-mt-4';
 
 /* ============================================================
-   3) Desktop tespiti: Tailwind breakpoint'e bağlı kalma
+   3) Desktop tespiti
    ============================================================ */
 function useIsDesktop(minWidth = 768) {
   const [isDesktop, setIsDesktop] = useState<boolean>(() => {
@@ -175,7 +178,6 @@ function NotificationToggle({ enabled, onToggle }: { enabled: boolean; onToggle:
         'group inline-flex items-center gap-3 select-none shrink-0 rounded-full px-3 py-2',
         'border backdrop-blur-sm shadow-sm active:scale-[0.98]',
         'focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50',
-        // kırılmayı azalt
         'whitespace-nowrap',
         enabled
           ? 'bg-green-500/20 border-green-300/40 ring-2 ring-green-300/40'
@@ -183,7 +185,6 @@ function NotificationToggle({ enabled, onToggle }: { enabled: boolean; onToggle:
       ].join(' ')}
       title={enabled ? 'Bildirim Açık' : 'Bildirim Kapalı'}
     >
-      {/* Switch */}
       <span
         className={[
           'relative inline-flex h-7 w-[46px] items-center rounded-full transition-colors',
@@ -200,13 +201,10 @@ function NotificationToggle({ enabled, onToggle }: { enabled: boolean; onToggle:
         />
       </span>
 
-      {/* Icon */}
       <span className="text-white/90">{enabled ? <Volume2 size={18} /> : <VolumeX size={18} />}</span>
 
-      {/* Text */}
       <span className="font-extrabold text-sm text-white">{enabled ? 'Bildirim Açık' : 'Bildirim Kapalı'}</span>
 
-      {/* Hafif teşvik */}
       <span className="hidden sm:inline text-xs text-white/70 group-hover:text-white/80 transition">
         {enabled ? '• tık uyarısı aktif' : '• açarsan uyarı veririm'}
       </span>
@@ -220,7 +218,7 @@ function NotificationToggle({ enabled, onToggle }: { enabled: boolean; onToggle:
 
 /**
  * ZAMAN NORMALİZASYONU:
- * - Timezone yoksa "Z" EKLEME (3 saat geri kaydırıyordu).
+ * - Timezone yoksa string’e offset/Z EKLEME (eski 3 saat kayma bug’ını tetiklememek için).
  * - Sadece "YYYY-MM-DD HH:mm:ss" -> "T" düzeltmesi yap.
  */
 const normalizeDateString = (s: any): string => {
@@ -228,6 +226,36 @@ const normalizeDateString = (s: any): string => {
   let str = String(s).trim();
   if (str.includes(' ') && !str.includes('T')) str = str.replace(' ', 'T');
   return str;
+};
+
+/**
+ * Cihazın timezone’una bağlı kalmadan “naive” (tz'siz) AFAD tarihini Istanbul gibi yorumla.
+ * - Eğer string zaten Z / +hh:mm içeriyorsa: normal Date parse.
+ * - Yoksa: "YYYY-MM-DDTHH:mm:ss" -> Istanbul (UTC+3) kabul edilir.
+ *
+ * NOT: Turkey (Europe/Istanbul) uzun süredir UTC+3 (DST yok). Bu yüzden sabit -3 dönüşümü güvenli.
+ */
+const parseDateAsIstanbul = (dateStr: string): Date => {
+  const s = normalizeDateString(dateStr);
+  if (!s) return new Date(NaN);
+
+  // Z veya +03:00 gibi offset varsa direkt parse
+  if (/(Z|[+\-]\d{2}:\d{2})$/.test(s)) return new Date(s);
+
+  // Naive ise Istanbul kabul edip UTC'ye çevir:
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?/);
+  if (!m) return new Date(s);
+
+  const year = Number(m[1]);
+  const month = Number(m[2]);
+  const day = Number(m[3]);
+  const hour = Number(m[4]);
+  const minute = Number(m[5]);
+  const second = Number(m[6] ?? '0');
+
+  // Istanbul = UTC+3 -> UTC = local - 3 saat
+  const utcMs = Date.UTC(year, month - 1, day, hour - 3, minute, second);
+  return new Date(utcMs);
 };
 
 const formatTimeIstanbul = (d: Date) =>
@@ -240,7 +268,7 @@ const formatTimeIstanbul = (d: Date) =>
 
 const formatDateIstanbul = (dateStr: string) => {
   try {
-    const date = new Date(dateStr);
+    const date = parseDateAsIstanbul(dateStr);
     return new Intl.DateTimeFormat('tr-TR', {
       timeZone: IST_TZ,
       day: '2-digit',
@@ -254,6 +282,10 @@ const formatDateIstanbul = (dateStr: string) => {
   }
 };
 
+/**
+ * Query param üretimi: start/end için Istanbul saatine göre string üretir.
+ * (API tz istemediği için sadece YYYY-MM-DDTHH:mm:ss döndürür.)
+ */
 const toIstanbulParam = (d: Date) => {
   const parts = new Intl.DateTimeFormat('sv-SE', {
     timeZone: IST_TZ,
@@ -283,23 +315,25 @@ const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: numbe
 };
 
 const getTimeAgo = (dateStr: string) => {
-  const date = new Date(dateStr);
+  const date = parseDateAsIstanbul(dateStr);
   const now = new Date();
+
   const diffInMs = now.getTime() - date.getTime();
   const totalMinutes = Math.floor(diffInMs / (1000 * 60));
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
 
+  if (totalMinutes < 0) return 'az önce'; // güvenlik: yanlış parse durumunda negatif olmasın
   if (totalMinutes < 60) return `${totalMinutes} dk önce`;
   if (totalMinutes < 120) return minutes <= 0 ? `${hours} saat önce` : `${hours} saat ${minutes} dk önce`;
   return `${hours} saat önce`;
 };
 
 const isRecent = (dateStr: string) => {
-  const date = new Date(dateStr);
+  const date = parseDateAsIstanbul(dateStr);
   const now = new Date();
   const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
-  return diffInHours < 1;
+  return diffInHours >= 0 && diffInHours < 1;
 };
 
 const getRelation = (title: string, distanceKm: number): Relation => {
@@ -462,9 +496,6 @@ export function Deprem() {
   // 50 / hepsi
   const [showHistory, setShowHistory] = useState(false);
 
-  // Üst şerit “diğerlerini göster” aç/kapat
-  const [showMoreIspartaStrip, setShowMoreIspartaStrip] = useState(false);
-
   /* ------------------------------
      Refs
   ------------------------------ */
@@ -473,7 +504,7 @@ export function Deprem() {
   const soundQueue = useRef<Earthquake[]>([]);
   const isPlaying = useRef(false);
 
-  // “Diğer Isparta/Yakın” şeridini kontrol edeceğimiz container
+  // Isparta/Yakın şeridi
   const alertStripRef = useRef<HTMLDivElement | null>(null);
 
   /* ============================================================
@@ -592,7 +623,9 @@ export function Deprem() {
       for (const eq of mapped) uniqueMap.set(eq.earthquake_id, eq);
 
       const list = Array.from(uniqueMap.values());
-      list.sort((a, b) => new Date(b.date_time).getTime() - new Date(a.date_time).getTime());
+
+      // Tarihe göre sırala (Istanbul parse ile)
+      list.sort((a, b) => parseDateAsIstanbul(b.date_time).getTime() - parseDateAsIstanbul(a.date_time).getTime());
 
       // Yeni deprem tespiti (ID bazlı)
       const newOnes: Earthquake[] = [];
@@ -643,7 +676,7 @@ export function Deprem() {
   }, []);
 
   /* ============================================================
-     12) Memo: distanceMap, alert listesi, sıralamalar
+     12) Memo: distanceMap, Isparta/Yakın listesi, sıralamalar
      ============================================================ */
   const distanceMap = useMemo(() => {
     const m = new Map<string, number>();
@@ -669,23 +702,26 @@ export function Deprem() {
       })
       .filter((x) => x.rel !== null) as Array<{ eq: Earthquake; rel: Exclude<Relation, null>; distance: number }>;
 
-    list.sort((a, b) => new Date(b.eq.date_time).getTime() - new Date(a.eq.date_time).getTime());
+    // ZAMAN sırası (en yeni solda)
+    list.sort((a, b) => parseDateAsIstanbul(b.eq.date_time).getTime() - parseDateAsIstanbul(a.eq.date_time).getTime());
     return list;
   }, [earthquakes, distanceMap]);
 
-  const latestAlert = alertEarthquakes[0] ?? null;
-  const otherAlertCount = Math.max(0, alertEarthquakes.length - 1);
-
   /**
-   * OK butonlarıyla şeridi yana kaydırma:
-   * - Desktop: sabit (480px)
-   * - Mobil: ekranın ~%90'ı kadar kaydır (tam 1 kart gibi)
+   * Isparta/Yakın şeridini OK ile tek tek kaydır:
+   * - Gerçek step: 1. ve 2. kart offset farkı (gap dahil).
    */
   const scrollAlertStripBy = (dir: 'left' | 'right') => {
     const el = alertStripRef.current;
     if (!el) return;
 
-    const step = isDesktop ? 480 : Math.round(window.innerWidth * 0.9);
+    const first = el.children?.[0] as HTMLElement | undefined;
+    const second = el.children?.[1] as HTMLElement | undefined;
+
+    let step = 0;
+    if (first && second) step = second.offsetLeft - first.offsetLeft;
+    if (!step && first) step = Math.round(first.getBoundingClientRect().width);
+    if (!step) step = isDesktop ? 440 : Math.round(window.innerWidth * 0.9);
 
     el.scrollBy({
       left: dir === 'left' ? -step : step,
@@ -706,8 +742,8 @@ export function Deprem() {
         const db = distanceMap.get(b.earthquake_id) ?? 999999;
         return sortConfig.direction === 'asc' ? da - db : db - da;
       }
-      const ta = new Date(a.date_time).getTime();
-      const tb = new Date(b.date_time).getTime();
+      const ta = parseDateAsIstanbul(a.date_time).getTime();
+      const tb = parseDateAsIstanbul(b.date_time).getTime();
       return sortConfig.direction === 'asc' ? ta - tb : tb - ta;
     });
 
@@ -721,7 +757,7 @@ export function Deprem() {
     const list = [...earthquakes];
 
     if (mobileSort === 'largest') {
-      list.sort((a, b) => b.mag - a.mag || new Date(b.date_time).getTime() - new Date(a.date_time).getTime());
+      list.sort((a, b) => b.mag - a.mag || parseDateAsIstanbul(b.date_time).getTime() - parseDateAsIstanbul(a.date_time).getTime());
       return list;
     }
 
@@ -729,13 +765,13 @@ export function Deprem() {
       list.sort((a, b) => {
         const da = distanceMap.get(a.earthquake_id) ?? 999999;
         const db = distanceMap.get(b.earthquake_id) ?? 999999;
-        return da - db || new Date(b.date_time).getTime() - new Date(a.date_time).getTime();
+        return da - db || parseDateAsIstanbul(b.date_time).getTime() - parseDateAsIstanbul(a.date_time).getTime();
       });
       return list;
     }
 
     // newest
-    list.sort((a, b) => new Date(b.date_time).getTime() - new Date(a.date_time).getTime());
+    list.sort((a, b) => parseDateAsIstanbul(b.date_time).getTime() - parseDateAsIstanbul(a.date_time).getTime());
     return list;
   }, [earthquakes, mobileSort, distanceMap]);
 
@@ -744,12 +780,12 @@ export function Deprem() {
      ============================================================ */
   const max24h = useMemo(() => {
     const now = Date.now();
-    const list = earthquakes.filter((eq) => new Date(eq.date_time).getTime() >= now - 24 * 60 * 60 * 1000);
+    const list = earthquakes.filter((eq) => parseDateAsIstanbul(eq.date_time).getTime() >= now - 24 * 60 * 60 * 1000);
     if (list.length === 0) return null;
     return list.reduce((best, eq) => {
       if (!best) return eq;
       if (eq.mag > best.mag) return eq;
-      if (eq.mag === best.mag && new Date(eq.date_time).getTime() > new Date(best.date_time).getTime()) return eq;
+      if (eq.mag === best.mag && parseDateAsIstanbul(eq.date_time).getTime() > parseDateAsIstanbul(best.date_time).getTime()) return eq;
       return best;
     }, null as Earthquake | null);
   }, [earthquakes]);
@@ -759,7 +795,7 @@ export function Deprem() {
     return earthquakes.reduce((best, eq) => {
       if (!best) return eq;
       if (eq.mag > best.mag) return eq;
-      if (eq.mag === best.mag && new Date(eq.date_time).getTime() > new Date(best.date_time).getTime()) return eq;
+      if (eq.mag === best.mag && parseDateAsIstanbul(eq.date_time).getTime() > parseDateAsIstanbul(best.date_time).getTime()) return eq;
       return best;
     }, null as Earthquake | null);
   }, [earthquakes]);
@@ -790,36 +826,46 @@ export function Deprem() {
           </div>
 
           <div className="flex items-start justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl font-extrabold leading-none" style={{ color: '#0f172a' }}>
-                {eq.mag.toFixed(1)}
-              </span>
-              <span className="text-xs font-semibold" style={{ color: '#334155' }}>
-                {getTimeAgo(eq.date_time)}
-              </span>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold" style={{ color: '#334155' }}>
+                  {getTimeAgo(eq.date_time)}
+                </span>
+
+                {rel && (
+                  <span
+                    className="inline-flex items-center px-2.5 py-1 text-[11px] font-extrabold rounded-md uppercase tracking-wide shadow-md border"
+                    style={{
+                      backgroundColor: rel === 'ISPARTA' ? '#be123c' : '#c2410c',
+                      color: '#ffffff',
+                      borderColor: 'rgba(0,0,0,0.12)',
+                      textShadow: '0 1px 1px rgba(0,0,0,0.35)'
+                    }}
+                  >
+                    {rel}
+                  </span>
+                )}
+              </div>
+
+              <div className="text-xs mt-1 leading-snug break-words font-semibold" style={{ color: '#0f172a' }}>
+                {eq.title}
+              </div>
             </div>
 
-            {rel && (
-              <span
-                className="inline-flex items-center px-2.5 py-1 text-[11px] font-extrabold rounded-md uppercase tracking-wide shadow-md border"
-                style={{
-                  backgroundColor: rel === 'ISPARTA' ? '#be123c' : '#c2410c',
-                  color: '#ffffff',
-                  borderColor: 'rgba(0,0,0,0.12)',
-                  textShadow: '0 1px 1px rgba(0,0,0,0.35)'
-                }}
+            <div className="shrink-0 text-right">
+              <div
+                className="rounded-xl border bg-white/70 px-3 py-2 shadow-sm"
+                style={{ borderColor: 'rgba(0,0,0,0.12)' }}
               >
-                {rel}
-              </span>
-            )}
+                <div className="text-3xl font-black leading-none text-slate-900">{eq.mag.toFixed(1)}</div>
+              </div>
+            </div>
           </div>
 
-          <div className="text-xs mt-1 leading-snug break-words font-semibold" style={{ color: '#0f172a' }}>
-            {eq.title}
-          </div>
-
-          <div className="text-[11px] mt-1 flex items-center justify-between gap-2 font-medium" style={{ color: '#334155' }}>
-            <span className="font-mono">Isparta uzaklık: {Math.round(distance)} km</span>
+          <div className="text-[11px] mt-2 flex items-center justify-between gap-2 font-medium" style={{ color: '#334155' }}>
+            <span className="font-mono">
+              <span className="font-bold">{Math.round(distance)} km</span> uzakta
+            </span>
 
             <span className="flex items-center gap-2">
               <span className="whitespace-nowrap">{formatDateIstanbul(eq.date_time)}</span>
@@ -853,125 +899,162 @@ export function Deprem() {
   };
 
   /* ============================================================
-     15) Render
+     15) Isparta/Yakın kart renderer
+     ============================================================ */
+  const renderAlertCard = (
+    it: { eq: Earthquake; rel: Exclude<Relation, null>; distance: number },
+    index: number
+  ) => {
+    const bg = getSeverityColor(it.eq.mag);
+    const recent = isRecent(it.eq.date_time);
+
+    const lat = it.eq.geojson.coordinates[1];
+    const lon = it.eq.geojson.coordinates[0];
+    const osmUrl = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=12/${lat}/${lon}`;
+
+    // Mobil: 1 kart ana görünür (85vw) + snap
+    // Desktop: kart sabit px; viewport max ~3 kart + sağdan devamı belli (wrapper maxWidth ile)
+    const cardWidthClass = isDesktop ? 'w-[420px]' : 'w-[85vw]';
+
+    const ring =
+      it.eq.mag >= 6
+        ? 'ring-2 ring-red-500/40'
+        : it.eq.mag >= 5
+        ? 'ring-2 ring-red-400/30'
+        : it.eq.mag >= 4
+        ? 'ring-2 ring-orange-400/25'
+        : '';
+
+    return (
+      <div
+        key={it.eq.earthquake_id}
+        className={[
+          'snap-start shrink-0 flex-none',
+          cardWidthClass,
+          'rounded-xl border shadow-sm overflow-hidden',
+          ring
+        ].join(' ')}
+        style={{ backgroundColor: bg, borderColor: 'rgba(0,0,0,0.12)' }}
+      >
+        <div className="p-4 flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span
+                className="inline-flex items-center px-2 py-1 text-[11px] font-extrabold rounded-md uppercase tracking-wide shadow-sm border"
+                style={{
+                  backgroundColor: it.rel === 'ISPARTA' ? '#be123c' : '#c2410c',
+                  color: '#ffffff',
+                  borderColor: 'rgba(0,0,0,0.12)',
+                  textShadow: '0 1px 1px rgba(0,0,0,0.25)'
+                }}
+              >
+                {it.rel}
+              </span>
+
+              {recent && (
+                <span className="inline-flex items-center px-2 py-0.5 bg-blue-100 text-blue-900 text-xs font-extrabold rounded uppercase shadow-sm border border-blue-300">
+                  <Zap size={12} className="mr-1" />
+                  YENİ
+                </span>
+              )}
+
+              <span className="text-xs font-semibold text-slate-700">{getTimeAgo(it.eq.date_time)}</span>
+            </div>
+
+            <div className="mt-2 text-sm font-extrabold text-slate-900 break-words line-clamp-2">
+              {it.eq.title}
+            </div>
+
+            <div className="mt-1 text-xs text-slate-700">
+              <span className="font-mono font-black text-slate-900">{Math.round(it.distance)} km</span> uzakta
+            </div>
+
+            <div className="mt-2 flex items-center gap-2">
+              <a
+                href={osmUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-white/75 border shadow-sm font-extrabold text-xs text-slate-800 hover:bg-white"
+                title="OpenStreetMap’te aç"
+                style={{ borderColor: 'rgba(0,0,0,0.12)' }}
+              >
+                <Navigation size={16} />
+                Harita
+              </a>
+
+              <span className="text-[11px] text-slate-600 font-semibold whitespace-nowrap">
+                {formatDateIstanbul(it.eq.date_time)}
+              </span>
+            </div>
+          </div>
+
+          <div className="shrink-0 text-right">
+            <div
+              className="rounded-2xl border bg-white/75 px-3 py-2 shadow-sm"
+              style={{ borderColor: 'rgba(0,0,0,0.12)' }}
+            >
+              <div className="text-5xl font-black leading-none text-slate-900">{it.eq.mag.toFixed(1)}</div>
+            </div>
+
+            {index === 0 && (
+              <div className="mt-2 text-[11px] font-extrabold text-slate-700">
+                En yeni Isparta/Yakın
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  /* ============================================================
+     16) Render
      ============================================================ */
   return (
     <PageContainer>
       <div className={PAGE_TOP_PULL}>
         {/* =====================================================
-            A) ÜST: Isparta/Yakın (en yeni tek kart + "+N diğer")
+            A) ÜST: Isparta/Yakın — Mobil: tek tek kaydırmalı • Desktop: max 3 + scroll
            ===================================================== */}
-        {latestAlert && (
+        {alertEarthquakes.length > 0 && (
           <div className={SECTION_GAP}>
             <div className="flex items-center justify-between mb-2 gap-3">
-              <div className="text-xs font-extrabold uppercase tracking-wide text-slate-700">
-                Isparta / Yakın Deprem
+              <div className="min-w-0">
+                <div className="text-xs font-extrabold uppercase tracking-wide text-slate-700">
+                  Isparta / Yakın Depremler
+                </div>
+                <div className="text-[11px] text-slate-500 font-semibold">
+                  {alertEarthquakes.length} kayıt • {isDesktop ? 'oklarla tek tek kaydır' : 'sağa/sola kaydır'}
+                </div>
               </div>
 
-              {otherAlertCount > 0 && (
+              <div className="flex items-center gap-2 shrink-0">
                 <button
-                  onClick={() => setShowMoreIspartaStrip((v) => !v)}
-                  className="text-xs font-extrabold px-2.5 py-1.5 rounded-lg border bg-white shadow-sm hover:bg-gray-50"
-                  title="Diğer Isparta/Yakın depremleri göster/gizle"
+                  onClick={() => scrollAlertStripBy('left')}
+                  className="p-2 rounded-lg border bg-white hover:bg-gray-50 shadow-sm"
+                  title="Sola"
                 >
-                  {showMoreIspartaStrip ? 'Kapat' : `+${otherAlertCount} diğer`}
+                  <ChevronLeft size={16} />
                 </button>
-              )}
+                <button
+                  onClick={() => scrollAlertStripBy('right')}
+                  className="p-2 rounded-lg border bg-white hover:bg-gray-50 shadow-sm"
+                  title="Sağa"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
             </div>
 
-            {/* En yeni tek kart */}
-            {(() => {
-              const lat = latestAlert.eq.geojson.coordinates[1];
-              const lon = latestAlert.eq.geojson.coordinates[0];
-              const osmUrl = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=10/${lat}/${lon}`;
-
-              return (
-                <div
-                  className="rounded-xl border shadow-sm overflow-hidden"
-                  style={{
-                    backgroundColor: latestAlert.rel === 'ISPARTA' ? '#ffe4e6' : '#ffedd5',
-                    borderColor: 'rgba(0,0,0,0.12)'
-                  }}
-                >
-                  <div className="p-4 flex items-start justify-between gap-4">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span
-                          className="inline-flex items-center px-2 py-1 text-[11px] font-extrabold rounded-md uppercase"
-                          style={{
-                            backgroundColor: latestAlert.rel === 'ISPARTA' ? '#be123c' : '#c2410c',
-                            color: '#fff'
-                          }}
-                        >
-                          {latestAlert.rel}
-                        </span>
-
-                        <span className="text-xs text-slate-700 font-semibold">{getTimeAgo(latestAlert.eq.date_time)}</span>
-                      </div>
-
-                      <div className="text-sm font-extrabold text-slate-900 break-words">{latestAlert.eq.title}</div>
-
-                      <div className="text-xs text-slate-700 mt-1">
-                        Isparta’ya uzaklık:{' '}
-                        <span className="font-mono font-bold">{Math.round(latestAlert.distance)} km</span>
-                      </div>
-
-                      <div className="mt-2">
-                        <a
-                          href={osmUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-white/80 border shadow-sm font-extrabold text-xs text-slate-800 hover:bg-white"
-                          title="OpenStreetMap’te aç"
-                        >
-                          <Navigation size={16} />
-                          Harita
-                        </a>
-                      </div>
-                    </div>
-
-<div className="shrink-0 text-right">
-  <div className="text-4xl font-black leading-none text-slate-900">
-    {latestAlert.eq.mag.toFixed(1)}
-  </div>
-</div>
-
-                  </div>
-                </div>
-              );
-            })()}
-
-            {/* =====================================================
-                “Diğerleri” ŞERİTİ:
-                - MOBİL (A): 1 kart görünsün -> w-[85vw] + shrink-0
-                - Snap ile parmakla kaydırınca karta yapışsın
-                - Oklar tıklanınca bir sonraki karta geçsin
-               ===================================================== */}
-            {showMoreIspartaStrip && otherAlertCount > 0 && (
-              <div className="mt-3">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="text-xs font-bold text-slate-700">
-                    Diğer Isparta/Yakın depremler
-                    {!isDesktop && <span className="ml-2 text-[11px] text-slate-500 font-semibold">• Sağa kaydır →</span>}
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => scrollAlertStripBy('left')}
-                      className="p-2 rounded-lg border bg-white hover:bg-gray-50 shadow-sm"
-                      title="Sola"
-                    >
-                      <ChevronLeft size={16} />
-                    </button>
-                    <button
-                      onClick={() => scrollAlertStripBy('right')}
-                      className="p-2 rounded-lg border bg-white hover:bg-gray-50 shadow-sm"
-                      title="Sağa"
-                    >
-                      <ChevronRight size={16} />
-                    </button>
-                  </div>
-                </div>
+            {/* Desktop’ta ~3 kart görünür + sağdan devamı belli olsun diye maxWidth veriyoruz */}
+            <div className="relative">
+              <div
+                className={isDesktop ? 'mx-auto' : ''}
+                style={isDesktop ? { maxWidth: 1320 } : undefined}
+              >
+                {/* fade hint */}
+                <div className="pointer-events-none absolute left-0 top-0 h-full w-10 bg-gradient-to-r from-white to-transparent rounded-xl" />
+                <div className="pointer-events-none absolute right-0 top-0 h-full w-10 bg-gradient-to-l from-white to-transparent rounded-xl" />
 
                 <div
                   ref={alertStripRef}
@@ -984,84 +1067,10 @@ export function Deprem() {
                   ].join(' ')}
                   style={{ WebkitOverflowScrolling: 'touch' }}
                 >
-                  {alertEarthquakes.slice(1).map((it) => {
-                    const lat = it.eq.geojson.coordinates[1];
-                    const lon = it.eq.geojson.coordinates[0];
-                    const osmUrl = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=12/${lat}/${lon}`;
-
-                    // MOBİL: 85vw -> 1 kart görünsün, sağda devamı görünsün
-                    // DESKTOP: sabit genişlik
-                    const widthClass = isDesktop ? 'w-[460px]' : 'w-[85vw]';
-
-                    return (
-                      <div
-                        key={it.eq.earthquake_id}
-                        className={[
-                          'snap-start',
-                          'flex-none',
-                          // kritik: küçülmesin -> hepsi aynı anda görünmesin
-                          'shrink-0',
-                          widthClass,
-                          'min-h-[148px]',
-                          'rounded-xl border shadow-sm overflow-hidden'
-                        ].join(' ')}
-                        style={{
-                          backgroundColor: it.rel === 'ISPARTA' ? '#ffe4e6' : '#ffedd5',
-                          borderColor: 'rgba(0,0,0,0.12)'
-                        }}
-                      >
-                        <div className="p-3 flex items-start justify-between gap-3">
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-2">
-                              <span
-                                className="inline-flex items-center px-2 py-1 text-[11px] font-extrabold rounded-md uppercase"
-                                style={{
-                                  backgroundColor: it.rel === 'ISPARTA' ? '#be123c' : '#c2410c',
-                                  color: '#fff'
-                                }}
-                              >
-                                {it.rel}
-                              </span>
-
-                              <span className="text-xs text-slate-700 font-semibold">
-                                {getTimeAgo(it.eq.date_time)}
-                              </span>
-                            </div>
-
-                            <div className="mt-1 text-sm font-extrabold text-slate-900 break-words line-clamp-2">
-                              {it.eq.title}
-                            </div>
-
-                            <div className="text-xs text-slate-700 mt-1">
-                              Isparta: <span className="font-mono font-bold">{Math.round(it.distance)} km</span>
-                            </div>
-
-                            {/* Harita butonu (mobilde özellikle istenmişti) */}
-                            <div className="mt-2">
-                              <a
-                                href={osmUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-white/80 border shadow-sm font-extrabold text-xs text-slate-800 hover:bg-white"
-                                title="OpenStreetMap’te aç"
-                              >
-                                <Navigation size={16} />
-                                Harita
-                              </a>
-                            </div>
-                          </div>
-
-<div className="shrink-0 text-right">
-  <div className="text-3xl font-black leading-none text-slate-900">{it.eq.mag.toFixed(1)}</div>
-</div>
-
-                        </div>
-                      </div>
-                    );
-                  })}
+                  {alertEarthquakes.map((it, idx) => renderAlertCard(it, idx))}
                 </div>
               </div>
-            )}
+            </div>
           </div>
         )}
 
@@ -1249,9 +1258,9 @@ export function Deprem() {
                           </div>
                         </div>
 
+                        {/* Mw/ML yazısı kaldırıldı, büyüklük daha baskın */}
                         <div className="shrink-0 text-right">
-                          <div className="text-4xl font-black leading-none text-slate-900">{eq.mag.toFixed(1)}</div>
-                          <div className="text-[11px] font-semibold text-slate-700">Mw / ML</div>
+                          <div className="text-5xl font-black leading-none text-slate-900">{eq.mag.toFixed(1)}</div>
                         </div>
                       </button>
 
@@ -1259,8 +1268,8 @@ export function Deprem() {
                         <div className="p-4 bg-white border-t">
                           <div className="grid grid-cols-2 gap-3 text-sm">
                             <div>
-                              <div className="text-xs text-gray-500">Isparta Uzaklık</div>
-                              <div className="font-mono font-semibold">{Math.round(distance)} km</div>
+                              <div className="text-xs text-gray-500">Uzaklık</div>
+                              <div className="font-mono font-semibold">{Math.round(distance)} km uzakta</div>
                             </div>
                             <div>
                               <div className="text-xs text-gray-500">Derinlik</div>
@@ -1273,7 +1282,11 @@ export function Deprem() {
                           </div>
 
                           <div className="mt-3 flex items-center justify-between gap-2">
-                            <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-bold shadow-sm ${getMagnitudeBadgeStyle(eq.mag)}`}>
+                            <span
+                              className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-bold shadow-sm ${getMagnitudeBadgeStyle(
+                                eq.mag
+                              )}`}
+                            >
                               {eq.mag.toFixed(1)}
                             </span>
 
@@ -1502,4 +1515,3 @@ export function Deprem() {
     </PageContainer>
   );
 }
-
