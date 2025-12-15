@@ -445,6 +445,178 @@ function SeverityBar() {
   );
 }
 
+
+/* ============================================================
+   8.5) Isparta 100 km MiniMap (SVG) — ekstra paket yok
+   ============================================================ */
+function IspartaMiniMapSvg({
+  items,
+  onOpenMap
+}: {
+  items: Array<{ eq: Earthquake; distance: number }>;
+  onOpenMap?: (eq: Earthquake) => void;
+}) {
+  // 100 km yarıçapı 220x220 svg içine oturt
+  const SIZE = 220;
+  const PAD = 14;
+  const R_KM = 100;
+  const cx = SIZE / 2;
+  const cy = SIZE / 2;
+  const scale = (SIZE / 2 - PAD) / R_KM;
+
+  const lat0 = ISPARTA_COORDS.lat;
+  const lon0 = ISPARTA_COORDS.lng;
+  const cosLat0 = Math.cos(deg2rad(lat0));
+  const kmPerDeg = 111; // yaklaşık
+
+  const getDot = (mag: number) => {
+    if (mag >= 6) return { c: '#dc2626', r: 6 };
+    if (mag >= 5) return { c: '#ef4444', r: 5.5 };
+    if (mag >= 4) return { c: '#f97316', r: 5 };
+    if (mag >= 3) return { c: '#eab308', r: 4.5 };
+    return { c: '#22c55e', r: 4 };
+  };
+
+  return (
+    <div className="rounded-xl border bg-white shadow-sm overflow-hidden">
+      <div className="px-4 py-3 border-b">
+        <div className="text-sm font-extrabold" style={{ color: '#0f172a' }}>
+          Isparta 100 km Mini Harita
+        </div>
+        <div className="text-xs font-semibold" style={{ color: '#334155' }}>
+          Yakın depremler işaretlenir (renk: şiddet)
+        </div>
+      </div>
+
+      <div className="p-4 flex flex-col md:flex-row gap-4 items-start">
+        <div className="shrink-0">
+          <svg
+            width={SIZE}
+            height={SIZE}
+            viewBox={`0 0 ${SIZE} ${SIZE}`}
+            style={{
+              display: 'block',
+              background: 'linear-gradient(180deg, rgba(2,6,23,0.02), rgba(2,6,23,0.00))',
+              borderRadius: 14,
+              border: '1px solid rgba(0,0,0,0.10)'
+            }}
+          >
+            {/* 100 km çember */}
+            <circle
+              cx={cx}
+              cy={cy}
+              r={(SIZE / 2 - PAD)}
+              fill="rgba(29,78,216,0.10)"
+              stroke="rgba(29,78,216,0.65)"
+              strokeWidth="2"
+            />
+            {/* merkez ızgara */}
+            <line x1={cx} y1={PAD} x2={cx} y2={SIZE - PAD} stroke="rgba(15,23,42,0.10)" />
+            <line x1={PAD} y1={cy} x2={SIZE - PAD} y2={cy} stroke="rgba(15,23,42,0.10)" />
+
+            {/* Isparta merkezi */}
+            <circle cx={cx} cy={cy} r={5.5} fill="#1d4ed8" stroke="rgba(255,255,255,0.9)" strokeWidth={2} />
+
+            {items.map(({ eq, distance }) => {
+              const lat = eq.geojson.coordinates[1];
+              const lon = eq.geojson.coordinates[0];
+
+              const dxKm = (lon - lon0) * cosLat0 * kmPerDeg;
+              const dyKm = (lat - lat0) * kmPerDeg;
+
+              const x = cx + dxKm * scale;
+              const y = cy - dyKm * scale;
+
+              const d = getDot(eq.mag);
+
+              return (
+                <g
+                  key={eq.earthquake_id}
+                  onClick={() => onOpenMap?.(eq)}
+                  style={{ cursor: onOpenMap ? 'pointer' : 'default' }}
+                >
+                  <title>{`${eq.title} • M ${eq.mag.toFixed(1)} • ${Math.round(distance)} km • ${formatDateIstanbul(eq.date_time)}`}</title>
+                  <circle cx={x} cy={y} r={d.r} fill={d.c} fillOpacity={0.9} stroke="rgba(0,0,0,0.25)" strokeWidth={1.5} />
+                </g>
+              );
+            })}
+          </svg>
+
+          <div className="mt-2 text-[11px] font-semibold" style={{ color: '#475569', maxWidth: SIZE }}>
+            Noktaya tıklayınca haritada açılır.
+          </div>
+        </div>
+
+        <div className="min-w-0 w-full">
+          <div className="text-xs font-extrabold uppercase tracking-wide mb-2" style={{ color: '#0f172a' }}>
+            100 km içindeki son kayıtlar
+          </div>
+
+          {items.length === 0 ? (
+            <div className="text-sm" style={{ color: '#334155' }}>
+              100 km içinde deprem kaydı yok.
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {items.slice(0, 6).map(({ eq, distance }) => (
+                <div
+                  key={eq.earthquake_id}
+                  className="rounded-lg border px-3 py-2"
+                  style={{
+                    borderColor: 'rgba(0,0,0,0.10)',
+                    backgroundColor: getSeverityColor(eq.mag)
+                  }}
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="text-sm font-extrabold truncate" style={{ color: '#0f172a' }}>
+                        {eq.title}
+                      </div>
+                      <div className="text-[11px] font-semibold mt-0.5" style={{ color: '#334155' }}>
+                        {Math.round(distance)} km • {getTimeAgo(eq.date_time)} • {formatDateIstanbul(eq.date_time)}
+                      </div>
+                    </div>
+                    <div className="shrink-0">
+                      <div
+                        className="rounded-xl border px-2.5 py-1.5 shadow-sm"
+                        style={{
+                          backgroundColor: 'rgba(255,255,255,0.92)',
+                          borderColor: 'rgba(0,0,0,0.12)'
+                        }}
+                      >
+                        <div className="text-2xl font-black leading-none" style={{ color: '#0f172a' }}>
+                          {eq.mag.toFixed(1)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="mt-2 inline-flex items-center gap-1 text-[11px] font-extrabold underline"
+                    style={{ color: '#1d4ed8' }}
+                    onClick={() => onOpenMap?.(eq)}
+                  >
+                    <Navigation size={14} />
+                    Haritada aç
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {items.length > 6 && (
+            <div className="mt-2 text-[11px] font-semibold" style={{ color: '#64748b' }}>
+              +{items.length - 6} kayıt daha (liste filtrelenebilir).
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
 /* ============================================================
    9) Ana bileşen
    ============================================================ */
@@ -882,154 +1054,27 @@ export function Deprem() {
   return (
     <PageContainer>
       <div className={PAGE_TOP_PULL}>
+        
         {/* =====================================================
-            A) Isparta / Yakın Depremler
-            - Mobil: aşağı kaymaz, yatay kaydırma ile tek tek görünür (snap)
-            - Desktop: yatay şerit, istersen oklarla gez
+            A) Isparta 100 km Mini Harita
+            - AFAD/Proxy'den gelen veriden filtrelenir (ekstra istek yok)
+            - Mobil: aşağı kaymaz; liste + svg tek blok (scroll yok)
+            - Desktop: blok aynı, sadece yan yana yerleşir
            ===================================================== */}
-        {alertEarthquakes.length > 0 && (
-          <div className={SECTION_GAP}>
-            <div className="flex items-center justify-between mb-2 gap-3">
-              <div className="min-w-0">
-                <div className="text-xs font-extrabold uppercase tracking-wide text-slate-700">
-                  Isparta / Yakın Depremler
-                </div>
-                <div className="text-[11px] text-slate-500 font-semibold">
-                  {isDesktop ? 'Oklarla kaydır →' : 'Sağa kaydır →'} • {alertEarthquakes.length} kayıt
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 shrink-0">
-                <button
-                  onClick={() => scrollAlertStripBy('left')}
-                  className="p-2 rounded-lg border bg-white hover:bg-gray-50 shadow-sm"
-                  title="Sola"
-                >
-                  <ChevronLeft size={16} />
-                </button>
-                <button
-                  onClick={() => scrollAlertStripBy('right')}
-                  className="p-2 rounded-lg border bg-white hover:bg-gray-50 shadow-sm"
-                  title="Sağa"
-                >
-                  <ChevronRight size={16} />
-                </button>
-              </div>
-            </div>
-
-            <div
-              ref={alertStripRef}
-              className={[
-                'flex gap-3',
-                'overflow-x-auto overflow-y-hidden',
-                'snap-x snap-mandatory scroll-smooth',
-                'pb-1 items-stretch',
-                '[scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden'
-              ].join(' ')}
-              style={{ WebkitOverflowScrolling: 'touch' }}
-            >
-              {alertEarthquakes.map((it) => {
-                const lat = it.eq.geojson.coordinates[1];
-                const lon = it.eq.geojson.coordinates[0];
-                const osmUrl = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=12/${lat}/${lon}`;
-
-                // Mobil: 1 kart görünsün (85vw)
-                // Desktop: daha kompakt kart (420px)
-                const widthClass = isDesktop ? 'w-[420px]' : 'w-[85vw]';
-
-                const bg = getSeverityColor(it.eq.mag);
-                const recent = isRecent(it.eq.date_time);
-
-                return (
-                  <div
-                    key={it.eq.earthquake_id}
-                    className={[
-                      'snap-start',
-                      'flex-none',
-                      'shrink-0',
-                      widthClass,
-                      'min-h-[150px]',
-                      'rounded-xl border shadow-sm overflow-hidden'
-                    ].join(' ')}
-                    style={{
-                      backgroundColor: bg,
-                      borderColor: 'rgba(0,0,0,0.12)'
-                    }}
-                  >
-                    <div className="p-3 flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span
-                            className="inline-flex items-center px-2 py-1 text-[11px] font-extrabold rounded-md uppercase tracking-wide border shadow-sm"
-                            style={{
-                              backgroundColor: it.rel === 'ISPARTA' ? '#be123c' : '#c2410c',
-                              color: '#ffffff',
-                              borderColor: 'rgba(0,0,0,0.12)',
-                              textShadow: '0 1px 1px rgba(0,0,0,0.35)'
-                            }}
-                          >
-                            {it.rel}
-                          </span>
-
-                          {recent && (
-                            <span className="inline-flex items-center px-2 py-0.5 bg-blue-100 text-blue-900 text-xs font-extrabold rounded uppercase shadow-sm border border-blue-300">
-                              <Zap size={12} className="mr-1" />
-                              YENİ
-                            </span>
-                          )}
-
-                          <span className="text-xs font-semibold" style={{ color: '#334155' }}>
-                            {getTimeAgo(it.eq.date_time)}
-                          </span>
-                        </div>
-
-                        <div className="mt-2 text-sm font-extrabold" style={{ color: '#0f172a' }}>
-                          {it.eq.title}
-                        </div>
-
-                        <div className="mt-1 text-xs font-semibold" style={{ color: '#334155' }}>
-                          <span className="font-mono font-black" style={{ color: '#0f172a' }}>
-                            {Math.round(it.distance)} km
-                          </span>{' '}
-                          uzakta • {it.eq.depth.toFixed(1)} km
-                        </div>
-
-                        <div className="mt-2 text-[11px] font-semibold" style={{ color: '#475569' }}>
-                          {formatDateIstanbul(it.eq.date_time)}
-                        </div>
-
-                        <a
-                          href={osmUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mt-2 inline-flex items-center gap-1 text-[11px] font-extrabold underline"
-                          style={{ color: '#1d4ed8' }}
-                        >
-                          <Navigation size={14} />
-                          Haritada aç
-                        </a>
-                      </div>
-
-                      <div className="shrink-0 text-right">
-                        <div
-                          className="rounded-2xl border px-3 py-2 shadow-sm"
-                          style={{
-                            backgroundColor: 'rgba(255,255,255,0.92)',
-                            borderColor: 'rgba(0,0,0,0.12)'
-                          }}
-                        >
-                          <div className="text-5xl font-black leading-none" style={{ color: '#0f172a' }}>
-                            {it.eq.mag.toFixed(1)}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
+        <div className={SECTION_GAP}>
+          <IspartaMiniMapSvg
+            items={alertEarthquakes
+              .map((x) => ({ eq: x.eq, distance: x.distance }))
+              .filter((x) => x.distance <= 100)
+              .slice(0, 80)}
+            onOpenMap={(eq) => {
+              const lat = eq.geojson.coordinates[1];
+              const lon = eq.geojson.coordinates[0];
+              const url = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=11/${lat}/${lon}`;
+              window.open(url, '_blank', 'noopener,noreferrer');
+            }}
+          />
+        </div>
 
 {/* B) ÜST PANEL ===================================================== */}
         <div
