@@ -226,8 +226,23 @@ function NotificationToggle({ enabled, onToggle }: { enabled: boolean; onToggle:
 const normalizeDateString = (s: any): string => {
   if (!s) return '';
   let str = String(s).trim();
+
+  // "YYYY-MM-DD HH:mm:ss" -> "YYYY-MM-DDTHH:mm:ss"
   if (str.includes(' ') && !str.includes('T')) str = str.replace(' ', 'T');
+
+  // Proxy/AFAD çoğu zaman timezone eklemiyor.
+  // Bu proxy çıktısı pratikte UTC gibi davranıyor, bu yüzden timezone yoksa "Z" ekliyoruz.
+  const hasTz = /(Z|[+\-]\d{2}:\d{2})$/.test(str);
+  const isoNoTz = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/.test(str);
+
+  if (!hasTz && isoNoTz) str = `${str}Z`;
+
   return str;
+};
+
+const parseDateAsIstanbul = (dateStr: string): Date => {
+  const s = normalizeDateString(dateStr);
+  return new Date(s);
 };
 
 const formatTimeIstanbul = (d: Date) =>
@@ -240,7 +255,7 @@ const formatTimeIstanbul = (d: Date) =>
 
 const formatDateIstanbul = (dateStr: string) => {
   try {
-    const date = new Date(dateStr);
+    const date = parseDateAsIstanbul(dateStr);
     return new Intl.DateTimeFormat('tr-TR', {
       timeZone: IST_TZ,
       day: '2-digit',
@@ -283,7 +298,7 @@ const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: numbe
 };
 
 const getTimeAgo = (dateStr: string) => {
-  const date = new Date(dateStr);
+  const date = parseDateAsIstanbul(dateStr);
   const now = new Date();
   const diffInMs = now.getTime() - date.getTime();
   const totalMinutes = Math.floor(diffInMs / (1000 * 60));
@@ -296,7 +311,7 @@ const getTimeAgo = (dateStr: string) => {
 };
 
 const isRecent = (dateStr: string) => {
-  const date = new Date(dateStr);
+  const date = parseDateAsIstanbul(dateStr);
   const now = new Date();
   const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
   return diffInHours < 1;
@@ -592,7 +607,7 @@ export function Deprem() {
       for (const eq of mapped) uniqueMap.set(eq.earthquake_id, eq);
 
       const list = Array.from(uniqueMap.values());
-      list.sort((a, b) => new Date(b.date_time).getTime() - new Date(a.date_time).getTime());
+      list.sort((a, b) => parseDateAsIstanbul(b.date_time).getTime() - parseDateAsIstanbul(a.date_time).getTime());
 
       // Yeni deprem tespiti (ID bazlı)
       const newOnes: Earthquake[] = [];
@@ -669,7 +684,7 @@ export function Deprem() {
       })
       .filter((x) => x.rel !== null) as Array<{ eq: Earthquake; rel: Exclude<Relation, null>; distance: number }>;
 
-    list.sort((a, b) => new Date(b.eq.date_time).getTime() - new Date(a.eq.date_time).getTime());
+    list.sort((a, b) => parseDateAsIstanbul(b.eq.date_time).getTime() - parseDateAsIstanbul(a.eq.date_time).getTime());
     return list;
   }, [earthquakes, distanceMap]);
 
@@ -706,8 +721,8 @@ export function Deprem() {
         const db = distanceMap.get(b.earthquake_id) ?? 999999;
         return sortConfig.direction === 'asc' ? da - db : db - da;
       }
-      const ta = new Date(a.date_time).getTime();
-      const tb = new Date(b.date_time).getTime();
+      const ta = parseDateAsIstanbul(a.date_time).getTime();
+      const tb = parseDateAsIstanbul(b.date_time).getTime();
       return sortConfig.direction === 'asc' ? ta - tb : tb - ta;
     });
 
@@ -730,7 +745,7 @@ export function Deprem() {
     const list = [...earthquakes];
 
     if (mobileSort === 'largest') {
-      list.sort((a, b) => b.mag - a.mag || new Date(b.date_time).getTime() - new Date(a.date_time).getTime());
+      list.sort((a, b) => b.mag - a.mag || parseDateAsIstanbul(b.date_time).getTime() - parseDateAsIstanbul(a.date_time).getTime());
       return list;
     }
 
@@ -738,13 +753,13 @@ export function Deprem() {
       list.sort((a, b) => {
         const da = distanceMap.get(a.earthquake_id) ?? 999999;
         const db = distanceMap.get(b.earthquake_id) ?? 999999;
-        return da - db || new Date(b.date_time).getTime() - new Date(a.date_time).getTime();
+        return da - db || parseDateAsIstanbul(b.date_time).getTime() - parseDateAsIstanbul(a.date_time).getTime();
       });
       return list;
     }
 
     // newest
-    list.sort((a, b) => new Date(b.date_time).getTime() - new Date(a.date_time).getTime());
+    list.sort((a, b) => parseDateAsIstanbul(b.date_time).getTime() - parseDateAsIstanbul(a.date_time).getTime());
     return list;
   }, [earthquakes, mobileSort, distanceMap]);
 
@@ -753,12 +768,12 @@ export function Deprem() {
      ============================================================ */
   const max24h = useMemo(() => {
     const now = Date.now();
-    const list = earthquakes.filter((eq) => new Date(eq.date_time).getTime() >= now - 24 * 60 * 60 * 1000);
+    const list = earthquakes.filter((eq) => parseDateAsIstanbul(eq.date_time).getTime() >= now - 24 * 60 * 60 * 1000);
     if (list.length === 0) return null;
     return list.reduce((best, eq) => {
       if (!best) return eq;
       if (eq.mag > best.mag) return eq;
-      if (eq.mag === best.mag && new Date(eq.date_time).getTime() > new Date(best.date_time).getTime()) return eq;
+      if (eq.mag === best.mag && parseDateAsIstanbul(eq.date_time).getTime() > parseDateAsIstanbul(best.date_time).getTime()) return eq;
       return best;
     }, null as Earthquake | null);
   }, [earthquakes]);
@@ -768,7 +783,7 @@ export function Deprem() {
     return earthquakes.reduce((best, eq) => {
       if (!best) return eq;
       if (eq.mag > best.mag) return eq;
-      if (eq.mag === best.mag && new Date(eq.date_time).getTime() > new Date(best.date_time).getTime()) return eq;
+      if (eq.mag === best.mag && parseDateAsIstanbul(eq.date_time).getTime() > parseDateAsIstanbul(best.date_time).getTime()) return eq;
       return best;
     }, null as Earthquake | null);
   }, [earthquakes]);
