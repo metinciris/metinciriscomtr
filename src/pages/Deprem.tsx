@@ -165,10 +165,18 @@ const normalizeDateString = (s: any): string => {
   // "YYYY-MM-DD HH:mm:ss" -> "YYYY-MM-DDTHH:mm:ss"
   if (str.includes(' ') && !str.includes('T')) str = str.replace(' ', 'T');
 
-  // AFAD "Tarih(TS)" zaten Türkiye saati (UTC+03:00). Timezone yoksa +03:00 ekle.
+  /**
+   * Proxy JSON `date` alanı timezone içermiyor (ne Z ne +03:00).
+   * Gözlemin: AFAD sitesindeki saat = bizim ekranda görünen saat + 3 saat.
+   * Bu, proxy'nin UTC saati (TS'den 3 saat geri) timezone bilgisi olmadan döndürdüğünü gösterir.
+   *
+   * Bu yüzden timezone yoksa "Z" ekleyip UTC olarak parse ediyoruz.
+   * Sonrasında formatlama `timeZone: Europe/Istanbul` ile TS'ye doğru şekilde çevrilir.
+   */
   const hasTz = /(Z|[+\-]\d{2}:\d{2})$/.test(str);
   const looksIsoNoTz = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/.test(str);
-  if (!hasTz && looksIsoNoTz) str = `${str}+03:00`;
+
+  if (!hasTz && looksIsoNoTz) str = `${str}Z`;
 
   return str;
 };
@@ -196,6 +204,7 @@ const formatDateIstanbul = (dateStr: string) => {
     return dateStr;
   }
 };
+
 
 const toIstanbulParam = (d: Date) => {
   const parts = new Intl.DateTimeFormat('sv-SE', {
