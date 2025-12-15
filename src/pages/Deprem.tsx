@@ -842,7 +842,7 @@ export function Deprem() {
   style={{
     display: 'grid',
     gridAutoFlow: 'column',
-    gridAutoColumns: isDesktop ? '420px' : '85vw', // <-- kritik
+    gridAutoColumns: isDesktop ? '420px' : '85vw', 
     gap: '12px',
     scrollSnapType: 'x mandatory',
     WebkitOverflowScrolling: 'touch',
