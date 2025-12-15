@@ -31,9 +31,7 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
-  Navigation,
-  ChevronLeft,
-  ChevronRight
+  Navigation
 } from 'lucide-react';
 
 /* ============================================================
@@ -477,9 +475,6 @@ export function Deprem() {
   // 50 / hepsi
   const [showHistory, setShowHistory] = useState(false);
 
-  // Üst şerit “diğerlerini göster” aç/kapat
-  const [showMoreIspartaStrip, setShowMoreIspartaStrip] = useState(false);
-
   /* ------------------------------
      Refs
   ------------------------------ */
@@ -487,9 +482,6 @@ export function Deprem() {
   const audioCtxRef = useRef<AudioContext | null>(null);
   const soundQueue = useRef<Earthquake[]>([]);
   const isPlaying = useRef(false);
-
-  // “Diğer Isparta/Yakın” şeridini kontrol edeceğimiz container
-  const alertStripRef = useRef<HTMLDivElement | null>(null);
 
   /* ============================================================
      10) Ses (WebAudio)
@@ -674,48 +666,6 @@ export function Deprem() {
     return m;
   }, [earthquakes]);
 
-  // Isparta/Yakın listesi (hepsi)
-  const alertEarthquakes = useMemo(() => {
-    const list = earthquakes
-      .map((eq) => {
-        const distance = distanceMap.get(eq.earthquake_id) ?? 999999;
-        const rel = getRelation(eq.title, distance);
-        return { eq, rel, distance };
-      })
-      .filter((x) => x.rel !== null) as Array<{ eq: Earthquake; rel: Exclude<Relation, null>; distance: number }>;
-
-    list.sort((a, b) => parseDateAsIstanbul(b.eq.date_time).getTime() - parseDateAsIstanbul(a.eq.date_time).getTime());
-    return list;
-  }, [earthquakes, distanceMap]);
-
-  // Isparta / Yakın içindeki en yeni deprem (haber bandı için)
-  const newestFocusEq = useMemo(() => {
-    if (!alertEarthquakes.length) return null;
-    return alertEarthquakes[0]; // alertEarthquakes zaten en yeni -> en eski
-  }, [alertEarthquakes]);
-
-
-
-  const latestAlert = alertEarthquakes[0] ?? null;
-  const otherAlertCount = Math.max(0, alertEarthquakes.length - 1);
-
-  /**
-   * OK butonlarıyla şeridi yana kaydırma:
-   * - Desktop: sabit (480px)
-   * - Mobil: ekranın ~%90'ı kadar kaydır (tam 1 kart gibi)
-   */
-  const scrollAlertStripBy = (dir: 'left' | 'right') => {
-    const el = alertStripRef.current;
-    if (!el) return;
-
-    const step = isDesktop ? 480 : Math.round(window.innerWidth * 0.9);
-
-    el.scrollBy({
-      left: dir === 'left' ? -step : step,
-      behavior: 'smooth'
-    });
-  };
-
   // Desktop tablo sıralama
   const sortedEarthquakes = useMemo(() => {
     const list = [...earthquakes];
@@ -744,6 +694,20 @@ export function Deprem() {
       parseDateAsIstanbul(eq.date_time).getTime() > parseDateAsIstanbul(latest.date_time).getTime() ? eq : latest
     );
   }, [earthquakes]);
+
+
+// Isparta içi veya Isparta'ya 100 km yakın en yeni deprem (haber bandı için)
+const newestFocusEq = useMemo(() => {
+  const focus = earthquakes.filter((eq) => {
+    const distance = distanceMap.get(eq.earthquake_id) ?? 999999;
+    const rel = getRelation(eq.title, distance);
+    return rel !== null;
+  });
+  if (focus.length === 0) return null;
+  return focus.reduce((latest, eq) =>
+    parseDateAsIstanbul(eq.date_time).getTime() > parseDateAsIstanbul(latest.date_time).getTime() ? eq : latest
+  );
+}, [earthquakes, distanceMap]);
 
 
   const displayedEarthquakes = showHistory ? sortedEarthquakes : sortedEarthquakes.slice(0, 50);
@@ -890,159 +854,6 @@ export function Deprem() {
   return (
     <PageContainer>
       <div className={PAGE_TOP_PULL}>
-        {/* =====================================================
-            A) Isparta / Yakın Depremler
-            - Mobil: aşağı kaymaz, yatay kaydırma ile tek tek görünür (snap)
-            - Desktop: yatay şerit, istersen oklarla gez
-           ===================================================== */}
-{/* A) HABER BANDI — Son Isparta/Yakın Deprem */}
-{(() => {
-  // Öncelik: Isparta / 100km yakın içindeki EN YENİ deprem
-  const focus = (() => {
-    const list = alertEarthquakes
-      .slice()
-      .sort((a, b) => parseDateAsIstanbul(b.eq.date_time).getTime() - parseDateAsIstanbul(a.eq.date_time).getTime());
-    return list[0]?.eq ?? null;
-  })();
-
-  // Eğer yakın deprem yoksa: genel en yeni deprem
-  const fallback = earthquakes
-    .slice()
-    .sort((a, b) => parseDateAsIstanbul(b.date_time).getTime() - parseDateAsIstanbul(a.date_time).getTime())[0] ?? null;
-
-  const eq = focus ?? fallback;
-  if (!eq) return null;
-
-  const distanceKm = Math.round(distanceMap.get(eq.earthquake_id) ?? 999999);
-  const rel = getRelation(eq.title, distanceKm);
-  const label =
-    rel === 'ISPARTA' ? 'Isparta’da Deprem' : rel === 'YAKIN' ? 'Isparta’ya Yakın Deprem' : 'Son Deprem';
-
-  const bg = getSeverityColor(eq.mag);
-
-  return (
-    <div
-      className={SECTION_GAP}
-      style={{
-        borderRadius: 14,
-        border: '1px solid rgba(0,0,0,0.12)',
-        backgroundColor: bg,
-        overflow: 'hidden'
-      }}
-    >
-      {/* band üst satırı */}
-      <div className="px-4 py-3 flex items-center gap-3">
-        <span
-          className="shrink-0 inline-flex items-center px-3 py-1 rounded-full text-xs font-extrabold uppercase"
-          style={{
-            backgroundColor: rel === 'ISPARTA' ? '#be123c' : rel === 'YAKIN' ? '#c2410c' : '#1d4ed8',
-            color: '#fff',
-            textShadow: '0 1px 1px rgba(0,0,0,0.35)'
-          }}
-        >
-          {label}
-        </span>
-
-        <div className="min-w-0 flex-1">
-          <div
-            className="text-sm font-extrabold whitespace-nowrap"
-            style={{
-              color: '#0f172a',
-              overflow: 'hidden'
-            }}
-          >
-            {/* kayan yazı efekti */}
-            <div
-              style={{
-                display: 'inline-block',
-                paddingLeft: '100%',
-                animation: 'marquee 14s linear infinite'
-              }}
-            >
-              {eq.title} • {eq.mag.toFixed(1)} • {distanceKm} km uzakta • {formatDateIstanbul(eq.date_time)}
-            </div>
-          </div>
-
-          <div className="text-[11px] font-semibold mt-1" style={{ color: '#334155' }}>
-            {getTimeAgo(eq.date_time)}
-          </div>
-        </div>
-
-        <div className="shrink-0">
-          <span
-            className="inline-flex items-center px-3 py-2 rounded-xl border shadow-sm"
-            style={{ backgroundColor: 'rgba(255,255,255,0.92)', borderColor: 'rgba(0,0,0,0.12)' }}
-          >
-            <span className="text-2xl font-black leading-none" style={{ color: '#0f172a' }}>
-              {eq.mag.toFixed(1)}
-            </span>
-          </span>
-        </div>
-      </div>
-
-      {/* CSS keyframes (inline) */}
-      <style>
-        {`
-          @keyframes marquee {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-100%); }
-          }
-        `}
-      </style>
-    </div>
-  );
-})()}
-
-
-                          <span className="text-xs font-semibold" style={{ color: '#334155' }}>
-                            {getTimeAgo(it.eq.date_time)}
-                          </span>
-                        </div>
-
-                        <div className="mt-2 text-sm font-extrabold" style={{ color: '#0f172a' }}>
-                          {it.eq.title}
-                        </div>
-
-                        <div className="mt-1 text-xs font-semibold" style={{ color: '#334155' }}>
-                          <span className="font-mono font-black" style={{ color: '#0f172a' }}>
-                            {Math.round(it.distance)} km
-                          </span>{' '}
-                          uzakta • {it.eq.depth.toFixed(1)} km
-                        </div>
-
-                        <div className="mt-2 text-[11px] font-semibold" style={{ color: '#475569' }}>
-                          {formatDateIstanbul(it.eq.date_time)}
-                        </div>
-
-                        <a
-                          href={osmUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mt-2 inline-flex items-center gap-1 text-[11px] font-extrabold underline"
-                          style={{ color: '#1d4ed8' }}
-                        >
-                          <Navigation size={14} />
-                          Haritada aç
-                        </a>
-                      </div>
-
-                      <div className="shrink-0 text-right">
-                        <div
-                          className="rounded-2xl border px-3 py-2 shadow-sm"
-                          style={{
-                            backgroundColor: 'rgba(255,255,255,0.92)',
-                            borderColor: 'rgba(0,0,0,0.12)'
-                          }}
-                        >
-                          <div className="text-5xl font-black leading-none" style={{ color: '#0f172a' }}>
-                            {it.eq.mag.toFixed(1)}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
             </div>
           </div>
         )}
@@ -1063,79 +874,62 @@ export function Deprem() {
                 AFAD verisi • Isparta odaklı • Saat: <span className="font-semibold">TS (Europe/Istanbul)</span>
               </p>
 
-              
-              
-              {(newestFocusEq || newestEq) && (
-                <>
-                  <style>{`
-                    @keyframes depremMarquee {
-                      0% { transform: translateX(0%); }
-                      45% { transform: translateX(0%); }
-                      100% { transform: translateX(-100%); }
-                    }
-                  `}</style>
 
-                  {(() => {
-                    const item = newestFocusEq ?? { eq: newestEq!, rel: null as any, distance: (distanceMap.get(newestEq!.earthquake_id) ?? 999999) };
-                    const rel = item.rel ?? getRelation(item.eq.title, item.distance);
-                    const label = rel === 'ISPARTA' ? "Isparta'da Deprem" : rel === 'YAKIN' ? "Isparta'ya Yakın Deprem" : 'Son Deprem';
-                    const bg = getSeverityColor(item.eq.mag);
+{(newestFocusEq || newestEq) && (() => {
+  const eq = (newestFocusEq || newestEq)!;
+  const distance = distanceMap.get(eq.earthquake_id) ?? 999999;
+  const rel = getRelation(eq.title, distance);
+  const label = rel === 'ISPARTA' ? "Isparta'da Deprem" : "Isparta'ya Yakın Deprem";
+  const bg = getSeverityColor(eq.mag);
+  const line = `${label} • ${eq.title} • M ${eq.mag.toFixed(1)} • ${Math.round(distance)} km uzakta • ${formatDateIstanbul(eq.date_time)}`;
+  return (
+    <div
+      className="mt-3 rounded-lg border shadow-sm overflow-hidden"
+      style={{ backgroundColor: bg, borderColor: 'rgba(0,0,0,0.12)' }}
+    >
+      <style>{`
+        @keyframes depremMarquee {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        .deprem-marquee {
+          display: inline-flex;
+          white-space: nowrap;
+          will-change: transform;
+          animation: depremMarquee 18s linear infinite;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .deprem-marquee { animation: none; }
+        }
+      `}</style>
 
-                    return (
-                      <div
-                        className="mt-3 rounded-lg border overflow-hidden"
-                        style={{
-                          backgroundColor: 'rgba(255,255,255,0.10)',
-                          borderColor: 'rgba(255,255,255,0.18)'
-                        }}
-                        aria-label="Son deprem haber bandı"
-                      >
-                        <div className="flex items-center gap-2 px-3 py-2">
-                          <span
-                            className="shrink-0 inline-flex items-center rounded-md px-2 py-1 text-[11px] font-extrabold uppercase tracking-wide"
-                            style={{
-                              backgroundColor: rel === 'ISPARTA' ? '#be123c' : rel === 'YAKIN' ? '#c2410c' : 'rgba(255,255,255,0.16)',
-                              color: '#ffffff',
-                              textShadow: '0 1px 1px rgba(0,0,0,0.35)'
-                            }}
-                          >
-                            {label}
-                          </span>
+      <div className="flex items-center gap-3 px-3 py-2">
+        <span
+          className="shrink-0 inline-flex items-center px-2 py-1 rounded-md text-[11px] font-extrabold uppercase tracking-wide shadow-sm border"
+          style={{
+            backgroundColor: rel === 'ISPARTA' ? '#be123c' : '#c2410c',
+            color: '#ffffff',
+            borderColor: 'rgba(0,0,0,0.12)',
+            textShadow: '0 1px 1px rgba(0,0,0,0.35)'
+          }}
+        >
+          {label}
+        </span>
 
-                          <span
-                            className="shrink-0 inline-flex items-center rounded-lg px-2.5 py-1 text-sm font-black border"
-                            style={{
-                              backgroundColor: bg,
-                              color: '#0f172a',
-                              borderColor: 'rgba(0,0,0,0.12)'
-                            }}
-                            title="Deprem büyüklüğü"
-                          >
-                            {item.eq.mag.toFixed(1)}
-                          </span>
+        <div className="relative flex-1 overflow-hidden">
+          <div className="deprem-marquee" style={{ color: '#0f172a', fontWeight: 800 }}>
+            <span className="pr-10">{line}</span>
+            <span className="pr-10">{line}</span>
+          </div>
+        </div>
 
-                          <div className="min-w-0 flex-1 overflow-hidden">
-                            <div
-                              className="whitespace-nowrap font-bold text-sm"
-                              style={{
-                                color: 'rgba(255,255,255,0.95)',
-                                display: 'inline-block',
-                                paddingRight: '40px',
-                                animation: 'depremMarquee 14s linear infinite'
-                              }}
-                            >
-                              <span style={{ color: '#ffffff', fontWeight: 900 }}>{item.eq.title}</span>
-                              <span style={{ color: 'rgba(255,255,255,0.85)' }}> • </span>
-                              <span style={{ color: 'rgba(255,255,255,0.90)' }}>{Math.round(item.distance)} km uzakta</span>
-                              <span style={{ color: 'rgba(255,255,255,0.75)' }}> • {formatDateIstanbul(item.eq.date_time)}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })()}
-                </>
-              )}
+        <span className="shrink-0 text-xs font-semibold" style={{ color: '#334155' }}>
+          {getTimeAgo(eq.date_time)}
+        </span>
+      </div>
+    </div>
+  );
+})()}
 
 <p className="text-white/75 text-xs mt-1">
                 Bildirim açıksa: deprem şiddeti kadar tık sesi (Isparta/Yakın ise önce uzun uyarı).
@@ -1305,8 +1099,7 @@ export function Deprem() {
 
                         <div className="shrink-0 text-right">
                           <div className="text-4xl font-black leading-none text-slate-900">{eq.mag.toFixed(1)}</div>
-                          <div className="text-[11px] font-semibold text-slate-700">Mw / ML</div>
-                        </div>
+                                                  </div>
                       </button>
 
                       {isOpen && (
@@ -1556,3 +1349,4 @@ export function Deprem() {
     </PageContainer>
   );
 }
+
