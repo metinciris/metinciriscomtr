@@ -922,16 +922,37 @@ export function Deprem() {
                 { key: 'largest', label: 'En Büyük' },
                 { key: 'nearest', label: 'En Yakın' }
               ].map((b) => {
-                const active = mobileSort === (b.key as any);
-                return (
-                  <button
-                    key={b.key}
-                    onClick={() => setMobileSort(b.key as any)}
-                    className={[
-                      'flex-1 px-3 py-2 rounded-xl text-sm font-extrabold border shadow-sm',
-                      active ? 'bg-blue-600 text-white border-blue-700' : 'bg-white text-slate-800 border-gray-200 hover:bg-gray-50'
-                    ].join(' ')}
-                  >
+               const active = mobileSort === (b.key as any);
+return (
+  <button
+    key={b.key}
+    onClick={() => setMobileSort(b.key as any)}
+    className="flex-1 px-3 py-2 rounded-xl text-sm font-extrabold border shadow-sm transition"
+    style={
+      active
+        ? {
+            backgroundColor: '#1d4ed8', // okunaklı mavi
+            color: '#ffffff',
+            borderColor: '#1e40af',
+            textShadow: '0 1px 1px rgba(0,0,0,0.35)'
+          }
+        : {
+            backgroundColor: '#ffffff',
+            color: '#0f172a',
+            borderColor: 'rgba(15,23,42,0.15)'
+          }
+    }
+    onMouseEnter={(e) => {
+      if (!active) (e.currentTarget.style.backgroundColor = '#f8fafc');
+    }}
+    onMouseLeave={(e) => {
+      if (!active) (e.currentTarget.style.backgroundColor = '#ffffff');
+    }}
+  >
+    {b.label}
+  </button>
+);
+
                     {b.label}
                   </button>
                 );
