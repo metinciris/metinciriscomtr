@@ -1031,8 +1031,7 @@ export function Deprem() {
           </div>
         )}
 
-B) ÜST PANEL
-           ===================================================== */}
+{/* B) ÜST PANEL ===================================================== */}
         <div
           className={['text-white p-5 rounded-xl shadow-lg', SECTION_GAP].join(' ')}
           style={{ background: 'linear-gradient(to right, #0f172a, #1e3a8a)' }}
