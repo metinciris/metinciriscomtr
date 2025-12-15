@@ -1008,7 +1008,7 @@ export function Deprem() {
     {renderMaxCard('Son 24 saatte en büyük deprem', max24h)}
     {renderMaxCard('Son 7 günün en büyük depremi', max7d)}
   </div>
-</div>iv>
+</div>
         </div>
 
         {/* Hata */}
