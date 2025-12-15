@@ -719,7 +719,7 @@ export function Deprem() {
               </div>
             </div>
 
-            {isDesktop && renderNewestMiniCard(newestEq)}
+            
           </div>
 
 
@@ -754,30 +754,64 @@ export function Deprem() {
     return (
       <div
         className="rounded-xl border shadow-sm p-3 shrink-0"
-        style={{ backgroundColor: bg, borderColor: 'rgba(0,0,0,0.12)', width: 280 }}
+        style={{
+          backgroundColor: bg,
+          borderColor: 'rgba(0,0,0,0.12)',
+          width: 280
+        }}
       >
-        <div className="text-xs font-extrabold mb-1" style={{ color: '#0f172a' }}>
+        {/* Başlık: "yeni" vurgusu için mavi */}
+        <div
+          className="text-[11px] font-extrabold uppercase tracking-wide mb-1"
+          style={{ color: '#1e3a8a' }}
+        >
           En Yeni Deprem
         </div>
 
-        <div className="text-sm font-extrabold text-slate-900 break-words line-clamp-2">{eq.title}</div>
+        {/* Yer */}
+        <div
+          className="text-sm font-extrabold break-words line-clamp-2"
+          style={{ color: '#0f172a' }}
+        >
+          {eq.title}
+        </div>
 
         <div className="mt-2 flex items-start justify-between gap-3">
-          <div className="text-xs font-semibold text-slate-700">
+          {/* Sol bilgi */}
+          <div className="text-xs font-semibold" style={{ color: '#334155' }}>
             {getTimeAgo(eq.date_time)}
             <div className="mt-1">
-              <span className="font-mono font-black text-slate-900">{distance} km</span> uzakta
+              <span className="font-mono font-black" style={{ color: '#0f172a' }}>
+                {distance} km
+              </span>{' '}
+              uzakta
             </div>
-            <div className="mt-1 text-[11px] text-slate-600 font-semibold whitespace-nowrap">{formatDateIstanbul(eq.date_time)}</div>
+            <div className="mt-1 text-[11px] font-semibold whitespace-nowrap" style={{ color: '#475569' }}>
+              {formatDateIstanbul(eq.date_time)}
+            </div>
           </div>
 
+          {/* Şiddet */}
           <div className="shrink-0 text-right">
-            <div className="rounded-xl border px-3 py-2 shadow-sm" style={{ backgroundColor: 'rgba(255,255,255,0.92)', borderColor: 'rgba(0,0,0,0.12)' }}>
+            <div
+              className="rounded-xl border px-3 py-2 shadow-sm"
+              style={{
+                backgroundColor: 'rgba(255,255,255,0.95)',
+                borderColor: 'rgba(0,0,0,0.12)'
+              }}
+            >
               <div className="text-3xl font-black leading-none" style={{ color: '#0f172a' }}>
                 {eq.mag.toFixed(1)}
               </div>
             </div>
-            <a href={osmUrl} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center font-extrabold text-xs underline" style={{ color: '#1d4ed8' }}>
+
+            <a
+              href={osmUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-2 inline-flex items-center font-extrabold text-[11px] underline"
+              style={{ color: '#1d4ed8' }}
+            >
               Haritada aç
             </a>
           </div>
@@ -785,6 +819,7 @@ export function Deprem() {
       </div>
     );
   };
+
 
 
   const handleSort = (key: SortKey) => {
