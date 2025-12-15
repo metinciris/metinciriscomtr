@@ -689,23 +689,27 @@ export function Deprem() {
               </div>
             </div>
 
-            <div
-  className="rounded-xl border px-3 py-2 shadow-sm"
-  style={{
-    backgroundColor: 'rgba(255,255,255,0.92)', // daha opak
-    borderColor: 'rgba(0,0,0,0.12)'
-  }}
->
-  <div
-    className="text-3xl font-black leading-none"
-    style={{
-      color: '#0f172a',          // kesin koyu yazı
-      textShadow: '0 1px 0 rgba(255,255,255,0.6)' // okunurluk
-    }}
-  >
-    {eq.mag.toFixed(1)}
-  </div>
-</div>
+            <div className="shrink-0 text-right">
+              <div
+                className="rounded-xl border px-3 py-2 shadow-sm"
+                style={{
+                  backgroundColor: 'rgba(255,255,255,0.92)',
+                  borderColor: 'rgba(0,0,0,0.12)'
+                }}
+              >
+                <div
+                  className="text-3xl font-black leading-none"
+                  style={{
+                    color: '#0f172a',
+                    textShadow: '0 1px 0 rgba(255,255,255,0.6)'
+                  }}
+                >
+                  {eq.mag.toFixed(1)}
+                </div>
+              </div>
+            </div>
+          </div>
+
 
           <div className="text-[11px] mt-2 flex items-center justify-between gap-2 font-medium" style={{ color: '#334155' }}>
             <span className="font-mono">
@@ -927,45 +931,47 @@ export function Deprem() {
               </h2>
             </div>
 
+            
             <div className="flex w-full gap-2 mb-3">
               {[
                 { key: 'newest', label: 'En Yeni' },
                 { key: 'largest', label: 'En Büyük' },
                 { key: 'nearest', label: 'En Yakın' }
               ].map((b) => {
-             const active = mobileSort === (b.key as any);
-return (
-  <button
-    key={b.key}
-    onClick={() => setMobileSort(b.key as any)}
-    className="flex-1 px-3 py-2 rounded-xl text-sm font-extrabold border shadow-sm transition"
-    style={
-      active
-        ? {
-            backgroundColor: '#1d4ed8', // okunaklı mavi
-            color: '#ffffff',
-            borderColor: '#1e40af',
-            textShadow: '0 1px 1px rgba(0,0,0,0.35)'
-          }
-        : {
-            backgroundColor: '#ffffff',
-            color: '#0f172a',
-            borderColor: 'rgba(15,23,42,0.15)'
-          }
-    }
-    onMouseEnter={(e) => {
-      if (!active) (e.currentTarget.style.backgroundColor = '#f8fafc');
-    }}
-    onMouseLeave={(e) => {
-      if (!active) (e.currentTarget.style.backgroundColor = '#ffffff');
-    }}
-  >
-    {b.label}
-  </button>
-);
+                const active = mobileSort === (b.key as any);
+                return (
+                  <button
+                    key={b.key}
+                    onClick={() => setMobileSort(b.key as any)}
+                    className="flex-1 px-3 py-2 rounded-xl text-sm font-extrabold border shadow-sm transition"
+                    style={
+                      active
+                        ? {
+                            backgroundColor: '#1d4ed8',
+                            color: '#ffffff',
+                            borderColor: '#1e40af',
+                            textShadow: '0 1px 1px rgba(0,0,0,0.35)'
+                          }
+                        : {
+                            backgroundColor: '#ffffff',
+                            color: '#0f172a',
+                            borderColor: 'rgba(15,23,42,0.15)'
+                          }
+                    }
+                    onMouseEnter={(e) => {
+                      if (!active) e.currentTarget.style.backgroundColor = '#f8fafc';
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!active) e.currentTarget.style.backgroundColor = '#ffffff';
+                    }}
+                  >
+                    {b.label}
+                  </button>
+                );
+              })}
+            </div>
 
-
-            {loading && earthquakes.length === 0 ? (
+{loading && earthquakes.length === 0 ? (
               <div className="bg-white rounded-xl border shadow-sm p-6 text-center">
                 <RefreshCw className="animate-spin mx-auto mb-3 text-gray-400" size={28} />
                 <p className="text-gray-500">Veriler yükleniyor...</p>
