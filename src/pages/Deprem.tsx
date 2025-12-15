@@ -883,214 +883,155 @@ export function Deprem() {
     <PageContainer>
       <div className={PAGE_TOP_PULL}>
         {/* =====================================================
-            A) ÜST: Isparta/Yakın (en yeni tek kart + "+N diğer")
+            A) Isparta / Yakın Depremler
+            - Mobil: aşağı kaymaz, yatay kaydırma ile tek tek görünür (snap)
+            - Desktop: yatay şerit, istersen oklarla gez
            ===================================================== */}
-        {latestAlert && (
+        {alertEarthquakes.length > 0 && (
           <div className={SECTION_GAP}>
             <div className="flex items-center justify-between mb-2 gap-3">
-              <div className="text-xs font-extrabold uppercase tracking-wide text-slate-700">
-                Isparta / Yakın Deprem
+              <div className="min-w-0">
+                <div className="text-xs font-extrabold uppercase tracking-wide text-slate-700">
+                  Isparta / Yakın Depremler
+                </div>
+                <div className="text-[11px] text-slate-500 font-semibold">
+                  {isDesktop ? 'Oklarla kaydır →' : 'Sağa kaydır →'} • {alertEarthquakes.length} kayıt
+                </div>
               </div>
 
-              {otherAlertCount > 0 && (
+              <div className="flex items-center gap-2 shrink-0">
                 <button
-                  onClick={() => setShowMoreIspartaStrip((v) => !v)}
-                  className="text-xs font-extrabold px-2.5 py-1.5 rounded-lg border bg-white shadow-sm hover:bg-gray-50"
-                  title="Diğer Isparta/Yakın depremleri göster/gizle"
+                  onClick={() => scrollAlertStripBy('left')}
+                  className="p-2 rounded-lg border bg-white hover:bg-gray-50 shadow-sm"
+                  title="Sola"
                 >
-                  {showMoreIspartaStrip ? 'Kapat' : `+${otherAlertCount} diğer`}
+                  <ChevronLeft size={16} />
                 </button>
-              )}
+                <button
+                  onClick={() => scrollAlertStripBy('right')}
+                  className="p-2 rounded-lg border bg-white hover:bg-gray-50 shadow-sm"
+                  title="Sağa"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
             </div>
 
-            {/* En yeni tek kart */}
-            {(() => {
-              const lat = latestAlert.eq.geojson.coordinates[1];
-              const lon = latestAlert.eq.geojson.coordinates[0];
-              const osmUrl = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=10/${lat}/${lon}`;
+            <div
+              ref={alertStripRef}
+              className={[
+                'flex gap-3',
+                'overflow-x-auto overflow-y-hidden',
+                'snap-x snap-mandatory scroll-smooth',
+                'pb-1 items-stretch',
+                '[scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden'
+              ].join(' ')}
+              style={{ WebkitOverflowScrolling: 'touch' }}
+            >
+              {alertEarthquakes.map((it) => {
+                const lat = it.eq.geojson.coordinates[1];
+                const lon = it.eq.geojson.coordinates[0];
+                const osmUrl = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=12/${lat}/${lon}`;
 
-              return (
-                <div
-                  className="rounded-xl border shadow-sm overflow-hidden"
-                  style={{
-                    backgroundColor: latestAlert.rel === 'ISPARTA' ? '#ffe4e6' : '#ffedd5',
-                    borderColor: 'rgba(0,0,0,0.12)'
-                  }}
-                >
-                  <div className="p-4 flex items-start justify-between gap-4">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span
-                          className="inline-flex items-center px-2 py-1 text-[11px] font-extrabold rounded-md uppercase"
-                          style={{
-                            backgroundColor: latestAlert.rel === 'ISPARTA' ? '#be123c' : '#c2410c',
-                            color: '#fff'
-                          }}
-                        >
-                          {latestAlert.rel}
-                        </span>
+                // Mobil: 1 kart görünsün (85vw)
+                // Desktop: daha kompakt kart (420px)
+                const widthClass = isDesktop ? 'w-[420px]' : 'w-[85vw]';
 
-                        <span className="text-xs text-slate-700 font-semibold">{getTimeAgo(latestAlert.eq.date_time)}</span>
-                      </div>
+                const bg = getSeverityColor(it.eq.mag);
+                const recent = isRecent(it.eq.date_time);
 
-                      <div className="text-sm font-extrabold text-slate-900 break-words">{latestAlert.eq.title}</div>
+                return (
+                  <div
+                    key={it.eq.earthquake_id}
+                    className={[
+                      'snap-start',
+                      'flex-none',
+                      'shrink-0',
+                      widthClass,
+                      'min-h-[150px]',
+                      'rounded-xl border shadow-sm overflow-hidden'
+                    ].join(' ')}
+                    style={{
+                      backgroundColor: bg,
+                      borderColor: 'rgba(0,0,0,0.12)'
+                    }}
+                  >
+                    <div className="p-3 flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span
+                            className="inline-flex items-center px-2 py-1 text-[11px] font-extrabold rounded-md uppercase tracking-wide border shadow-sm"
+                            style={{
+                              backgroundColor: it.rel === 'ISPARTA' ? '#be123c' : '#c2410c',
+                              color: '#ffffff',
+                              borderColor: 'rgba(0,0,0,0.12)',
+                              textShadow: '0 1px 1px rgba(0,0,0,0.35)'
+                            }}
+                          >
+                            {it.rel}
+                          </span>
 
-                      <div className="text-xs text-slate-700 mt-1">
-                        Isparta’ya uzaklık:{' '}
-                        <span className="font-mono font-bold">{Math.round(latestAlert.distance)} km</span>
-                      </div>
+                          {recent && (
+                            <span className="inline-flex items-center px-2 py-0.5 bg-blue-100 text-blue-900 text-xs font-extrabold rounded uppercase shadow-sm border border-blue-300">
+                              <Zap size={12} className="mr-1" />
+                              YENİ
+                            </span>
+                          )}
 
-                      <div className="mt-2">
+                          <span className="text-xs font-semibold" style={{ color: '#334155' }}>
+                            {getTimeAgo(it.eq.date_time)}
+                          </span>
+                        </div>
+
+                        <div className="mt-2 text-sm font-extrabold" style={{ color: '#0f172a' }}>
+                          {it.eq.title}
+                        </div>
+
+                        <div className="mt-1 text-xs font-semibold" style={{ color: '#334155' }}>
+                          <span className="font-mono font-black" style={{ color: '#0f172a' }}>
+                            {Math.round(it.distance)} km
+                          </span>{' '}
+                          uzakta • {it.eq.depth.toFixed(1)} km
+                        </div>
+
+                        <div className="mt-2 text-[11px] font-semibold" style={{ color: '#475569' }}>
+                          {formatDateIstanbul(it.eq.date_time)}
+                        </div>
+
                         <a
                           href={osmUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-white/80 border shadow-sm font-extrabold text-xs text-slate-800 hover:bg-white"
-                          title="OpenStreetMap’te aç"
+                          className="mt-2 inline-flex items-center gap-1 text-[11px] font-extrabold underline"
+                          style={{ color: '#1d4ed8' }}
                         >
-                          <Navigation size={16} />
-                          Harita
+                          <Navigation size={14} />
+                          Haritada aç
                         </a>
                       </div>
-                    </div>
 
-<div className="shrink-0 text-right">
-  <div className="text-4xl font-black leading-none text-slate-900">
-    {latestAlert.eq.mag.toFixed(1)}
-  </div>
-</div>
-
-                  </div>
-                </div>
-              );
-            })()}
-
-            {/* =====================================================
-                “Diğerleri” ŞERİTİ:
-                - MOBİL (A): 1 kart görünsün -> w-[85vw] + shrink-0
-                - Snap ile parmakla kaydırınca karta yapışsın
-                - Oklar tıklanınca bir sonraki karta geçsin
-               ===================================================== */}
-            {showMoreIspartaStrip && otherAlertCount > 0 && (
-              <div className="mt-3">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="text-xs font-bold text-slate-700">
-                    Diğer Isparta/Yakın depremler
-                    {!isDesktop && <span className="ml-2 text-[11px] text-slate-500 font-semibold">• Sağa kaydır →</span>}
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => scrollAlertStripBy('left')}
-                      className="p-2 rounded-lg border bg-white hover:bg-gray-50 shadow-sm"
-                      title="Sola"
-                    >
-                      <ChevronLeft size={16} />
-                    </button>
-                    <button
-                      onClick={() => scrollAlertStripBy('right')}
-                      className="p-2 rounded-lg border bg-white hover:bg-gray-50 shadow-sm"
-                      title="Sağa"
-                    >
-                      <ChevronRight size={16} />
-                    </button>
-                  </div>
-                </div>
-
-                <div
-                  ref={alertStripRef}
-                  className={[
-                    'flex flex-row flex-nowrap gap-3',
-                    'overflow-x-auto overflow-y-hidden',
-                    'snap-x snap-mandatory scroll-smooth',
-                    'pb-1 items-stretch',
-                    '[scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden'
-                  ].join(' ')}
-                  style={{ WebkitOverflowScrolling: 'touch' }}
-                >
-                  {alertEarthquakes.slice(1).map((it) => {
-                    const lat = it.eq.geojson.coordinates[1];
-                    const lon = it.eq.geojson.coordinates[0];
-                    const osmUrl = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=12/${lat}/${lon}`;
-
-                    // MOBİL: 85vw -> 1 kart görünsün, sağda devamı görünsün
-                    // DESKTOP: sabit genişlik
-                    const widthClass = isDesktop ? 'w-[460px]' : 'w-[85vw]';
-
-                    return (
-                      <div
-                        key={it.eq.earthquake_id}
-                        className={[
-                          'snap-start',
-                          'flex-none',
-                          // kritik: küçülmesin -> hepsi aynı anda görünmesin
-                          'shrink-0',
-                          widthClass,
-                          'min-h-[148px]',
-                          'rounded-xl border shadow-sm overflow-hidden'
-                        ].join(' ')}
-                        style={{
-                          backgroundColor: it.rel === 'ISPARTA' ? '#ffe4e6' : '#ffedd5',
-                          borderColor: 'rgba(0,0,0,0.12)'
-                        }}
-                      >
-                        <div className="p-3 flex items-start justify-between gap-3">
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-2">
-                              <span
-                                className="inline-flex items-center px-2 py-1 text-[11px] font-extrabold rounded-md uppercase"
-                                style={{
-                                  backgroundColor: it.rel === 'ISPARTA' ? '#be123c' : '#c2410c',
-                                  color: '#fff'
-                                }}
-                              >
-                                {it.rel}
-                              </span>
-
-                              <span className="text-xs text-slate-700 font-semibold">
-                                {getTimeAgo(it.eq.date_time)}
-                              </span>
-                            </div>
-
-                            <div className="mt-1 text-sm font-extrabold text-slate-900 break-words line-clamp-2">
-                              {it.eq.title}
-                            </div>
-
-                            <div className="text-xs text-slate-700 mt-1">
-                              Isparta: <span className="font-mono font-bold">{Math.round(it.distance)} km</span>
-                            </div>
-
-                            {/* Harita butonu (mobilde özellikle istenmişti) */}
-                            <div className="mt-2">
-                              <a
-                                href={osmUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-white/80 border shadow-sm font-extrabold text-xs text-slate-800 hover:bg-white"
-                                title="OpenStreetMap’te aç"
-                              >
-                                <Navigation size={16} />
-                                Harita
-                              </a>
-                            </div>
+                      <div className="shrink-0 text-right">
+                        <div
+                          className="rounded-2xl border px-3 py-2 shadow-sm"
+                          style={{
+                            backgroundColor: 'rgba(255,255,255,0.92)',
+                            borderColor: 'rgba(0,0,0,0.12)'
+                          }}
+                        >
+                          <div className="text-5xl font-black leading-none" style={{ color: '#0f172a' }}>
+                            {it.eq.mag.toFixed(1)}
                           </div>
-
-<div className="shrink-0 text-right">
-  <div className="text-3xl font-black leading-none text-slate-900">{it.eq.mag.toFixed(1)}</div>
-</div>
-
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 
-        {/* =====================================================
-            B) ÜST PANEL
+B) ÜST PANEL
            ===================================================== */}
         <div
           className={['text-white p-5 rounded-xl shadow-lg', SECTION_GAP].join(' ')}
