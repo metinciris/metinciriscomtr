@@ -877,7 +877,8 @@ const newestFocusEq = useMemo(() => {
   const rel = getRelation(eq.title, distance);
   const label = rel === 'ISPARTA' ? "Isparta'da Deprem" : "Isparta'ya Yakın Deprem";
   const bg = getSeverityColor(eq.mag);
-  const ticker = `${eq.title} • M${eq.mag.toFixed(1)} • ${Math.round(distance)} km • ${formatDateIstanbul(eq.date_time)}`;
+const ticker = `${eq.title} • M${eq.mag.toFixed(1)} • ${Math.round(distance)} km • ${formatDateIstanbul(eq.date_time)}  •  `;
+
   return (
     <div
       className="mt-3 rounded-lg border shadow-sm overflow-hidden"
