@@ -689,12 +689,23 @@ export function Deprem() {
               </div>
             </div>
 
-            <div className="shrink-0 text-right">
-              <div className="rounded-xl border bg-white/70 px-3 py-2 shadow-sm" style={{ borderColor: 'rgba(0,0,0,0.12)' }}>
-                <div className="text-3xl font-black leading-none text-slate-900">{eq.mag.toFixed(1)}</div>
-              </div>
-            </div>
-          </div>
+            <div
+  className="rounded-xl border px-3 py-2 shadow-sm"
+  style={{
+    backgroundColor: 'rgba(255,255,255,0.92)', // daha opak
+    borderColor: 'rgba(0,0,0,0.12)'
+  }}
+>
+  <div
+    className="text-3xl font-black leading-none"
+    style={{
+      color: '#0f172a',          // kesin koyu yazı
+      textShadow: '0 1px 0 rgba(255,255,255,0.6)' // okunurluk
+    }}
+  >
+    {eq.mag.toFixed(1)}
+  </div>
+</div>
 
           <div className="text-[11px] mt-2 flex items-center justify-between gap-2 font-medium" style={{ color: '#334155' }}>
             <span className="font-mono">
