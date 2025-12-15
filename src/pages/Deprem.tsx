@@ -895,96 +895,104 @@ export function Deprem() {
             - Mobil: aşağı kaymaz, yatay kaydırma ile tek tek görünür (snap)
             - Desktop: yatay şerit, istersen oklarla gez
            ===================================================== */}
-        {alertEarthquakes.length > 0 && (
-          <div className={SECTION_GAP}>
-            <div className="flex items-center justify-between mb-2 gap-3">
-              <div className="min-w-0">
-                <div className="text-xs font-extrabold uppercase tracking-wide text-slate-700">
-                  Isparta / Yakın Depremler
-                </div>
-                <div className="text-[11px] text-slate-500 font-semibold">
-                  {isDesktop ? 'Oklarla kaydır →' : 'Sağa kaydır →'} • {alertEarthquakes.length} kayıt
-                </div>
-              </div>
+{/* A) HABER BANDI — Son Isparta/Yakın Deprem */}
+{(() => {
+  // Öncelik: Isparta / 100km yakın içindeki EN YENİ deprem
+  const focus = (() => {
+    const list = alertEarthquakes
+      .slice()
+      .sort((a, b) => parseDateAsIstanbul(b.eq.date_time).getTime() - parseDateAsIstanbul(a.eq.date_time).getTime());
+    return list[0]?.eq ?? null;
+  })();
 
-              <div className="flex items-center gap-2 shrink-0">
-                <button
-                  onClick={() => scrollAlertStripBy('left')}
-                  className="p-2 rounded-lg border bg-white hover:bg-gray-50 shadow-sm"
-                  title="Sola"
-                >
-                  <ChevronLeft size={16} />
-                </button>
-                <button
-                  onClick={() => scrollAlertStripBy('right')}
-                  className="p-2 rounded-lg border bg-white hover:bg-gray-50 shadow-sm"
-                  title="Sağa"
-                >
-                  <ChevronRight size={16} />
-                </button>
-              </div>
-            </div>
+  // Eğer yakın deprem yoksa: genel en yeni deprem
+  const fallback = earthquakes
+    .slice()
+    .sort((a, b) => parseDateAsIstanbul(b.date_time).getTime() - parseDateAsIstanbul(a.date_time).getTime())[0] ?? null;
 
+  const eq = focus ?? fallback;
+  if (!eq) return null;
+
+  const distanceKm = Math.round(distanceMap.get(eq.earthquake_id) ?? 999999);
+  const rel = getRelation(eq.title, distanceKm);
+  const label =
+    rel === 'ISPARTA' ? 'Isparta’da Deprem' : rel === 'YAKIN' ? 'Isparta’ya Yakın Deprem' : 'Son Deprem';
+
+  const bg = getSeverityColor(eq.mag);
+
+  return (
+    <div
+      className={SECTION_GAP}
+      style={{
+        borderRadius: 14,
+        border: '1px solid rgba(0,0,0,0.12)',
+        backgroundColor: bg,
+        overflow: 'hidden'
+      }}
+    >
+      {/* band üst satırı */}
+      <div className="px-4 py-3 flex items-center gap-3">
+        <span
+          className="shrink-0 inline-flex items-center px-3 py-1 rounded-full text-xs font-extrabold uppercase"
+          style={{
+            backgroundColor: rel === 'ISPARTA' ? '#be123c' : rel === 'YAKIN' ? '#c2410c' : '#1d4ed8',
+            color: '#fff',
+            textShadow: '0 1px 1px rgba(0,0,0,0.35)'
+          }}
+        >
+          {label}
+        </span>
+
+        <div className="min-w-0 flex-1">
+          <div
+            className="text-sm font-extrabold whitespace-nowrap"
+            style={{
+              color: '#0f172a',
+              overflow: 'hidden'
+            }}
+          >
+            {/* kayan yazı efekti */}
             <div
-              ref={alertStripRef}
-              className={[
-                'flex gap-3',
-                'overflow-x-auto overflow-y-hidden',
-                'snap-x snap-mandatory scroll-smooth',
-                'pb-1 items-stretch',
-                '[scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden'
-              ].join(' ')}
-              style={{ WebkitOverflowScrolling: 'touch' }}
+              style={{
+                display: 'inline-block',
+                paddingLeft: '100%',
+                animation: 'marquee 14s linear infinite'
+              }}
             >
-              {alertEarthquakes.map((it) => {
-                const lat = it.eq.geojson.coordinates[1];
-                const lon = it.eq.geojson.coordinates[0];
-                const osmUrl = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=12/${lat}/${lon}`;
+              {eq.title} • {eq.mag.toFixed(1)} • {distanceKm} km uzakta • {formatDateIstanbul(eq.date_time)}
+            </div>
+          </div>
 
-                // Mobil: 1 kart görünsün (85vw)
-                // Desktop: daha kompakt kart (420px)
-                const widthClass = isDesktop ? 'w-[420px]' : 'w-[85vw]';
+          <div className="text-[11px] font-semibold mt-1" style={{ color: '#334155' }}>
+            {getTimeAgo(eq.date_time)}
+          </div>
+        </div>
 
-                const bg = getSeverityColor(it.eq.mag);
-                const recent = isRecent(it.eq.date_time);
+        <div className="shrink-0">
+          <span
+            className="inline-flex items-center px-3 py-2 rounded-xl border shadow-sm"
+            style={{ backgroundColor: 'rgba(255,255,255,0.92)', borderColor: 'rgba(0,0,0,0.12)' }}
+          >
+            <span className="text-2xl font-black leading-none" style={{ color: '#0f172a' }}>
+              {eq.mag.toFixed(1)}
+            </span>
+          </span>
+        </div>
+      </div>
 
-                return (
-                  <div
-                    key={it.eq.earthquake_id}
-                    className={[
-                      'snap-start',
-                      'flex-none',
-                      'shrink-0',
-                      widthClass,
-                      'min-h-[150px]',
-                      'rounded-xl border shadow-sm overflow-hidden'
-                    ].join(' ')}
-                    style={{
-                      backgroundColor: bg,
-                      borderColor: 'rgba(0,0,0,0.12)'
-                    }}
-                  >
-                    <div className="p-3 flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span
-                            className="inline-flex items-center px-2 py-1 text-[11px] font-extrabold rounded-md uppercase tracking-wide border shadow-sm"
-                            style={{
-                              backgroundColor: it.rel === 'ISPARTA' ? '#be123c' : '#c2410c',
-                              color: '#ffffff',
-                              borderColor: 'rgba(0,0,0,0.12)',
-                              textShadow: '0 1px 1px rgba(0,0,0,0.35)'
-                            }}
-                          >
-                            {it.rel}
-                          </span>
+      {/* CSS keyframes (inline) */}
+      <style>
+        {`
+          @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100%); }
+          }
+        `}
+      </style>
+    </div>
+  );
+})()}
 
-                          {recent && (
-                            <span className="inline-flex items-center px-2 py-0.5 bg-blue-100 text-blue-900 text-xs font-extrabold rounded uppercase shadow-sm border border-blue-300">
-                              <Zap size={12} className="mr-1" />
-                              YENİ
-                            </span>
-                          )}
 
                           <span className="text-xs font-semibold" style={{ color: '#334155' }}>
                             {getTimeAgo(it.eq.date_time)}
