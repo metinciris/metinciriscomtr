@@ -688,6 +688,14 @@ export function Deprem() {
     return list;
   }, [earthquakes, distanceMap]);
 
+  // Isparta / Yakın içindeki en yeni deprem (haber bandı için)
+  const newestFocusEq = useMemo(() => {
+    if (!alertEarthquakes.length) return null;
+    return alertEarthquakes[0]; // alertEarthquakes zaten en yeni -> en eski
+  }, [alertEarthquakes]);
+
+
+
   const latestAlert = alertEarthquakes[0] ?? null;
   const otherAlertCount = Math.max(0, alertEarthquakes.length - 1);
 
@@ -755,12 +763,6 @@ export function Deprem() {
         const db = distanceMap.get(b.earthquake_id) ?? 999999;
         return da - db || parseDateAsIstanbul(b.date_time).getTime() - parseDateAsIstanbul(a.date_time).getTime();
       });
-
-  // Isparta / Yakın içindeki en yeni deprem (haber bandı için)
-  const newestFocusEq = useMemo(() => {
-    if (!alertEarthquakes.length) return null;
-    return alertEarthquakes[0]; // alertEarthquakes zaten en yeni -> en eski
-  }, [alertEarthquakes]);
       return list;
     }
 
