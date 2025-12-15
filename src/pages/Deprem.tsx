@@ -757,7 +757,8 @@ export function Deprem() {
         style={{
           backgroundColor: bg,
           borderColor: 'rgba(0,0,0,0.12)',
-          width: 280
+          width: '100%',
+          maxWidth: 320
         }}
       >
         {/* Başlık: "yeni" vurgusu için mavi */}
@@ -955,52 +956,59 @@ export function Deprem() {
           </div>
         )}
 
-        {/* ÜST PANEL */}
-        <div className={['text-white p-5 rounded-xl shadow-lg', SECTION_GAP].join(' ')} style={{ background: 'linear-gradient(to right, #0f172a, #1e3a8a)' }}>
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div className="min-w-0">
-              <h1 className="text-white text-3xl font-bold flex items-center gap-3">
-                <Activity size={34} className="animate-pulse" />
-                Deprem Takibi
-              </h1>
-              <p className="text-white/80 text-sm mt-1">
-                AFAD verisi • Isparta odaklı • Saat: <span className="font-semibold">TS (Europe/Istanbul)</span>
-              </p>
-              <p className="text-white/75 text-xs mt-1">Bildirim açıksa: deprem şiddeti kadar tık sesi (Isparta/Yakın ise önce uzun uyarı).</p>
-            </div>
-            <div className="w-full md:w-auto md:ml-auto flex flex-col gap-3 md:flex-row md:items-start md:justify-end md:flex-nowrap">
+      <div className={['text-white p-5 rounded-xl shadow-lg', SECTION_GAP].join(' ')} style={{ background: 'linear-gradient(to right, #0f172a, #1e3a8a)' }}>
+  <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+    {/* SOL: Başlık + açıklama + Son Deprem */}
+    <div className="min-w-0 flex flex-col gap-3">
+      <div>
+        <h1 className="text-white text-3xl font-bold flex items-center gap-3">
+          <Activity size={34} className="animate-pulse" />
+          Deprem Takibi
+        </h1>
 
+        <p className="text-white/80 text-sm mt-1">
+          AFAD verisi • Isparta odaklı • Saat: <span className="font-semibold">TS (Europe/Istanbul)</span>
+        </p>
 
-            <div className="flex flex-col items-center gap-2">
-              <div className="text-xs font-extrabold text-white/80 uppercase tracking-wide">Bildirim</div>
-              <NotificationToggle enabled={notificationsEnabled} onToggle={() => setNotificationsEnabled((v) => !v)} />
-            </div>
+        <p className="text-white/75 text-xs mt-1">
+          Bildirim açıksa: deprem şiddeti kadar tık sesi (Isparta/Yakın ise önce uzun uyarı).
+        </p>
+      </div>
 
+      {/* Son Deprem: mobilde de görünebilir */}
+      {renderNewestMiniCard(newestEq)}
+    </div>
 
-            <div className="flex md:justify-end shrink-0">
-              <div className="bg-white/10 border border-white/15 rounded-lg px-3 py-2 flex items-center gap-3">
-                <div className="flex items-center justify-center h-[30px] w-[30px]">
-                  {loading ? <RefreshCw size={22} className="animate-spin" /> : <CountdownTimer duration={30000} resetKey={lastUpdated} size={28} />}
-                </div>
+    {/* SAĞ: Bildirim + sayaç/saat + sayı */}
+    <div className="w-full md:w-auto md:ml-auto flex flex-col gap-3 md:items-end">
+      <div className="flex flex-col items-center md:items-end gap-2">
+        <div className="text-xs font-extrabold text-white/80 uppercase tracking-wide">Bildirim</div>
+        <NotificationToggle enabled={notificationsEnabled} onToggle={() => setNotificationsEnabled((v) => !v)} />
+      </div>
 
-                <div className="leading-tight text-left md:text-right">
-                  <div className="flex items-center gap-1 text-sm text-white/90 md:justify-end">
-                    <Clock size={14} />
-                    {formatTimeIstanbul(lastUpdated)}
-                  </div>
-                  <div className="text-xs text-white/70">Son 7 günde {earthquakes.length} deprem</div>
-                </div>
-            </div>
-              </div>
-            </div>
-
-            {isDesktop && renderNewestMiniCard(newestEq)}
+      <div className="flex md:justify-end shrink-0">
+        <div className="bg-white/10 border border-white/15 rounded-lg px-3 py-2 flex items-center gap-3">
+          <div className="flex items-center justify-center h-[30px] w-[30px]">
+            {loading ? <RefreshCw size={22} className="animate-spin" /> : <CountdownTimer duration={30000} resetKey={lastUpdated} size={28} />}
           </div>
 
-          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2">
-            {renderMaxCard('Son 24 saatte en büyük deprem', max24h)}
-            {renderMaxCard('Son 7 günün en büyük depremi', max7d)}
+          <div className="leading-tight text-left md:text-right">
+            <div className="flex items-center gap-1 text-sm text-white/90 md:justify-end">
+              <Clock size={14} />
+              {formatTimeIstanbul(lastUpdated)}
+            </div>
+            <div className="text-xs text-white/70">Son 7 günde {earthquakes.length} deprem</div>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2">
+    {renderMaxCard('Son 24 saatte en büyük deprem', max24h)}
+    {renderMaxCard('Son 7 günün en büyük depremi', max7d)}
+  </div>
+</div>iv>
         </div>
 
         {/* Hata */}
