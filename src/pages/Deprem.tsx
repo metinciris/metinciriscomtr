@@ -875,9 +875,12 @@ const newestFocusEq = useMemo(() => {
   const eq = (newestFocusEq || newestEq)!;
   const distance = distanceMap.get(eq.earthquake_id) ?? 999999;
   const rel = getRelation(eq.title, distance);
+
   const label = rel === 'ISPARTA' ? "Isparta'da Deprem" : "Isparta'ya Yakın Deprem";
+  const labelShort = rel === 'ISPARTA' ? "Isparta" : "Yakın";
+
   const bg = getSeverityColor(eq.mag);
-const ticker = `${eq.title} • M${eq.mag.toFixed(1)} • ${Math.round(distance)} km • ${formatDateIstanbul(eq.date_time)}  •  `;
+  const ticker = `${eq.title} • M${eq.mag.toFixed(1)} • ${Math.round(distance)} km • ${formatDateIstanbul(eq.date_time)}  •  `;
 
   return (
     <div
@@ -910,23 +913,25 @@ const ticker = `${eq.title} • M${eq.mag.toFixed(1)} • ${Math.round(distance)
             textShadow: '0 1px 1px rgba(0,0,0,0.35)'
           }}
         >
-          {label}
+          <span className="hidden sm:inline">{label}</span>
+          <span className="sm:hidden">{labelShort}</span>
         </span>
 
         <div className="relative flex-1 overflow-hidden">
           <div className="deprem-marquee" style={{ color: '#0f172a', fontWeight: 800 }}>
             <span className="pr-10">{ticker}</span>
-            <span className="pr-10">{ticker}</span>
+            <span className="pr-10" aria-hidden="true">{ticker}</span>
           </div>
         </div>
 
-        <span className="shrink-0 text-xs font-semibold" style={{ color: '#334155' }}>
+        <span className="hidden sm:inline shrink-0 text-xs font-semibold" style={{ color: '#334155' }}>
           {getTimeAgo(eq.date_time)}
         </span>
       </div>
     </div>
   );
 })()}
+
 
 <p className="text-white/75 text-xs mt-1">
                 Bildirim açıksa: deprem şiddeti kadar tık sesi (Isparta/Yakın ise önce uzun uyarı).
