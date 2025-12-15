@@ -1127,10 +1127,6 @@ export function Deprem() {
                 </>
               )}
 
-</span>{' '}
-                  • <span style={{ color: 'rgba(255,255,255,0.75)' }}>{formatDateIstanbul(newestEq.date_time)}</span>
-                </div>
-              )}
 <p className="text-white/75 text-xs mt-1">
                 Bildirim açıksa: deprem şiddeti kadar tık sesi (Isparta/Yakın ise önce uzun uyarı).
               </p>
@@ -1550,4 +1546,3 @@ export function Deprem() {
     </PageContainer>
   );
 }
-
