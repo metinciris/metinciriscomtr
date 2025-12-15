@@ -718,6 +718,8 @@ export function Deprem() {
                 </div>
               </div>
             </div>
+
+            {isDesktop && renderNewestMiniCard(newestEq)}
           </div>
 
 
@@ -738,94 +740,51 @@ export function Deprem() {
     );
   };
 
-const renderNewestMiniCard = (eq: Earthquake | null) => {
-  if (!eq) return null;
+  const renderNewestMiniCard = (eq: Earthquake | null) => {
+    if (!eq) return null;
 
-  const d = calculateDistance(
-    ISPARTA_COORDS.lat,
-    ISPARTA_COORDS.lng,
-    eq.geojson.coordinates[1],
-    eq.geojson.coordinates[0]
-  );
-  const distance = Math.round(d);
-  const bg = getSeverityColor(eq.mag);
+    const d = calculateDistance(ISPARTA_COORDS.lat, ISPARTA_COORDS.lng, eq.geojson.coordinates[1], eq.geojson.coordinates[0]);
+    const distance = Math.round(d);
+    const bg = getSeverityColor(eq.mag);
 
-  const lat = eq.geojson.coordinates[1];
-  const lon = eq.geojson.coordinates[0];
-  const osmUrl = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=10/${lat}/${lon}`;
+    const lat = eq.geojson.coordinates[1];
+    const lon = eq.geojson.coordinates[0];
+    const osmUrl = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=10/${lat}/${lon}`;
 
-  return (
-    <div
-      className="rounded-xl border shadow-sm px-4 py-3 shrink-0"
-      style={{
-        width: 280,
-        backgroundColor: bg,
-        borderColor: 'rgba(0,0,0,0.12)'
-      }}
-    >
-      {/* Başlık */}
+    return (
       <div
-        className="text-[11px] font-extrabold uppercase tracking-wide mb-1"
-        style={{ color: '#1e3a8a' }}   // 🔵 mavi – yeni vurgusu
+        className="rounded-xl border shadow-sm p-3 shrink-0"
+        style={{ backgroundColor: bg, borderColor: 'rgba(0,0,0,0.12)', width: 280 }}
       >
-        En Yeni Deprem
-      </div>
-
-      {/* Yer */}
-      <div
-        className="text-sm font-extrabold leading-snug line-clamp-2"
-        style={{ color: '#0f172a' }}
-      >
-        {eq.title}
-      </div>
-
-      <div className="mt-2 flex items-start justify-between gap-3">
-        {/* Sol bilgi */}
-        <div className="text-xs font-semibold" style={{ color: '#334155' }}>
-          {getTimeAgo(eq.date_time)}
-          <div className="mt-1">
-            <span className="font-mono font-extrabold text-slate-900">
-              {distance} km
-            </span>{' '}
-            uzakta
-          </div>
-          <div className="mt-1 text-[11px] text-slate-600 whitespace-nowrap">
-            {formatDateIstanbul(eq.date_time)}
-          </div>
+        <div className="text-xs font-extrabold mb-1" style={{ color: '#0f172a' }}>
+          En Yeni Deprem
         </div>
 
-        {/* Şiddet */}
-        <div className="shrink-0 text-right">
-          <div
-            className="rounded-xl border px-3 py-2 shadow-sm"
-            style={{
-              backgroundColor: 'rgba(255,255,255,0.95)',
-              borderColor: 'rgba(0,0,0,0.12)'
-            }}
-          >
-            <div
-              className="text-3xl font-black leading-none"
-              style={{ color: '#0f172a' }}
-            >
-              {eq.mag.toFixed(1)}
+        <div className="text-sm font-extrabold text-slate-900 break-words line-clamp-2">{eq.title}</div>
+
+        <div className="mt-2 flex items-start justify-between gap-3">
+          <div className="text-xs font-semibold text-slate-700">
+            {getTimeAgo(eq.date_time)}
+            <div className="mt-1">
+              <span className="font-mono font-black text-slate-900">{distance} km</span> uzakta
             </div>
+            <div className="mt-1 text-[11px] text-slate-600 font-semibold whitespace-nowrap">{formatDateIstanbul(eq.date_time)}</div>
           </div>
 
-          <a
-            href={osmUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-2 inline-block text-[11px] font-bold underline"
-            style={{ color: '#1d4ed8' }}
-          >
-            Haritada aç
-          </a>
+          <div className="shrink-0 text-right">
+            <div className="rounded-xl border px-3 py-2 shadow-sm" style={{ backgroundColor: 'rgba(255,255,255,0.92)', borderColor: 'rgba(0,0,0,0.12)' }}>
+              <div className="text-3xl font-black leading-none" style={{ color: '#0f172a' }}>
+                {eq.mag.toFixed(1)}
+              </div>
+            </div>
+            <a href={osmUrl} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center font-extrabold text-xs underline" style={{ color: '#1d4ed8' }}>
+              Haritada aç
+            </a>
+          </div>
         </div>
       </div>
-    </div>
-  );
-};
-
+    );
+  };
 
 
   const handleSort = (key: SortKey) => {
@@ -974,7 +933,7 @@ const renderNewestMiniCard = (eq: Earthquake | null) => {
               </p>
               <p className="text-white/75 text-xs mt-1">Bildirim açıksa: deprem şiddeti kadar tık sesi (Isparta/Yakın ise önce uzun uyarı).</p>
             </div>
-            <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-end">
+            <div className="w-full md:w-auto md:ml-auto flex flex-col gap-3 md:flex-row md:items-start md:justify-end md:flex-nowrap">
 
 
             <div className="flex flex-col items-center gap-2">
@@ -983,9 +942,7 @@ const renderNewestMiniCard = (eq: Earthquake | null) => {
             </div>
 
 
-            {isDesktop && renderNewestMiniCard(newestEq)}
-
-            <div className="flex justify-start md:justify-end ">
+            <div className="flex md:justify-end shrink-0">
               <div className="bg-white/10 border border-white/15 rounded-lg px-3 py-2 flex items-center gap-3">
                 <div className="flex items-center justify-center h-[30px] w-[30px]">
                   {loading ? <RefreshCw size={22} className="animate-spin" /> : <CountdownTimer duration={30000} resetKey={lastUpdated} size={28} />}
@@ -1001,6 +958,8 @@ const renderNewestMiniCard = (eq: Earthquake | null) => {
             </div>
               </div>
             </div>
+
+            {isDesktop && renderNewestMiniCard(newestEq)}
           </div>
 
           <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2">
