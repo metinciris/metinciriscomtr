@@ -161,28 +161,26 @@ function NotificationToggle({ enabled, onToggle }: { enabled: boolean; onToggle:
 const normalizeDateString = (s: any): string => {
   if (!s) return '';
   let str = String(s).trim();
+
+  // "YYYY-MM-DD HH:mm:ss" -> "YYYY-MM-DDTHH:mm:ss"
   if (str.includes(' ') && !str.includes('T')) str = str.replace(' ', 'T');
+
+  // Eğer timezone yoksa AFAD'ın verdiği zamanı TS (UTC+3) kabul et ve +03:00 ekle.
+  // Böylece server/CI UTC olsa bile 3 saat geri kayma olmaz.
+  const hasTz = /(Z|[+\-]\d{2}:\d{2})$/.test(str);
+  const looksLikeIsoNoTz = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/.test(str);
+
+  if (!hasTz && looksLikeIsoNoTz) {
+    str = `${str}+03:00`;
+  }
+
   return str;
 };
 
 const parseDateAsIstanbul = (dateStr: string): Date => {
+  // normalizeDateString: timezone yoksa +03:00 ekler
   const s = normalizeDateString(dateStr);
-  if (!s) return new Date(NaN);
-
-  if (/(Z|[+\-]\d{2}:\d{2})$/.test(s)) return new Date(s);
-
-  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?/);
-  if (!m) return new Date(s);
-
-  const year = Number(m[1]);
-  const month = Number(m[2]);
-  const day = Number(m[3]);
-  const hour = Number(m[4]);
-  const minute = Number(m[5]);
-  const second = Number(m[6] ?? '0');
-
-  // Istanbul = UTC+3 => UTC = local - 3
-  return new Date(Date.UTC(year, month - 1, day, hour - 3, minute, second));
+  return new Date(s);
 };
 
 const formatTimeIstanbul = (d: Date) =>
