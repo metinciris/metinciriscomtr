@@ -751,7 +751,7 @@ export function Deprem() {
 
     return (
       <div
-        className="hidden md:block rounded-xl border shadow-sm p-3"
+        className="rounded-xl border shadow-sm p-3"
         style={{ backgroundColor: bg, borderColor: 'rgba(0,0,0,0.12)', minWidth: 260 }}
       >
         <div className="text-xs font-extrabold mb-1" style={{ color: '#0f172a' }}>
@@ -920,7 +920,7 @@ export function Deprem() {
 
         {/* ÜST PANEL */}
         <div className={['text-white p-5 rounded-xl shadow-lg', SECTION_GAP].join(' ')} style={{ background: 'linear-gradient(to right, #0f172a, #1e3a8a)' }}>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_auto_auto_auto] md:items-center">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="min-w-0">
               <h1 className="text-white text-3xl font-bold flex items-center gap-3">
                 <Activity size={34} className="animate-pulse" />
@@ -931,6 +931,8 @@ export function Deprem() {
               </p>
               <p className="text-white/75 text-xs mt-1">Bildirim açıksa: deprem şiddeti kadar tık sesi (Isparta/Yakın ise önce uzun uyarı).</p>
             </div>
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-end">
+
 
             <div className="flex flex-col items-center gap-2">
               <div className="text-xs font-extrabold text-white/80 uppercase tracking-wide">Bildirim</div>
@@ -940,7 +942,7 @@ export function Deprem() {
 
             {isDesktop && renderNewestMiniCard(newestEq)}
 
-            <div className="flex justify-start md:justify-end md:justify-self-end">
+            <div className="flex justify-start md:justify-end ">
               <div className="bg-white/10 border border-white/15 rounded-lg px-3 py-2 flex items-center gap-3">
                 <div className="flex items-center justify-center h-[30px] w-[30px]">
                   {loading ? <RefreshCw size={22} className="animate-spin" /> : <CountdownTimer duration={30000} resetKey={lastUpdated} size={28} />}
@@ -953,6 +955,7 @@ export function Deprem() {
                   </div>
                   <div className="text-xs text-white/70">Son 7 günde {earthquakes.length} deprem</div>
                 </div>
+            </div>
               </div>
             </div>
           </div>
