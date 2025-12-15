@@ -854,10 +854,6 @@ const newestFocusEq = useMemo(() => {
   return (
     <PageContainer>
       <div className={PAGE_TOP_PULL}>
-            </div>
-          </div>
-        )}
-
 {/* B) ÜST PANEL ===================================================== */}
         <div
           className={['text-white p-5 rounded-xl shadow-lg', SECTION_GAP].join(' ')}
