@@ -367,7 +367,6 @@ function SeverityBar() {
             </div>
           ))}
         </div>
-      </div>
     </div>
   );
 }
@@ -1009,7 +1008,6 @@ export function Deprem() {
     {renderMaxCard('Son 7 günün en büyük depremi', max7d)}
   </div>
 </div>
-        </div>
 
         {/* Hata */}
         {error && (
