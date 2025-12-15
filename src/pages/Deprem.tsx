@@ -165,10 +165,9 @@ const normalizeDateString = (s: any): string => {
   // "YYYY-MM-DD HH:mm:ss" -> "YYYY-MM-DDTHH:mm:ss"
   if (str.includes(' ') && !str.includes('T')) str = str.replace(' ', 'T');
 
-  // AFAD "Tarih(TS)" zaten TS (Europe/Istanbul). Timezone yoksa +03:00 ekle.
+  // AFAD "Tarih(TS)" zaten Türkiye saati (UTC+03:00). Timezone yoksa +03:00 ekle.
   const hasTz = /(Z|[+\-]\d{2}:\d{2})$/.test(str);
-  const looksIsoNoTz = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?$/.test(str);
-
+  const looksIsoNoTz = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/.test(str);
   if (!hasTz && looksIsoNoTz) str = `${str}+03:00`;
 
   return str;
@@ -176,10 +175,7 @@ const normalizeDateString = (s: any): string => {
 
 const parseDateAsIstanbul = (dateStr: string): Date => {
   const s = normalizeDateString(dateStr);
-  if (!s) return new Date(NaN);
-
-  // normalizeDateString timezone'ı eklediği için artık doğrudan parse edebiliriz
-  return new Date(s);
+  return s ? new Date(s) : new Date(NaN);
 };
 
 const formatTimeIstanbul = (d: Date) =>
