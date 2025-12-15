@@ -922,7 +922,7 @@ export function Deprem() {
                 { key: 'largest', label: 'En Büyük' },
                 { key: 'nearest', label: 'En Yakın' }
               ].map((b) => {
-               const active = mobileSort === (b.key as any);
+             const active = mobileSort === (b.key as any);
 return (
   <button
     key={b.key}
@@ -953,11 +953,6 @@ return (
   </button>
 );
 
-                    {b.label}
-                  </button>
-                );
-              })}
-            </div>
 
             {loading && earthquakes.length === 0 ? (
               <div className="bg-white rounded-xl border shadow-sm p-6 text-center">
