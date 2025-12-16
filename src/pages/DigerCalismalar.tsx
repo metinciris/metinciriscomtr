@@ -77,6 +77,14 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
                     size="medium"
                     onClick={() => handleNavigate('svs-reader')}
                 />
+                <MetroTile
+                    title="Tanı Tuzakları"
+                    subtitle="Patoloji pitfall'ları"
+                    icon={<AlertCircle size={40} />}
+                    color="bg-[#8E44AD]"
+                    size="medium"
+                    onClick={() => handleNavigate('tani-tuzaklari')}
+                />
 
             </div>
         </PageContainer>
