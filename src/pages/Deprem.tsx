@@ -880,7 +880,7 @@ const newestFocusEq = useMemo(() => {
   const labelShort = rel === 'ISPARTA' ? "Isparta" : "Yakın";
 
   const bg = getSeverityColor(eq.mag);
-  const ticker = `${eq.title} • M${eq.mag.toFixed(1)} • ${Math.round(distance)} km • ${formatDateIstanbul(eq.date_time)}  •  `;
+  const ticker = `${eq.title} • Şiddet: ${eq.mag.toFixed(1)} • ${Math.round(distance)} km • ${formatDateIstanbul(eq.date_time)}  •  `;
 
   return (
     <div
