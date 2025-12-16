@@ -301,11 +301,15 @@ const getTimeAgo = (dateStr: string) => {
   const diffInMs = now.getTime() - date.getTime();
   const totalMinutes = Math.floor(diffInMs / (1000 * 60));
   const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
+  const days = Math.floor(hours / 24);
 
   if (totalMinutes < 60) return `${totalMinutes} dk önce`;
-  if (totalMinutes < 120) return minutes <= 0 ? `${hours} saat önce` : `${hours} saat ${minutes} dk önce`;
-  return `${hours} saat önce`;
+  if (hours < 24) {
+    const min = totalMinutes % 60;
+    return min === 0 ? `${hours} saat önce` : `${hours} saat ${min} dk önce`;
+  }
+  if (days === 1) return 'Dün';
+  return `${days} gün önce`;
 };
 
 const isRecent = (dateStr: string) => {
@@ -696,18 +700,18 @@ export function Deprem() {
   }, [earthquakes]);
 
 
-// Isparta içi veya Isparta'ya 100 km yakın en yeni deprem (haber bandı için)
-const newestFocusEq = useMemo(() => {
-  const focus = earthquakes.filter((eq) => {
-    const distance = distanceMap.get(eq.earthquake_id) ?? 999999;
-    const rel = getRelation(eq.title, distance);
-    return rel !== null;
-  });
-  if (focus.length === 0) return null;
-  return focus.reduce((latest, eq) =>
-    parseDateAsIstanbul(eq.date_time).getTime() > parseDateAsIstanbul(latest.date_time).getTime() ? eq : latest
-  );
-}, [earthquakes, distanceMap]);
+  // Isparta içi veya Isparta'ya 100 km yakın en yeni deprem (haber bandı için)
+  const newestFocusEq = useMemo(() => {
+    const focus = earthquakes.filter((eq) => {
+      const distance = distanceMap.get(eq.earthquake_id) ?? 999999;
+      const rel = getRelation(eq.title, distance);
+      return rel !== null;
+    });
+    if (focus.length === 0) return null;
+    return focus.reduce((latest, eq) =>
+      parseDateAsIstanbul(eq.date_time).getTime() > parseDateAsIstanbul(latest.date_time).getTime() ? eq : latest
+    );
+  }, [earthquakes, distanceMap]);
 
 
   const displayedEarthquakes = showHistory ? sortedEarthquakes : sortedEarthquakes.slice(0, 50);
@@ -854,7 +858,7 @@ const newestFocusEq = useMemo(() => {
   return (
     <PageContainer>
       <div className={PAGE_TOP_PULL}>
-{/* B) ÜST PANEL ===================================================== */}
+        {/* B) ÜST PANEL ===================================================== */}
         <div
           className={['text-white p-5 rounded-xl shadow-lg', SECTION_GAP].join(' ')}
           style={{ background: 'linear-gradient(to right, #0f172a, #1e3a8a)' }}
@@ -871,23 +875,23 @@ const newestFocusEq = useMemo(() => {
               </p>
 
 
-{(newestFocusEq || newestEq) && (() => {
-  const eq = (newestFocusEq || newestEq)!;
-  const distance = distanceMap.get(eq.earthquake_id) ?? 999999;
-  const rel = getRelation(eq.title, distance);
+              {(newestFocusEq || newestEq) && (() => {
+                const eq = (newestFocusEq || newestEq)!;
+                const distance = distanceMap.get(eq.earthquake_id) ?? 999999;
+                const rel = getRelation(eq.title, distance);
 
-  const label = rel === 'ISPARTA' ? "Isparta'da Deprem" : "Isparta'ya Yakın Deprem";
-  const labelShort = rel === 'ISPARTA' ? "Isparta" : "Yakın";
+                const label = rel === 'ISPARTA' ? "Isparta'da Deprem" : "Isparta'ya Yakın Deprem";
+                const labelShort = rel === 'ISPARTA' ? "Isparta" : "Yakın";
 
-  const bg = getSeverityColor(eq.mag);
-  const ticker = `${eq.title} • Şiddet: ${eq.mag.toFixed(1)} • ${Math.round(distance)} km • ${formatDateIstanbul(eq.date_time)}  •  `;
+                const bg = getSeverityColor(eq.mag);
+                const ticker = `${eq.title} • Şiddet: ${eq.mag.toFixed(1)} • ${Math.round(distance)} km • ${getTimeAgo(eq.date_time)} (${formatDateIstanbul(eq.date_time)})  •  `;
 
-  return (
-    <div
-      className="mt-3 rounded-lg border shadow-sm overflow-hidden"
-      style={{ backgroundColor: bg, borderColor: 'rgba(0,0,0,0.12)' }}
-    >
-      <style>{`
+                return (
+                  <div
+                    className="mt-3 rounded-lg border shadow-sm overflow-hidden"
+                    style={{ backgroundColor: bg, borderColor: 'rgba(0,0,0,0.12)' }}
+                  >
+                    <style>{`
         @keyframes depremMarquee {
           0% { transform: translateX(0); }
           100% { transform: translateX(-50%); }
@@ -903,37 +907,37 @@ const newestFocusEq = useMemo(() => {
         }
       `}</style>
 
-      <div className="flex items-center gap-3 px-3 py-2">
-        <span
-          className="shrink-0 inline-flex items-center px-2 py-1 rounded-md text-[11px] font-extrabold uppercase tracking-wide shadow-sm border"
-          style={{
-            backgroundColor: rel === 'ISPARTA' ? '#be123c' : '#c2410c',
-            color: '#ffffff',
-            borderColor: 'rgba(0,0,0,0.12)',
-            textShadow: '0 1px 1px rgba(0,0,0,0.35)'
-          }}
-        >
-          <span className="hidden sm:inline">{label}</span>
-          <span className="sm:hidden">{labelShort}</span>
-        </span>
+                    <div className="flex items-center gap-3 px-3 py-2">
+                      <span
+                        className="shrink-0 inline-flex items-center px-2 py-1 rounded-md text-[11px] font-extrabold uppercase tracking-wide shadow-sm border"
+                        style={{
+                          backgroundColor: rel === 'ISPARTA' ? '#be123c' : '#c2410c',
+                          color: '#ffffff',
+                          borderColor: 'rgba(0,0,0,0.12)',
+                          textShadow: '0 1px 1px rgba(0,0,0,0.35)'
+                        }}
+                      >
+                        <span className="hidden sm:inline">{label}</span>
+                        <span className="sm:hidden">{labelShort}</span>
+                      </span>
 
-        <div className="relative flex-1 overflow-hidden">
-          <div className="deprem-marquee" style={{ color: '#0f172a', fontWeight: 800 }}>
-            <span className="pr-10">{ticker}</span>
-            <span className="pr-10" aria-hidden="true">{ticker}</span>
-          </div>
-        </div>
+                      <div className="relative flex-1 overflow-hidden">
+                        <div className="deprem-marquee" style={{ color: '#0f172a', fontWeight: 800 }}>
+                          <span className="pr-10">{ticker}</span>
+                          <span className="pr-10" aria-hidden="true">{ticker}</span>
+                        </div>
+                      </div>
 
-        <span className="hidden sm:inline shrink-0 text-xs font-semibold" style={{ color: '#334155' }}>
-          {getTimeAgo(eq.date_time)}
-        </span>
-      </div>
-    </div>
-  );
-})()}
+                      <span className="hidden sm:inline shrink-0 text-xs font-semibold" style={{ color: '#334155' }}>
+                        {getTimeAgo(eq.date_time)}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })()}
 
 
-<p className="text-white/75 text-xs mt-1">
+              <p className="text-white/75 text-xs mt-1">
                 Bildirim açıksa: deprem şiddeti kadar tık sesi (Isparta/Yakın ise önce uzun uyarı).
               </p>
             </div>
@@ -1017,25 +1021,25 @@ const newestFocusEq = useMemo(() => {
               ].map((b) => {
                 const active = mobileSort === (b.key as any);
                 return (
-<button
-  key={b.key}
-  onClick={() => setMobileSort(b.key as any)}
-  className={[
-    'flex-1 px-3 py-2 rounded-xl text-sm font-extrabold border shadow-sm',
-    'transition-colors',
-    'focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/60',
-    'active:scale-[0.98]',
-    '[-webkit-tap-highlight-color:transparent]'
-  ].join(' ')}
-  style={{
-    backgroundColor: active ? '#2563eb' : '#ffffff',
-    borderColor: active ? '#1d4ed8' : '#e5e7eb',
-    color: active ? '#ffffff' : '#0f172a', // ← KRİTİK
-    WebkitTextFillColor: active ? '#ffffff' : '#0f172a' // ← iOS fix
-  }}
->
-  {b.label}
-</button>
+                  <button
+                    key={b.key}
+                    onClick={() => setMobileSort(b.key as any)}
+                    className={[
+                      'flex-1 px-3 py-2 rounded-xl text-sm font-extrabold border shadow-sm',
+                      'transition-colors',
+                      'focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400/60',
+                      'active:scale-[0.98]',
+                      '[-webkit-tap-highlight-color:transparent]'
+                    ].join(' ')}
+                    style={{
+                      backgroundColor: active ? '#2563eb' : '#ffffff',
+                      borderColor: active ? '#1d4ed8' : '#e5e7eb',
+                      color: active ? '#ffffff' : '#0f172a', // ← KRİTİK
+                      WebkitTextFillColor: active ? '#ffffff' : '#0f172a' // ← iOS fix
+                    }}
+                  >
+                    {b.label}
+                  </button>
 
                 );
               })}
@@ -1111,7 +1115,7 @@ const newestFocusEq = useMemo(() => {
 
                         <div className="shrink-0 text-right">
                           <div className="text-4xl font-black leading-none text-slate-900">{eq.mag.toFixed(1)}</div>
-                                                  </div>
+                        </div>
                       </button>
 
                       {isOpen && (
