@@ -880,57 +880,31 @@ export function Deprem() {
                 const distance = distanceMap.get(eq.earthquake_id) ?? 999999;
                 const rel = getRelation(eq.title, distance);
 
-                const label = rel === 'ISPARTA' ? "Isparta'da Deprem" : "Isparta'ya Yakın Deprem";
-                const labelShort = rel === 'ISPARTA' ? "Isparta" : "Yakın";
-
                 const bg = getSeverityColor(eq.mag);
-                const ticker = `${eq.title} • Şiddet: ${eq.mag.toFixed(1)} • ${Math.round(distance)} km • ${getTimeAgo(eq.date_time)} (${formatDateIstanbul(eq.date_time)})  •  `;
+                const timeStr = getTimeAgo(eq.date_time);
+
+                // Prefix logic: "Dün Isparta'da deprem:", "Bugün Isparta Yakınında deprem:"
+                let prefix = "";
+                if (timeStr === 'Dün') prefix = "Dün";
+                else if (timeStr.includes('gün')) prefix = timeStr.replace(' önce', ''); // "2 gün"
+                else prefix = "Bugün";
+
+                const locSuffix = rel === 'ISPARTA' ? "Isparta'da" : (rel === 'YAKIN' ? "Isparta Yakınında" : "Deprem");
+                const fullPrefix = `${prefix} ${locSuffix} Deprem:`;
+
+                const ticker = `${fullPrefix} ${eq.title} • Şiddet: ${eq.mag.toFixed(1)} • ${Math.round(distance)} km • ${getTimeAgo(eq.date_time)} (${formatDateIstanbul(eq.date_time)})`;
 
                 return (
                   <div
                     className="mt-3 rounded-lg border shadow-sm overflow-hidden"
                     style={{ backgroundColor: bg, borderColor: 'rgba(0,0,0,0.12)' }}
                   >
-                    <style>{`
-        @keyframes depremMarquee {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-        }
-        .deprem-marquee {
-          display: inline-flex;
-          white-space: nowrap;
-          will-change: transform;
-          animation: depremMarquee 22s linear infinite;
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .deprem-marquee { animation: none; }
-        }
-      `}</style>
-
                     <div className="flex items-center gap-3 px-3 py-2">
-                      <span
-                        className="shrink-0 inline-flex items-center px-2 py-1 rounded-md text-[11px] font-extrabold uppercase tracking-wide shadow-sm border"
-                        style={{
-                          backgroundColor: rel === 'ISPARTA' ? '#be123c' : '#c2410c',
-                          color: '#ffffff',
-                          borderColor: 'rgba(0,0,0,0.12)',
-                          textShadow: '0 1px 1px rgba(0,0,0,0.35)'
-                        }}
-                      >
-                        <span className="hidden sm:inline">{label}</span>
-                        <span className="sm:hidden">{labelShort}</span>
-                      </span>
-
-                      <div className="relative flex-1 overflow-hidden">
-                        <div className="deprem-marquee" style={{ color: '#0f172a', fontWeight: 800 }}>
-                          <span className="pr-10">{ticker}</span>
-                          <span className="pr-10" aria-hidden="true">{ticker}</span>
+                      <div className="relative flex-1 overflow-x-auto whitespace-nowrap scrollbar-hide">
+                        <div className="inline-block font-extrabold text-sm" style={{ color: '#0f172a' }}>
+                          {ticker}
                         </div>
                       </div>
-
-                      <span className="hidden sm:inline shrink-0 text-xs font-semibold" style={{ color: '#334155' }}>
-                        {getTimeAgo(eq.date_time)}
-                      </span>
                     </div>
                   </div>
                 );
