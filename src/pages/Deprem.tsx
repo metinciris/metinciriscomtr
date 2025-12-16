@@ -763,9 +763,9 @@ const newestFocusEq = useMemo(() => {
   const renderMaxCard = (title: string, eq: Earthquake | null) => {
     if (!eq) {
       return (
-        <div className="rounded-xl border bg-white/10 p-3 shadow-sm" style={{ borderColor: 'rgba(255,255,255,0.18)' }}>
-          <div className="text-xs font-extrabold text-white/95">{title}</div>
-          <div className="text-xs mt-1 text-white/75">Veri yok</div>
+        <div className="rounded-xl border bg-slate-100 p-3 shadow-sm" style={{ borderColor: 'rgba(0,0,0,0.1)' }}>
+          <div className="text-xs font-extrabold text-slate-700">{title}</div>
+          <div className="text-xs mt-1 text-slate-500">Veri yok</div>
         </div>
       );
     }

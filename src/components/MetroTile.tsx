@@ -12,6 +12,7 @@ interface MetroTileProps {
   children?: React.ReactNode;
   innerClassName?: string;
   style?: React.CSSProperties;
+  textColor?: string;
 }
 
 export function MetroTile({
@@ -25,6 +26,7 @@ export function MetroTile({
   children,
   innerClassName = '',
   style,
+  textColor = 'text-white',
 }: MetroTileProps) {
   const sizeClasses = {
     small: 'col-span-1 row-span-1 h-32',
@@ -45,13 +47,15 @@ export function MetroTile({
       <div className={`w-full h-full p-6 flex flex-col justify-between relative z-10 ${innerClassName}`}>
         <div className="flex-1 flex items-center justify-between">
           <div className="flex flex-col justify-between h-full">
-            {icon && <div className="text-white/90 mb-auto">{icon}</div>}
+            {icon && <div className={`${textColor} opacity-90 mb-auto`}>{icon}</div>}
           </div>
           {children}
         </div>
         <div>
-          <h3 className="text-white m-0">{title}</h3>
-          {subtitle && <p className="text-white/80 mt-1 m-0">{subtitle}</p>}
+          <div>
+            <h3 className={`${textColor} m-0`}>{title}</h3>
+            {subtitle && <p className={`${textColor}/80 mt-1 m-0`}>{subtitle}</p>}
+          </div>
         </div>
       </div>
       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
