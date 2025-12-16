@@ -2,16 +2,9 @@ import React, { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { PageContainer } from "../components/PageContainer";
 import {
     PITFALLS,
-    CATEGORIES,
-    MODALITIES,
     ORGAN_SYSTEMS,
-    SPECIMEN_TYPES,
     type Pitfall,
-    type Category,
-    type Modality,
     type OrganSystem,
-    type SpecimenType,
-    type Difficulty,
 } from "../data/tani-tuzaklari";
 
 /**
@@ -20,7 +13,7 @@ import {
  * - UI: filtre + arama + favori + permalink + accordion
  */
 
-type SortKey = "updatedDesc" | "titleAsc" | "difficultyAsc";
+
 
 function cn(...classes: Array<string | false | null | undefined>) {
     return classes.filter(Boolean).join(" ");
@@ -56,18 +49,9 @@ function badgeStyle(kind: "a" | "b" | "c" | "d") {
     return map[kind];
 }
 
-function difficultyBadge(d: Difficulty) {
-    const map: Record<Difficulty, { bg: string; fg: string; bd: string }> = {
-        Kolay: { bg: "rgba(34,197,94,0.18)", fg: "#065f46", bd: "rgba(34,197,94,0.25)" },
-        Orta: { bg: "rgba(245,158,11,0.18)", fg: "#92400e", bd: "rgba(245,158,11,0.25)" },
-        Zor: { bg: "rgba(239,68,68,0.18)", fg: "#991b1b", bd: "rgba(239,68,68,0.25)" },
-    };
-    return map[d];
-}
 
-function safeDateLabel(iso: string) {
-    return iso;
-}
+
+
 
 function toggleSet<T>(value: T, set: Set<T>, setter: React.Dispatch<React.SetStateAction<Set<T>>>) {
     setter((prev) => {
@@ -122,21 +106,13 @@ async function copyText(text: string) {
     }
 }
 
-function difficultyRank(d: Difficulty) {
-    return d === "Kolay" ? 1 : d === "Orta" ? 2 : 3;
-}
+
 
 export function TaniTuzaklari() {
     const [q, setQ] = useState("");
     const deferredQ = useDeferredValue(q);
 
-    const [catSet, setCatSet] = useState<Set<Category>>(new Set());
-    const [modSet, setModSet] = useState<Set<Modality>>(new Set());
     const [orgSet, setOrgSet] = useState<Set<OrganSystem>>(new Set());
-    const [specSet, setSpecSet] = useState<Set<SpecimenType>>(new Set());
-    const [difficulty, setDifficulty] = useState<Difficulty | "Hepsi">("Hepsi");
-
-    const [sortKey, setSortKey] = useState<SortKey>("updatedDesc");
 
     const [favIdsArr, setFavIdsArr] = useLocalStorageStringArray("tuzaklar:favs", []);
     const favIds = useMemo(() => new Set(favIdsArr), [favIdsArr]);
@@ -165,11 +141,8 @@ export function TaniTuzaklari() {
 
     const stats = useMemo(() => {
         const total = PITFALLS.length;
-        const cats = new Set(PITFALLS.map((x) => x.category)).size;
         const orgs = new Set(PITFALLS.map((x) => x.organSystem)).size;
-        const ihc = PITFALLS.filter((x) => x.modality === "IHC").length;
-        const lastUpdated = PITFALLS.map((x) => x.updatedAt).sort((a, b) => (a < b ? 1 : -1))[0];
-        return { total, cats, orgs, ihc, lastUpdated };
+        return { total, orgs };
     }, []);
 
     const filtered = useMemo(() => {
@@ -184,51 +157,33 @@ export function TaniTuzaklari() {
         };
 
         const hitSet = <T,>(set: Set<T>, value: T) => set.size === 0 || set.has(value);
-        const hitDiff = (p: Pitfall) => difficulty === "Hepsi" || p.difficulty === difficulty;
         const hitFav = (p: Pitfall) => !onlyFavs || favIds.has(p.id);
 
         const list = PITFALLS.filter((p) => {
             return (
                 hitQuery(p) &&
-                hitSet(catSet, p.category) &&
-                hitSet(modSet, p.modality) &&
                 hitSet(orgSet, p.organSystem) &&
-                hitSet(specSet, p.specimenType) &&
-                hitDiff(p) &&
                 hitFav(p)
             );
         });
 
-        const sorted = [...list].sort((a, b) => {
-            if (sortKey === "updatedDesc") return a.updatedAt < b.updatedAt ? 1 : -1;
-            if (sortKey === "titleAsc") return a.titleTR.localeCompare(b.titleTR, "tr");
-            if (sortKey === "difficultyAsc") return difficultyRank(a.difficulty) - difficultyRank(b.difficulty);
-            return 0;
-        });
+        // Default sort: Title A-Z (Turkish aware)
+        const sorted = [...list].sort((a, b) => a.titleTR.localeCompare(b.titleTR, "tr"));
 
         return sorted;
-    }, [deferredQ, catSet, modSet, orgSet, specSet, difficulty, sortKey, onlyFavs, favIds]);
+    }, [deferredQ, orgSet, onlyFavs, favIds]);
 
     const activeFilterCount = useMemo(() => {
         let n = 0;
-        if (catSet.size) n += 1;
-        if (modSet.size) n += 1;
         if (orgSet.size) n += 1;
-        if (specSet.size) n += 1;
-        if (difficulty !== "Hepsi") n += 1;
         if (onlyFavs) n += 1;
         return n;
-    }, [catSet.size, modSet.size, orgSet.size, specSet.size, difficulty, onlyFavs]);
+    }, [orgSet.size, onlyFavs]);
 
     function resetFilters() {
         setQ("");
-        setCatSet(new Set());
-        setModSet(new Set());
         setOrgSet(new Set());
-        setSpecSet(new Set());
-        setDifficulty("Hepsi");
         setOnlyFavs(false);
-        setSortKey("updatedDesc");
     }
 
     function toggleFavorite(id: string) {
@@ -281,17 +236,13 @@ export function TaniTuzaklari() {
                                 <div className="mt-2 text-xs font-semibold text-slate-600">
                                     Eğitim amaçlıdır. Klinik bağlam, korelasyon ve kurum SOP'leri esastır.
                                 </div>
-                                <div className="mt-1 text-xs font-semibold text-slate-600">
-                                    Son güncelleme: {stats.lastUpdated}
-                                </div>
+
                             </div>
 
                             <div className="flex gap-2 flex-wrap">
                                 {[
                                     { k: "Kart", v: stats.total },
-                                    { k: "Kategori", v: stats.cats },
                                     { k: "Organ", v: stats.orgs },
-                                    { k: "IHC", v: stats.ihc },
                                     { k: "Favori", v: favIds.size },
                                 ].map((x) => (
                                     <div
@@ -351,44 +302,11 @@ export function TaniTuzaklari() {
                                     </button>
                                 </div>
 
-                                <div>
-                                    <div className="text-[11px] font-extrabold text-slate-700 mb-1">Sırala</div>
-                                    <select
-                                        value={sortKey}
-                                        onChange={(e) => setSortKey(e.target.value as SortKey)}
-                                        className="w-full px-3 py-3 rounded-xl border shadow-sm bg-white/90 text-slate-900 font-extrabold outline-none"
-                                        style={{ borderColor: "rgba(0,0,0,0.10)" }}
-                                    >
-                                        <option value="updatedDesc">Güncellik (Yeni → Eski)</option>
-                                        <option value="titleAsc">Başlık (A → Z)</option>
-                                        <option value="difficultyAsc">Zorluk (Kolay → Zor)</option>
-                                    </select>
-                                </div>
                             </div>
                         </div>
 
                         {/* Filtre chip alanı */}
-                        <div className="mt-5 grid gap-3 lg:grid-cols-2">
-                            <div className="rounded-2xl border p-4 bg-white/75" style={{ borderColor: "rgba(0,0,0,0.10)" }}>
-                                {sectionTitle("Kategori", "Birden fazla seçebilirsiniz (seçim yoksa: Hepsi)")}
-                                <div className="flex flex-wrap gap-2">
-                                    {CATEGORIES.map((c) => {
-                                        const active = catSet.has(c);
-                                        return (
-                                            <button
-                                                key={c}
-                                                onClick={() => toggleSet(c, catSet, setCatSet)}
-                                                className={pillBase()}
-                                                style={active ? pillSelectedStyle("rgba(59,130,246,0.22)") : pillUnselectedStyle()}
-                                                aria-pressed={active}
-                                            >
-                                                {c}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-
+                        <div className="mt-5">
                             <div className="rounded-2xl border p-4 bg-white/75" style={{ borderColor: "rgba(0,0,0,0.10)" }}>
                                 {sectionTitle("Organ sistemi", "Birden fazla seçebilirsiniz")}
                                 <div className="flex flex-wrap gap-2">
@@ -408,63 +326,6 @@ export function TaniTuzaklari() {
                                     })}
                                 </div>
                             </div>
-
-                            <div className="rounded-2xl border p-4 bg-white/75" style={{ borderColor: "rgba(0,0,0,0.10)" }}>
-                                {sectionTitle("Mod", "H&E / IHC / Frozen / Sitoloji vb.")}
-                                <div className="flex flex-wrap gap-2">
-                                    {MODALITIES.map((m) => {
-                                        const active = modSet.has(m);
-                                        return (
-                                            <button
-                                                key={m}
-                                                onClick={() => toggleSet(m, modSet, setModSet)}
-                                                className={pillBase()}
-                                                style={active ? pillSelectedStyle("rgba(99,102,241,0.20)") : pillUnselectedStyle()}
-                                                aria-pressed={active}
-                                            >
-                                                {m}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-
-                            <div className="rounded-2xl border p-4 bg-white/75" style={{ borderColor: "rgba(0,0,0,0.10)" }}>
-                                {sectionTitle("Örnek tipi + Zorluk", "Örnek tipi çoklu; zorluk tekli")}
-                                <div className="flex flex-wrap gap-2 mb-3">
-                                    {SPECIMEN_TYPES.map((s) => {
-                                        const active = specSet.has(s);
-                                        return (
-                                            <button
-                                                key={s}
-                                                onClick={() => toggleSet(s, specSet, setSpecSet)}
-                                                className={pillBase()}
-                                                style={active ? pillSelectedStyle("rgba(2,132,199,0.18)") : pillUnselectedStyle()}
-                                                aria-pressed={active}
-                                            >
-                                                {s}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-
-                                <div className="flex flex-wrap gap-2">
-                                    {(["Hepsi", "Kolay", "Orta", "Zor"] as const).map((d) => {
-                                        const active = difficulty === d;
-                                        return (
-                                            <button
-                                                key={d}
-                                                onClick={() => setDifficulty(d)}
-                                                className={pillBase()}
-                                                style={active ? pillSelectedStyle("rgba(245,158,11,0.20)") : pillUnselectedStyle()}
-                                                aria-pressed={active}
-                                            >
-                                                {d}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -479,10 +340,7 @@ export function TaniTuzaklari() {
                     <div className="space-y-3">
                         {filtered.map((p) => {
                             const isOpen = openIds.has(p.id);
-                            const db = difficultyBadge(p.difficulty);
 
-                            const cat = badgeStyle("a");
-                            const mod = badgeStyle("b");
                             const org = badgeStyle("d");
                             const tag = badgeStyle("c");
 
@@ -503,37 +361,9 @@ export function TaniTuzaklari() {
                                         <div className="flex flex-wrap items-center gap-2">
                                             <span
                                                 className="px-2 py-1 rounded-lg border text-[11px] font-extrabold"
-                                                style={{ backgroundColor: cat.bg, color: cat.fg, borderColor: cat.bd }}
-                                            >
-                                                {p.category}
-                                            </span>
-                                            <span
-                                                className="px-2 py-1 rounded-lg border text-[11px] font-extrabold"
                                                 style={{ backgroundColor: org.bg, color: org.fg, borderColor: org.bd }}
                                             >
                                                 {p.organSystem}
-                                            </span>
-                                            <span
-                                                className="px-2 py-1 rounded-lg border text-[11px] font-extrabold"
-                                                style={{ backgroundColor: mod.bg, color: mod.fg, borderColor: mod.bd }}
-                                            >
-                                                {p.modality}
-                                            </span>
-                                            <span
-                                                className="px-2 py-1 rounded-lg border text-[11px] font-extrabold"
-                                                style={{ backgroundColor: "rgba(0,0,0,0.03)", color: "#0f172a", borderColor: "rgba(0,0,0,0.10)" }}
-                                            >
-                                                {p.specimenType}
-                                            </span>
-                                            <span
-                                                className="px-2 py-1 rounded-lg border text-[11px] font-extrabold"
-                                                style={{ backgroundColor: db.bg, color: db.fg, borderColor: db.bd }}
-                                            >
-                                                {p.difficulty}
-                                            </span>
-
-                                            <span className="text-[11px] font-semibold text-slate-500 ml-auto">
-                                                güncellendi: {safeDateLabel(p.updatedAt)}
                                             </span>
 
                                             <button

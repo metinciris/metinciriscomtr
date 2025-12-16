@@ -622,4 +622,285 @@ export const PITFALLS: Pitfall[] = [
         checklist: ["Belirsizlik kaynağı rapora yazıldı mı?", "Doğrulama planı önerildi mi?", "Klinik korelasyon önerisi var mı?"],
         updatedAt: "2025-12-16",
     },
+    {
+        id: "thyroid-htt-vs-ptc",
+        titleTR: "Hiyalinize Trabeküler Tümör (HTT) vs Papiller Karsinom (PTC)",
+        titleEN: "Hyalinizing Trabecular Tumor vs Papillary Thyroid Carcinoma",
+        organSystem: "Endokrin",
+        category: "Mimik",
+        modality: "H&E",
+        specimenType: "Rezeksiyon",
+        difficulty: "Zor",
+        tags: ["thyroid", "HTT", "PTC", "Ki-67", "MIB-1", "membranöz"],
+        teaser:
+            "HTT, nükleer özellikleri (invajinasyon, oluklaşma) nedeniyle papiller karsinomu taklit eder. Yanlışlıkla PTC tanısı konulabilir.",
+        whyItTricks: [
+            "PTC'ye benzer nükleer özellikler (oluk, psödoinklüzyon) gösterir.",
+            "Trabeküler büyüme paterni bazen folliküler varyant PTC ile karışır.",
+        ],
+        keyClues: [
+            "Belirgin intratrabeküler hiyalinizasyon ve poligonal/uzun hücreler.",
+            "Sitoplazmik sarı cisimcikler (yellow bodies) (bazen).",
+            "MIB-1 (Ki-67) ile karakteristik membranöz boyanma.",
+        ],
+        minimalWorkup: [
+            "Ki-67 (MIB-1) IHK: Membranöz boyanma HTT için tipiktir (PTC'de nükleer).",
+            "Klinik korelasyon (genellikle benign seyirlidir).",
+        ],
+        reportingTips: [
+            "Şüphede kalınırsa 'Hiyalinize Trabeküler Tümör' lehine bulguları belirtin ve Ki-67 desenini not edin.",
+        ],
+        checklist: [
+            "Trabeküler yapı ve hiyalin var mı?",
+            "Ki-67 membranöz boyandı mı?",
+            "Gerçek papiller yapılar var mı (HTT'de beklenmez)?",
+        ],
+        references: [],
+        updatedAt: "2025-12-16",
+    },
+    {
+        id: "thyroid-hashimoto-vs-lymphoma",
+        titleTR: "Hashimoto Tiroiditi vs MALT Lenfoma",
+        titleEN: "Hashimoto Thyroiditis vs MALT Lymphoma",
+        organSystem: "Endokrin",
+        category: "Benign vs Malign",
+        modality: "Genel",
+        specimenType: "Rezeksiyon",
+        difficulty: "Orta",
+        tags: ["thyroid", "hashimoto", "lymphoma", "MALT", "lymphoepithelial"],
+        teaser:
+            "Hashimoto zeminindeki yoğun lenfoid infiltrasyon ve germinal merkezler, MALT lenfoma ile karışabilir veya lenfomayı maskeleyebilir.",
+        whyItTricks: [
+            "Hashimoto'da lenfoid doku yoğundur ve lenfoepitelyal lezyonlar görülebilir.",
+            "Reaktif germinal merkezler bazen atipik görünebilir.",
+        ],
+        keyClues: [
+            "Lenfoma lehine: Monoton hücre popülasyonu, geniş interfoliküler alan invazyonu, belirgin lenfoepitelyal lezyonlar.",
+            "Hashimoto lehine: Polimorfik infiltrasyon, düzenli germinal merkezler, onkositik metaplazi.",
+        ],
+        minimalWorkup: [
+            "Şüphe halinde IHK paneli: CD20, CD3, CD5, CD10, CD23, Bcl-2, Kappa/Lambda.",
+            "Monoklonalite göstergesi (hafif zincir kısıtlılığı).",
+        ],
+        reportingTips: [
+            "Yoğun lenfoid infiltrasyonda 'lenfoproliferatif hastalık' şüphesi varsa mutlaka IHK ile ekarte edildiğini belirtin.",
+        ],
+        checklist: [
+            "Hücre popülasyonu monoton mu?",
+            "Lenfoepitelyal lezyonlar belirgin mi?",
+            "IHK ile klonalite bakıldı mı?",
+        ],
+        references: [],
+        updatedAt: "2025-12-16",
+    },
+    {
+        id: "thyroid-cyst-papillary-mimic",
+        titleTR: "Kistik Değişiklikler ve Papiller Hiperplazi (Graves/Nodüler Guatr) vs PTC",
+        titleEN: "Cystic changes/Papillary hyperplasia vs PTC",
+        organSystem: "Endokrin",
+        category: "Benign vs Malign",
+        modality: "H&E",
+        specimenType: "Biyopsi",
+        difficulty: "Orta",
+        tags: ["thyroid", "cyst", "papillary hyperplasia", "graves", "mimic"],
+        teaser:
+            "Graves hastalığında veya kistik dejenere nodüllerde görülen papiller hiperplazi, Sanderson polsterleri papiller karsinom sanılabilir.",
+        whyItTricks: [
+            "Papiller yapılar mevcuttur.",
+            "Nükleer atipi veya optik açıklıklar (artefaktüel) görülebilir.",
+        ],
+        keyClues: [
+            "Benign papiller: Fibrovasküler kor genellikle incedir veya ödemlidir, nükleer özellikler (oluk/inklüzyon) eksiktir veya şüphelidir.",
+            "PTC: Gerçek fibrovasküler kor, karakteristik nükleer özellikler, psammoma cisimleri (bazı varyantlarda).",
+        ],
+        minimalWorkup: [
+            "Nükleer özelliklerin (grooves, inclusions) dikkatli değerlendirilmesi.",
+            "Gerekirse diffüz/fokal dağılımın ve kapsül ilişkisinin incelenmesi.",
+        ],
+        reportingTips: [
+            "Kistik dejenerasyon ve Sanderson polsterlerinin PTC ile karışabileceği akılda tutulmalı.",
+        ],
+        checklist: [
+            "Nükleer özellikler tam mı (basit açıklık yetmez)?",
+            "Klinik Graves öyküsü var mı?",
+            "Papillalar gerçek mi (fibrovasküler kor)?",
+        ],
+        references: [],
+        updatedAt: "2025-12-16",
+    },
+    {
+        id: "thyroid-medullary-vs-follicular",
+        titleTR: "Medüller Karsinom vs Folliküler/Diğer Tümörler",
+        titleEN: "Medullary Carcinoma vs Follicular/Other mimics",
+        organSystem: "Endokrin",
+        category: "Mimik",
+        modality: "IHC",
+        specimenType: "Biyopsi",
+        difficulty: "Orta",
+        tags: ["thyroid", "medullary", "calcitonin", "amyloid", "mimic"],
+        teaser:
+            "Medüller karsinom 'büyük taklitçi'dir; iğsi, plazmasitoid veya folliküler benzeri yapılar oluşturabilir. Atlanması ciddi sonuçlar doğurur.",
+        whyItTricks: [
+            "Nadir görülür, akla gelmeyebilir.",
+            "Folliküler varyantı veya onkositik varyantı diğer tiroid tümörlerini taklit eder.",
+        ],
+        keyClues: [
+            "Tuz-biber kromatin, amiloid varlığı (her zaman olmaz).",
+            "Tiroid dışı (nöroendokrin) görünüm.",
+        ],
+        minimalWorkup: [
+            "Şüpheli, atipik veya sınıflandırılamayan her tiroid tümöründe: Kalsitonin (Calcitonin) IHK.",
+            "Amiloid (Kongo kırmızısı) yardımcı olabilir.",
+            "CEA, Chromogranin, Synaptophysin.",
+        ],
+        reportingTips: [
+            "Tiroid tümörlerinde morfoloji tipik değilse Kalsitonin mutlaka panele eklenmeli.",
+        ],
+        checklist: [
+            "Kromatin nöroendokrin yapıda mı?",
+            "Kalsitonin boyandı mı?",
+            "Amiloid birikimi var mı?",
+        ],
+        references: [],
+        updatedAt: "2025-12-16",
+    },
+    {
+        id: "thyroid-c-cell-hyperplasia",
+        titleTR: "C-Hücre Hiperplazisi vs Medüller Mikrokarsinom",
+        titleEN: "C-cell hyperplasia vs Medullary microcarcinoma",
+        organSystem: "Endokrin",
+        category: "Benign vs Malign",
+        modality: "IHC",
+        specimenType: "Rezeksiyon",
+        difficulty: "Zor",
+        tags: ["thyroid", "c-cell", "hyperplasia", "microcarcinoma", "MEN"],
+        teaser:
+            "Fizyolojik veya reaktif C-hücre artışı, neoplastik mikrokarsinom ile karışabilir. MEN sendromu taraması için ayrım kritiktir.",
+        whyItTricks: [
+            "Her ikisi de Kalsitonin pozitiftir.",
+            "Sınır (cut-off) değerleri ve dağılım paterni karışıklık yaratabilir.",
+        ],
+        keyClues: [
+            "Hiperplazi: Follikül içi/perifolliküler sınırlı dağılım, bazal membran aşılmaz.",
+            "Karsinom: Stromal invazyon, desmoplazi, nodüler/kümeleşmiş büyüme ve bazal membran ihlali.",
+        ],
+        minimalWorkup: [
+            "Kalsitonin ve Kollajen Tip IV (bazal membran için) kombinasyonu.",
+            "Kesitlerin dikkatli taranması (invazyon arayışı).",
+        ],
+        reportingTips: [
+            "Neoplastik olmayan C-hücre artışlarında 'hiperplazi' terimini dikkatli kullanın, fizyolojik de olabilir.",
+        ],
+        checklist: [
+            "Bazal membran intakt mı?",
+            "Stromal invazyon var mı?",
+            "Nodüler genişleme var mı?",
+        ],
+        references: [],
+        updatedAt: "2025-12-16",
+    },
+    {
+        id: "thyroid-parathyroid-mimic",
+        titleTR: "İntratiroidal Paratiroid vs Tiroid Nodülü",
+        titleEN: "Intrathyroidal Parathyroid vs Thyroid Nodule",
+        organSystem: "Endokrin",
+        category: "Mimik",
+        modality: "IHC",
+        specimenType: "Rezeksiyon",
+        difficulty: "Orta",
+        tags: ["thyroid", "parathyroid", "mimic", "GATA3", "PTH"],
+        teaser:
+            "Tiroid içinde yerleşmiş paratiroid dokusu, hücresel bir tiroid nodülü (adenom/karsinom) sanılabilir.",
+        whyItTricks: [
+            "Berrak hücreli veya onkositik değişiklikler tiroid lezyonlarını taklit eder.",
+            "Folliküler benzeri yapılar (psödofolliküller) içerebilir.",
+        ],
+        keyClues: [
+            "Kapiller damar ağı zengindir.",
+            "Kolloid benzeri materyal olsa da gerçek kolloid değildir.",
+        ],
+        minimalWorkup: [
+            "IHK Paneli: TTF-1, Tiroglobulin (Tiroid) vs PTH, GATA3, Chromogranin (Paratiroid).",
+        ],
+        reportingTips: [
+            "Tanımlanamayan hücresel nodüllerde paratiroid olasılığını aklınızda bulundurun.",
+        ],
+        checklist: [
+            "TTF-1 negatif mi?",
+            "PTH veya GATA3 pozitif mi?",
+            "Vaskülarizasyon paratiroid ile uyumlu mu?",
+        ],
+        references: [],
+        updatedAt: "2025-12-16",
+    },
+    {
+        id: "thyroid-capsular-invasion",
+        titleTR: "Folliküler Karsinom: Kapsül İnvazyonu Değerlendirme Tuzakları",
+        titleEN: "Follicular Carcinoma: Capsular invasion pitfalls",
+        organSystem: "Endokrin",
+        category: "Benign vs Malign",
+        modality: "H&E",
+        specimenType: "Rezeksiyon",
+        difficulty: "Zor",
+        tags: ["thyroid", "follicular", "capsule", "invasion", "mushroom"],
+        teaser:
+            "Kapsül invazyonu tanısı için 'transkapsüler' tam kat geçiş veya 'mantar' (mushrooming) paterni gerekir. Teğet kesitler ve biyopsi alanları yanıltabilir.",
+        whyItTricks: [
+            "Biyopsi/iğne traktına bağlı kapsül düzensizliği invazyon sanılabilir (WHAFFT).",
+            "Teğet kesitlerde tümör adaları kapsül içinde gibi görünebilir.",
+        ],
+        keyClues: [
+            "İnvazyon alanında kapsül dışına taşma ve mantar benzeri genişleme.",
+            "Reaktif değişikliklerin (siderofajlar, granülasyon) eşlik etmemesi (biyopsi hattı ekarte edilmeli).",
+        ],
+        minimalWorkup: [
+            "Kapsülün tamamının veya çok geniş bir kısmının örneklenmesi.",
+            "Şüpheli alanlardan ek derin kesitler (teğet durumu ekarte etmek için).",
+        ],
+        reportingTips: [
+            "Kapsül invazyonu şüpheli ama kesin değilse 'belirsiz malign potansiyelli (UMP)' veya benzeri ara kategoriler düşünülebilir.",
+        ],
+        checklist: [
+            "Kapsül tam kat geçildi mi?",
+            "İnvazyon alanında reaktif (biyopsi) bulgusu var mı?",
+            "Mantar (mushroom) görüntüsü var mı?",
+        ],
+        references: [],
+        updatedAt: "2025-12-16",
+    },
+    {
+        id: "thyroid-oncocytic-features",
+        titleTR: "Onkositik Değişiklikler: Malignite vs Metaplazi",
+        titleEN: "Oncocytic change: Malignancy vs Metaplasia",
+        organSystem: "Endokrin",
+        category: "Benign vs Malign",
+        modality: "Genel",
+        specimenType: "Genel",
+        difficulty: "Orta",
+        tags: ["thyroid", "oncocytic", "hurthle", "metaplasia", "hashimoto"],
+        teaser:
+            "Hashimoto veya nodüler guatrda görülen onkositik (Hürthle) nodüller, onkositik karsinom ile karışabilir.",
+        whyItTricks: [
+            "Onkositik hücreler sitolojik olarak atipik (büyük nükleol) görünebilir.",
+            "Solid büyüme paterni gösterebilirler.",
+        ],
+        keyClues: [
+            "Hashimoto zemininde onkositik nodüller genellikle çokludur ve kapsülsüzdür.",
+            "Gerçek neoplazmda kapsül ve/veya vasküler invazyon aranmalıdır.",
+        ],
+        minimalWorkup: [
+            "Kapsül varlığı ve invazyonun değerlendirilmesi.",
+            "Arka plan tiroid dokusunun incelenmesi (Hashimoto?).",
+        ],
+        reportingTips: [
+            "Zemin Hashimoto ise onkositik nodüllere yaklaşımda daha muhafazakar olunmalı.",
+        ],
+        checklist: [
+            "Lezyon soliter mi multipl mi?",
+            "Kapsül/invazyon var mı?",
+            "Zeminde tiroidit var mı?",
+        ],
+        references: [],
+        updatedAt: "2025-12-16",
+    },
 ];
