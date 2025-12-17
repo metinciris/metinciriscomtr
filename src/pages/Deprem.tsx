@@ -31,7 +31,9 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
-  Navigation
+  Navigation,
+  Mic,
+  MicOff
 } from 'lucide-react';
 
 /* ============================================================
@@ -179,6 +181,7 @@ function NotificationToggle({ enabled, onToggle }: { enabled: boolean; onToggle:
           ? 'bg-green-500/20 border-green-300/40 ring-2 ring-green-300/40'
           : 'bg-white/10 border-white/15 hover:bg-white/15'
       ].join(' ')}
+      style={{ backgroundColor: enabled ? 'rgba(34, 197, 94, 0.2)' : 'rgba(255, 255, 255, 0.1)' }}
       title={enabled ? 'Bildirim Açık' : 'Bildirim Kapalı'}
     >
       {/* Switch */}

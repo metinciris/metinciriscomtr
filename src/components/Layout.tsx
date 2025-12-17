@@ -55,9 +55,9 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
                 <button
                   key={item.path}
                   onClick={() => onNavigate(item.path)}
-                  className={`px-4 py-2 flex items-center space-x-2 transition-colors ${currentPage === item.path
-                      ? 'bg-[#0078D4] text-white'
-                      : 'text-white/80 hover:bg-white/10'
+                  className={`px-4 py-2 flex items-center space-x-2 transition-colors bg-transparent ${currentPage === item.path
+                    ? 'bg-[#0078D4] text-white'
+                    : 'text-white/80 hover:bg-white/10'
                     }`}
                 >
                   <item.icon size={18} />
@@ -89,8 +89,8 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
                     setMobileMenuOpen(false);
                   }}
                   className={`w-full px-4 py-3 flex items-center space-x-2 transition-colors ${currentPage === item.path
-                      ? 'bg-[#0078D4] text-white'
-                      : 'text-white/80 hover:bg-white/10'
+                    ? 'bg-[#0078D4] text-white'
+                    : 'text-white/80 hover:bg-white/10'
                     }`}
                 >
                   <item.icon size={18} />
@@ -122,19 +122,19 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
               <div className="flex flex-col space-y-2 mt-2">
                 <button
                   onClick={() => onNavigate('iletisim')}
-                  className="text-white/70 hover:text-white text-left transition-colors"
+                  className="bg-transparent text-white/70 hover:text-white text-left transition-colors"
                 >
                   İletişim
                 </button>
                 <button
                   onClick={() => onNavigate('ders-programi')}
-                  className="text-white/70 hover:text-white text-left transition-colors"
+                  className="bg-transparent text-white/70 hover:text-white text-left transition-colors"
                 >
                   Ders Programı
                 </button>
                 <button
                   onClick={() => onNavigate('yayinlar')}
-                  className="text-white/70 hover:text-white text-left transition-colors"
+                  className="bg-transparent text-white/70 hover:text-white text-left transition-colors"
                 >
                   Yayınlar
                 </button>
