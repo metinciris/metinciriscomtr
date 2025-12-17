@@ -38,12 +38,12 @@ export function HaftaninVakasi() {
 
                 {/* Case Card */}
                 <div className="bg-white shadow-xl border border-gray-100 overflow-hidden">
-                    {/* Image Section */}
-                    <div className="relative h-64 md:h-96 bg-gray-200 flex items-center justify-center overflow-hidden group">
+                    {/* Image Section - Full Visibility */}
+                    <div className="relative bg-gray-200 flex items-center justify-center overflow-hidden group">
                         <img
                             src={currentCase.imagePlaceholder}
                             alt="Case Preview"
-                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                            className="w-full h-auto max-h-[600px] object-contain transition-transform duration-700 group-hover:scale-105"
                         />
                         {/* Overlay Removed */}
                     </div>
