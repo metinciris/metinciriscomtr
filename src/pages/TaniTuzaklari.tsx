@@ -1,5 +1,7 @@
 import React, { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { PageContainer } from "../components/PageContainer";
+import { MetroTile } from "../components/MetroTile";
+import { motion, AnimatePresence } from "motion/react";
 import {
     PITFALLS,
     ORGAN_SYSTEMS,
@@ -8,17 +10,33 @@ import {
 } from "../data/tani-tuzaklari";
 
 /**
- * Tanı Hataları & Tuzaklar
+ * Tanı Hataları & Tuzaklar - Metro UI Redesign
  * - Veri: src/data/tani-tuzaklari.ts
- * - UI: filtre + arama + favori + permalink + accordion
+ * - UI: Metro Tile Grid + Detail Modal
  */
-
-
 
 function cn(...classes: Array<string | false | null | undefined>) {
     return classes.filter(Boolean).join(" ");
 }
 
+/* Color Mapping for Organ Systems */
+const ORGAN_COLORS: Record<OrganSystem, string> = {
+    "Genel": "bg-slate-600",
+    "Akciğer": "bg-sky-600",
+    "GİS": "bg-amber-600",
+    "Meme": "bg-pink-600",
+    "Gyn": "bg-rose-600",
+    "Üriner": "bg-yellow-600",
+    "Endokrin": "bg-purple-600",
+    "Baş-Boyun": "bg-orange-600",
+    "Deri": "bg-stone-500",
+    "Lenfoid/Hemato": "bg-red-700",
+    "Yumuşak Doku": "bg-emerald-600",
+    "Kemik": "bg-neutral-600",
+    "CNS": "bg-indigo-600",
+};
+
+/* Filter Chip Components */
 function pillBase() {
     return "px-3 py-2 rounded-xl text-sm font-extrabold border shadow-sm transition-colors focus:outline-none focus-visible:ring-2 active:scale-[0.98] [-webkit-tap-highlight-color:transparent]";
 }
@@ -27,7 +45,7 @@ function pillSelectedStyle(bg: string): React.CSSProperties {
     return {
         backgroundColor: bg,
         borderColor: "rgba(0,0,0,0.15)",
-        color: "#0f172a",
+        color: "#ffffff",
     };
 }
 
@@ -37,29 +55,6 @@ function pillUnselectedStyle(): React.CSSProperties {
         borderColor: "rgba(0,0,0,0.10)",
         color: "#0f172a",
     };
-}
-
-function badgeStyle(kind: "a" | "b" | "c" | "d") {
-    const map = {
-        a: { bg: "rgba(2,132,199,0.10)", fg: "#075985", bd: "rgba(2,132,199,0.20)" },
-        b: { bg: "rgba(99,102,241,0.10)", fg: "#3730a3", bd: "rgba(99,102,241,0.20)" },
-        c: { bg: "rgba(15,23,42,0.04)", fg: "#0f172a", bd: "rgba(0,0,0,0.08)" },
-        d: { bg: "rgba(16,185,129,0.10)", fg: "#065f46", bd: "rgba(16,185,129,0.20)" },
-    };
-    return map[kind];
-}
-
-
-
-
-
-function toggleSet<T>(value: T, set: Set<T>, setter: React.Dispatch<React.SetStateAction<Set<T>>>) {
-    setter((prev) => {
-        const next = new Set(prev);
-        if (next.has(value)) next.delete(value);
-        else next.add(value);
-        return next;
-    });
 }
 
 function useLocalStorageStringArray(key: string, fallback: string[] = []) {
@@ -88,25 +83,6 @@ function useLocalStorageStringArray(key: string, fallback: string[] = []) {
     return [value, setValue] as const;
 }
 
-function sectionTitle(title: string, subtitle?: string) {
-    return (
-        <div className="mb-3">
-            <div className="text-sm font-extrabold tracking-tight text-slate-900">{title}</div>
-            {subtitle ? <div className="text-xs font-semibold text-slate-600 mt-0.5">{subtitle}</div> : null}
-        </div>
-    );
-}
-
-async function copyText(text: string) {
-    try {
-        await navigator.clipboard.writeText(text);
-        return true;
-    } catch {
-        return false;
-    }
-}
-
-
 
 export function TaniTuzaklari() {
     const [q, setQ] = useState("");
@@ -118,26 +94,37 @@ export function TaniTuzaklari() {
     const favIds = useMemo(() => new Set(favIdsArr), [favIdsArr]);
     const [onlyFavs, setOnlyFavs] = useState(false);
 
-    const [openIds, setOpenIds] = useState<Set<string>>(() => new Set());
+    const [selectedPitfall, setSelectedPitfall] = useState<Pitfall | null>(null);
 
+    // Initial load hash check
     useEffect(() => {
         try {
             if (typeof window === "undefined") return;
             const hash = window.location.hash?.replace("#", "").trim();
             if (!hash) return;
             const id = decodeURIComponent(hash);
-            const exists = PITFALLS.some((p) => p.id === id);
-            if (exists) {
-                setOpenIds(new Set([id]));
-                setTimeout(() => {
-                    const el = document.getElementById(`pitfall-${id}`);
-                    el?.scrollIntoView({ block: "start", behavior: "smooth" });
-                }, 50);
+            const found = PITFALLS.find((p) => p.id === id);
+            if (found) {
+                setSelectedPitfall(found);
             }
         } catch {
             // ignore
         }
     }, []);
+
+    // Update hash on selection
+    useEffect(() => {
+        try {
+            if (typeof window === "undefined") return;
+            if (selectedPitfall) {
+                window.history.replaceState(null, "", `#${selectedPitfall.id}`);
+            } else {
+                window.history.replaceState(null, "", window.location.pathname);
+            }
+        } catch {
+            // ignore
+        }
+    }, [selectedPitfall]);
 
     const stats = useMemo(() => {
         const total = PITFALLS.length;
@@ -186,7 +173,8 @@ export function TaniTuzaklari() {
         setOnlyFavs(false);
     }
 
-    function toggleFavorite(id: string) {
+    function toggleFavorite(id: string, e?: React.MouseEvent) {
+        e?.stopPropagation();
         setFavIdsArr((prev) => {
             const s = new Set(prev);
             if (s.has(id)) s.delete(id);
@@ -195,365 +183,278 @@ export function TaniTuzaklari() {
         });
     }
 
-    function expandAll() {
-        setOpenIds(new Set(filtered.map((x) => x.id)));
+    function toggleSet<T>(value: T, set: Set<T>, setter: React.Dispatch<React.SetStateAction<Set<T>>>) {
+        setter((prev) => {
+            const next = new Set(prev);
+            if (next.has(value)) next.delete(value);
+            else next.add(value);
+            return next;
+        });
     }
-
-    function collapseAll() {
-        setOpenIds(new Set());
-    }
-
 
 
     return (
         <PageContainer>
-            <div className="w-full">
-                {/* HERO */}
-                <div
-                    className="rounded-2xl border shadow-sm overflow-hidden"
-                    style={{
-                        background: "linear-gradient(135deg, rgba(59,130,246,0.14), rgba(16,185,129,0.10))",
-                        borderColor: "rgba(0,0,0,0.10)",
-                    }}
-                >
-                    <div className="p-5">
-                        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-                            <div className="min-w-0">
-                                <div className="text-2xl md:text-3xl font-black tracking-tight text-slate-900">
-                                    Patoloji Tanı Tuzakları
-                                </div>
-                                <div className="mt-1 text-sm font-semibold text-slate-700">
-                                    Veri odaklı kartlar • filtre/arama/favori • pratik check-list
-                                </div>
-                                <div className="mt-2 text-xs font-semibold text-slate-600">
-                                    Eğitim amaçlıdır. Klinik bağlam, korelasyon ve kurum SOP'leri esastır.
-                                </div>
-
-                            </div>
-
-                            <div className="flex gap-2 flex-wrap">
-                                {[
-                                    { k: "Kart", v: stats.total },
-                                    { k: "Organ", v: stats.orgs },
-                                    { k: "Favori", v: favIds.size },
-                                ].map((x) => (
-                                    <div
-                                        key={x.k}
-                                        className="px-3 py-2 rounded-xl border shadow-sm bg-white/80"
-                                        style={{ borderColor: "rgba(0,0,0,0.10)" }}
-                                    >
-                                        <div className="text-[11px] font-extrabold text-slate-700">{x.k}</div>
-                                        <div className="text-xl font-black text-slate-900 leading-none">{x.v}</div>
-                                    </div>
-                                ))}
-                            </div>
+            <div className="w-full pb-20">
+                {/* HERO Header - Metro Style */}
+                <div className="mb-8">
+                    <div className="flex flex-col gap-2">
+                        <div className="text-4xl md:text-5xl font-light tracking-tight text-slate-800">
+                            Patoloji <span className="font-bold">Tanı Tuzakları</span>
                         </div>
-
-                        {/* Arama + Aksiyonlar */}
-                        <div className="mt-4 grid gap-3 lg:grid-cols-3">
-                            <div className="lg:col-span-2">
-                                <div className="text-[11px] font-extrabold text-slate-700 mb-1">Ara</div>
-                                <input
-                                    value={q}
-                                    onChange={(e) => setQ(e.target.value)}
-                                    placeholder="Örn: crush, floater, p16, E-cadherin, sampling, frozen…"
-                                    className="w-full px-4 py-3 rounded-xl border shadow-sm bg-white/90 text-slate-900 font-semibold outline-none focus:ring-2 focus:ring-blue-400/50"
-                                    style={{ borderColor: "rgba(0,0,0,0.10)" }}
-                                />
-                                <div className="mt-2 text-xs font-semibold text-slate-600">
-                                    Filtreler: {activeFilterCount ? `${activeFilterCount} aktif` : "aktif filtre yok"} • Sonuç:{" "}
-                                    <span className="font-black text-slate-900">{filtered.length}</span>
-                                </div>
-                            </div>
-
-                            <div className="flex flex-col gap-2">
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={() => setOnlyFavs((v) => !v)}
-                                        className={pillBase()}
-                                        style={onlyFavs ? pillSelectedStyle("rgba(245,158,11,0.22)") : pillUnselectedStyle()}
-                                    >
-                                        {onlyFavs ? "Sadece favoriler: Açık" : "Sadece favoriler: Kapalı"}
-                                    </button>
-                                    <button
-                                        onClick={resetFilters}
-                                        className={pillBase()}
-                                        style={pillUnselectedStyle()}
-                                        title="Tüm filtreleri ve aramayı sıfırla"
-                                    >
-                                        Sıfırla
-                                    </button>
-                                </div>
-
-                                <div className="flex gap-2">
-                                    <button onClick={expandAll} className={pillBase()} style={pillUnselectedStyle()}>
-                                        Hepsini aç
-                                    </button>
-                                    <button onClick={collapseAll} className={pillBase()} style={pillUnselectedStyle()}>
-                                        Hepsini kapa
-                                    </button>
-                                </div>
-
-                            </div>
-                        </div>
-
-                        {/* Filtre chip alanı */}
-                        <div className="mt-5">
-                            <div className="rounded-2xl border p-4 bg-white/75" style={{ borderColor: "rgba(0,0,0,0.10)" }}>
-                                {sectionTitle("Organ sistemi", "Birden fazla seçebilirsiniz")}
-                                <div className="flex flex-wrap gap-2">
-                                    {ORGAN_SYSTEMS.map((o) => {
-                                        const active = orgSet.has(o);
-                                        return (
-                                            <button
-                                                key={o}
-                                                onClick={() => toggleSet(o, orgSet, setOrgSet)}
-                                                className={pillBase()}
-                                                style={active ? pillSelectedStyle("rgba(16,185,129,0.20)") : pillUnselectedStyle()}
-                                                aria-pressed={active}
-                                            >
-                                                {o}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
+                        <div className="text-lg text-slate-600 font-light max-w-2xl">
+                            Günlük pratikte karşılaşılan zorluklar, yanıltıcı görüntüler ve pratik çözüm ipuçları.
                         </div>
                     </div>
                 </div>
 
-                {/* LISTE */}
-                <div className="mt-6">
-                    {sectionTitle(
-                        `Kartlar (${filtered.length})`,
-                        "Başlığa tıklayın: detaylar açılır. Sağdan favori ve link kopyalama işlemleri yapılır."
-                    )}
+                {/* Controls Area */}
+                <div className="mb-8 space-y-4">
+                    {/* Search & Stats */}
+                    <div className="flex flex-col lg:flex-row gap-4">
+                        <input
+                            value={q}
+                            onChange={(e) => setQ(e.target.value)}
+                            placeholder="Tuzak ara (örn: crush, p16, frozen)..."
+                            className="flex-1 px-5 py-4 text-lg rounded-none bg-white border-2 border-slate-200 focus:border-blue-500 focus:ring-0 transition-colors shadow-sm outline-none"
+                        />
+                        <div className="flex gap-2 shrink-0">
+                            <div className="px-4 py-2 bg-slate-100 border text-slate-600 flex flex-col items-center justify-center min-w-[5rem]">
+                                <span className="text-xs font-bold uppercase tracking-wider">Kart</span>
+                                <span className="text-xl font-black">{stats.total}</span>
+                            </div>
+                            <div className="px-4 py-2 bg-slate-100 border text-slate-600 flex flex-col items-center justify-center min-w-[5rem]">
+                                <span className="text-xs font-bold uppercase tracking-wider">Sonuç</span>
+                                <span className="text-xl font-black text-blue-600">{filtered.length}</span>
+                            </div>
+                        </div>
+                    </div>
 
-                    <div className="space-y-3">
-                        {filtered.map((p) => {
-                            const isOpen = openIds.has(p.id);
+                    {/* Filter Buttons */}
+                    <div className="flex flex-wrap gap-2 items-center">
+                        <button
+                            onClick={() => setOnlyFavs(!onlyFavs)}
+                            className={`px-4 py-2 text-sm font-bold uppercase tracking-wide border-2 transition-all ${onlyFavs
+                                    ? 'bg-amber-400 border-amber-400 text-white'
+                                    : 'bg-white border-slate-200 text-slate-600 hover:border-amber-400 hover:text-amber-500'
+                                }`}
+                        >
+                            {onlyFavs ? "★ Favoriler Aktif" : "☆ Favoriler"}
+                        </button>
 
-                            const org = badgeStyle("d");
-                            const tag = badgeStyle("c");
+                        {activeFilterCount > 0 && (
+                            <button
+                                onClick={resetFilters}
+                                className="px-4 py-2 text-sm font-bold uppercase tracking-wide bg-red-500 text-white hover:bg-red-600 transition-colors"
+                            >
+                                Temizle
+                            </button>
+                        )}
+                    </div>
 
-                            const isFav = favIds.has(p.id);
-
+                    {/* Organ System Filters */}
+                    <div className="flex flex-wrap gap-1">
+                        {ORGAN_SYSTEMS.map(org => {
+                            const isActive = orgSet.has(org);
                             return (
-                                <div
-                                    key={p.id}
-                                    id={`pitfall-${p.id}`}
-                                    className="rounded-2xl border shadow-sm overflow-hidden bg-white"
-                                    style={{ borderColor: "rgba(0,0,0,0.10)" }}
+                                <button
+                                    key={org}
+                                    onClick={() => toggleSet(org, orgSet, setOrgSet)}
+                                    className={`px-3 py-1.5 text-xs font-bold transition-all border ${isActive
+                                            ? 'bg-slate-800 text-white border-slate-800'
+                                            : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
+                                        }`}
                                 >
-                                    <div
-                                        className="w-full px-4 py-4 flex flex-col gap-2"
-                                        style={{ backgroundColor: "rgba(255,255,255,0.92)" }}
-                                    >
-                                        {/* Header row */}
-                                        <div className="flex flex-wrap items-center gap-2">
-                                            <span
-                                                className="px-2 py-1 rounded-lg border text-[11px] font-extrabold"
-                                                style={{ backgroundColor: org.bg, color: org.fg, borderColor: org.bd }}
-                                            >
-                                                {p.organSystem}
-                                            </span>
-
-                                            <button
-                                                onClick={() => toggleFavorite(p.id)}
-                                                className={pillBase()}
-                                                style={isFav ? pillSelectedStyle("rgba(245,158,11,0.22)") : pillUnselectedStyle()}
-                                                title={isFav ? "Favoriden çıkar" : "Favoriye ekle"}
-                                            >
-                                                {isFav ? "★ Favori" : "☆ Favori"}
-                                            </button>
-
-
-                                        </div>
-
-                                        {/* Title + teaser + toggle */}
-                                        <button
-                                            onClick={() => {
-                                                setOpenIds((prev) => {
-                                                    const next = new Set(prev);
-                                                    if (next.has(p.id)) next.delete(p.id);
-                                                    else next.add(p.id);
-                                                    return next;
-                                                });
-
-                                                try {
-                                                    if (typeof window !== "undefined") {
-                                                        const url = new URL(window.location.href);
-                                                        url.hash = encodeURIComponent(p.id);
-                                                        window.history.replaceState({}, "", url.toString());
-                                                    }
-                                                } catch {
-                                                    // ignore
-                                                }
-                                            }}
-                                            className="w-full text-left"
-                                        >
-                                            <div className="flex items-start gap-3">
-                                                <div className="min-w-0 flex-1">
-                                                    <div className="text-base md:text-lg font-black text-slate-900 leading-tight">
-                                                        {p.titleTR}
-                                                        {p.titleEN ? (
-                                                            <span className="ml-2 text-sm font-extrabold text-slate-500">({p.titleEN})</span>
-                                                        ) : null}
-                                                    </div>
-                                                    <div className="mt-1 text-sm font-semibold text-slate-700">{p.teaser}</div>
-
-                                                    <div className="mt-2 flex flex-wrap gap-2">
-                                                        {p.tags.slice(0, 8).map((t) => (
-                                                            <span
-                                                                key={t}
-                                                                className="px-2 py-1 rounded-lg border text-[11px] font-extrabold"
-                                                                style={{ backgroundColor: tag.bg, color: tag.fg, borderColor: tag.bd }}
-                                                            >
-                                                                #{t}
-                                                            </span>
-                                                        ))}
-                                                        {p.tags.length > 8 ? (
-                                                            <span className="text-[11px] font-bold text-slate-500">+{p.tags.length - 8}</span>
-                                                        ) : null}
-                                                    </div>
-                                                </div>
-
-                                                <div
-                                                    className={cn("shrink-0 w-10 h-10 rounded-xl border flex items-center justify-center font-black")}
-                                                    style={{
-                                                        backgroundColor: isOpen ? "rgba(59,130,246,0.12)" : "rgba(0,0,0,0.03)",
-                                                        borderColor: "rgba(0,0,0,0.10)",
-                                                        color: "#0f172a",
-                                                    }}
-                                                    aria-hidden="true"
-                                                >
-                                                    {isOpen ? "–" : "+"}
-                                                </div>
-                                            </div>
-                                        </button>
-                                    </div>
-
-                                    {isOpen ? (
-                                        <div className="px-4 pb-4">
-                                            <div className="grid lg:grid-cols-3 gap-3 mt-2">
-                                                <div
-                                                    className="rounded-2xl border p-4"
-                                                    style={{ backgroundColor: "rgba(239,68,68,0.06)", borderColor: "rgba(239,68,68,0.15)" }}
-                                                >
-                                                    <div className="text-sm font-black text-slate-900">Neden yanıltır?</div>
-                                                    <ul className="mt-2 space-y-1">
-                                                        {p.whyItTricks.map((x, i) => (
-                                                            <li key={i} className="text-sm font-semibold text-slate-800">
-                                                                • {x}
-                                                            </li>
-                                                        ))}
-                                                    </ul>
-                                                </div>
-
-                                                <div
-                                                    className="rounded-2xl border p-4"
-                                                    style={{ backgroundColor: "rgba(16,185,129,0.06)", borderColor: "rgba(16,185,129,0.15)" }}
-                                                >
-                                                    <div className="text-sm font-black text-slate-900">Ayırıcı ipuçları</div>
-                                                    <ul className="mt-2 space-y-1">
-                                                        {p.keyClues.map((x, i) => (
-                                                            <li key={i} className="text-sm font-semibold text-slate-800">
-                                                                • {x}
-                                                            </li>
-                                                        ))}
-                                                    </ul>
-                                                </div>
-
-                                                <div
-                                                    className="rounded-2xl border p-4"
-                                                    style={{ backgroundColor: "rgba(59,130,246,0.06)", borderColor: "rgba(59,130,246,0.15)" }}
-                                                >
-                                                    <div className="text-sm font-black text-slate-900">Minimal çalışma</div>
-                                                    <ul className="mt-2 space-y-1">
-                                                        {p.minimalWorkup.map((x, i) => (
-                                                            <li key={i} className="text-sm font-semibold text-slate-800">
-                                                                • {x}
-                                                            </li>
-                                                        ))}
-                                                    </ul>
-                                                </div>
-                                            </div>
-
-                                            <div className="grid lg:grid-cols-2 gap-3 mt-3">
-                                                <div
-                                                    className="rounded-2xl border p-4"
-                                                    style={{ backgroundColor: "rgba(0,0,0,0.02)", borderColor: "rgba(0,0,0,0.08)" }}
-                                                >
-                                                    <div className="text-sm font-black text-slate-900">Raporlama ipuçları</div>
-                                                    <ul className="mt-2 space-y-1">
-                                                        {p.reportingTips.map((x, i) => (
-                                                            <li key={i} className="text-sm font-semibold text-slate-800">
-                                                                • {x}
-                                                            </li>
-                                                        ))}
-                                                    </ul>
-                                                </div>
-
-                                                <div
-                                                    className="rounded-2xl border p-4"
-                                                    style={{ backgroundColor: "rgba(2,132,199,0.06)", borderColor: "rgba(2,132,199,0.15)" }}
-                                                >
-                                                    <div className="text-sm font-black text-slate-900">Hızlı kontrol listesi</div>
-                                                    <ul className="mt-2 space-y-1">
-                                                        {p.checklist.map((x, i) => (
-                                                            <li key={i} className="text-sm font-semibold text-slate-800">
-                                                                • {x}
-                                                            </li>
-                                                        ))}
-                                                    </ul>
-                                                </div>
-                                            </div>
-
-                                            {p.references?.length ? (
-                                                <div
-                                                    className="mt-3 rounded-2xl border p-4"
-                                                    style={{ backgroundColor: "rgba(0,0,0,0.02)", borderColor: "rgba(0,0,0,0.08)" }}
-                                                >
-                                                    <div className="text-sm font-black text-slate-900">Kaynak / Reference</div>
-                                                    <ul className="mt-2 space-y-2">
-                                                        {p.references.map((r, idx) => (
-                                                            <li key={`${p.id}-ref-${idx}`} className="text-sm font-semibold text-slate-800">
-                                                                •{" "}
-                                                                {r.url ? (
-                                                                    <a className="underline text-blue-700" href={r.url} target="_blank" rel="noreferrer">
-                                                                        {r.label}
-                                                                    </a>
-                                                                ) : (
-                                                                    <span>{r.label}</span>
-                                                                )}
-                                                                {r.note ? <div className="text-xs font-semibold text-slate-600 mt-0.5">{r.note}</div> : null}
-                                                            </li>
-                                                        ))}
-                                                    </ul>
-                                                </div>
-                                            ) : null}
-                                        </div>
-                                    ) : null}
-                                </div>
+                                    {org}
+                                </button>
                             );
                         })}
-
-                        {filtered.length === 0 ? (
-                            <div
-                                className="rounded-2xl border p-6 text-slate-800 font-semibold bg-white"
-                                style={{ borderColor: "rgba(0,0,0,0.10)" }}
-                            >
-                                Sonuç yok. Arama terimini değiştirin veya filtreleri temizleyin.
-                            </div>
-                        ) : null}
                     </div>
                 </div>
 
-                <div className="mt-6 text-xs font-semibold text-slate-600">
-                    Not: Bu sayfa eğitim amaçlı checklist/pitfall hatırlatıcısıdır. Tanı/tedavi kararı için kurum SOP'leri ve resmi
-                    kılavuzlar esastır.
+                {/* METRO GRID */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 auto-rows-[200px]">
+                    {filtered.map(p => {
+                        const isFav = favIds.has(p.id);
+                        const colorClass = ORGAN_COLORS[p.organSystem] || "bg-slate-500";
+
+                        return (
+                            <MetroTile
+                                key={p.id}
+                                title={p.titleTR}
+                                subtitle={p.titleEN || p.organSystem}
+                                color={colorClass}
+                                size="medium"
+                                className="h-full min-h-[200px]"
+                                onClick={() => setSelectedPitfall(p)}
+                            >
+                                <div className="absolute top-4 right-4 z-20">
+                                    <button
+                                        onClick={(e) => toggleFavorite(p.id, e)}
+                                        className="text-white/80 hover:text-white transition-colors text-2xl"
+                                        title={isFav ? "Favoriden çıkar" : "Favoriye ekle"}
+                                    >
+                                        {isFav ? "★" : "☆"}
+                                    </button>
+                                </div>
+                                <div className="absolute top-4 left-4 z-10">
+                                    <span className="bg-black/20 px-2 py-0.5 text-[10px] uppercase font-bold text-white rounded">
+                                        {p.category}
+                                    </span>
+                                </div>
+                            </MetroTile>
+                        );
+                    })}
+
+                    {filtered.length === 0 && (
+                        <div className="col-span-full py-12 text-center text-slate-400">
+                            <div className="text-6xl mb-4">:(</div>
+                            <div className="text-xl font-light">Aradığınız kriterlere uygun sonuç bulunamadı.</div>
+                        </div>
+                    )}
                 </div>
             </div>
+
+            {/* DETAIL MODAL */}
+            <AnimatePresence>
+                {selectedPitfall && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6" style={{ zIndex: 9999 }}>
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setSelectedPitfall(null)}
+                            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                        />
+                        <motion.div
+                            layoutId={`pitfall-${selectedPitfall.id}`}
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-none shadow-2xl relative flex flex-col"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            {/* Modal Header */}
+                            <div className={`p-6 sm:p-8 ${ORGAN_COLORS[selectedPitfall.organSystem]} text-white sticky top-0 z-10`}>
+                                <button
+                                    onClick={() => setSelectedPitfall(null)}
+                                    className="absolute top-4 right-4 text-white/70 hover:text-white text-3xl font-light leading-none"
+                                >
+                                    ×
+                                </button>
+
+                                <div className="flex gap-2 mb-2 opacity-90 text-sm font-bold uppercase tracking-wider">
+                                    <span>{selectedPitfall.organSystem}</span>
+                                    <span>•</span>
+                                    <span>{selectedPitfall.category}</span>
+                                </div>
+                                <h1 className="text-2xl sm:text-3xl font-bold leading-tight mb-2">
+                                    {selectedPitfall.titleTR}
+                                </h1>
+                                {selectedPitfall.titleEN && (
+                                    <h2 className="text-xl font-light opacity-90 italic">
+                                        {selectedPitfall.titleEN}
+                                    </h2>
+                                )}
+                            </div>
+
+                            {/* Modal Content */}
+                            <div className="p-6 sm:p-8 space-y-8 text-slate-800">
+
+                                {/* Teaser */}
+                                <div className="text-lg sm:text-xl font-light leading-relaxed border-l-4 border-blue-500 pl-4 text-slate-700">
+                                    {selectedPitfall.teaser}
+                                </div>
+
+                                {/* Main Grid */}
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                    {/* Left Column: Problem & Clues */}
+                                    <div className="space-y-6">
+                                        <section>
+                                            <h3 className="text-red-600 font-bold uppercase tracking-wider text-sm mb-3 border-b border-red-100 pb-1">
+                                                Neden Yanıltır?
+                                            </h3>
+                                            <ul className="list-disc list-inside space-y-2 text-slate-700">
+                                                {selectedPitfall.whyItTricks.map((item, i) => (
+                                                    <li key={i}>{item}</li>
+                                                ))}
+                                            </ul>
+                                        </section>
+
+                                        <section>
+                                            <h3 className="text-emerald-600 font-bold uppercase tracking-wider text-sm mb-3 border-b border-emerald-100 pb-1">
+                                                Ayırıcı İpuçları
+                                            </h3>
+                                            <ul className="list-disc list-inside space-y-2 text-slate-700">
+                                                {selectedPitfall.keyClues.map((item, i) => (
+                                                    <li key={i}>{item}</li>
+                                                ))}
+                                            </ul>
+                                        </section>
+                                    </div>
+
+                                    {/* Right Column: Workup & Reporting */}
+                                    <div className="space-y-6">
+                                        <section>
+                                            <h3 className="text-blue-600 font-bold uppercase tracking-wider text-sm mb-3 border-b border-blue-100 pb-1">
+                                                Minimal Çalışma
+                                            </h3>
+                                            <ul className="list-disc list-inside space-y-2 text-slate-700">
+                                                {selectedPitfall.minimalWorkup.map((item, i) => (
+                                                    <li key={i}>{item}</li>
+                                                ))}
+                                            </ul>
+                                        </section>
+
+                                        <section>
+                                            <h3 className="text-indigo-600 font-bold uppercase tracking-wider text-sm mb-3 border-b border-indigo-100 pb-1">
+                                                Raporlama
+                                            </h3>
+                                            <ul className="list-disc list-inside space-y-2 text-slate-700">
+                                                {selectedPitfall.reportingTips.map((item, i) => (
+                                                    <li key={i}>{item}</li>
+                                                ))}
+                                            </ul>
+                                        </section>
+                                    </div>
+                                </div>
+
+                                {/* Checklist Box */}
+                                <div className="bg-slate-50 p-6 rounded-none border-l-4 border-slate-800">
+                                    <h3 className="text-slate-900 font-black uppercase text-sm mb-4">
+                                        Hızlı Kontrol Listesi
+                                    </h3>
+                                    <div className="grid sm:grid-cols-2 gap-3">
+                                        {selectedPitfall.checklist.map((item, i) => (
+                                            <div key={i} className="flex items-start gap-3">
+                                                <div className="w-5 h-5 rounded border-2 border-slate-300 flex items-center justify-center shrink-0 mt-0.5">
+                                                    <span className="text-slate-300 text-xs">✓</span>
+                                                </div>
+                                                <span className="text-slate-700 font-medium">{item}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Footer: Tags & Meta */}
+                                <div className="pt-6 border-t border-slate-100 text-sm text-slate-500 flex flex-col gap-4">
+                                    <div className="flex flex-wrap gap-2">
+                                        {selectedPitfall.tags.map(tag => (
+                                            <span key={tag} className="px-2 py-1 bg-slate-100 text-slate-600 text-xs font-bold uppercase rounded">
+                                                #{tag}
+                                            </span>
+                                        ))}
+                                    </div>
+                                    <div className="flex justify-between items-center opacity-75 text-xs">
+                                        <span>Zorluk: {selectedPitfall.difficulty}</span>
+                                        <span>Son Güncelleme: {selectedPitfall.updatedAt}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </PageContainer>
     );
 }
