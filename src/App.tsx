@@ -111,6 +111,9 @@ const TaniTuzaklari = React.lazy(() =>
 const HaftaninVakasi = React.lazy(() =>
   import('./pages/HaftaninVakasi').then((m) => ({ default: m.HaftaninVakasi })),
 );
+const Prizma3D = React.lazy(() =>
+  import('./pages/Prizma3D').then((m) => ({ default: m.Prizma3D })),
+);
 
 export default function App() {
   const [currentPage, setCurrentPage] = React.useState('home');
@@ -212,6 +215,9 @@ export default function App() {
 
       case 'haftanin-vakasi':
         return <HaftaninVakasi />;
+
+      case 'prizma-3d':
+        return <Prizma3D />;
 
       case 'home':
       default:
