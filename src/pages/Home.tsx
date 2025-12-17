@@ -439,6 +439,17 @@ export function Home({ onNavigate }: HomeProps) {
                 size="medium"
                 onClick={() => onNavigate('ders-programi')}
               />
+
+              {/* Haftanın Vakası - YENİ */}
+              <MetroTile
+                title="Haftanın Vakası"
+                subtitle="Kendinizi test edin"
+                icon={<Microscope size={40} />}
+                color="bg-[#8B0000]" // Dark Red for attention
+                size="medium"
+                onClick={() => onNavigate('haftanin-vakasi')}
+              />
+
               <MetroTile
                 title="Blog"
                 subtitle={blogSubtitle}

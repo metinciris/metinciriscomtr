@@ -108,6 +108,9 @@ const SvsReader = React.lazy(() =>
 const TaniTuzaklari = React.lazy(() =>
   import('./pages/TaniTuzaklari').then((m) => ({ default: m.TaniTuzaklari })),
 );
+const HaftaninVakasi = React.lazy(() =>
+  import('./pages/HaftaninVakasi').then((m) => ({ default: m.HaftaninVakasi })),
+);
 
 export default function App() {
   const [currentPage, setCurrentPage] = React.useState('home');
@@ -206,6 +209,9 @@ export default function App() {
 
       case 'tani-tuzaklari':
         return <TaniTuzaklari />;
+
+      case 'haftanin-vakasi':
+        return <HaftaninVakasi />;
 
       case 'home':
       default:
