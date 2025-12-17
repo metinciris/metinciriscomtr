@@ -296,7 +296,7 @@ export function TaniTuzaklari() {
                                 className="h-full min-h-[200px]"
                                 onClick={() => setSelectedPitfall(p)}
                             >
-                                <div className="absolute top-4 right-4 z-20">
+                                <div className="absolute top-4 right-4 z-20" style={{ top: '1rem', right: '1rem' }}>
                                     <button
                                         onClick={(e) => toggleFavorite(p.id, e)}
                                         className="text-white/80 hover:text-white transition-colors text-2xl"
@@ -305,7 +305,7 @@ export function TaniTuzaklari() {
                                         {isFav ? "★" : "☆"}
                                     </button>
                                 </div>
-                                <div className="absolute top-4 left-4 z-10">
+                                <div className="absolute top-4 left-4 z-10" style={{ top: '1rem', left: '1rem' }}>
                                     <span className="bg-black/20 px-2 py-0.5 text-[10px] uppercase font-bold text-white rounded">
                                         {p.category}
                                     </span>
@@ -344,12 +344,14 @@ export function TaniTuzaklari() {
                         >
                             {/* Modal Header */}
                             <div
-                                className="p-6 sm:p-8 text-white sticky top-0 z-10"
+                                className="p-6 sm:p-8 text-white sticky top-0 z-10 pr-16" // Added pr-16 for Close button space
                                 style={{ backgroundColor: ORGAN_COLORS[selectedPitfall.organSystem] || '#6b7280' }}
                             >
                                 <button
                                     onClick={() => setSelectedPitfall(null)}
+                                    // Added inline style for safer positioning
                                     className="absolute top-4 right-4 text-white/70 hover:text-white text-3xl font-light leading-none"
+                                    style={{ top: '1rem', right: '1rem' }}
                                 >
                                     ×
                                 </button>
