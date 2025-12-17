@@ -203,15 +203,7 @@ export function TaniTuzaklari() {
         setOpenIds(new Set());
     }
 
-    async function copyPermalink(id: string) {
-        if (typeof window === "undefined") return;
-        const url = new URL(window.location.href);
-        url.hash = encodeURIComponent(id);
-        const ok = await copyText(url.toString());
-        if (!ok) {
-            window.location.hash = encodeURIComponent(id);
-        }
-    }
+
 
     return (
         <PageContainer>
@@ -375,14 +367,7 @@ export function TaniTuzaklari() {
                                                 {isFav ? "★ Favori" : "☆ Favori"}
                                             </button>
 
-                                            <button
-                                                onClick={() => copyPermalink(p.id)}
-                                                className={pillBase()}
-                                                style={pillUnselectedStyle()}
-                                                title="Bu karta link kopyala"
-                                            >
-                                                Link
-                                            </button>
+
                                         </div>
 
                                         {/* Title + teaser + toggle */}

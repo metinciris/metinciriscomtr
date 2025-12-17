@@ -135,6 +135,115 @@ export const PITFALLS: Pitfall[] = [
     },
 
     {
+        id: "meningioma-atypical-grade2",
+        titleTR: "Meningiom: Grade 2 (Atipik) Kriterleri ve Beyin İnvazyonu",
+        titleEN: "Atypical (Grade 2) Meningioma Criteria & Brain Invasion",
+        organSystem: "CNS",
+        category: "Grading/Staging",
+        modality: "H&E",
+        specimenType: "Rezeksiyon",
+        difficulty: "Orta",
+        tags: ["meningioma", "grade 2", "atypical", "brain invasion", "mitosis"],
+        teaser:
+            "Meningiomlarda Grade 2 tanısı için ya beyin invazyonu ya da mitotik aktivite/histolojik kriterler (toplam 3) gereklidir. Atlanması rekurrens riskini etkiler.",
+        whyItTricks: [
+            "Beyin invazyonu, parankim içine giren düzensiz diller şeklinde olmalıdır; basit indentasyon invazyon değildir.",
+            "Mitotik sayım (4-19 / 1.6 mm²) dikkatli yapılmazsa grade düşük verilebilir.",
+        ],
+        keyClues: [
+            "Beyin invazyonu tek başına Grade 2 kriteridir (önceden Grade 1 olsa bile).",
+            "Diğer kriterler (3 tanesi gerekli): Artmış selülarite, küçük hücreler (yüksek N/C), belirgin nükleol, desen kaybı (sheet-like), nekroz.",
+        ],
+        minimalWorkup: [
+            "Beyin parankimi ile sınır komşuluğu olan alanların geniş örneklenmesi.",
+            "Mitotik aktivite için en aktif alanların (hotspot) seçilmesi.",
+            "Gerekirse dura/beyin sınırının IHK (GFAP) ile değerlendirilmesi (invazyon vs gliosis).",
+        ],
+        reportingTips: [
+            "Grade 2 kriterlerinden hangilerinin (beyin invazyonu mu, mitoz mu, diğerleri mi) karşılandığı açıkça belirtilmeli.",
+        ],
+        checklist: [
+            "Beyin invazyonu var mı?",
+            "Mitoz sayısı 4-19 arası mı?",
+            "Diğer 3 minör kriterden (nekroz, selülarite vb.) kaçı var?",
+        ],
+        references: [],
+        updatedAt: "2025-12-17",
+    },
+
+    {
+        id: "meningioma-fibrous-vs-schwannoma",
+        titleTR: "Fibröz Meningiom vs Schwannoma",
+        titleEN: "Fibrous Meningioma vs Schwannoma",
+        organSystem: "CNS",
+        category: "Mimik",
+        modality: "H&E",
+        specimenType: "Rezeksiyon",
+        difficulty: "Orta",
+        tags: ["meningioma", "schwannoma", "fibrous", "EMA", "S100"],
+        teaser:
+            "Fibröz (fibroblastik) meningiom, iğsi hücreli yapısı ve fasiküler büyümesi ile schwannomayı taklit edebilir.",
+        whyItTricks: [
+            "Her ikisi de iğsi hücrelerden oluşur ve CPA (serebellopontin köşe) bölgesinde yerleşebilir.",
+            "Meningiomda whorl (girdap) yapıları az olabilir.",
+        ],
+        keyClues: [
+            "Meningiom: EMA (+), S100 (genellikle -/zayıf), kollajen lifleri zengin.",
+            "Schwannoma: S100 (diffüz/güçlü +), EMA (-), Antoni A/B alanları, verocay cisimcikleri, hiyalinize damarlar.",
+        ],
+        minimalWorkup: [
+            "EMA ve S100 paneli genellikle ayrım için yeterlidir.",
+            "SOX10 (Schwannoma için daha spesifik).",
+        ],
+        reportingTips: [
+            "IHK sonuçları (EMA vs S100) ile desteklenen tanı.",
+        ],
+        checklist: [
+            "EMA pozitif mi?",
+            "S100 diffüz pozitif mi?",
+            "Antoni A/B alanları var mı?",
+        ],
+        references: [],
+        updatedAt: "2025-12-17",
+    },
+
+    {
+        id: "meningioma-molecular-grade3",
+        titleTR: "Meningiom: Moleküler (Grade 3) Kriterleri (TERT & CDKN2A/B)",
+        titleEN: "Meningioma Molecular Grading (TERT & CDKN2A/B)",
+        organSystem: "CNS",
+        category: "Grading/Staging",
+        modality: "Moleküler",
+        specimenType: "Rezeksiyon",
+        difficulty: "Zor",
+        tags: ["meningioma", "grade 3", "TERT", "CDKN2A", "molecular"],
+        teaser:
+            "Histolojik olarak benign görünse bile TERT promoter mutasyonu veya CDKN2A/B homozigot kaybı varsa tümör Grade 3 (Malign) kabul edilir.",
+        whyItTricks: [
+            "Tümör histolojik olarak Grade 1 veya 2 kriterlerini taşıyabilir ama biyolojik davranışı agresiftir.",
+            "Moleküler test yapılmazsa 'benign' tanısı ile eksik tedavi/takip riski doğar.",
+        ],
+        keyClues: [
+            "Grade 3 tanımı artık sadece histolojik (anaplazi, >20 mitoz) değil, moleküler kriterleri de kapsar.",
+            "TERT promoter mutasyonu veya CDKN2A/B homozigot delesyonu bağımsız kötü prognoz göstergesidir.",
+        ],
+        minimalWorkup: [
+            "Atipik özellik gösteren veya rekürren meningiomlarda moleküler analiz önerisi.",
+            "Histolojik grade ile uyumsuz klinik seyirde moleküler test.",
+        ],
+        reportingTips: [
+            "Grade 3 tanı kriteri olarak moleküler bulgunun (varsa) raporda 'entegre tanı' olarak belirtilmesi.",
+            "DSÖ 2021 (CNS 5) kriterlerine atıf yapılması.",
+        ],
+        checklist: [
+            "Histoloji benign olsa da moleküler risk faktörleri değerlendirildi mi?",
+            "TERT veya CDKN2A/B statüsü biliniyor mu?",
+        ],
+        references: [],
+        updatedAt: "2025-12-17",
+    },
+
+    {
         id: "gi-cautery-dysplasia-margin",
         titleTR: "Koter/termal hasar: displazi/kanser izlenimi ve cerrahi sınır tuzağı",
         titleEN: "Cautery artifact mimicking dysplasia/carcinoma at margins",
