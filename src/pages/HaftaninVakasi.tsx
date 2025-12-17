@@ -49,18 +49,21 @@ export function HaftaninVakasi() {
                     </div>
 
                     {/* Clinical History Section - Now Below Image - Metro Style */}
-                    <div className="bg-[#4B0082] text-white p-6 md:p-8">
-                        <div className="flex items-center gap-3 font-bold uppercase tracking-widest text-sm mb-3 text-purple-200">
+                    <div
+                        className="p-6 md:p-8"
+                        style={{ backgroundColor: '#4B0082', color: '#ffffff' }}
+                    >
+                        <div className="flex items-center gap-3 font-bold uppercase tracking-widest text-sm mb-3" style={{ color: '#e9d5ff' }}>
                             <Microscope size={20} />
                             Klinik Öykü
                         </div>
-                        <p className="text-xl md:text-3xl font-light leading-relaxed">
+                        <p className="text-xl md:text-3xl font-light leading-relaxed" style={{ color: '#ffffff' }}>
                             {currentCase.history}
                         </p>
                     </div>
 
                     {/* Interaction Section */}
-                    <div className="p-8 md:p-12 bg-[#eeeeee]">
+                    <div className="p-8 md:p-12" style={{ backgroundColor: '#eeeeee' }}>
                         <div className="flex flex-col items-center justify-center space-y-10">
 
                             {/* Action Buttons - Metro Style: Flat, Bold, Sharp */}
@@ -70,8 +73,8 @@ export function HaftaninVakasi() {
                                     href={currentCase.slideUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="flex items-center justify-center px-8 py-5 bg-[#0072C6] text-white font-bold text-lg hover:bg-[#005a9e] transition-all shadow-md active:scale-95 w-full md:w-auto min-w-[320px]"
-                                    style={{ color: '#ffffff', textDecoration: 'none' }}
+                                    className="flex items-center justify-center px-8 py-5 font-bold text-lg transition-all shadow-md active:scale-95 w-full md:w-auto min-w-[320px]"
+                                    style={{ backgroundColor: '#0072C6', color: '#ffffff', textDecoration: 'none' }}
                                 >
                                     <Microscope className="mr-3 h-6 w-6" />
                                     Sanal Mikroskoba Git
@@ -82,8 +85,8 @@ export function HaftaninVakasi() {
                                 {!isRevealed && (
                                     <button
                                         onClick={() => setIsRevealed(true)}
-                                        className="flex items-center justify-center px-8 py-5 bg-[#603cba] text-white font-bold text-lg hover:bg-[#4d3095] transition-all shadow-md active:scale-95 w-full md:w-auto min-w-[320px]"
-                                        style={{ color: '#ffffff' }}
+                                        className="flex items-center justify-center px-8 py-5 font-bold text-lg transition-all shadow-md active:scale-95 w-full md:w-auto min-w-[320px]"
+                                        style={{ backgroundColor: '#603cba', color: '#ffffff' }}
                                     >
                                         <Eye className="mr-3 h-6 w-6" />
                                         Cevabı Göster
@@ -108,7 +111,10 @@ export function HaftaninVakasi() {
                                     >
                                         <div className="flex flex-col gap-4">
                                             <div>
-                                                <span className="inline-block px-3 py-1 bg-[#008a00] text-white font-bold text-xs uppercase tracking-wide mb-4">
+                                                <span
+                                                    className="inline-block px-3 py-1 font-bold text-xs uppercase tracking-wide mb-4"
+                                                    style={{ backgroundColor: '#008a00', color: '#ffffff' }}
+                                                >
                                                     Doğru Tanı
                                                 </span>
                                                 <h2 className="text-4xl font-black text-gray-800 mb-6 leading-tight">
