@@ -261,8 +261,14 @@ export function TaniTuzaklari() {
                                 <button
                                     key={org}
                                     onClick={() => toggleSet(org, orgSet, setOrgSet)}
+                                    // Inline style kullanarak aktif butonun rengini o organın rengi yapıyoruz
+                                    style={{
+                                        backgroundColor: isActive ? (ORGAN_COLORS[org] || '#333') : undefined,
+                                        borderColor: isActive ? (ORGAN_COLORS[org] || '#333') : undefined,
+                                        color: isActive ? '#fff' : undefined
+                                    }}
                                     className={`px-3 py-1.5 text-xs font-bold transition-all border ${isActive
-                                        ? 'bg-gray-800 text-white border-gray-800'
+                                        ? 'text-white' // bg ve border style ile geliyor
                                         : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-100'
                                         }`}
                                 >
@@ -452,7 +458,7 @@ export function TaniTuzaklari() {
                                     </div>
                                     <div className="flex justify-between items-center opacity-75 text-xs">
                                         <span>Zorluk: {selectedPitfall.difficulty}</span>
-                                        <span>Son Güncelleme: {selectedPitfall.updatedAt}</span>
+                                        {/* Tarih ve Son Güncelleme kaldırıldı */}
                                     </div>
                                 </div>
                             </div>
