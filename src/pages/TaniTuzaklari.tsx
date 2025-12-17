@@ -19,21 +19,21 @@ function cn(...classes: Array<string | false | null | undefined>) {
     return classes.filter(Boolean).join(" ");
 }
 
-/* Color Mapping for Organ Systems */
+/* Color Mapping for Organ Systems - Using hex codes because Tailwind theme is restricted */
 const ORGAN_COLORS: Record<OrganSystem, string> = {
-    "Genel": "bg-slate-600",
-    "Akciğer": "bg-sky-600",
-    "GİS": "bg-amber-600",
-    "Meme": "bg-pink-600",
-    "Gyn": "bg-rose-600",
-    "Üriner": "bg-yellow-600",
-    "Endokrin": "bg-purple-600",
-    "Baş-Boyun": "bg-orange-600",
-    "Deri": "bg-stone-500",
-    "Lenfoid/Hemato": "bg-red-700",
-    "Yumuşak Doku": "bg-emerald-600",
-    "Kemik": "bg-neutral-600",
-    "CNS": "bg-indigo-600",
+    "Genel": "bg-[#475569]",      // Slate-600
+    "Akciğer": "bg-[#0284c7]",    // Sky-600
+    "GİS": "bg-[#d97706]",        // Amber-600
+    "Meme": "bg-[#db2777]",       // Pink-600
+    "Gyn": "bg-[#e11d48]",        // Rose-600
+    "Üriner": "bg-[#ca8a04]",     // Yellow-600
+    "Endokrin": "bg-[#9333ea]",   // Purple-600
+    "Baş-Boyun": "bg-[#ea580c]",  // Orange-600
+    "Deri": "bg-[#78716c]",       // Stone-500
+    "Lenfoid/Hemato": "bg-[#b91c1c]", // Red-700
+    "Yumuşak Doku": "bg-[#059669]",   // Emerald-600
+    "Kemik": "bg-[#525252]",      // Neutral-600
+    "CNS": "bg-[#4f46e5]",        // Indigo-600
 };
 
 /* Filter Chip Components */
@@ -199,10 +199,10 @@ export function TaniTuzaklari() {
                 {/* HERO Header - Metro Style */}
                 <div className="mb-8">
                     <div className="flex flex-col gap-2">
-                        <div className="text-4xl md:text-5xl font-light tracking-tight text-slate-800">
+                        <div className="text-4xl md:text-5xl font-light tracking-tight text-gray-800">
                             Patoloji <span className="font-bold">Tanı Tuzakları</span>
                         </div>
-                        <div className="text-lg text-slate-600 font-light max-w-2xl">
+                        <div className="text-lg text-gray-600 font-light max-w-2xl">
                             Günlük pratikte karşılaşılan zorluklar, yanıltıcı görüntüler ve pratik çözüm ipuçları.
                         </div>
                     </div>
@@ -219,13 +219,13 @@ export function TaniTuzaklari() {
                             className="flex-1 px-5 py-4 text-lg rounded-none bg-white border-2 border-slate-200 focus:border-blue-500 focus:ring-0 transition-colors shadow-sm outline-none"
                         />
                         <div className="flex gap-2 shrink-0">
-                            <div className="px-4 py-2 bg-slate-100 border text-slate-600 flex flex-col items-center justify-center min-w-[5rem]">
+                            <div className="px-4 py-2 bg-gray-100 border text-gray-600 flex flex-col items-center justify-center min-w-[5rem]">
                                 <span className="text-xs font-bold uppercase tracking-wider">Kart</span>
                                 <span className="text-xl font-black">{stats.total}</span>
                             </div>
-                            <div className="px-4 py-2 bg-slate-100 border text-slate-600 flex flex-col items-center justify-center min-w-[5rem]">
+                            <div className="px-4 py-2 bg-gray-100 border text-gray-600 flex flex-col items-center justify-center min-w-[5rem]">
                                 <span className="text-xs font-bold uppercase tracking-wider">Sonuç</span>
-                                <span className="text-xl font-black text-blue-600">{filtered.length}</span>
+                                <span className="text-xl font-black text-[#2563eb]">{filtered.length}</span>
                             </div>
                         </div>
                     </div>
@@ -235,8 +235,8 @@ export function TaniTuzaklari() {
                         <button
                             onClick={() => setOnlyFavs(!onlyFavs)}
                             className={`px-4 py-2 text-sm font-bold uppercase tracking-wide border-2 transition-all ${onlyFavs
-                                    ? 'bg-amber-400 border-amber-400 text-white'
-                                    : 'bg-white border-slate-200 text-slate-600 hover:border-amber-400 hover:text-amber-500'
+                                ? 'bg-[#fbbf24] border-[#fbbf24] text-white'
+                                : 'bg-white border-gray-200 text-gray-600 hover:border-[#fbbf24] hover:text-[#f59e0b]'
                                 }`}
                         >
                             {onlyFavs ? "★ Favoriler Aktif" : "☆ Favoriler"}
@@ -261,8 +261,8 @@ export function TaniTuzaklari() {
                                     key={org}
                                     onClick={() => toggleSet(org, orgSet, setOrgSet)}
                                     className={`px-3 py-1.5 text-xs font-bold transition-all border ${isActive
-                                            ? 'bg-slate-800 text-white border-slate-800'
-                                            : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
+                                        ? 'bg-gray-800 text-white border-gray-800'
+                                        : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-100'
                                         }`}
                                 >
                                     {org}
@@ -276,7 +276,7 @@ export function TaniTuzaklari() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 auto-rows-[200px]">
                     {filtered.map(p => {
                         const isFav = favIds.has(p.id);
-                        const colorClass = ORGAN_COLORS[p.organSystem] || "bg-slate-500";
+                        const colorClass = ORGAN_COLORS[p.organSystem] || "bg-gray-500";
 
                         return (
                             <MetroTile
@@ -307,7 +307,7 @@ export function TaniTuzaklari() {
                     })}
 
                     {filtered.length === 0 && (
-                        <div className="col-span-full py-12 text-center text-slate-400">
+                        <div className="col-span-full py-12 text-center text-gray-400">
                             <div className="text-6xl mb-4">:(</div>
                             <div className="text-xl font-light">Aradığınız kriterlere uygun sonuç bulunamadı.</div>
                         </div>
@@ -359,10 +359,10 @@ export function TaniTuzaklari() {
                             </div>
 
                             {/* Modal Content */}
-                            <div className="p-6 sm:p-8 space-y-8 text-slate-800">
+                            <div className="p-6 sm:p-8 space-y-8 text-gray-800">
 
                                 {/* Teaser */}
-                                <div className="text-lg sm:text-xl font-light leading-relaxed border-l-4 border-blue-500 pl-4 text-slate-700">
+                                <div className="text-lg sm:text-xl font-light leading-relaxed border-l-4 border-[#3b82f6] pl-4 text-gray-700">
                                     {selectedPitfall.teaser}
                                 </div>
 
@@ -371,10 +371,10 @@ export function TaniTuzaklari() {
                                     {/* Left Column: Problem & Clues */}
                                     <div className="space-y-6">
                                         <section>
-                                            <h3 className="text-red-600 font-bold uppercase tracking-wider text-sm mb-3 border-b border-red-100 pb-1">
+                                            <h3 className="text-[#dc2626] font-bold uppercase tracking-wider text-sm mb-3 border-b border-red-100 pb-1">
                                                 Neden Yanıltır?
                                             </h3>
-                                            <ul className="list-disc list-inside space-y-2 text-slate-700">
+                                            <ul className="list-disc list-inside space-y-2 text-gray-700">
                                                 {selectedPitfall.whyItTricks.map((item, i) => (
                                                     <li key={i}>{item}</li>
                                                 ))}
@@ -382,10 +382,10 @@ export function TaniTuzaklari() {
                                         </section>
 
                                         <section>
-                                            <h3 className="text-emerald-600 font-bold uppercase tracking-wider text-sm mb-3 border-b border-emerald-100 pb-1">
+                                            <h3 className="text-[#059669] font-bold uppercase tracking-wider text-sm mb-3 border-b border-[#a7f3d0] pb-1">
                                                 Ayırıcı İpuçları
                                             </h3>
-                                            <ul className="list-disc list-inside space-y-2 text-slate-700">
+                                            <ul className="list-disc list-inside space-y-2 text-gray-700">
                                                 {selectedPitfall.keyClues.map((item, i) => (
                                                     <li key={i}>{item}</li>
                                                 ))}
@@ -396,10 +396,10 @@ export function TaniTuzaklari() {
                                     {/* Right Column: Workup & Reporting */}
                                     <div className="space-y-6">
                                         <section>
-                                            <h3 className="text-blue-600 font-bold uppercase tracking-wider text-sm mb-3 border-b border-blue-100 pb-1">
+                                            <h3 className="text-[#2563eb] font-bold uppercase tracking-wider text-sm mb-3 border-b border-[#bfdbfe] pb-1">
                                                 Minimal Çalışma
                                             </h3>
-                                            <ul className="list-disc list-inside space-y-2 text-slate-700">
+                                            <ul className="list-disc list-inside space-y-2 text-gray-700">
                                                 {selectedPitfall.minimalWorkup.map((item, i) => (
                                                     <li key={i}>{item}</li>
                                                 ))}
@@ -407,10 +407,10 @@ export function TaniTuzaklari() {
                                         </section>
 
                                         <section>
-                                            <h3 className="text-indigo-600 font-bold uppercase tracking-wider text-sm mb-3 border-b border-indigo-100 pb-1">
+                                            <h3 className="text-[#4f46e5] font-bold uppercase tracking-wider text-sm mb-3 border-b border-[#c7d2fe] pb-1">
                                                 Raporlama
                                             </h3>
-                                            <ul className="list-disc list-inside space-y-2 text-slate-700">
+                                            <ul className="list-disc list-inside space-y-2 text-gray-700">
                                                 {selectedPitfall.reportingTips.map((item, i) => (
                                                     <li key={i}>{item}</li>
                                                 ))}
@@ -420,27 +420,27 @@ export function TaniTuzaklari() {
                                 </div>
 
                                 {/* Checklist Box */}
-                                <div className="bg-slate-50 p-6 rounded-none border-l-4 border-slate-800">
-                                    <h3 className="text-slate-900 font-black uppercase text-sm mb-4">
+                                <div className="bg-gray-50 p-6 rounded-none border-l-4 border-gray-800">
+                                    <h3 className="text-gray-900 font-black uppercase text-sm mb-4">
                                         Hızlı Kontrol Listesi
                                     </h3>
                                     <div className="grid sm:grid-cols-2 gap-3">
                                         {selectedPitfall.checklist.map((item, i) => (
                                             <div key={i} className="flex items-start gap-3">
-                                                <div className="w-5 h-5 rounded border-2 border-slate-300 flex items-center justify-center shrink-0 mt-0.5">
-                                                    <span className="text-slate-300 text-xs">✓</span>
+                                                <div className="w-5 h-5 rounded border-2 border-gray-300 flex items-center justify-center shrink-0 mt-0.5">
+                                                    <span className="text-gray-300 text-xs">✓</span>
                                                 </div>
-                                                <span className="text-slate-700 font-medium">{item}</span>
+                                                <span className="text-gray-700 font-medium">{item}</span>
                                             </div>
                                         ))}
                                     </div>
                                 </div>
 
                                 {/* Footer: Tags & Meta */}
-                                <div className="pt-6 border-t border-slate-100 text-sm text-slate-500 flex flex-col gap-4">
+                                <div className="pt-6 border-t border-gray-100 text-sm text-gray-500 flex flex-col gap-4">
                                     <div className="flex flex-wrap gap-2">
                                         {selectedPitfall.tags.map(tag => (
-                                            <span key={tag} className="px-2 py-1 bg-slate-100 text-slate-600 text-xs font-bold uppercase rounded">
+                                            <span key={tag} className="px-2 py-1 bg-gray-100 text-gray-600 text-xs font-bold uppercase rounded">
                                                 #{tag}
                                             </span>
                                         ))}
