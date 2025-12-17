@@ -19,21 +19,21 @@ function cn(...classes: Array<string | false | null | undefined>) {
     return classes.filter(Boolean).join(" ");
 }
 
-/* Color Mapping for Organ Systems - Using hex codes because Tailwind theme is restricted */
+/* Color Mapping for Organ Systems - Using hex codes for inline styles */
 const ORGAN_COLORS: Record<OrganSystem, string> = {
-    "Genel": "bg-[#475569]",      // Slate-600
-    "Akciğer": "bg-[#0284c7]",    // Sky-600
-    "GİS": "bg-[#d97706]",        // Amber-600
-    "Meme": "bg-[#db2777]",       // Pink-600
-    "Gyn": "bg-[#e11d48]",        // Rose-600
-    "Üriner": "bg-[#ca8a04]",     // Yellow-600
-    "Endokrin": "bg-[#9333ea]",   // Purple-600
-    "Baş-Boyun": "bg-[#ea580c]",  // Orange-600
-    "Deri": "bg-[#78716c]",       // Stone-500
-    "Lenfoid/Hemato": "bg-[#b91c1c]", // Red-700
-    "Yumuşak Doku": "bg-[#059669]",   // Emerald-600
-    "Kemik": "bg-[#525252]",      // Neutral-600
-    "CNS": "bg-[#4f46e5]",        // Indigo-600
+    "Genel": "#475569",      // Slate-600
+    "Akciğer": "#0284c7",    // Sky-600
+    "GİS": "#d97706",        // Amber-600
+    "Meme": "#db2777",       // Pink-600
+    "Gyn": "#e11d48",        // Rose-600
+    "Üriner": "#ca8a04",     // Yellow-600
+    "Endokrin": "#9333ea",   // Purple-600
+    "Baş-Boyun": "#ea580c",  // Orange-600
+    "Deri": "#78716c",       // Stone-500
+    "Lenfoid/Hemato": "#b91c1c", // Red-700
+    "Yumuşak Doku": "#059669",   // Emerald-600
+    "Kemik": "#525252",      // Neutral-600
+    "CNS": "#4f46e5",        // Indigo-600
 };
 
 /* Filter Chip Components */
@@ -119,7 +119,8 @@ export function TaniTuzaklari() {
             if (selectedPitfall) {
                 window.history.replaceState(null, "", `#${selectedPitfall.id}`);
             } else {
-                window.history.replaceState(null, "", window.location.pathname);
+                // Sayfa hash'ini koru (F5 için kritik) - Ana sayfaya (pathname) dönmemeli
+                window.history.replaceState(null, "", "#tani-tuzaklari");
             }
         } catch {
             // ignore
@@ -276,14 +277,15 @@ export function TaniTuzaklari() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 auto-rows-[200px]">
                     {filtered.map(p => {
                         const isFav = favIds.has(p.id);
-                        const colorClass = ORGAN_COLORS[p.organSystem] || "bg-gray-500";
+                        const colorHex = ORGAN_COLORS[p.organSystem] || "#6b7280";
 
                         return (
                             <MetroTile
                                 key={p.id}
                                 title={p.titleTR}
                                 subtitle={p.titleEN || p.organSystem}
-                                color={colorClass}
+                                color=""
+                                style={{ backgroundColor: colorHex }}
                                 size="medium"
                                 className="h-full min-h-[200px]"
                                 onClick={() => setSelectedPitfall(p)}
@@ -335,7 +337,10 @@ export function TaniTuzaklari() {
                             onClick={(e) => e.stopPropagation()}
                         >
                             {/* Modal Header */}
-                            <div className={`p-6 sm:p-8 ${ORGAN_COLORS[selectedPitfall.organSystem]} text-white sticky top-0 z-10`}>
+                            <div
+                                className="p-6 sm:p-8 text-white sticky top-0 z-10"
+                                style={{ backgroundColor: ORGAN_COLORS[selectedPitfall.organSystem] || '#6b7280' }}
+                            >
                                 <button
                                     onClick={() => setSelectedPitfall(null)}
                                     className="absolute top-4 right-4 text-white/70 hover:text-white text-3xl font-light leading-none"
