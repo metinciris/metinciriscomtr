@@ -11,7 +11,7 @@ export function HaftaninVakasi() {
         id: 'case-07',
         title: 'Haftanın Vakası #1',
         history: 'Tiroidde nodül saptanan hastadan yapılan rezeksiyon materyali.',
-        imagePlaceholder: 'https://placehold.co/800x400/e2e8f0/1e293b?text=Vaka+Görseli', // Placeholder until real image is provided
+        imagePlaceholder: 'https://raw.githubusercontent.com/metinciris/galeri/main/images/07.jpg', // Attempting to use likely path, fallback to placeholder if needed
         diagnosis: 'Cribriform-morular Thyroid Carcinoma',
         description: `Tiroidin oldukça nadir görülen bir tümörüdür. 
     Tanısal İpuçları:
@@ -45,82 +45,85 @@ export function HaftaninVakasi() {
                             alt="Case Preview"
                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                         />
-                        <div
-                            className="absolute inset-0 flex items-end p-6"
-                            style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%)' }}
-                        >
-                            <div style={{ color: '#ffffff' }}>
-                                <div className="flex items-center gap-2 font-bold uppercase tracking-widest text-sm mb-1" style={{ color: '#d8b4fe' }}>
-                                    <Microscope size={18} />
-                                    Klinik Öykü
-                                </div>
-                                <p className="text-lg md:text-2xl font-light leading-snug" style={{ color: '#ffffff', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
-                                    {currentCase.history}
-                                </p>
-                            </div>
+                        {/* Overlay Removed */}
+                    </div>
+
+                    {/* Clinical History Section - Now Below Image */}
+                    <div className="bg-purple-900 text-white p-6 md:p-8">
+                        <div className="flex items-center gap-2 font-bold uppercase tracking-widest text-sm mb-3 text-purple-300">
+                            <Microscope size={18} />
+                            Klinik Öykü
                         </div>
+                        <p className="text-xl md:text-2xl font-light leading-relaxed">
+                            {currentCase.history}
+                        </p>
                     </div>
 
                     {/* Interaction Section */}
-                    <div className="p-6 md:p-10">
-                        <div className="flex flex-col items-center justify-center text-center space-y-6">
+                    {/* Interaction Section */}
+                    <div className="p-6 md:p-10 bg-gray-50">
+                        <div className="flex flex-col items-center justify-center text-center space-y-8">
 
-                            {!isRevealed ? (
-                                <div className="space-y-6 py-8">
-                                    <div className="p-6 bg-purple-50 rounded-full inline-block mb-4">
-                                        <AlertCircle size={48} className="text-purple-600" />
-                                    </div>
-                                    <h3 className="text-2xl font-bold text-gray-800">Tanınız Nedir?</h3>
-                                    <p className="text-gray-500 max-w-md mx-auto">
-                                        Görüntüyü ve klinik öyküyü inceledikten sonra cevabınızı kontrol etmek için butona tıklayın.
-                                    </p>
+                            {/* Action Buttons Row */}
+                            <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto justify-center items-center">
+                                {/* Always visible Virtual Slide Link */}
+                                <a
+                                    href={currentCase.slideUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center justify-center px-8 py-4 bg-gray-900 text-white font-bold hover:bg-black transition-colors shadow-lg rounded-lg group w-full md:w-auto"
+                                >
+                                    <Microscope className="mr-2 h-5 w-5" />
+                                    Sanal Mikroskoba Git
+                                    <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                                </a>
+
+                                {/* Reveal Button */}
+                                {!isRevealed && (
                                     <button
                                         onClick={() => setIsRevealed(true)}
-                                        className="group relative inline-flex items-center justify-center px-8 py-4 font-bold text-white transition-all duration-200 bg-purple-600 font-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-600"
+                                        className="flex items-center justify-center px-8 py-4 bg-purple-600 text-white font-bold hover:bg-purple-700 transition-colors shadow-lg rounded-lg w-full md:w-auto"
                                     >
                                         <Eye className="mr-2 h-5 w-5" />
-                                        Tanıyı Göster
-                                        <div className="absolute -inset-3 rounded-lg bg-purple-400 opacity-20 group-hover:opacity-40 blur transition duration-200" />
+                                        Cevabı Merak Ediyorsanız Tıklayın
                                     </button>
-                                </div>
-                            ) : (
-                                <motion.div
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    className="w-full text-left bg-green-50/50 border border-green-100 p-6 md:p-8"
-                                >
-                                    <div className="flex flex-col md:flex-row md:items-start gap-6">
-                                        <div className="flex-1">
-                                            <span className="inline-block px-3 py-1 bg-green-100 text-green-700 font-bold text-xs uppercase tracking-wide mb-3 rounded-full">
-                                                Doğru Tanı
-                                            </span>
-                                            <h2 className="text-3xl font-black text-gray-900 mb-4 leading-tight">
-                                                {currentCase.diagnosis}
-                                            </h2>
-                                            <div className="prose prose-purple text-gray-700 mb-6">
-                                                <p className="whitespace-pre-line leading-relaxed">
-                                                    {currentCase.description}
-                                                </p>
+                                )}
+                            </div>
+
+                            {!isRevealed && (
+                                <p className="text-gray-500 text-sm max-w-md mx-auto italic">
+                                    Önce sanal mikroskopta vakayı değerlendirmeniz önerilir.
+                                </p>
+                            )}
+
+                            {/* Diagnosis Section (Revealed) */}
+                            <AnimatePresence>
+                                {isRevealed && (
+                                    <motion.div
+                                        initial={{ opacity: 0, height: 0, overflow: 'hidden' }}
+                                        animate={{ opacity: 1, height: 'auto' }}
+                                        exit={{ opacity: 0, height: 0 }}
+                                        className="w-full text-left bg-green-50 border border-green-200 p-6 md:p-8 rounded-xl shadow-inner mt-6"
+                                    >
+                                        <div className="flex flex-col gap-4">
+                                            <div>
+                                                <span className="inline-block px-3 py-1 bg-green-100 text-green-700 font-bold text-xs uppercase tracking-wide mb-3 rounded-full">
+                                                    Doğru Tanı
+                                                </span>
+                                                <h2 className="text-3xl font-black text-gray-900 mb-4 leading-tight">
+                                                    {currentCase.diagnosis}
+                                                </h2>
+                                                <div className="prose prose-purple text-gray-700">
+                                                    <p className="whitespace-pre-line leading-relaxed">
+                                                        {currentCase.description}
+                                                    </p>
+                                                </div>
                                             </div>
                                         </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
 
-                                        <div className="shrink-0">
-                                            <a
-                                                href={currentCase.slideUrl}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="flex items-center justify-center px-6 py-4 bg-gray-900 text-white font-bold hover:bg-black transition-colors shadow-lg group"
-                                            >
-                                                Sanal Mikroskoba Git
-                                                <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
-                                            </a>
-                                            <p className="text-xs text-center text-gray-500 mt-2">
-                                                Tam ekran görüntüleme için
-                                            </p>
-                                        </div>
-                                    </div>
-                                </motion.div>
-                            )}
                         </div>
                     </div>
                 </div>
