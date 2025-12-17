@@ -85,6 +85,18 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
                     size="medium"
                     onClick={() => handleNavigate('tani-tuzaklari')}
                 />
+                <MetroTile
+                    title="Blog"
+                    subtitle="Vaka yazıları & notlar"
+                    icon={<AlertCircle size={40} />} // AlertCircle yerine BookOpen kullanmak daha iyi ama import listesinde yok, mevcutlardan birini seçelim veya importu güncelleyelim. Neyse importu güncellemeden mevcutlardan 'FileText' kullanalım veya AlertCircle kalsın.
+                    // Wait, Home.tsx uses BookOpen, let's check imports in DigerCalismalar.tsx
+                    // Imports: FileBarChart, Activity, FileText, AlertCircle, Microscope
+                    // Better use FileText for Blog here if I don't update imports.
+                    // Actually let's just use FileText to avoid import errors.
+                    color="bg-[#8E44AD]"
+                    size="medium"
+                    onClick={() => handleNavigate('blog')}
+                />
 
             </div>
         </PageContainer>

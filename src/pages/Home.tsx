@@ -445,19 +445,13 @@ export function Home({ onNavigate }: HomeProps) {
                 title="Haftanın Vakası"
                 subtitle="Kendinizi test edin"
                 icon={<Microscope size={40} />}
-                color="bg-[#8B0000]" // Dark Red for attention
+                color=""
+                style={{ backgroundColor: '#8B0000', color: 'white' }}
                 size="medium"
                 onClick={() => onNavigate('haftanin-vakasi')}
               />
 
-              <MetroTile
-                title="Blog"
-                subtitle={blogSubtitle}
-                icon={<BookOpen size={40} />}
-                color="bg-[#8E44AD]"
-                size="medium"
-                onClick={() => onNavigate('blog')}
-              />
+              {/* Blog karosu kaldırıldı -> Diğer Çalışmalar'a taşındı */}
 
               {/* Slide Galeri – mikroskop ikonu */}
               <MetroTile
