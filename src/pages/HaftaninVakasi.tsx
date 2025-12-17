@@ -45,13 +45,16 @@ export function HaftaninVakasi() {
                             alt="Case Preview"
                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6">
-                            <div className="text-white">
-                                <div className="flex items-center gap-2 text-purple-300 font-bold uppercase tracking-widest text-sm mb-1">
+                        <div
+                            className="absolute inset-0 flex items-end p-6"
+                            style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%)' }}
+                        >
+                            <div style={{ color: '#ffffff' }}>
+                                <div className="flex items-center gap-2 font-bold uppercase tracking-widest text-sm mb-1" style={{ color: '#d8b4fe' }}>
                                     <Microscope size={18} />
                                     Klinik Öykü
                                 </div>
-                                <p className="text-lg md:text-2xl font-light leading-snug">
+                                <p className="text-lg md:text-2xl font-light leading-snug" style={{ color: '#ffffff', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
                                     {currentCase.history}
                                 </p>
                             </div>
