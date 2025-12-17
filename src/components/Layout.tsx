@@ -59,6 +59,7 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
                     ? 'bg-[#0078D4] text-white'
                     : 'text-white/80 hover:bg-white/10'
                     }`}
+                  style={{ backgroundColor: currentPage === item.path ? '#0078D4' : 'transparent' }}
                 >
                   <item.icon size={18} />
                   <span>{item.name}</span>
@@ -123,18 +124,21 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
                 <button
                   onClick={() => onNavigate('iletisim')}
                   className="bg-transparent text-white/70 hover:text-white text-left transition-colors"
+                  style={{ backgroundColor: 'transparent' }}
                 >
                   İletişim
                 </button>
                 <button
                   onClick={() => onNavigate('ders-programi')}
                   className="bg-transparent text-white/70 hover:text-white text-left transition-colors"
+                  style={{ backgroundColor: 'transparent' }}
                 >
                   Ders Programı
                 </button>
                 <button
                   onClick={() => onNavigate('yayinlar')}
                   className="bg-transparent text-white/70 hover:text-white text-left transition-colors"
+                  style={{ backgroundColor: 'transparent' }}
                 >
                   Yayınlar
                 </button>

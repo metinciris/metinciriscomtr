@@ -6,7 +6,7 @@ export function Iletisim() {
   // Bot korumalı e-posta adresleri
   const email1 = 'metin' + '@' + 'metinciris.com.tr';
   const email2 = 'ibrahimciris' + '@' + 'sdu.edu.tr';
-  
+
   return (
     <PageContainer>
       {/* Hero Bölümü */}
@@ -19,13 +19,13 @@ export function Iletisim() {
 
       {/* Ana Grid - Profil ve İletişim Kartları */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        
+
         {/* Sol Kolon - Profil */}
         <div className="lg:col-span-1">
           <div className="bg-white p-6 rounded-lg shadow-sm h-full">
             <div className="flex justify-center mb-6">
               <img
-                src="https://metinciris.com.tr/resim/metinciris.jpg"
+                src="/img/metinciris.jpg"
                 alt="Prof. Dr. Metin Çiriş"
                 className="rounded-lg shadow-md"
                 style={{ width: '300px', height: '423px', objectFit: 'cover' }}
@@ -44,7 +44,7 @@ export function Iletisim() {
 
         {/* Sağ Kolon - İletişim Bilgileri */}
         <div className="lg:col-span-2 space-y-6">
-          
+
           {/* Adres Kartı */}
           <div className="bg-[#00A6D6] text-white p-6 rounded-lg shadow-sm hover:shadow-lg transition-all">
             <div className="flex items-start gap-4">
@@ -65,7 +65,7 @@ export function Iletisim() {
 
           {/* İletişim Bilgileri Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
+
             {/* Telefon Kartı */}
             <div className="bg-[#27AE60] text-white p-6 rounded-lg shadow-sm hover:shadow-lg transition-all">
               <div className="flex items-start gap-4">
@@ -95,14 +95,14 @@ export function Iletisim() {
                 <div>
                   <h3 className="text-white mb-3">E-posta</h3>
                   <p className="text-white/90">
-                    <a 
+                    <a
                       href={`mailto:${email1}`}
                       className="hover:text-white transition-colors block mb-1"
                     >
                       {email1}
                     </a>
                     <span className="text-white/70 text-sm">(tercih edin)</span>
-                    <a 
+                    <a
                       href={`mailto:${email2}`}
                       className="hover:text-white transition-colors block mt-2"
                     >
@@ -118,7 +118,7 @@ export function Iletisim() {
 
           {/* Sosyal Medya Kartları Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
+
             {/* LinkedIn Kartı */}
             <div className="bg-[#0077B5] text-white p-6 rounded-lg shadow-sm hover:shadow-lg transition-all">
               <div className="flex items-start gap-4">
@@ -127,9 +127,9 @@ export function Iletisim() {
                 </div>
                 <div>
                   <h3 className="text-white mb-3">LinkedIn</h3>
-                  <a 
-                    href="https://www.linkedin.com/in/patoloji/" 
-                    target="_blank" 
+                  <a
+                    href="https://www.linkedin.com/in/patoloji/"
+                    target="_blank"
                     rel="noopener noreferrer"
                     className="hover:text-white/80 transition-colors inline-flex items-center gap-2"
                   >
@@ -145,14 +145,14 @@ export function Iletisim() {
               <div className="flex items-start gap-4">
                 <div className="bg-white/20 w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0">
                   <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                   </svg>
                 </div>
                 <div>
                   <h3 className="text-white mb-3">Facebook</h3>
-                  <a 
-                    href="https://fb.com/patoloji" 
-                    target="_blank" 
+                  <a
+                    href="https://fb.com/patoloji"
+                    target="_blank"
                     rel="noopener noreferrer"
                     className="hover:text-white/80 transition-colors inline-flex items-center gap-2"
                   >
@@ -176,10 +176,10 @@ export function Iletisim() {
           </div>
           <h2 className="text-white mb-4">Mesaj Gönderin</h2>
           <p className="text-white/90 text-lg mb-8 leading-relaxed">
-            Sorularınız, önerileriniz veya işbirliği teklifleriniz için iletişim formunu kullanarak 
+            Sorularınız, önerileriniz veya işbirliği teklifleriniz için iletişim formunu kullanarak
             bana mesaj gönderebilirsiniz. Tüm mesajlar doğrudan e-posta adresime iletilmektedir.
           </p>
-          
+
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
               href="https://docs.google.com/forms/d/e/1FAIpQLSd1JpaucSQGovf934mAYBUkiKPOaKw_H_xu6KSVA4L9IKP0Vg/viewform?usp=header"
@@ -203,7 +203,7 @@ export function Iletisim() {
 
       {/* Bilgilendirme Bölümü */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        
+
         {/* Çalışma Saatleri */}
         <div className="bg-[#F39C12] text-white p-6 rounded-lg shadow-sm">
           <div className="flex items-center gap-3 mb-3">
