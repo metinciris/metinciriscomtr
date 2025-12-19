@@ -7,14 +7,14 @@ interface NotFoundProps {
 
 export const NotFound: React.FC<NotFoundProps> = ({ onNavigate }) => {
     const links = [
-        { label: 'Anasayfa', icon: Home, target: 'home', color: 'bg-blue-500' },
-        { label: 'Patoloji Tanı Tuzakları', icon: Search, target: 'tani-tuzaklari', color: 'bg-amber-500' },
-        { label: 'Baktığım Biyopsiler', icon: FileText, target: 'baktigim-biyopsiler', color: 'bg-emerald-500' },
-        { label: 'SVS Mikroskopi Reader', icon: Layers, target: 'svs-reader', color: 'bg-indigo-500' },
-        { label: 'Deprem Takibi', icon: Activity, target: 'deprem', color: 'bg-red-500' },
-        { label: 'Blog / Yayınlar', icon: MessageSquare, target: 'blog', color: 'bg-purple-500' },
-        { label: 'İletişim', icon: Mail, target: 'iletisim', color: 'bg-sky-500' },
-        { label: 'Hastane Yemek', icon: Utensils, target: 'hastane-yemek', color: 'bg-orange-500' },
+        { label: 'Anasayfa', icon: Home, target: 'home', color: '#00A6D6' },
+        { label: 'Patoloji Tanı Tuzakları', icon: Search, target: 'tani-tuzaklari', color: '#f59e0b' },
+        { label: 'Baktığım Biyopsiler', icon: FileText, target: 'baktigim-biyopsiler', color: '#0078D4' },
+        { label: 'SVS Mikroskopi Reader', icon: Layers, target: 'svs-reader', color: '#8E44AD' },
+        { label: 'Deprem Takibi', icon: Activity, target: 'deprem', color: '#dc2626' },
+        { label: 'Blog / Yayınlar', icon: MessageSquare, target: 'blog', color: '#9333ea' },
+        { label: 'İletişim', icon: Mail, target: 'iletisim', color: '#0ea5e9' },
+        { label: 'Hastane Yemek', icon: Utensils, target: 'hastane-yemek', color: '#16A085' },
     ];
 
     const handleLinkClick = (target: string) => {
@@ -44,13 +44,16 @@ export const NotFound: React.FC<NotFoundProps> = ({ onNavigate }) => {
                     <button
                         key={link.target}
                         onClick={() => handleLinkClick(link.target)}
-                        className="group flex items-center p-4 bg-white rounded-2xl shadow-sm border border-slate-100 hover:shadow-md hover:border-slate-200 transition-all duration-300 text-left"
+                        className="group flex items-center p-4 bg-white rounded-2xl shadow-sm border border-slate-100 hover:shadow-2xl hover:border-slate-300 hover:scale-[1.03] transition-all duration-300 text-left active:scale-100"
                     >
-                        <div className={`p-3 rounded-xl ${link.color} text-white mr-4 group-hover:scale-110 transition-transform`}>
-                            <link.icon className="w-6 h-6" />
+                        <div
+                            style={{ backgroundColor: link.color }}
+                            className="p-3 rounded-xl text-white mr-8 group-hover:scale-110 transition-transform shadow-lg shrink-0"
+                        >
+                            <link.icon className="w-6 h-6 text-white" />
                         </div>
                         <div className="flex-1">
-                            <span className="font-semibold text-slate-700 block">{link.label}</span>
+                            <span className="font-semibold text-slate-800 block leading-tight">{link.label}</span>
                             <span className="text-xs text-slate-400">Gitmek için tıklayın</span>
                         </div>
                         <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-slate-500 transform group-hover:translate-x-1 transition-all" />
@@ -60,7 +63,8 @@ export const NotFound: React.FC<NotFoundProps> = ({ onNavigate }) => {
 
             <button
                 onClick={() => handleLinkClick('home')}
-                className="mt-12 px-8 py-4 bg-indigo-600 text-white rounded-full font-bold shadow-lg hover:bg-indigo-700 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 border-none"
+                style={{ backgroundColor: '#4f46e5' }}
+                className="mt-12 px-8 py-4 text-white rounded-full font-bold shadow-lg hover:shadow-indigo-500/30 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 border-none ring-offset-2 hover:ring-2 hover:ring-indigo-300"
             >
                 <Home className="w-5 h-5 text-white" />
                 <span className="text-white">Anasayfaya Dön</span>
@@ -72,5 +76,6 @@ export const NotFound: React.FC<NotFoundProps> = ({ onNavigate }) => {
         </div>
     );
 };
+
 
 export default NotFound;
