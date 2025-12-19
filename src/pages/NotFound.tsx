@@ -44,11 +44,11 @@ export const NotFound: React.FC<NotFoundProps> = ({ onNavigate }) => {
                     <button
                         key={link.target}
                         onClick={() => handleLinkClick(link.target)}
-                        className="group flex items-center p-4 bg-white rounded-2xl shadow-sm border border-slate-100 hover:shadow-2xl hover:border-slate-300 hover:scale-[1.03] transition-all duration-300 text-left active:scale-100"
+                        className="group flex items-center p-4 pl-6 gap-8 bg-white rounded-2xl shadow-sm border border-slate-100 hover:shadow-2xl hover:border-slate-300 hover:scale-[1.03] transition-all duration-300 text-left active:scale-100"
                     >
                         <div
                             style={{ backgroundColor: link.color }}
-                            className="p-3 rounded-xl text-white mr-8 group-hover:scale-110 transition-transform shadow-lg shrink-0"
+                            className="p-3 rounded-xl text-white group-hover:scale-110 transition-transform shadow-lg shrink-0"
                         >
                             <link.icon className="w-6 h-6 text-white" />
                         </div>
