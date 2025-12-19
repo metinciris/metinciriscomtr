@@ -114,6 +114,9 @@ const HaftaninVakasi = React.lazy(() =>
 const Prizma3D = React.lazy(() =>
   import('./pages/Prizma3D').then((m) => ({ default: m.Prizma3D })),
 );
+const NotFound = React.lazy(() =>
+  import('./pages/NotFound').then((m) => ({ default: m.NotFound })),
+);
 
 export default function App() {
   const [currentPage, setCurrentPage] = React.useState('home');
@@ -122,7 +125,21 @@ export default function App() {
   React.useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.slice(1) || 'home';
-      setCurrentPage(hash);
+      // Liste içindeki geçerli sayfalar
+      const validPages = [
+        'home', 'iletisim', 'ziyaret-mesaji', 'biyopsi-sonucu', 'baktigim-biyopsiler',
+        'nobetci-eczane', 'hastane-yemek', 'ders-notlari', 'ders-programi', 'ogrenci-yemek',
+        'donem-3', 'galeri', 'portfolyo', 'sinav-analizi', 'yayinlar', 'podcast',
+        'blog', 'github', 'facebook', 'linkedin', 'diger-calismalar', 'fetus-uzunluklari',
+        'rcb-calculator', 'gist-raporlama', 'makale', 'deprem', 'svs-reader',
+        'tani-tuzaklari', 'haftanin-vakasi', 'prizma-3d'
+      ];
+
+      if (validPages.includes(hash)) {
+        setCurrentPage(hash);
+      } else {
+        setCurrentPage('404');
+      }
     };
 
     window.addEventListener('hashchange', handleHashChange);
@@ -218,6 +235,9 @@ export default function App() {
 
       case 'prizma-3d':
         return <Prizma3D />;
+
+      case '404':
+        return <NotFound onNavigate={navigate} />;
 
       case 'home':
       default:
