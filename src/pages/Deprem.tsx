@@ -616,24 +616,32 @@ export function Deprem() {
 
       // İlk yükleme: ses çalma yok
       if (seenIdsRef.current.size === 0) {
-        list.forEach((eq) => seenIdsRef.current.add(eq.earthquake_id));
-      } else {
-        list.forEach((eq) => seenIdsRef.current.add(eq.earthquake_id));
-      }
+      list.forEach((eq) => seenIdsRef.current.add(eq.earthquake_id));
+    } else {
+      newOnes.forEach((eq) => {
+        seenIdsRef.current.add(eq.earthquake_id);
+        if (notificationsEnabled) {
+          soundQueue.current.push(eq);
+        }
+      });
+    }
 
-      setEarthquakes(list);
+    setEarthquakes(list);
 
-      // Ses için distanceMap
-      const dmap = new Map<string, number>();
-      for (const eq of list) {
-        const d = calculateDistance(
-          ISPARTA_COORDS.lat,
-          ISPARTA_COORDS.lng,
-          eq.geojson.coordinates[1],
-          eq.geojson.coordinates[0]
-        );
-        dmap.set(eq.earthquake_id, d);
-      }
+    const dmap = new Map<string, number>();
+    for (const eq of list) {
+      const d = calculateDistance(
+        ISPARTA_COORDS.lat,
+        ISPARTA_COORDS.lng,
+        eq.geojson.coordinates[1],
+        eq.geojson.coordinates[0]
+      );
+      dmap.set(eq.earthquake_id, d);
+    }
+
+    if (notificationsEnabled && soundQueue.current.length > 0) {
+      processSoundQueue(dmap);
+    }
 
       if (notificationsEnabled && newOnes.length > 0) {
         newOnes.forEach((eq) => soundQueue.current.push(eq));
@@ -649,12 +657,11 @@ export function Deprem() {
     }
   };
 
-  useEffect(() => {
-    fetchData();
-    const id = setInterval(() => fetchData(), 30000);
-    return () => clearInterval(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+useEffect(() => {
+  fetchData();
+  const id = setInterval(() => fetchData(), 30000);
+  return () => clearInterval(id);
+}, [notificationsEnabled]);
 
   /* ============================================================
      12) Memo: distanceMap, alert listesi, sıralamalar
