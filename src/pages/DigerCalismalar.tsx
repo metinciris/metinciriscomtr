@@ -1,7 +1,7 @@
 import React from 'react';
 import { PageContainer } from '../components/PageContainer';
 import { MetroTile } from '../components/MetroTile';
-import { FileBarChart, Activity, FileText, AlertCircle, Microscope, Box, BookOpen } from 'lucide-react';
+import { FileBarChart, Activity, FileText, AlertCircle, Microscope, Box, BookOpen, Calculator } from 'lucide-react';
 
 interface DigerCalismalarProps {
     onNavigate?: (page: string) => void;
@@ -105,6 +105,15 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
                     style={{ backgroundColor: '#667eea' }}
                     size="medium"
                     onClick={() => handleNavigate('prizma-3d')}
+                />
+                <MetroTile
+                    title="Lenf Nodu Sayacı"
+                    subtitle="Klavye & Dokunmatik"
+                    icon={<Calculator size={40} />}
+                    color=""
+                    style={{ backgroundColor: '#8E44AD' }}
+                    size="medium"
+                    onClick={() => handleNavigate('lenf-nodu')}
                 />
                 <MetroTile
                     title="Makale Takip"
