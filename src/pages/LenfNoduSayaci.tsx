@@ -154,38 +154,36 @@ export function LenfNoduSayaci() {
                     </div>
                 </div>
 
-                {/* Top Summary Row - Plain Text */}
-                <div className="flex items-center justify-around mb-6 px-4 py-2 bg-slate-50 rounded-xl border border-slate-100">
-                    <div className="text-center">
-                        <span className="block text-xs uppercase text-slate-400 font-bold tracking-wider">Toplam</span>
-                        <span className="text-3xl font-black text-slate-800">{counts.Total}</span>
+                {/* Top Summary Row - BOXES (Restored) */}
+                <div className="grid grid-cols-4 gap-4 mb-6">
+                    <div className="rounded-xl p-3 text-center shadow-sm flex flex-col justify-center border border-slate-200" style={{ backgroundColor: '#1e293b', color: 'white' }}>
+                        <div className="text-xs uppercase opacity-70 mb-1">Toplam</div>
+                        <div className="text-3xl font-bold">{counts.Total}</div>
                     </div>
-                    <div className="w-px h-8 bg-slate-200"></div>
-                    <div className="text-center">
-                        <span className="block text-xs uppercase text-emerald-600 font-bold tracking-wider">Reaktif</span>
-                        <span className="text-2xl font-bold text-emerald-700">{counts.Reaktif}</span>
+                    <div className="rounded-xl p-3 text-center flex flex-col justify-center border border-emerald-200" style={{ backgroundColor: '#d1fae5', color: '#065f46' }}>
+                        <div className="text-xs uppercase opacity-70 mb-1 font-bold">Reaktif</div>
+                        <div className="text-2xl font-bold">{counts.Reaktif}</div>
                     </div>
-                    <div className="w-px h-8 bg-slate-200"></div>
-                    <div className="text-center">
-                        <span className="block text-xs uppercase text-rose-600 font-bold tracking-wider">Metastatik</span>
-                        <span className="text-2xl font-bold text-rose-700">{counts.Metastatik}</span>
+                    <div className="rounded-xl p-3 text-center flex flex-col justify-center border border-rose-200" style={{ backgroundColor: '#ffe4e6', color: '#9f1239' }}>
+                        <div className="text-xs uppercase opacity-70 mb-1 font-bold">Metastatik</div>
+                        <div className="text-2xl font-bold">{counts.Metastatik}</div>
                     </div>
-                    <div className="w-px h-8 bg-slate-200"></div>
-                    <div className="text-center">
-                        <span className="block text-xs uppercase text-violet-600 font-bold tracking-wider">Deposit</span>
-                        <span className="text-2xl font-bold text-violet-700">{counts.Deposit}</span>
+                    <div className="rounded-xl p-3 text-center flex flex-col justify-center border border-violet-200" style={{ backgroundColor: '#ede9fe', color: '#5b21b6' }}>
+                        <div className="text-xs uppercase opacity-70 mb-1 font-bold">Deposit</div>
+                        <div className="text-2xl font-bold">{counts.Deposit}</div>
                     </div>
                 </div>
 
-                {/* Main Counter Buttons (3 Columns, Full Height) */}
+                {/* Main Counter Buttons - INLINE STYLES FORCED */}
                 <main className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 min-h-0">
                     {/* REAKTIF */}
                     <button
                         onClick={() => addCount('Reaktif')}
-                        className="group relative flex flex-col items-center justify-center bg-emerald-500 hover:bg-emerald-600 active:scale-[0.98] transition-all duration-100 rounded-3xl shadow-xl hover:shadow-2xl border-b-8 border-emerald-700 active:border-b-0 active:translate-y-2"
+                        className="group relative flex flex-col items-center justify-center transition-all duration-100 rounded-3xl shadow-xl hover:shadow-2xl active:scale-[0.98] active:translate-y-2 border-b-8 active:border-b-0"
+                        style={{ backgroundColor: '#10b981', borderColor: '#047857' }}
                     >
                         <div className="text-emerald-100 text-2xl font-bold mb-4 uppercase tracking-widest">Reaktif</div>
-                        <div className="bg-emerald-800/20 rounded-2xl px-8 py-2 mb-4 backdrop-blur-sm">
+                        <div className="rounded-2xl px-8 py-2 mb-4 backdrop-blur-sm" style={{ backgroundColor: 'rgba(6, 95, 70, 0.2)' }}>
                             <span className="text-white text-9xl font-black tracking-tighter drop-shadow-lg">{counts.Reaktif}</span>
                         </div>
                         <div className="absolute bottom-6 px-4 py-1 bg-black/20 rounded-full text-white/90 font-mono text-sm">
@@ -196,10 +194,11 @@ export function LenfNoduSayaci() {
                     {/* METASTATIK */}
                     <button
                         onClick={() => addCount('Metastatik')}
-                        className="group relative flex flex-col items-center justify-center bg-rose-500 hover:bg-rose-600 active:scale-[0.98] transition-all duration-100 rounded-3xl shadow-xl hover:shadow-2xl border-b-8 border-rose-700 active:border-b-0 active:translate-y-2"
+                        className="group relative flex flex-col items-center justify-center transition-all duration-100 rounded-3xl shadow-xl hover:shadow-2xl active:scale-[0.98] active:translate-y-2 border-b-8 active:border-b-0"
+                        style={{ backgroundColor: '#f43f5e', borderColor: '#be123c' }}
                     >
                         <div className="text-rose-100 text-2xl font-bold mb-4 uppercase tracking-widest">Metastatik</div>
-                        <div className="bg-rose-800/20 rounded-2xl px-8 py-2 mb-4 backdrop-blur-sm">
+                        <div className="rounded-2xl px-8 py-2 mb-4 backdrop-blur-sm" style={{ backgroundColor: 'rgba(159, 18, 57, 0.2)' }}>
                             <span className="text-white text-9xl font-black tracking-tighter drop-shadow-lg">{counts.Metastatik}</span>
                         </div>
                         <div className="absolute bottom-6 px-4 py-1 bg-black/20 rounded-full text-white/90 font-mono text-sm">
@@ -210,10 +209,11 @@ export function LenfNoduSayaci() {
                     {/* DEPOSIT */}
                     <button
                         onClick={() => addCount('Deposit')}
-                        className="group relative flex flex-col items-center justify-center bg-violet-500 hover:bg-violet-600 active:scale-[0.98] transition-all duration-100 rounded-3xl shadow-xl hover:shadow-2xl border-b-8 border-violet-700 active:border-b-0 active:translate-y-2"
+                        className="group relative flex flex-col items-center justify-center transition-all duration-100 rounded-3xl shadow-xl hover:shadow-2xl active:scale-[0.98] active:translate-y-2 border-b-8 active:border-b-0"
+                        style={{ backgroundColor: '#8b5cf6', borderColor: '#6d28d9' }}
                     >
                         <div className="text-violet-100 text-2xl font-bold mb-4 uppercase tracking-widest">Deposit</div>
-                        <div className="bg-violet-800/20 rounded-2xl px-8 py-2 mb-4 backdrop-blur-sm">
+                        <div className="rounded-2xl px-8 py-2 mb-4 backdrop-blur-sm" style={{ backgroundColor: 'rgba(91, 33, 182, 0.2)' }}>
                             <span className="text-white text-9xl font-black tracking-tighter drop-shadow-lg">{counts.Deposit}</span>
                         </div>
                         <div className="absolute bottom-6 px-4 py-1 bg-black/20 rounded-full text-white/90 font-mono text-sm">
@@ -222,35 +222,34 @@ export function LenfNoduSayaci() {
                     </button>
                 </main>
 
-                {/* History Log */}
-                <div className="h-40 bg-white rounded-2xl border border-slate-200 overflow-hidden flex flex-col shadow-sm">
-                    <div className="p-2 border-b border-slate-100 bg-slate-50 flex items-center gap-2">
+                {/* History Log - TALLER */}
+                <div className="h-64 md:h-80 bg-white rounded-2xl border border-slate-200 overflow-hidden flex flex-col shadow-sm scroll-mt-4">
+                    <div className="p-3 border-b border-slate-100 bg-slate-50 flex items-center gap-2">
                         <History size={16} className="text-slate-400" />
                         <span className="text-xs font-bold text-slate-500 uppercase">Son İşlemler</span>
                     </div>
                     <div ref={historyRef} className="flex-1 overflow-y-auto p-2 space-y-2">
                         {logs.length === 0 && (
-                            <div className="h-full flex items-center justify-center text-slate-400 text-sm">
-                                Sayaç boş
+                            <div className="h-full flex items-center justify-center text-slate-400 text-sm italic">
+                                Henüz kayıt yok...
                             </div>
                         )}
                         {logs.map((log) => (
-                            <div key={log.id} className="flex items-center justify-between p-2 rounded-lg bg-slate-50 animate-in slide-in-from-top-1 duration-200">
-                                <span className={`font-bold ${log.type === 'Reaktif' ? 'text-emerald-700' :
-                                    log.type === 'Metastatik' ? 'text-rose-700' :
-                                        'text-violet-700'
-                                    }`}>{log.type}</span>
+                            <div key={log.id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors group animate-in slide-in-from-top-2 duration-200">
                                 <div className="flex items-center gap-3">
+                                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: log.type === 'Reaktif' ? '#10b981' : log.type === 'Metastatik' ? '#f43f5e' : '#8b5cf6' }}></div>
+                                    <span className="font-bold" style={{ color: log.type === 'Reaktif' ? '#047857' : log.type === 'Metastatik' ? '#be123c' : '#6d28d9' }}>{log.type}</span>
                                     <span className="text-xs text-slate-400 font-mono">
                                         {log.timestamp.toLocaleTimeString()}
                                     </span>
-                                    <button
-                                        onClick={(e) => deleteLog(log.id, e)}
-                                        className="text-slate-300 hover:text-rose-500 transition-colors"
-                                    >
-                                        <Trash2 size={16} />
-                                    </button>
                                 </div>
+                                <button
+                                    onClick={(e) => deleteLog(log.id, e)}
+                                    className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                                    title="Sil"
+                                >
+                                    <Trash2 size={16} />
+                                </button>
                             </div>
                         ))}
                     </div>
