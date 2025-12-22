@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { PageContainer } from '../components/PageContainer';
-import { Trash2, RotateCcw, Volume2, VolumeX, History } from 'lucide-react';
+import { Trash2, RotateCcw, Volume2, VolumeX, History, Maximize, Minimize } from 'lucide-react';
 
 type LogType = 'Reaktif' | 'Metastatik' | 'Deposit';
 
@@ -13,6 +13,7 @@ interface LogEntry {
 export function LenfNoduSayaci() {
     const [logs, setLogs] = useState<LogEntry[]>([]);
     const [soundEnabled, setSoundEnabled] = useState(true);
+    const [isFullscreen, setIsFullscreen] = useState(false);
 
     // Derived counts
     const counts = {
@@ -22,11 +23,33 @@ export function LenfNoduSayaci() {
         Total: logs.length
     };
 
-    // Scroll ref for history
+    // Refs
     const historyRef = useRef<HTMLDivElement>(null);
-
-    // Audio Context (Lazy init)
     const audioCtxRef = useRef<AudioContext | null>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleFullscreenChange = () => {
+            setIsFullscreen(!!document.fullscreenElement);
+        };
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    }, []);
+
+    const toggleFullscreen = () => {
+        if (!document.fullscreenElement) {
+            if (containerRef.current?.requestFullscreen) {
+                containerRef.current.requestFullscreen();
+            } else {
+                // Fallback for Safari/Mobile (sometimes needs webkit prefix but React handles most, or just target document element)
+                document.documentElement.requestFullscreen().catch(e => {
+                    console.log("Fullscreen error:", e);
+                });
+            }
+        } else {
+            document.exitFullscreen();
+        }
+    };
 
     useEffect(() => {
         // Auto-scroll history to top
@@ -132,13 +155,23 @@ export function LenfNoduSayaci() {
 
     return (
         <PageContainer>
-            <div className="flex flex-col h-[calc(100vh-140px)] select-none">
+            <div
+                ref={containerRef}
+                className={`flex flex-col select-none transition-all duration-300 ${isFullscreen ? 'bg-slate-50 p-6 fixed inset-0 z-[9999] overflow-y-auto' : 'h-[calc(100vh-140px)]'}`}
+            >
 
                 {/* Header Controls */}
                 <div className="flex flex-col gap-1 mb-4">
                     <div className="flex items-center justify-between">
                         <h1 className="text-xl font-bold text-slate-800">Lenf Nodu Sayacı</h1>
                         <div className="flex items-center gap-2">
+                            <button
+                                onClick={toggleFullscreen}
+                                className={`p-2 rounded-lg transition-colors ${isFullscreen ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-600'}`}
+                                title={isFullscreen ? "Tam Ekrandan Çık" : "Tam Ekran"}
+                            >
+                                {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
+                            </button>
                             <button
                                 onClick={() => setSoundEnabled(!soundEnabled)}
                                 className={`p-2 rounded-lg transition-colors ${soundEnabled ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-400'}`}
