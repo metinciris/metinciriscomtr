@@ -168,7 +168,7 @@ export function LenfNoduSayaci() {
                         className="group relative flex flex-col items-center justify-center transition-all duration-100 rounded-[3rem] shadow-xl hover:shadow-2xl active:scale-[0.98] active:translate-y-2 border-b-8 active:border-b-0 overflow-hidden"
                         style={{ backgroundColor: '#10b981', borderColor: '#047857' }}
                     >
-                        <div className="absolute top-8 left-8 text-emerald-100 text-3xl font-bold uppercase tracking-widest text-left">Reaktif</div>
+                        <div className="absolute top-6 left-6 text-emerald-100 text-3xl font-bold uppercase tracking-widest text-left pointer-events-none">Reaktif</div>
                         <div className="flex-1 flex items-center justify-center w-full">
                             <span className="text-white font-black tracking-tighter drop-shadow-lg leading-none select-none" style={{ fontSize: '12rem' }}>
                                 {counts.Reaktif}
@@ -182,7 +182,7 @@ export function LenfNoduSayaci() {
                         className="group relative flex flex-col items-center justify-center transition-all duration-100 rounded-[3rem] shadow-xl hover:shadow-2xl active:scale-[0.98] active:translate-y-2 border-b-8 active:border-b-0 overflow-hidden"
                         style={{ backgroundColor: '#f43f5e', borderColor: '#be123c' }}
                     >
-                        <div className="absolute top-8 left-8 text-rose-100 text-3xl font-bold uppercase tracking-widest text-left">Metastatik</div>
+                        <div className="absolute top-6 left-6 text-rose-100 text-3xl font-bold uppercase tracking-widest text-left pointer-events-none">Metastatik</div>
                         <div className="flex-1 flex items-center justify-center w-full">
                             <span className="text-white font-black tracking-tighter drop-shadow-lg leading-none select-none" style={{ fontSize: '12rem' }}>
                                 {counts.Metastatik}
@@ -196,7 +196,7 @@ export function LenfNoduSayaci() {
                         className="group relative flex flex-col items-center justify-center transition-all duration-100 rounded-[3rem] shadow-xl hover:shadow-2xl active:scale-[0.98] active:translate-y-2 border-b-8 active:border-b-0 overflow-hidden"
                         style={{ backgroundColor: '#8b5cf6', borderColor: '#6d28d9' }}
                     >
-                        <div className="absolute top-8 left-8 text-violet-100 text-3xl font-bold uppercase tracking-widest text-left">Deposit</div>
+                        <div className="absolute top-6 left-6 text-violet-100 text-3xl font-bold uppercase tracking-widest text-left pointer-events-none">Deposit</div>
                         <div className="flex-1 flex items-center justify-center w-full">
                             <span className="text-white font-black tracking-tighter drop-shadow-lg leading-none select-none" style={{ fontSize: '12rem' }}>
                                 {counts.Deposit}
@@ -216,18 +216,18 @@ export function LenfNoduSayaci() {
                         {logs.length === 0 && (
                             <span className="text-slate-300 text-sm italic">Henüz işlem yok</span>
                         )}
-                        {logs.map((log) => (
+                        {logs.map((log, index) => (
                             <button
                                 key={log.id}
                                 onClick={(e) => deleteLog(log.id, e)}
-                                className="px-3 py-1.5 rounded-lg shadow-sm hover:shadow-md hover:scale-105 active:scale-95 transition-all flex items-center gap-2 text-sm font-bold text-white relative group border-b-2 active:border-b-0"
+                                className={`px-3 py-1.5 rounded-lg shadow-sm hover:shadow-md hover:scale-105 active:scale-95 transition-all flex items-center gap-2 text-sm font-bold text-white relative group border-b-2 active:border-b-0 ${index === 0 ? 'ring-2 ring-offset-2 ring-offset-slate-100 ring-slate-400 scale-105 font-black' : ''}`}
                                 style={{
                                     backgroundColor: log.type === 'Reaktif' ? '#10b981' : log.type === 'Metastatik' ? '#f43f5e' : '#8b5cf6',
                                     borderColor: log.type === 'Reaktif' ? '#047857' : log.type === 'Metastatik' ? '#be123c' : '#6d28d9'
                                 }}
                                 title={`${log.timestamp.toLocaleTimeString()} - Silmek için tıkla`}
                             >
-                                <span>{log.type}</span>
+                                <span>{index === 0 ? '👉️ ' : ''}{log.type}</span>
                                 <span className="opacity-70 text-[10px] bg-black/10 px-1 rounded">
                                     {log.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                                 </span>
