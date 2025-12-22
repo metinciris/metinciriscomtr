@@ -83,21 +83,69 @@ export function PatolojiMakaleTakip() {
     return (
         <PageContainer>
             {/* Hero Banner */}
-            <div className="relative overflow-hidden bg-gradient-to-br from-[#1e3a8a] via-[#1e40af] to-[#3b82f6] text-white p-8 md:p-12 mb-10 rounded-3xl shadow-2xl">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
-                <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-500/20 rounded-full blur-2xl transform -translate-x-1/2 translate-y-1/2"></div>
+            {/* Hero Banner */}
+            <div
+                className="relative overflow-hidden p-8 md:p-12 mb-10 rounded-3xl shadow-2xl"
+                style={{
+                    background: 'linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #3b82f6 100%)',
+                    color: '#ffffff'
+                }}
+            >
+                {/* Decorative elements */}
+                <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    right: 0,
+                    width: '256px',
+                    height: '256px',
+                    background: 'rgba(255,255,255,0.1)',
+                    borderRadius: '50%',
+                    filter: 'blur(60px)',
+                    transform: 'translate(50%, -50%)'
+                }}></div>
+                <div style={{
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    width: '192px',
+                    height: '192px',
+                    background: 'rgba(168, 85, 247, 0.2)', // purple-500/20
+                    borderRadius: '50%',
+                    filter: 'blur(40px)',
+                    transform: 'translate(-50%, 50%)'
+                }}></div>
 
                 <div className="relative z-10">
                     <div className="flex items-center gap-3 mb-4">
-                        <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-sm">
-                            <BookOpen size={32} className="text-white" />
+                        <div style={{
+                            padding: '12px',
+                            background: 'rgba(255,255,255,0.2)',
+                            borderRadius: '16px',
+                            backdropFilter: 'blur(4px)'
+                        }}>
+                            <BookOpen size={32} style={{ color: '#ffffff' }} />
                         </div>
-                        <h1 className="text-3xl md:text-4xl font-bold text-white">Patoloji Makale Takip</h1>
+                        <h1 style={{
+                            fontSize: '2.25rem', // text-3xl/4xl approx
+                            fontWeight: 'bold',
+                            color: '#ffffff',
+                            margin: 0
+                        }}>Patoloji Makale Takip</h1>
                     </div>
-                    <p className="text-white/90 text-lg md:text-xl max-w-2xl leading-relaxed">
+                    <p style={{
+                        color: 'rgba(255,255,255,0.9)',
+                        fontSize: '1.25rem', // text-xl
+                        maxWidth: '42rem',
+                        lineHeight: '1.625',
+                        margin: 0
+                    }}>
                         Patoloji odaklı PubMed literatür takibi
                     </p>
-                    <p className="text-white/70 text-sm mt-3">
+                    <p style={{
+                        color: 'rgba(255,255,255,0.7)',
+                        fontSize: '0.875rem', // text-sm
+                        marginTop: '12px'
+                    }}>
                         NCBI API kullanılarak günlük otomatik makale taraması yapılmaktadır.
                     </p>
                 </div>
