@@ -134,30 +134,35 @@ export function LenfNoduSayaci() {
             <div className="flex flex-col h-[calc(100vh-140px)] select-none">
 
                 {/* Header Controls */}
-                <div className="flex items-center justify-between mb-2">
-                    <h1 className="text-xl font-bold text-slate-800">Lenf Nodu Sayacı</h1>
-                    <div className="flex items-center gap-2">
-                        <button
-                            onClick={() => setSoundEnabled(!soundEnabled)}
-                            className={`p-2 rounded-lg transition-colors ${soundEnabled ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-400'}`}
-                            title="Ses Aç/Kapa"
-                        >
-                            {soundEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
-                        </button>
-                        <button
-                            onClick={reset}
-                            className="p-2 rounded-lg bg-slate-100 text-slate-600 hover:bg-red-100 hover:text-red-600 transition-colors"
-                            title="Sıfırla"
-                        >
-                            <RotateCcw size={20} />
-                        </button>
+                <div className="flex flex-col gap-1 mb-4">
+                    <div className="flex items-center justify-between">
+                        <h1 className="text-xl font-bold text-slate-800">Lenf Nodu Sayacı</h1>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => setSoundEnabled(!soundEnabled)}
+                                className={`p-2 rounded-lg transition-colors ${soundEnabled ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-400'}`}
+                                title="Ses Aç/Kapa"
+                            >
+                                {soundEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
+                            </button>
+                            <button
+                                onClick={reset}
+                                className="p-2 rounded-lg bg-slate-100 text-slate-600 hover:bg-red-100 hover:text-red-600 transition-colors"
+                                title="Sıfırla"
+                            >
+                                <RotateCcw size={20} />
+                            </button>
+                        </div>
+                    </div>
+                    {/* Shortcuts moved here */}
+                    <div className="text-sm text-slate-500 font-medium">
+                        Klavye: <span className="text-emerald-600 font-bold">Enter (Reaktif)</span> • <span className="text-rose-600 font-bold">+ (Metastatik)</span> • <span className="text-violet-600 font-bold">0 (Deposit)</span>
                     </div>
                 </div>
 
-                {/* Top Summary Row REMOVED per user request */}
-
                 {/* Main Counter Buttons - INLINE STYLES FORCED */}
-                <main className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 min-h-[50vh]">
+                {/* User requested height increase. Using min-h-[400px] to be safe and ensure they are large. */}
+                <main className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 min-h-[400px]">
                     {/* REAKTIF */}
                     <button
                         onClick={() => addCount('Reaktif')}
@@ -165,11 +170,8 @@ export function LenfNoduSayaci() {
                         style={{ backgroundColor: '#10b981', borderColor: '#047857' }}
                     >
                         <div className="text-emerald-100 text-2xl font-bold mb-4 uppercase tracking-widest">Reaktif</div>
-                        <div className="rounded-2xl px-8 py-2 mb-4 backdrop-blur-sm" style={{ backgroundColor: 'rgba(6, 95, 70, 0.2)' }}>
+                        <div className="rounded-2xl px-12 py-4 backdrop-blur-sm" style={{ backgroundColor: 'rgba(6, 95, 70, 0.2)' }}>
                             <span className="text-white text-9xl font-black tracking-tighter drop-shadow-lg">{counts.Reaktif}</span>
-                        </div>
-                        <div className="absolute bottom-6 px-4 py-1 bg-black/20 rounded-full text-white/90 font-mono text-sm">
-                            Tuş: Enter
                         </div>
                     </button>
 
@@ -180,11 +182,8 @@ export function LenfNoduSayaci() {
                         style={{ backgroundColor: '#f43f5e', borderColor: '#be123c' }}
                     >
                         <div className="text-rose-100 text-2xl font-bold mb-4 uppercase tracking-widest">Metastatik</div>
-                        <div className="rounded-2xl px-8 py-2 mb-4 backdrop-blur-sm" style={{ backgroundColor: 'rgba(159, 18, 57, 0.2)' }}>
+                        <div className="rounded-2xl px-12 py-4 backdrop-blur-sm" style={{ backgroundColor: 'rgba(159, 18, 57, 0.2)' }}>
                             <span className="text-white text-9xl font-black tracking-tighter drop-shadow-lg">{counts.Metastatik}</span>
-                        </div>
-                        <div className="absolute bottom-6 px-4 py-1 bg-black/20 rounded-full text-white/90 font-mono text-sm">
-                            Tuş: +
                         </div>
                     </button>
 
@@ -195,17 +194,14 @@ export function LenfNoduSayaci() {
                         style={{ backgroundColor: '#8b5cf6', borderColor: '#6d28d9' }}
                     >
                         <div className="text-violet-100 text-2xl font-bold mb-4 uppercase tracking-widest">Deposit</div>
-                        <div className="rounded-2xl px-8 py-2 mb-4 backdrop-blur-sm" style={{ backgroundColor: 'rgba(91, 33, 182, 0.2)' }}>
+                        <div className="rounded-2xl px-12 py-4 backdrop-blur-sm" style={{ backgroundColor: 'rgba(91, 33, 182, 0.2)' }}>
                             <span className="text-white text-9xl font-black tracking-tighter drop-shadow-lg">{counts.Deposit}</span>
-                        </div>
-                        <div className="absolute bottom-6 px-4 py-1 bg-black/20 rounded-full text-white/90 font-mono text-sm">
-                            Tuş: 0
                         </div>
                     </button>
                 </main>
 
                 {/* History Log - TALLER */}
-                <div className="h-64 md:h-80 bg-white rounded-2xl border border-slate-200 overflow-hidden flex flex-col shadow-sm scroll-mt-4">
+                <div className="h-80 md:h-96 bg-white rounded-2xl border border-slate-200 overflow-hidden flex flex-col shadow-sm scroll-mt-4">
                     <div className="p-3 border-b border-slate-100 bg-slate-50 flex items-center gap-2">
                         <History size={16} className="text-slate-400" />
                         <span className="text-xs font-bold text-slate-500 uppercase">Son İşlemler</span>
