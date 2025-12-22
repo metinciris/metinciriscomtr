@@ -171,7 +171,7 @@ export function LenfNoduSayaci() {
                     >
                         <div
                             className="text-xl font-bold uppercase tracking-widest text-left pointer-events-none"
-                            style={{ position: 'absolute', top: '24px', left: '24px', color: 'white' }}
+                            style={{ position: 'absolute', top: '12px', left: '24px', color: 'white' }}
                         >
                             Reaktif
                         </div>
@@ -190,7 +190,7 @@ export function LenfNoduSayaci() {
                     >
                         <div
                             className="text-xl font-bold uppercase tracking-widest text-left pointer-events-none"
-                            style={{ position: 'absolute', top: '24px', left: '24px', color: 'white' }}
+                            style={{ position: 'absolute', top: '12px', left: '24px', color: 'white' }}
                         >
                             Metastatik
                         </div>
@@ -209,7 +209,7 @@ export function LenfNoduSayaci() {
                     >
                         <div
                             className="text-xl font-bold uppercase tracking-widest text-left pointer-events-none"
-                            style={{ position: 'absolute', top: '24px', left: '24px', color: 'white' }}
+                            style={{ position: 'absolute', top: '12px', left: '24px', color: 'white' }}
                         >
                             Deposit
                         </div>
@@ -225,7 +225,7 @@ export function LenfNoduSayaci() {
                 <div className="flex flex-col gap-2">
                     <div className="flex items-center gap-2 text-slate-400">
                         <History size={16} />
-                        <span className="text-xs font-bold uppercase tracking-wider">Son İşlemler (Silmek için tıklayın)</span>
+                        <span className="text-xs font-bold uppercase tracking-wider">Son İşlemler <span className="text-slate-600 text-sm mx-1">{counts.Total}</span> (Silmek için tıklayın)</span>
                     </div>
 
                     <div className="flex flex-wrap gap-2 content-start pb-8">
