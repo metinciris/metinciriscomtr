@@ -414,6 +414,7 @@
     color: var(--foreground);
   }
 
+  /* 
   :where(:not(:has([class*=" text-"]), :not(:has([class^="text-"])))) h1 {
     font-size: var(--text-2xl);
     font-weight: var(--font-weight-medium);
@@ -456,6 +457,7 @@
     font-weight: var(--font-weight-normal);
     line-height: 1.5;
   }
+*/
 }
 
 @layer utilities {
@@ -2716,6 +2718,7 @@ html {
   display: block;
   margin-top: 12px;
 }
+
 /* Podcast makale kartları (profil/podcast sayfası) */
 .podcast-articles-section {
   margin-top: 2rem;
@@ -2823,6 +2826,7 @@ html {
 .podcast-link-badge:hover {
   background: #d1fae5;
 }
+
 /* --------------------------------------------------
    Küçük fade-in animasyonu
    Bildirim / tooltip gibi geçici UI öğeleri için
@@ -2833,6 +2837,7 @@ html {
     opacity: 0;
     transform: translateY(-4px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -2840,12 +2845,33 @@ html {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-2px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
+
 @keyframes fadeOut {
-  from { opacity: 1; transform: translateY(0); }
-  to   { opacity: 0; transform: translateY(-2px); }
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
 }
-.animate-fade-in  { animation: fadeIn  0.25s ease-out forwards; }
-.animate-fade-out { animation: fadeOut 0.40s ease-out forwards; }
+
+.animate-fade-in {
+  animation: fadeIn 0.25s ease-out forwards;
+}
+
+.animate-fade-out {
+  animation: fadeOut 0.40s ease-out forwards;
+}
