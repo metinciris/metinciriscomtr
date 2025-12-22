@@ -54,38 +54,34 @@ export function LenfNoduSayaci() {
             oscillator.connect(gainNode);
             gainNode.connect(ctx.destination);
 
-            // "Bip" (Reaktif - High, short)
-            // "Bop" (Metastatik - Low, alarming)
-            // "Bap" (Deposit - Mid, distinct)
-
             const now = ctx.currentTime;
 
             if (type === 'Reaktif') {
-                // Happy "Ding"
+                // "Bip" - Clean Sine (unchanged, maybe slightly higher)
                 oscillator.type = 'sine';
-                oscillator.frequency.setValueAtTime(660, now);
-                oscillator.frequency.exponentialRampToValueAtTime(880, now + 0.1);
-                gainNode.gain.setValueAtTime(0.3, now);
+                oscillator.frequency.setValueAtTime(700, now);
+                oscillator.frequency.exponentialRampToValueAtTime(1000, now + 0.1);
+                gainNode.gain.setValueAtTime(0.2, now);
                 gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
                 oscillator.start(now);
                 oscillator.stop(now + 0.15);
             } else if (type === 'Metastatik') {
-                // Alarming "Buzz"
-                oscillator.type = 'sawtooth';
-                oscillator.frequency.setValueAtTime(220, now);
-                oscillator.frequency.linearRampToValueAtTime(110, now + 0.2);
-                gainNode.gain.setValueAtTime(0.2, now);
+                // "Bop" - Lower Sine/Triangle (Less annoying than sawtooth)
+                oscillator.type = 'triangle';
+                oscillator.frequency.setValueAtTime(150, now); // Lower pitch
+                oscillator.frequency.linearRampToValueAtTime(100, now + 0.2); // Sliding down
+                gainNode.gain.setValueAtTime(0.3, now);
                 gainNode.gain.linearRampToValueAtTime(0.01, now + 0.2);
                 oscillator.start(now);
                 oscillator.stop(now + 0.2);
             } else if (type === 'Deposit') {
-                // Distinct "Boop"
-                oscillator.type = 'triangle';
-                oscillator.frequency.setValueAtTime(440, now);
-                gainNode.gain.setValueAtTime(0.3, now);
-                gainNode.gain.linearRampToValueAtTime(0.01, now + 0.15);
+                // "Bap" - Short high pip
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(1200, now);
+                gainNode.gain.setValueAtTime(0.1, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
                 oscillator.start(now);
-                oscillator.stop(now + 0.15);
+                oscillator.stop(now + 0.08);
             }
 
         } catch (error) {
@@ -100,7 +96,6 @@ export function LenfNoduSayaci() {
             ...prev
         ]);
 
-        // Vibrate on mobile if supported
         if (navigator.vibrate) {
             navigator.vibrate(50);
         }
@@ -120,129 +115,133 @@ export function LenfNoduSayaci() {
     // Keyboard handlers
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            // Prevent default helpful for Enter to avoid button triggering
             if (e.key === 'Enter') {
                 e.preventDefault();
                 addCount('Reaktif');
             } else if (e.key === '+' || e.key === 'NumpadAdd') {
                 addCount('Metastatik');
-            } else if (e.key.toLowerCase() === 'd') {
+            } else if (e.key === '0' || e.key === 'Numpad0') {
                 addCount('Deposit');
             }
         };
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [soundEnabled]); // Re-bind if sound setting changes (though soundEnabled is in scope via closure, useEffect dep ensures freshness if wanted, but simpler is ref or just closure)
+    }, [soundEnabled]);
 
     return (
         <PageContainer>
             <div className="flex flex-col h-[calc(100vh-140px)] select-none">
 
-                {/* Header Section */}
-                <div className="flex items-center justify-between mb-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-                    <div>
-                        <h1 className="text-xl font-bold text-slate-800">Lenf Nodu Sayacı</h1>
-                        <p className="text-xs text-slate-500 hidden sm:block">Klavye: Enter (Reaktif), + (Metastatik), D (Deposit)</p>
-                    </div>
-                    <div className="flex items-center gap-3">
+                {/* Header Controls */}
+                <div className="flex items-center justify-between mb-2">
+                    <h1 className="text-xl font-bold text-slate-800">Lenf Nodu Sayacı</h1>
+                    <div className="flex items-center gap-2">
                         <button
                             onClick={() => setSoundEnabled(!soundEnabled)}
-                            className={`p-3 rounded-xl transition-colors ${soundEnabled ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-400'}`}
+                            className={`p-2 rounded-lg transition-colors ${soundEnabled ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-400'}`}
+                            title="Ses Aç/Kapa"
                         >
-                            {soundEnabled ? <Volume2 size={24} /> : <VolumeX size={24} />}
+                            {soundEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
                         </button>
                         <button
                             onClick={reset}
-                            className="p-3 rounded-xl bg-slate-100 text-slate-600 pid hover:bg-red-100 hover:text-red-600 transition-colors"
+                            className="p-2 rounded-lg bg-slate-100 text-slate-600 hover:bg-red-100 hover:text-red-600 transition-colors"
+                            title="Sıfırla"
                         >
-                            <RotateCcw size={24} />
+                            <RotateCcw size={20} />
                         </button>
                     </div>
                 </div>
 
-                {/* Grand Total Display */}
-                <div className="bg-slate-800 text-white rounded-3xl p-6 mb-6 text-center shadow-lg relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl transform translate-x-1/2 -translate-y-1/2"></div>
-                    <div className="absolute bottom-0 left-0 w-32 h-32 bg-indigo-500/20 rounded-full blur-2xl transform -translate-x-1/2 translate-y-1/2"></div>
-
-                    <div className="relative z-10">
-                        <div className="text-sm font-medium text-slate-300 uppercase tracking-wider mb-1">Toplam Lenf Nodu</div>
-                        <div className="text-8xl font-bold font-mono tracking-tight leading-none">
-                            {counts.Total}
-                        </div>
+                {/* Top Summary Row - The breakdown requested */}
+                <div className="grid grid-cols-4 gap-2 mb-4">
+                    <div className="bg-slate-800 text-white rounded-xl p-3 text-center shadow-md flex flex-col justify-center">
+                        <div className="text-xs uppercase opacity-70 mb-1">Toplam</div>
+                        <div className="text-3xl font-bold">{counts.Total}</div>
+                    </div>
+                    <div className="bg-emerald-100 text-emerald-800 rounded-xl p-3 text-center flex flex-col justify-center border border-emerald-200">
+                        <div className="text-xs uppercase opacity-70 mb-1 font-bold">Reaktif</div>
+                        <div className="text-2xl font-bold">{counts.Reaktif}</div>
+                    </div>
+                    <div className="bg-rose-100 text-rose-800 rounded-xl p-3 text-center flex flex-col justify-center border border-rose-200">
+                        <div className="text-xs uppercase opacity-70 mb-1 font-bold">Metastatik</div>
+                        <div className="text-2xl font-bold">{counts.Metastatik}</div>
+                    </div>
+                    <div className="bg-violet-100 text-violet-800 rounded-xl p-3 text-center flex flex-col justify-center border border-violet-200">
+                        <div className="text-xs uppercase opacity-70 mb-1 font-bold">Deposit</div>
+                        <div className="text-2xl font-bold">{counts.Deposit}</div>
                     </div>
                 </div>
 
-                <main className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 min-h-0">
-                    {/* BUTTONS - REAKTIF */}
+                {/* Main Counter Buttons (3 Columns, Full Height) */}
+                <main className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 min-h-0">
+                    {/* REAKTIF */}
                     <button
                         onClick={() => addCount('Reaktif')}
-                        className="group relative flex flex-col items-center justify-center bg-emerald-500 hover:bg-emerald-600 active:scale-95 transition-all duration-150 rounded-3xl shadow-xl overflow-hidden md:h-full p-6 min-h-[160px]"
+                        className="group relative flex flex-col items-center justify-center bg-emerald-500 hover:bg-emerald-600 active:scale-[0.98] transition-all duration-100 rounded-2xl shadow-xl border-4 border-transparent hover:border-emerald-300"
                     >
-                        <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                        <span className="text-emerald-100 text-lg font-bold mb-2 uppercase tracking-widest">Reaktif</span>
-                        <span className="text-white text-7xl font-bold">{counts.Reaktif}</span>
-                        <span className="absolute bottom-4 text-emerald-200/50 text-xs font-mono">ENTER</span>
+                        <span className="text-emerald-100 text-xl font-bold mb-2 uppercase tracking-wider">Reaktif</span>
+                        <span className="text-white text-8xl font-black drop-shadow-md">{counts.Reaktif}</span>
+                        <div className="mt-4 px-4 py-1 bg-black/20 rounded-full text-white/90 font-mono text-sm">
+                            Tuş: Enter
+                        </div>
                     </button>
 
-                    {/* BUTTONS - METASTATIK */}
+                    {/* METASTATIK */}
                     <button
                         onClick={() => addCount('Metastatik')}
-                        className="group relative flex flex-col items-center justify-center bg-rose-500 hover:bg-rose-600 active:scale-95 transition-all duration-150 rounded-3xl shadow-xl overflow-hidden md:h-full p-6 min-h-[160px]"
+                        className="group relative flex flex-col items-center justify-center bg-rose-500 hover:bg-rose-600 active:scale-[0.98] transition-all duration-100 rounded-2xl shadow-xl border-4 border-transparent hover:border-rose-300"
                     >
-                        <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                        <span className="text-rose-100 text-lg font-bold mb-2 uppercase tracking-widest">Metastatik</span>
-                        <span className="text-white text-7xl font-bold">{counts.Metastatik}</span>
-                        <span className="absolute bottom-4 text-rose-200/50 text-xs font-mono">( + )</span>
+                        <span className="text-rose-100 text-xl font-bold mb-2 uppercase tracking-wider">Metastatik</span>
+                        <span className="text-white text-8xl font-black drop-shadow-md">{counts.Metastatik}</span>
+                        <div className="mt-4 px-4 py-1 bg-black/20 rounded-full text-white/90 font-mono text-sm">
+                            Tuş: +
+                        </div>
                     </button>
 
-                    {/* BUTTONS - DEPOSIT */}
+                    {/* DEPOSIT */}
                     <button
                         onClick={() => addCount('Deposit')}
-                        className="group relative flex flex-col items-center justify-center bg-violet-500 hover:bg-violet-600 active:scale-95 transition-all duration-150 rounded-3xl shadow-xl overflow-hidden md:h-full p-6 min-h-[160px]"
+                        className="group relative flex flex-col items-center justify-center bg-violet-500 hover:bg-violet-600 active:scale-[0.98] transition-all duration-100 rounded-2xl shadow-xl border-4 border-transparent hover:border-violet-300"
                     >
-                        <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                        <span className="text-violet-100 text-lg font-bold mb-2 uppercase tracking-widest">Deposit</span>
-                        <span className="text-white text-7xl font-bold">{counts.Deposit}</span>
-                        <span className="absolute bottom-4 text-violet-200/50 text-xs font-mono">Key: D</span>
+                        <span className="text-violet-100 text-xl font-bold mb-2 uppercase tracking-wider">Deposit</span>
+                        <span className="text-white text-8xl font-black drop-shadow-md">{counts.Deposit}</span>
+                        <div className="mt-4 px-4 py-1 bg-black/20 rounded-full text-white/90 font-mono text-sm">
+                            Tuş: 0
+                        </div>
                     </button>
                 </main>
 
                 {/* History Log */}
-                <div className="h-48 md:h-64 bg-white rounded-2xl border border-slate-200 overflow-hidden flex flex-col shadow-sm">
-                    <div className="p-3 border-b border-slate-100 bg-slate-50 flex items-center gap-2">
+                <div className="h-40 bg-white rounded-2xl border border-slate-200 overflow-hidden flex flex-col shadow-sm">
+                    <div className="p-2 border-b border-slate-100 bg-slate-50 flex items-center gap-2">
                         <History size={16} className="text-slate-400" />
                         <span className="text-xs font-bold text-slate-500 uppercase">Son İşlemler</span>
                     </div>
                     <div ref={historyRef} className="flex-1 overflow-y-auto p-2 space-y-2">
                         {logs.length === 0 && (
-                            <div className="h-full flex items-center justify-center text-slate-400 text-sm italic">
-                                Henüz kayıt yok...
+                            <div className="h-full flex items-center justify-center text-slate-400 text-sm">
+                                Sayaç boş
                             </div>
                         )}
                         {logs.map((log) => (
-                            <div key={log.id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors group animate-in slide-in-from-top-2 duration-200">
+                            <div key={log.id} className="flex items-center justify-between p-2 rounded-lg bg-slate-50 animate-in slide-in-from-top-1 duration-200">
+                                <span className={`font-bold ${log.type === 'Reaktif' ? 'text-emerald-700' :
+                                        log.type === 'Metastatik' ? 'text-rose-700' :
+                                            'text-violet-700'
+                                    }`}>{log.type}</span>
                                 <div className="flex items-center gap-3">
-                                    <div className={`w-3 h-3 rounded-full ${log.type === 'Reaktif' ? 'bg-emerald-500' :
-                                            log.type === 'Metastatik' ? 'bg-rose-500' :
-                                                'bg-violet-500'
-                                        }`}></div>
-                                    <span className={`font-bold ${log.type === 'Reaktif' ? 'text-emerald-700' :
-                                            log.type === 'Metastatik' ? 'text-rose-700' :
-                                                'text-violet-700'
-                                        }`}>{log.type}</span>
                                     <span className="text-xs text-slate-400 font-mono">
                                         {log.timestamp.toLocaleTimeString()}
                                     </span>
+                                    <button
+                                        onClick={(e) => deleteLog(log.id, e)}
+                                        className="text-slate-300 hover:text-rose-500 transition-colors"
+                                    >
+                                        <Trash2 size={16} />
+                                    </button>
                                 </div>
-                                <button
-                                    onClick={(e) => deleteLog(log.id, e)}
-                                    className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
-                                    title="Sil"
-                                >
-                                    <Trash2 size={16} />
-                                </button>
                             </div>
                         ))}
                     </div>
