@@ -75,14 +75,14 @@ export function LenfNoduSayaci() {
                 oscillator.start(now);
                 oscillator.stop(now + 0.2);
             } else if (type === 'Deposit') {
-                // "Bum" - Low, serious thud (Neutral)
-                oscillator.type = 'triangle'; // Triangle has a bit more weight than sine
-                oscillator.frequency.setValueAtTime(200, now);
-                oscillator.frequency.exponentialRampToValueAtTime(100, now + 0.15);
-                gainNode.gain.setValueAtTime(0.3, now);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                // "Zzt" - Annoying/Distinct Sawtooth
+                oscillator.type = 'sawtooth';
+                oscillator.frequency.setValueAtTime(500, now);
+                oscillator.frequency.exponentialRampToValueAtTime(100, now + 0.1);
+                gainNode.gain.setValueAtTime(0.15, now); // Lower gain for sawtooth as it's loud
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
                 oscillator.start(now);
-                oscillator.stop(now + 0.15);
+                oscillator.stop(now + 0.1);
             }
 
         } catch (error) {
@@ -170,7 +170,7 @@ export function LenfNoduSayaci() {
                         style={{ backgroundColor: '#10b981', borderColor: '#047857' }}
                     >
                         <div
-                            className="text-3xl font-bold uppercase tracking-widest text-left pointer-events-none"
+                            className="text-xl font-bold uppercase tracking-widest text-left pointer-events-none"
                             style={{ position: 'absolute', top: '24px', left: '24px', color: 'white' }}
                         >
                             Reaktif
@@ -189,7 +189,7 @@ export function LenfNoduSayaci() {
                         style={{ backgroundColor: '#f43f5e', borderColor: '#be123c' }}
                     >
                         <div
-                            className="text-3xl font-bold uppercase tracking-widest text-left pointer-events-none"
+                            className="text-xl font-bold uppercase tracking-widest text-left pointer-events-none"
                             style={{ position: 'absolute', top: '24px', left: '24px', color: 'white' }}
                         >
                             Metastatik
@@ -208,7 +208,7 @@ export function LenfNoduSayaci() {
                         style={{ backgroundColor: '#8b5cf6', borderColor: '#6d28d9' }}
                     >
                         <div
-                            className="text-3xl font-bold uppercase tracking-widest text-left pointer-events-none"
+                            className="text-xl font-bold uppercase tracking-widest text-left pointer-events-none"
                             style={{ position: 'absolute', top: '24px', left: '24px', color: 'white' }}
                         >
                             Deposit
