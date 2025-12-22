@@ -160,75 +160,81 @@ export function LenfNoduSayaci() {
                     </div>
                 </div>
 
-                {/* Main Counter Buttons - INLINE STYLES FORCED */}
-                {/* User requested height increase. Using min-h-[400px] to be safe and ensure they are large. */}
-                <main className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 min-h-[400px]">
+                {/* Main Counter Buttons - HUGE */}
+                <main className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 min-h-[600px]">
                     {/* REAKTIF */}
                     <button
                         onClick={() => addCount('Reaktif')}
-                        className="group relative flex flex-col items-center justify-center transition-all duration-100 rounded-3xl shadow-xl hover:shadow-2xl active:scale-[0.98] active:translate-y-2 border-b-8 active:border-b-0"
+                        className="group relative flex flex-col items-center justify-center transition-all duration-100 rounded-[3rem] shadow-xl hover:shadow-2xl active:scale-[0.98] active:translate-y-2 border-b-8 active:border-b-0 overflow-hidden"
                         style={{ backgroundColor: '#10b981', borderColor: '#047857' }}
                     >
-                        <div className="text-emerald-100 text-2xl font-bold mb-4 uppercase tracking-widest">Reaktif</div>
-                        <div className="rounded-2xl px-12 py-4 backdrop-blur-sm" style={{ backgroundColor: 'rgba(6, 95, 70, 0.2)' }}>
-                            <span className="text-white text-9xl font-black tracking-tighter drop-shadow-lg">{counts.Reaktif}</span>
+                        <div className="absolute top-8 text-emerald-100 text-3xl font-bold uppercase tracking-widest">Reaktif</div>
+                        <div className="flex-1 flex items-center justify-center w-full">
+                            <span className="text-white font-black tracking-tighter drop-shadow-lg leading-none select-none" style={{ fontSize: '12rem' }}>
+                                {counts.Reaktif}
+                            </span>
                         </div>
                     </button>
 
                     {/* METASTATIK */}
                     <button
                         onClick={() => addCount('Metastatik')}
-                        className="group relative flex flex-col items-center justify-center transition-all duration-100 rounded-3xl shadow-xl hover:shadow-2xl active:scale-[0.98] active:translate-y-2 border-b-8 active:border-b-0"
+                        className="group relative flex flex-col items-center justify-center transition-all duration-100 rounded-[3rem] shadow-xl hover:shadow-2xl active:scale-[0.98] active:translate-y-2 border-b-8 active:border-b-0 overflow-hidden"
                         style={{ backgroundColor: '#f43f5e', borderColor: '#be123c' }}
                     >
-                        <div className="text-rose-100 text-2xl font-bold mb-4 uppercase tracking-widest">Metastatik</div>
-                        <div className="rounded-2xl px-12 py-4 backdrop-blur-sm" style={{ backgroundColor: 'rgba(159, 18, 57, 0.2)' }}>
-                            <span className="text-white text-9xl font-black tracking-tighter drop-shadow-lg">{counts.Metastatik}</span>
+                        <div className="absolute top-8 text-rose-100 text-3xl font-bold uppercase tracking-widest">Metastatik</div>
+                        <div className="flex-1 flex items-center justify-center w-full">
+                            <span className="text-white font-black tracking-tighter drop-shadow-lg leading-none select-none" style={{ fontSize: '12rem' }}>
+                                {counts.Metastatik}
+                            </span>
                         </div>
                     </button>
 
                     {/* DEPOSIT */}
                     <button
                         onClick={() => addCount('Deposit')}
-                        className="group relative flex flex-col items-center justify-center transition-all duration-100 rounded-3xl shadow-xl hover:shadow-2xl active:scale-[0.98] active:translate-y-2 border-b-8 active:border-b-0"
+                        className="group relative flex flex-col items-center justify-center transition-all duration-100 rounded-[3rem] shadow-xl hover:shadow-2xl active:scale-[0.98] active:translate-y-2 border-b-8 active:border-b-0 overflow-hidden"
                         style={{ backgroundColor: '#8b5cf6', borderColor: '#6d28d9' }}
                     >
-                        <div className="text-violet-100 text-2xl font-bold mb-4 uppercase tracking-widest">Deposit</div>
-                        <div className="rounded-2xl px-12 py-4 backdrop-blur-sm" style={{ backgroundColor: 'rgba(91, 33, 182, 0.2)' }}>
-                            <span className="text-white text-9xl font-black tracking-tighter drop-shadow-lg">{counts.Deposit}</span>
+                        <div className="absolute top-8 text-violet-100 text-3xl font-bold uppercase tracking-widest">Deposit</div>
+                        <div className="flex-1 flex items-center justify-center w-full">
+                            <span className="text-white font-black tracking-tighter drop-shadow-lg leading-none select-none" style={{ fontSize: '12rem' }}>
+                                {counts.Deposit}
+                            </span>
                         </div>
                     </button>
                 </main>
 
-                {/* History Log - TALLER */}
-                <div className="h-80 md:h-96 bg-white rounded-2xl border border-slate-200 overflow-hidden flex flex-col shadow-sm scroll-mt-4">
-                    <div className="p-3 border-b border-slate-100 bg-slate-50 flex items-center gap-2">
-                        <History size={16} className="text-slate-400" />
-                        <span className="text-xs font-bold text-slate-500 uppercase">Son İşlemler</span>
+                {/* History Log - CHIPS */}
+                <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-2 text-slate-400">
+                        <History size={16} />
+                        <span className="text-xs font-bold uppercase tracking-wider">Son İşlemler (Silmek için tıklayın)</span>
                     </div>
-                    <div ref={historyRef} className="flex-1 overflow-y-auto p-2 space-y-2">
+
+                    <div className="flex flex-wrap gap-2 content-start pb-8">
                         {logs.length === 0 && (
-                            <div className="h-full flex items-center justify-center text-slate-400 text-sm italic">
-                                Henüz kayıt yok...
-                            </div>
+                            <span className="text-slate-300 text-sm italic">Henüz işlem yok</span>
                         )}
                         {logs.map((log) => (
-                            <div key={log.id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors group animate-in slide-in-from-top-2 duration-200">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: log.type === 'Reaktif' ? '#10b981' : log.type === 'Metastatik' ? '#f43f5e' : '#8b5cf6' }}></div>
-                                    <span className="font-bold" style={{ color: log.type === 'Reaktif' ? '#047857' : log.type === 'Metastatik' ? '#be123c' : '#6d28d9' }}>{log.type}</span>
-                                    <span className="text-xs text-slate-400 font-mono">
-                                        {log.timestamp.toLocaleTimeString()}
-                                    </span>
+                            <button
+                                key={log.id}
+                                onClick={(e) => deleteLog(log.id, e)}
+                                className="px-3 py-1.5 rounded-lg shadow-sm hover:shadow-md hover:scale-105 active:scale-95 transition-all flex items-center gap-2 text-sm font-bold text-white relative group border-b-2 active:border-b-0"
+                                style={{
+                                    backgroundColor: log.type === 'Reaktif' ? '#10b981' : log.type === 'Metastatik' ? '#f43f5e' : '#8b5cf6',
+                                    borderColor: log.type === 'Reaktif' ? '#047857' : log.type === 'Metastatik' ? '#be123c' : '#6d28d9'
+                                }}
+                                title={`${log.timestamp.toLocaleTimeString()} - Silmek için tıkla`}
+                            >
+                                <span>{log.type}</span>
+                                <span className="opacity-70 text-[10px] bg-black/10 px-1 rounded">
+                                    {log.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                </span>
+                                <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 rounded-lg transition-opacity">
+                                    <Trash2 size={14} />
                                 </div>
-                                <button
-                                    onClick={(e) => deleteLog(log.id, e)}
-                                    className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
-                                    title="Sil"
-                                >
-                                    <Trash2 size={16} />
-                                </button>
-                            </div>
+                            </button>
                         ))}
                     </div>
                 </div>
