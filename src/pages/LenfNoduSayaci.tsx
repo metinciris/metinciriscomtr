@@ -168,7 +168,7 @@ export function LenfNoduSayaci() {
                         className="group relative flex flex-col items-center justify-center transition-all duration-100 rounded-[3rem] shadow-xl hover:shadow-2xl active:scale-[0.98] active:translate-y-2 border-b-8 active:border-b-0 overflow-hidden"
                         style={{ backgroundColor: '#10b981', borderColor: '#047857' }}
                     >
-                        <div className="absolute top-8 text-emerald-100 text-3xl font-bold uppercase tracking-widest">Reaktif</div>
+                        <div className="absolute top-8 left-8 text-emerald-100 text-3xl font-bold uppercase tracking-widest text-left">Reaktif</div>
                         <div className="flex-1 flex items-center justify-center w-full">
                             <span className="text-white font-black tracking-tighter drop-shadow-lg leading-none select-none" style={{ fontSize: '12rem' }}>
                                 {counts.Reaktif}
@@ -182,7 +182,7 @@ export function LenfNoduSayaci() {
                         className="group relative flex flex-col items-center justify-center transition-all duration-100 rounded-[3rem] shadow-xl hover:shadow-2xl active:scale-[0.98] active:translate-y-2 border-b-8 active:border-b-0 overflow-hidden"
                         style={{ backgroundColor: '#f43f5e', borderColor: '#be123c' }}
                     >
-                        <div className="absolute top-8 text-rose-100 text-3xl font-bold uppercase tracking-widest">Metastatik</div>
+                        <div className="absolute top-8 left-8 text-rose-100 text-3xl font-bold uppercase tracking-widest text-left">Metastatik</div>
                         <div className="flex-1 flex items-center justify-center w-full">
                             <span className="text-white font-black tracking-tighter drop-shadow-lg leading-none select-none" style={{ fontSize: '12rem' }}>
                                 {counts.Metastatik}
@@ -196,7 +196,7 @@ export function LenfNoduSayaci() {
                         className="group relative flex flex-col items-center justify-center transition-all duration-100 rounded-[3rem] shadow-xl hover:shadow-2xl active:scale-[0.98] active:translate-y-2 border-b-8 active:border-b-0 overflow-hidden"
                         style={{ backgroundColor: '#8b5cf6', borderColor: '#6d28d9' }}
                     >
-                        <div className="absolute top-8 text-violet-100 text-3xl font-bold uppercase tracking-widest">Deposit</div>
+                        <div className="absolute top-8 left-8 text-violet-100 text-3xl font-bold uppercase tracking-widest text-left">Deposit</div>
                         <div className="flex-1 flex items-center justify-center w-full">
                             <span className="text-white font-black tracking-tighter drop-shadow-lg leading-none select-none" style={{ fontSize: '12rem' }}>
                                 {counts.Deposit}
@@ -231,9 +231,6 @@ export function LenfNoduSayaci() {
                                 <span className="opacity-70 text-[10px] bg-black/10 px-1 rounded">
                                     {log.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                                 </span>
-                                <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 rounded-lg transition-opacity">
-                                    <Trash2 size={14} />
-                                </div>
                             </button>
                         ))}
                     </div>
