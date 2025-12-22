@@ -154,28 +154,10 @@ export function LenfNoduSayaci() {
                     </div>
                 </div>
 
-                {/* Top Summary Row - BOXES (Restored) */}
-                <div className="grid grid-cols-4 gap-4 mb-6">
-                    <div className="rounded-xl p-3 text-center shadow-sm flex flex-col justify-center border border-slate-200" style={{ backgroundColor: '#1e293b', color: 'white' }}>
-                        <div className="text-xs uppercase opacity-70 mb-1">Toplam</div>
-                        <div className="text-3xl font-bold">{counts.Total}</div>
-                    </div>
-                    <div className="rounded-xl p-3 text-center flex flex-col justify-center border border-emerald-200" style={{ backgroundColor: '#d1fae5', color: '#065f46' }}>
-                        <div className="text-xs uppercase opacity-70 mb-1 font-bold">Reaktif</div>
-                        <div className="text-2xl font-bold">{counts.Reaktif}</div>
-                    </div>
-                    <div className="rounded-xl p-3 text-center flex flex-col justify-center border border-rose-200" style={{ backgroundColor: '#ffe4e6', color: '#9f1239' }}>
-                        <div className="text-xs uppercase opacity-70 mb-1 font-bold">Metastatik</div>
-                        <div className="text-2xl font-bold">{counts.Metastatik}</div>
-                    </div>
-                    <div className="rounded-xl p-3 text-center flex flex-col justify-center border border-violet-200" style={{ backgroundColor: '#ede9fe', color: '#5b21b6' }}>
-                        <div className="text-xs uppercase opacity-70 mb-1 font-bold">Deposit</div>
-                        <div className="text-2xl font-bold">{counts.Deposit}</div>
-                    </div>
-                </div>
+                {/* Top Summary Row REMOVED per user request */}
 
                 {/* Main Counter Buttons - INLINE STYLES FORCED */}
-                <main className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 min-h-0">
+                <main className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 min-h-[50vh]">
                     {/* REAKTIF */}
                     <button
                         onClick={() => addCount('Reaktif')}
