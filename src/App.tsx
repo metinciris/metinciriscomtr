@@ -117,6 +117,9 @@ const Prizma3D = React.lazy(() =>
 const NotFound = React.lazy(() =>
   import('./pages/NotFound').then((m) => ({ default: m.NotFound })),
 );
+const PatolojiMakaleTakip = React.lazy(() =>
+  import('./pages/PatolojiMakaleTakip').then((m) => ({ default: m.PatolojiMakaleTakip })),
+);
 
 export default function App() {
   const [currentPage, setCurrentPage] = React.useState('home');
@@ -132,7 +135,7 @@ export default function App() {
         'donem-3', 'galeri', 'portfolyo', 'sinav-analizi', 'yayinlar', 'podcast',
         'blog', 'github', 'facebook', 'linkedin', 'diger-calismalar', 'fetus-uzunluklari',
         'rcb-calculator', 'gist-raporlama', 'makale', 'deprem', 'svs-reader',
-        'tani-tuzaklari', 'haftanin-vakasi', 'prizma-3d'
+        'tani-tuzaklari', 'haftanin-vakasi', 'prizma-3d', 'makale-takip'
       ];
 
       if (validPages.includes(hash)) {
@@ -235,6 +238,9 @@ export default function App() {
 
       case 'prizma-3d':
         return <Prizma3D />;
+
+      case 'makale-takip':
+        return <PatolojiMakaleTakip />;
 
       case '404':
         return <NotFound onNavigate={navigate} />;

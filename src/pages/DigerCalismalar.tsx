@@ -1,7 +1,7 @@
 import React from 'react';
 import { PageContainer } from '../components/PageContainer';
 import { MetroTile } from '../components/MetroTile';
-import { FileBarChart, Activity, FileText, AlertCircle, Microscope, Box } from 'lucide-react';
+import { FileBarChart, Activity, FileText, AlertCircle, Microscope, Box, BookOpen } from 'lucide-react';
 
 interface DigerCalismalarProps {
     onNavigate?: (page: string) => void;
@@ -105,6 +105,15 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
                     style={{ backgroundColor: '#667eea' }}
                     size="medium"
                     onClick={() => handleNavigate('prizma-3d')}
+                />
+                <MetroTile
+                    title="Makale Takip"
+                    subtitle="Patoloji PubMed literatür"
+                    icon={<BookOpen size={40} />}
+                    color=""
+                    style={{ backgroundColor: '#0088cc' }}
+                    size="medium"
+                    onClick={() => handleNavigate('makale-takip')}
                 />
 
             </div>
