@@ -19,39 +19,37 @@ interface WebApp {
 const telegramChannels: TelegramChannel[] = [
     {
         name: 'Patolojim',
-        description: 'Önde gelen patoloji dergilerinden günlük makale takibi. PubMed\'e düştüğü gün öğle saatinde bildirim gönderir. Başlık, dergi, yazarlar ve PubMed bağlantısı PubMed API ile sağlanır.',
+        description: 'Önde gelen patoloji dergilerinden günlük makale takibi.',
         url: 'https://t.me/patolojim',
         emoji: '🔬'
     },
     {
         name: 'Meme Patolojisi',
-        description: 'Am J Surg Pathol, Mod Pathol, Histopathology, Hum Pathol, Virchows Arch + 35 patoloji dergisi ve Breast Cancer Res, Cancer, Int J Cancer gibi meme kanserine odaklı dergilerden günlük makale takibi.',
-        details: 'PubMed\'e düştüğü gün öğle saatinde bildirim. Başlık, dergi, yazarlar ve PubMed bağlantısı API ile sağlanır.',
+        description: 'Am J Surg Pathol, Mod Pathol, Histopathology, Hum Pathol, Virchows Arch + 35 patoloji dergisi ve Breast Cancer Res, Cancer, Int J Cancer gibi meme kanserine odaklı dergilerden günlük makale takibi. Sadece patoloji odaklı.',
         url: 'https://t.me/memepatoloji',
         emoji: '🎀'
     },
     {
         name: 'Kemik ve Yumuşak Doku Patolojisi',
-        description: 'Kemik ve yumuşak doku patolojisi odaklı günlük makale taraması. PubMed\'e düştüğü gün öğle saatinde bildirim gönderir. Başlık, dergi, yazarlar ve PubMed bağlantısı API ile sağlanır.',
+        description: 'Kemik ve yumuşak doku patolojisi odaklı günlük makale taraması.',
         url: 'https://t.me/kemikpat',
         emoji: '🦴'
     },
     {
         name: 'Endokrin Patoloji',
-        description: 'Endokrin patoloji alanında günlük makale takibi. PubMed\'e düştüğü gün öğle saatinde bildirim gönderir. Başlık, dergi, yazarlar ve PubMed bağlantısı NCBI API ile sağlanır.',
+        description: 'Endokrin patoloji alanında günlük makale takibi. NCBI API kullanılmaktadır.',
         url: 'https://t.me/endokrinpatoloji',
         emoji: '🦋'
     },
     {
         name: 'Üropatoloji',
         description: 'Am J Surg Pathol, Mod Pathol, Hum Pathol, Eur Urol, J Urol, Nat Rev Urol ve 12 üroloji/patoloji dergisinden günlük makale takibi.',
-        details: 'PubMed\'e düştüğü gün öğle saatinde bildirim. Başlık, dergi, yazarlar ve PubMed bağlantısı API ile sağlanır.',
         url: 'https://t.me/uropat',
         emoji: '🩺'
     },
     {
         name: 'Jinekopatoloji',
-        description: 'Jinekopatoloji alanında günlük makale takibi. PubMed\'e düştüğü gün öğle saatinde bildirim gönderir. Başlık, dergi, yazarlar ve PubMed bağlantısı API ile sağlanır.',
+        description: 'Jinekopatoloji alanında günlük makale takibi.',
         url: 'https://t.me/jinekomakale',
         emoji: '🌸'
     },
@@ -107,11 +105,16 @@ export function PatolojiMakaleTakip() {
 
             {/* Telegram Channels Section */}
             <section className="mb-12">
-                <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2.5 bg-[#0088cc] rounded-xl">
-                        <Send size={24} className="text-white" />
+                <div className="flex flex-col gap-2 mb-8">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2.5 bg-[#0088cc] rounded-xl">
+                            <Send size={24} className="text-white" />
+                        </div>
+                        <h2 className="text-2xl font-bold text-slate-800">Telegram Kanallarımız</h2>
                     </div>
-                    <h2 className="text-2xl font-bold text-slate-800">Telegram Kanallarımız</h2>
+                    <p className="text-slate-600 text-sm md:text-base ml-1 leading-relaxed">
+                        PubMed&apos;e düştüğü gün öğle saatinde bildirim. Başlık, dergi, yazarlar ve PubMed bağlantısı API ile sağlanır.
+                    </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -156,7 +159,7 @@ export function PatolojiMakaleTakip() {
             </section>
 
             {/* Web Applications Section */}
-            <section>
+            <section className="mt-16">
                 <div className="flex items-center gap-3 mb-6">
                     <div style={{ background: 'linear-gradient(135deg, #10b981, #0d9488)', padding: '10px', borderRadius: '12px' }}>
                         <Globe size={24} style={{ color: '#ffffff' }} />
