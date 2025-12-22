@@ -510,6 +510,14 @@ export function Deprem() {
     return audioCtxRef.current;
   };
 
+  // Clear sound queue when notifications are disabled
+  useEffect(() => {
+    if (!notificationsEnabled) {
+      soundQueue.current = [];
+      isPlaying.current = false;
+    }
+  }, [notificationsEnabled]);
+
   const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
   const playBeep = async (frequency: number, duration: number, gainLevel = 0.1) => {

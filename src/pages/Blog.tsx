@@ -5,6 +5,32 @@ import { Input } from '../components/ui/input';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
+import DOMPurify from 'dompurify';
+
+// Rate Limiting Logic
+class RateLimiter {
+  private timestamps: number[] = [];
+  private readonly limit: number;
+  private readonly interval: number;
+
+  constructor(limit: number, interval: number) {
+    this.limit = limit;
+    this.interval = interval;
+  }
+
+  check(): boolean {
+    const now = Date.now();
+    this.timestamps = this.timestamps.filter(t => now - t < this.interval);
+    if (this.timestamps.length >= this.limit) return false;
+    this.timestamps.push(now);
+    return true;
+  }
+}
+
+const rateLimiter = new RateLimiter(
+  parseInt(import.meta.env.VITE_API_RATE_LIMIT || '60'),
+  60 * 60 * 1000 // 1 hour
+);
 
 interface BlogPost {
   id: number;
@@ -22,8 +48,30 @@ export function Blog() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('https://api.github.com/repos/metinciris/metinciriscomtr/issues?labels=blog&state=open')
-      .then(res => res.json())
+    if (!rateLimiter.check()) {
+      console.warn('Rate limit exceeded');
+      setLoading(false);
+      // Optionally show a user-facing error here
+      return;
+    }
+
+    const token = import.meta.env.VITE_GITHUB_TOKEN;
+    const repoOwner = import.meta.env.VITE_GITHUB_REPO_OWNER || 'metinciris';
+    const repoName = import.meta.env.VITE_GITHUB_REPO_NAME || 'metinciriscomtr';
+
+    const headers: HeadersInit = {
+      'Accept': 'application/vnd.github.v3+json'
+    };
+
+    if (token && token.startsWith('ghp_')) {
+      headers['Authorization'] = `token ${token}`;
+    }
+
+    fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/issues?labels=blog&state=open`, { headers })
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        return res.json();
+      })
       .then(data => {
         if (Array.isArray(data)) {
           setPosts(data);
@@ -63,7 +111,7 @@ export function Blog() {
               type="text"
               placeholder="Blog yazılarında ara..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => setSearchTerm(DOMPurify.sanitize(e.target.value))}
               className="pl-10 w-full"
             />
           </div>
@@ -105,7 +153,7 @@ export function Blog() {
                     remarkPlugins={[remarkGfm]}
                     rehypePlugins={[rehypeRaw]}
                   >
-                    {post.body.split('\n').slice(0, 3).join('\n')}
+                    {DOMPurify.sanitize(post.body).split('\n').slice(0, 3).join('\n')}
                   </ReactMarkdown>
                 </div>
 

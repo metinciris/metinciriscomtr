@@ -3,7 +3,8 @@ import { PageContainer } from '../components/PageContainer';
 import { Mail, Phone, MapPin, Send, Github, Linkedin, Twitter, MessageSquare } from 'lucide-react';
 import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
+import DOMPurify from 'dompurify';
 
 export function Contact() {
   const [formData, setFormData] = React.useState({
@@ -15,16 +16,40 @@ export function Contact() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
+    // Rate Limiting (Client-side)
+    const lastSubmitTime = localStorage.getItem('contact_last_submit');
+    const RATE_LIMIT_MS = 60 * 60 * 1000; // 1 hour
+    const now = Date.now();
+
+    if (lastSubmitTime && now - parseInt(lastSubmitTime) < RATE_LIMIT_MS) {
+      toast.error('Çok fazla deneme yaptınız. Lütfen daha sonra tekrar deneyin.');
+      return;
+    }
+
     // Form validation
     if (!formData.name || !formData.email || !formData.message) {
       toast.error('Lütfen tüm zorunlu alanları doldurun');
       return;
     }
 
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      toast.error('Lütfen geçerli bir e-posta adresi girin');
+      return;
+    }
+
+    if (formData.name.length < 2) {
+      toast.error('Ad Soyad en az 2 karakter olmalıdır');
+      return;
+    }
+
     // Simulate form submission
     toast.success('Mesajınız başarıyla gönderildi! En kısa sürede size dönüş yapacağım.');
-    
+
+    localStorage.setItem('contact_last_submit', now.toString());
+
     // Reset form
     setFormData({
       name: '',
@@ -157,7 +182,7 @@ export function Contact() {
                   type="text"
                   placeholder="Adınız ve soyadınız"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, name: DOMPurify.sanitize(e.target.value) })}
                   required
                 />
               </div>
@@ -170,7 +195,7 @@ export function Contact() {
                   type="email"
                   placeholder="ornek@email.com"
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, email: DOMPurify.sanitize(e.target.value) })}
                   required
                 />
               </div>
@@ -185,7 +210,7 @@ export function Contact() {
                 type="text"
                 placeholder="Mesajınızın konusu"
                 value={formData.subject}
-                onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, subject: DOMPurify.sanitize(e.target.value) })}
               />
             </div>
 
@@ -197,7 +222,7 @@ export function Contact() {
                 id="message"
                 placeholder="Mesajınızı buraya yazın..."
                 value={formData.message}
-                onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, message: DOMPurify.sanitize(e.target.value) })}
                 className="min-h-[200px]"
                 required
               />
