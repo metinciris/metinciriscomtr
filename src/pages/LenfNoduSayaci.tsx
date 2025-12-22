@@ -168,7 +168,12 @@ export function LenfNoduSayaci() {
                         className="group relative flex flex-col items-center justify-center transition-all duration-100 rounded-[3rem] shadow-xl hover:shadow-2xl active:scale-[0.98] active:translate-y-2 border-b-8 active:border-b-0 overflow-hidden"
                         style={{ backgroundColor: '#10b981', borderColor: '#047857' }}
                     >
-                        <div className="absolute top-6 left-6 text-emerald-100 text-3xl font-bold uppercase tracking-widest text-left pointer-events-none">Reaktif</div>
+                        <div
+                            className="text-3xl font-bold uppercase tracking-widest text-left pointer-events-none"
+                            style={{ position: 'absolute', top: '24px', left: '24px', color: 'white' }}
+                        >
+                            Reaktif
+                        </div>
                         <div className="flex-1 flex items-center justify-center w-full">
                             <span className="text-white font-black tracking-tighter drop-shadow-lg leading-none select-none" style={{ fontSize: '12rem' }}>
                                 {counts.Reaktif}
@@ -182,7 +187,12 @@ export function LenfNoduSayaci() {
                         className="group relative flex flex-col items-center justify-center transition-all duration-100 rounded-[3rem] shadow-xl hover:shadow-2xl active:scale-[0.98] active:translate-y-2 border-b-8 active:border-b-0 overflow-hidden"
                         style={{ backgroundColor: '#f43f5e', borderColor: '#be123c' }}
                     >
-                        <div className="absolute top-6 left-6 text-rose-100 text-3xl font-bold uppercase tracking-widest text-left pointer-events-none">Metastatik</div>
+                        <div
+                            className="text-3xl font-bold uppercase tracking-widest text-left pointer-events-none"
+                            style={{ position: 'absolute', top: '24px', left: '24px', color: 'white' }}
+                        >
+                            Metastatik
+                        </div>
                         <div className="flex-1 flex items-center justify-center w-full">
                             <span className="text-white font-black tracking-tighter drop-shadow-lg leading-none select-none" style={{ fontSize: '12rem' }}>
                                 {counts.Metastatik}
@@ -196,7 +206,12 @@ export function LenfNoduSayaci() {
                         className="group relative flex flex-col items-center justify-center transition-all duration-100 rounded-[3rem] shadow-xl hover:shadow-2xl active:scale-[0.98] active:translate-y-2 border-b-8 active:border-b-0 overflow-hidden"
                         style={{ backgroundColor: '#8b5cf6', borderColor: '#6d28d9' }}
                     >
-                        <div className="absolute top-6 left-6 text-violet-100 text-3xl font-bold uppercase tracking-widest text-left pointer-events-none">Deposit</div>
+                        <div
+                            className="text-3xl font-bold uppercase tracking-widest text-left pointer-events-none"
+                            style={{ position: 'absolute', top: '24px', left: '24px', color: 'white' }}
+                        >
+                            Deposit
+                        </div>
                         <div className="flex-1 flex items-center justify-center w-full">
                             <span className="text-white font-black tracking-tighter drop-shadow-lg leading-none select-none" style={{ fontSize: '12rem' }}>
                                 {counts.Deposit}
