@@ -154,36 +154,41 @@ export function LenfNoduSayaci() {
                     </div>
                 </div>
 
-                {/* Top Summary Row - The breakdown requested */}
-                <div className="grid grid-cols-4 gap-2 mb-4">
-                    <div className="bg-slate-800 text-white rounded-xl p-3 text-center shadow-md flex flex-col justify-center">
-                        <div className="text-xs uppercase opacity-70 mb-1">Toplam</div>
-                        <div className="text-3xl font-bold">{counts.Total}</div>
+                {/* Top Summary Row - Plain Text */}
+                <div className="flex items-center justify-around mb-6 px-4 py-2 bg-slate-50 rounded-xl border border-slate-100">
+                    <div className="text-center">
+                        <span className="block text-xs uppercase text-slate-400 font-bold tracking-wider">Toplam</span>
+                        <span className="text-3xl font-black text-slate-800">{counts.Total}</span>
                     </div>
-                    <div className="bg-emerald-100 text-emerald-800 rounded-xl p-3 text-center flex flex-col justify-center border border-emerald-200">
-                        <div className="text-xs uppercase opacity-70 mb-1 font-bold">Reaktif</div>
-                        <div className="text-2xl font-bold">{counts.Reaktif}</div>
+                    <div className="w-px h-8 bg-slate-200"></div>
+                    <div className="text-center">
+                        <span className="block text-xs uppercase text-emerald-600 font-bold tracking-wider">Reaktif</span>
+                        <span className="text-2xl font-bold text-emerald-700">{counts.Reaktif}</span>
                     </div>
-                    <div className="bg-rose-100 text-rose-800 rounded-xl p-3 text-center flex flex-col justify-center border border-rose-200">
-                        <div className="text-xs uppercase opacity-70 mb-1 font-bold">Metastatik</div>
-                        <div className="text-2xl font-bold">{counts.Metastatik}</div>
+                    <div className="w-px h-8 bg-slate-200"></div>
+                    <div className="text-center">
+                        <span className="block text-xs uppercase text-rose-600 font-bold tracking-wider">Metastatik</span>
+                        <span className="text-2xl font-bold text-rose-700">{counts.Metastatik}</span>
                     </div>
-                    <div className="bg-violet-100 text-violet-800 rounded-xl p-3 text-center flex flex-col justify-center border border-violet-200">
-                        <div className="text-xs uppercase opacity-70 mb-1 font-bold">Deposit</div>
-                        <div className="text-2xl font-bold">{counts.Deposit}</div>
+                    <div className="w-px h-8 bg-slate-200"></div>
+                    <div className="text-center">
+                        <span className="block text-xs uppercase text-violet-600 font-bold tracking-wider">Deposit</span>
+                        <span className="text-2xl font-bold text-violet-700">{counts.Deposit}</span>
                     </div>
                 </div>
 
                 {/* Main Counter Buttons (3 Columns, Full Height) */}
-                <main className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 min-h-0">
+                <main className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 min-h-0">
                     {/* REAKTIF */}
                     <button
                         onClick={() => addCount('Reaktif')}
-                        className="group relative flex flex-col items-center justify-center bg-emerald-500 hover:bg-emerald-600 active:scale-[0.98] transition-all duration-100 rounded-2xl shadow-xl border-4 border-transparent hover:border-emerald-300"
+                        className="group relative flex flex-col items-center justify-center bg-emerald-500 hover:bg-emerald-600 active:scale-[0.98] transition-all duration-100 rounded-3xl shadow-xl hover:shadow-2xl border-b-8 border-emerald-700 active:border-b-0 active:translate-y-2"
                     >
-                        <span className="text-emerald-100 text-xl font-bold mb-2 uppercase tracking-wider">Reaktif</span>
-                        <span className="text-white text-8xl font-black drop-shadow-md">{counts.Reaktif}</span>
-                        <div className="mt-4 px-4 py-1 bg-black/20 rounded-full text-white/90 font-mono text-sm">
+                        <div className="text-emerald-100 text-2xl font-bold mb-4 uppercase tracking-widest">Reaktif</div>
+                        <div className="bg-emerald-800/20 rounded-2xl px-8 py-2 mb-4 backdrop-blur-sm">
+                            <span className="text-white text-9xl font-black tracking-tighter drop-shadow-lg">{counts.Reaktif}</span>
+                        </div>
+                        <div className="absolute bottom-6 px-4 py-1 bg-black/20 rounded-full text-white/90 font-mono text-sm">
                             Tuş: Enter
                         </div>
                     </button>
@@ -191,11 +196,13 @@ export function LenfNoduSayaci() {
                     {/* METASTATIK */}
                     <button
                         onClick={() => addCount('Metastatik')}
-                        className="group relative flex flex-col items-center justify-center bg-rose-500 hover:bg-rose-600 active:scale-[0.98] transition-all duration-100 rounded-2xl shadow-xl border-4 border-transparent hover:border-rose-300"
+                        className="group relative flex flex-col items-center justify-center bg-rose-500 hover:bg-rose-600 active:scale-[0.98] transition-all duration-100 rounded-3xl shadow-xl hover:shadow-2xl border-b-8 border-rose-700 active:border-b-0 active:translate-y-2"
                     >
-                        <span className="text-rose-100 text-xl font-bold mb-2 uppercase tracking-wider">Metastatik</span>
-                        <span className="text-white text-8xl font-black drop-shadow-md">{counts.Metastatik}</span>
-                        <div className="mt-4 px-4 py-1 bg-black/20 rounded-full text-white/90 font-mono text-sm">
+                        <div className="text-rose-100 text-2xl font-bold mb-4 uppercase tracking-widest">Metastatik</div>
+                        <div className="bg-rose-800/20 rounded-2xl px-8 py-2 mb-4 backdrop-blur-sm">
+                            <span className="text-white text-9xl font-black tracking-tighter drop-shadow-lg">{counts.Metastatik}</span>
+                        </div>
+                        <div className="absolute bottom-6 px-4 py-1 bg-black/20 rounded-full text-white/90 font-mono text-sm">
                             Tuş: +
                         </div>
                     </button>
@@ -203,11 +210,13 @@ export function LenfNoduSayaci() {
                     {/* DEPOSIT */}
                     <button
                         onClick={() => addCount('Deposit')}
-                        className="group relative flex flex-col items-center justify-center bg-violet-500 hover:bg-violet-600 active:scale-[0.98] transition-all duration-100 rounded-2xl shadow-xl border-4 border-transparent hover:border-violet-300"
+                        className="group relative flex flex-col items-center justify-center bg-violet-500 hover:bg-violet-600 active:scale-[0.98] transition-all duration-100 rounded-3xl shadow-xl hover:shadow-2xl border-b-8 border-violet-700 active:border-b-0 active:translate-y-2"
                     >
-                        <span className="text-violet-100 text-xl font-bold mb-2 uppercase tracking-wider">Deposit</span>
-                        <span className="text-white text-8xl font-black drop-shadow-md">{counts.Deposit}</span>
-                        <div className="mt-4 px-4 py-1 bg-black/20 rounded-full text-white/90 font-mono text-sm">
+                        <div className="text-violet-100 text-2xl font-bold mb-4 uppercase tracking-widest">Deposit</div>
+                        <div className="bg-violet-800/20 rounded-2xl px-8 py-2 mb-4 backdrop-blur-sm">
+                            <span className="text-white text-9xl font-black tracking-tighter drop-shadow-lg">{counts.Deposit}</span>
+                        </div>
+                        <div className="absolute bottom-6 px-4 py-1 bg-black/20 rounded-full text-white/90 font-mono text-sm">
                             Tuş: 0
                         </div>
                     </button>
@@ -228,8 +237,8 @@ export function LenfNoduSayaci() {
                         {logs.map((log) => (
                             <div key={log.id} className="flex items-center justify-between p-2 rounded-lg bg-slate-50 animate-in slide-in-from-top-1 duration-200">
                                 <span className={`font-bold ${log.type === 'Reaktif' ? 'text-emerald-700' :
-                                        log.type === 'Metastatik' ? 'text-rose-700' :
-                                            'text-violet-700'
+                                    log.type === 'Metastatik' ? 'text-rose-700' :
+                                        'text-violet-700'
                                     }`}>{log.type}</span>
                                 <div className="flex items-center gap-3">
                                     <span className="text-xs text-slate-400 font-mono">
