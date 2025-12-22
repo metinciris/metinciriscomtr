@@ -75,13 +75,14 @@ export function LenfNoduSayaci() {
                 oscillator.start(now);
                 oscillator.stop(now + 0.2);
             } else if (type === 'Deposit') {
-                // "Bap" - Short high pip
-                oscillator.type = 'sine';
-                oscillator.frequency.setValueAtTime(1200, now);
-                gainNode.gain.setValueAtTime(0.1, now);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+                // "Bum" - Low, serious thud (Neutral)
+                oscillator.type = 'triangle'; // Triangle has a bit more weight than sine
+                oscillator.frequency.setValueAtTime(200, now);
+                oscillator.frequency.exponentialRampToValueAtTime(100, now + 0.15);
+                gainNode.gain.setValueAtTime(0.3, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
                 oscillator.start(now);
-                oscillator.stop(now + 0.08);
+                oscillator.stop(now + 0.15);
             }
 
         } catch (error) {
