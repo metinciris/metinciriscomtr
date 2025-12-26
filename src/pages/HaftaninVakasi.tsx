@@ -137,7 +137,7 @@ export function HaftaninVakasi() {
                     {isRevealed && (
                         <div className="mt-8 text-center pb-8">
                             <p className="text-gray-400 italic">
-                                Gelecek hafta yeni bir vaka ile görüşmek üzere...
+                                Gelecek ay yeni bir vaka ile görüşmek üzere...
                             </p>
                         </div>
                     )}
