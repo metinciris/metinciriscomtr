@@ -448,7 +448,7 @@ export function Home({ onNavigate }: HomeProps) {
                 color=""
                 style={{ backgroundColor: '#8B0000', color: 'white' }}
                 size="medium"
-                onClick={() => onNavigate('haftanin-vakasi')}
+                onClick={() => onNavigate('ayin-vakasi')}
               />
 
               {/* Blog karosu kaldırıldı -> Diğer Çalışmalar'a taşındı */}

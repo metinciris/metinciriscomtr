@@ -108,8 +108,8 @@ const SvsReader = React.lazy(() =>
 const TaniTuzaklari = React.lazy(() =>
   import('./pages/TaniTuzaklari').then((m) => ({ default: m.TaniTuzaklari })),
 );
-const HaftaninVakasi = React.lazy(() =>
-  import('./pages/HaftaninVakasi').then((m) => ({ default: m.HaftaninVakasi })),
+const AyinVakasi = React.lazy(() =>
+  import('./pages/AyinVakasi').then((m) => ({ default: m.AyinVakasi })),
 );
 const Prizma3D = React.lazy(() =>
   import('./pages/Prizma3D').then((m) => ({ default: m.Prizma3D })),
@@ -136,7 +136,7 @@ export default function App() {
         'donem-3', 'galeri', 'portfolyo', 'sinav-analizi', 'yayinlar', 'podcast',
         'blog', 'github', 'facebook', 'linkedin', 'diger-calismalar', 'fetus-uzunluklari',
         'rcb-calculator', 'gist-raporlama', 'makale', 'deprem', 'svs-reader',
-        'tani-tuzaklari', 'haftanin-vakasi', 'prizma-3d', 'makale-takip', 'lenf-nodu'
+        'tani-tuzaklari', 'ayin-vakasi', 'prizma-3d', 'makale-takip', 'lenf-nodu'
       ];
 
       if (validPages.includes(hash)) {
@@ -234,8 +234,8 @@ export default function App() {
       case 'tani-tuzaklari':
         return <TaniTuzaklari />;
 
-      case 'haftanin-vakasi':
-        return <HaftaninVakasi />;
+      case 'ayin-vakasi':
+        return <AyinVakasi />;
 
       case 'prizma-3d':
         return <Prizma3D />;

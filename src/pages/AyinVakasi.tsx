@@ -3,14 +3,14 @@ import { PageContainer } from '../components/PageContainer';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Microscope, ArrowRight, Eye, AlertCircle } from 'lucide-react';
 
-export function HaftaninVakasi() {
+export function AyinVakasi() {
     const [isRevealed, setIsRevealed] = useState(false);
 
     // Mock Data - Case 22
     const currentCase = {
         id: 'case-22',
         title: 'Ayın Vakası',
-        history: 'Tümöral olmayan tiroid dokusunda çok sayıda psammoma cisimciği mi görüyorsunuz?',
+        history: 'Tümör ve tümör olmayan tiroid dokusunda çok sayıda psammoma cisimciği görülüyor.',
         imagePlaceholder: 'https://metinciris.github.io/gallery-22/thumbnail.jpg',
         diagnosis: 'Diffüz Sklerozan Papiller Tiroid Karsinomu',
         description: `Aslında Papiller Tiroid Karsinomunun Diffüz Sklerozan Varyantına (DSV) bakıyor olabilirsiniz.
@@ -54,7 +54,7 @@ export function HaftaninVakasi() {
                     >
                         <div className="flex items-center gap-3 font-bold uppercase tracking-widest text-sm mb-3" style={{ color: '#e9d5ff' }}>
                             <Microscope size={20} />
-                            Klinik Öykü
+                            Bilgi
                         </div>
                         <p className="text-xl md:text-3xl font-light leading-relaxed" style={{ color: '#ffffff' }}>
                             {currentCase.history}
