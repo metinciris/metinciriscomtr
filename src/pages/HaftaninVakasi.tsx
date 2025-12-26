@@ -6,21 +6,20 @@ import { Microscope, ArrowRight, Eye, AlertCircle } from 'lucide-react';
 export function HaftaninVakasi() {
     const [isRevealed, setIsRevealed] = useState(false);
 
-    // Mock Data - Case 07 from User's Gallery
+    // Mock Data - Case 22
     const currentCase = {
-        id: 'case-07',
-        title: 'Haftanın Vakası #1',
-        history: 'Tiroidde nodül saptanan hastadan yapılan rezeksiyon materyali.',
-        imagePlaceholder: 'https://metinciris.github.io/gallery-07/thumbnail.jpg',
-        diagnosis: 'Cribriform-morular Thyroid Carcinoma',
-        description: `Tiroidin oldukça nadir görülen bir tümörüdür. 
-    Tanısal İpuçları:
-    - Belirgin papiller yapıların yokluğu.
-    - Karakteristik kribriform (elek benzeri) ve morular (topluluk oluşturan) büyüme paterni.
-    - İmmünohistokimyasal olarak Tiroglobulin negatifliği (önemli bir tuzak!).
-    - Beta-katenin ile nükleer ve sitoplazmik pozitiflik (Wnt yolağı aktivasyonu).
-    - Sıklıkla FAP (Familyal Adenomatöz Polipozis) ile ilişkilidir.`,
-        slideUrl: 'https://metinciris.github.io/gallery-07/',
+        id: 'case-22',
+        title: 'Ayın Vakası',
+        history: 'Tümöral olmayan tiroid dokusunda çok sayıda psammoma cisimciği mi görüyorsunuz?',
+        imagePlaceholder: 'https://metinciris.github.io/gallery-22/thumbnail.jpg',
+        diagnosis: 'Diffüz Sklerozan Papiller Tiroid Karsinomu',
+        description: `Aslında Papiller Tiroid Karsinomunun Diffüz Sklerozan Varyantına (DSV) bakıyor olabilirsiniz.
+    Bu nadir fakat kendine özgü alt tip şunlarla karakterizedir:
+     🔹 Yaygın psammoma cisimcikleri
+     🔹 Yoğun fibrozis
+     🔹 Belirgin lenfositik infiltrasyon
+     🔹 PTC'nin klasik nükleer özellikleri, sıklıkla silik ve diffüz`,
+        slideUrl: 'https://metinciris.github.io/gallery-22/',
     };
 
     return (
@@ -29,7 +28,7 @@ export function HaftaninVakasi() {
                 {/* Header */}
                 <div className="mb-8 border-b-4 border-purple-600 pb-4">
                     <h1 className="text-4xl md:text-5xl font-light text-gray-800">
-                        Haftanın <span className="font-bold text-purple-700">Vakası</span>
+                        Ayın <span className="font-bold text-purple-700">Vakası</span>
                     </h1>
                     <p className="text-xl text-gray-500 mt-2 font-light">
                         Kendinizi test edin, tanıyı tahmin edin.

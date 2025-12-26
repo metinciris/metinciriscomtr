@@ -442,7 +442,7 @@ export function Home({ onNavigate }: HomeProps) {
 
               {/* Haftanın Vakası - YENİ */}
               <MetroTile
-                title="Haftanın Vakası"
+                title="Ayın Vakası"
                 subtitle="Kendinizi test edin"
                 icon={<Microscope size={40} />}
                 color=""
