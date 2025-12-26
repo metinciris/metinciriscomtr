@@ -1,12 +1,143 @@
 <!DOCTYPE html>
 <html lang="tr">
-  <head>
-    <meta charset="UTF-8" />
-    <!-- 0 saniyede ana sayfaya yönlendir -->
-    <meta http-equiv="refresh" content="0; url=/" />
-    <title>Yönlendiriliyor...</title>
-  </head>
-  <body>
-    <p>Aradığınız sayfa taşındı. Anasayfaya yönlendiriliyorsunuz...</p>
-  </body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sayfa Bulunamadı - 404</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Segoe+UI:wght@300;400;600;700&display=swap');
+        body { font-family: 'Segoe UI', system-ui, sans-serif; }
+    </style>
+</head>
+<body class="bg-[#f0f0f0] min-h-screen flex flex-col items-center justify-center p-6 text-center">
+
+    <!-- Animated 404 Icon -->
+    <div class="relative mb-8">
+        <div class="absolute inset-0 bg-red-400 blur-3xl opacity-20 animate-pulse rounded-full"></div>
+        <svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="relative z-10 mx-auto">
+            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+            <path d="M12 9v4"/>
+            <path d="M12 17h.01"/>
+        </svg>
+    </div>
+
+    <h1 class="text-6xl font-black text-slate-800 mb-2 tracking-tighter">404</h1>
+    <h2 class="text-2xl font-bold text-slate-700 mb-4">Aradığınız Sayfayı Bulamadık</h2>
+    <p class="max-w-md text-slate-500 mb-12 leading-relaxed mx-auto">
+        Üzgünüz, aradığınız sayfa taşınmış, silinmiş veya hiç var olmamış olabilir. Aşağıdaki hızlı bağlantıları kullanarak sitenin en popüler bölümlerine göz atabilirsiniz.
+    </p>
+
+    <!-- Links Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-4xl mx-auto">
+        
+        <!-- Anasayfa -->
+        <a href="/#home" class="group flex items-center p-4 pl-6 gap-8 bg-white rounded-2xl shadow-sm border border-slate-100 hover:shadow-2xl hover:border-slate-300 hover:scale-[1.03] transition-all duration-300 text-left active:scale-100 no-underline">
+            <div class="p-3 rounded-xl text-white group-hover:scale-110 transition-transform shadow-lg shrink-0" style="background-color: #00A6D6;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            </div>
+            <div class="flex-1">
+                <span class="font-semibold text-slate-800 block leading-tight">Anasayfa</span>
+                <span class="text-xs text-slate-400">Gitmek için tıklayın</span>
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="group-hover:text-slate-500 transform group-hover:translate-x-1 transition-all"><path d="m9 18 6-6-6-6"/></svg>
+        </a>
+
+        <!-- Patoloji Tanı Tuzakları -->
+        <a href="/#tani-tuzaklari" class="group flex items-center p-4 pl-6 gap-8 bg-white rounded-2xl shadow-sm border border-slate-100 hover:shadow-2xl hover:border-slate-300 hover:scale-[1.03] transition-all duration-300 text-left active:scale-100 no-underline">
+            <div class="p-3 rounded-xl text-white group-hover:scale-110 transition-transform shadow-lg shrink-0" style="background-color: #f59e0b;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            </div>
+            <div class="flex-1">
+                <span class="font-semibold text-slate-800 block leading-tight">Patoloji Tanı Tuzakları</span>
+                <span class="text-xs text-slate-400">Gitmek için tıklayın</span>
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="group-hover:text-slate-500 transform group-hover:translate-x-1 transition-all"><path d="m9 18 6-6-6-6"/></svg>
+        </a>
+
+        <!-- Baktığım Biyopsiler -->
+        <a href="/#baktigim-biyopsiler" class="group flex items-center p-4 pl-6 gap-8 bg-white rounded-2xl shadow-sm border border-slate-100 hover:shadow-2xl hover:border-slate-300 hover:scale-[1.03] transition-all duration-300 text-left active:scale-100 no-underline">
+            <div class="p-3 rounded-xl text-white group-hover:scale-110 transition-transform shadow-lg shrink-0" style="background-color: #0078D4;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
+            </div>
+            <div class="flex-1">
+                <span class="font-semibold text-slate-800 block leading-tight">Baktığım Biyopsiler</span>
+                <span class="text-xs text-slate-400">Gitmek için tıklayın</span>
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="group-hover:text-slate-500 transform group-hover:translate-x-1 transition-all"><path d="m9 18 6-6-6-6"/></svg>
+        </a>
+
+        <!-- SVS Mikroskopi Reader -->
+        <a href="/#svs-reader" class="group flex items-center p-4 pl-6 gap-8 bg-white rounded-2xl shadow-sm border border-slate-100 hover:shadow-2xl hover:border-slate-300 hover:scale-[1.03] transition-all duration-300 text-left active:scale-100 no-underline">
+            <div class="p-3 rounded-xl text-white group-hover:scale-110 transition-transform shadow-lg shrink-0" style="background-color: #8E44AD;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+            </div>
+            <div class="flex-1">
+                <span class="font-semibold text-slate-800 block leading-tight">SVS Mikroskopi Reader</span>
+                <span class="text-xs text-slate-400">Gitmek için tıklayın</span>
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="group-hover:text-slate-500 transform group-hover:translate-x-1 transition-all"><path d="m9 18 6-6-6-6"/></svg>
+        </a>
+
+        <!-- Deprem Takibi -->
+        <a href="/#deprem" class="group flex items-center p-4 pl-6 gap-8 bg-white rounded-2xl shadow-sm border border-slate-100 hover:shadow-2xl hover:border-slate-300 hover:scale-[1.03] transition-all duration-300 text-left active:scale-100 no-underline">
+            <div class="p-3 rounded-xl text-white group-hover:scale-110 transition-transform shadow-lg shrink-0" style="background-color: #dc2626;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            </div>
+            <div class="flex-1">
+                <span class="font-semibold text-slate-800 block leading-tight">Deprem Takibi</span>
+                <span class="text-xs text-slate-400">Gitmek için tıklayın</span>
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="group-hover:text-slate-500 transform group-hover:translate-x-1 transition-all"><path d="m9 18 6-6-6-6"/></svg>
+        </a>
+
+        <!-- Blog / Yayınlar -->
+        <a href="/#blog" class="group flex items-center p-4 pl-6 gap-8 bg-white rounded-2xl shadow-sm border border-slate-100 hover:shadow-2xl hover:border-slate-300 hover:scale-[1.03] transition-all duration-300 text-left active:scale-100 no-underline">
+            <div class="p-3 rounded-xl text-white group-hover:scale-110 transition-transform shadow-lg shrink-0" style="background-color: #9333ea;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            </div>
+            <div class="flex-1">
+                <span class="font-semibold text-slate-800 block leading-tight">Blog / Yayınlar</span>
+                <span class="text-xs text-slate-400">Gitmek için tıklayın</span>
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="group-hover:text-slate-500 transform group-hover:translate-x-1 transition-all"><path d="m9 18 6-6-6-6"/></svg>
+        </a>
+
+        <!-- İletişim -->
+        <a href="/#iletisim" class="group flex items-center p-4 pl-6 gap-8 bg-white rounded-2xl shadow-sm border border-slate-100 hover:shadow-2xl hover:border-slate-300 hover:scale-[1.03] transition-all duration-300 text-left active:scale-100 no-underline">
+            <div class="p-3 rounded-xl text-white group-hover:scale-110 transition-transform shadow-lg shrink-0" style="background-color: #0ea5e9;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+            </div>
+            <div class="flex-1">
+                <span class="font-semibold text-slate-800 block leading-tight">İletişim</span>
+                <span class="text-xs text-slate-400">Gitmek için tıklayın</span>
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="group-hover:text-slate-500 transform group-hover:translate-x-1 transition-all"><path d="m9 18 6-6-6-6"/></svg>
+        </a>
+
+        <!-- Hastane Yemek -->
+        <a href="/#hastane-yemek" class="group flex items-center p-4 pl-6 gap-8 bg-white rounded-2xl shadow-sm border border-slate-100 hover:shadow-2xl hover:border-slate-300 hover:scale-[1.03] transition-all duration-300 text-left active:scale-100 no-underline">
+            <div class="p-3 rounded-xl text-white group-hover:scale-110 transition-transform shadow-lg shrink-0" style="background-color: #16A085;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>
+            </div>
+            <div class="flex-1">
+                <span class="font-semibold text-slate-800 block leading-tight">Hastane Yemek</span>
+                <span class="text-xs text-slate-400">Gitmek için tıklayın</span>
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="group-hover:text-slate-500 transform group-hover:translate-x-1 transition-all"><path d="m9 18 6-6-6-6"/></svg>
+        </a>
+
+    </div>
+
+    <!-- Home Button -->
+    <a href="/" class="mt-12 px-8 py-4 text-white rounded-full font-bold shadow-lg hover:shadow-indigo-500/30 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 border-none ring-offset-2 hover:ring-2 hover:ring-indigo-300 no-underline" style="background-color: #4f46e5;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span class="text-white">Anasayfaya Dön</span>
+    </a>
+
+    <div class="mt-16 text-slate-400 text-sm italic">
+        "Aradığınız şey belki de sizi başka bir yerde bekliyordur."
+    </div>
+
+</body>
 </html>
