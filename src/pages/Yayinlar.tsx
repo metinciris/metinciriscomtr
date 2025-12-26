@@ -8,8 +8,8 @@ export function Yayinlar() {
   const [expandedSections, setExpandedSections] = React.useState<string[]>(['sci']);
 
   const toggleSection = (section: string) => {
-    setExpandedSections(prev => 
-      prev.includes(section) 
+    setExpandedSections(prev =>
+      prev.includes(section)
         ? prev.filter(s => s !== section)
         : [...prev, section]
     );
@@ -78,7 +78,8 @@ export function Yayinlar() {
     'Renal transplant patolojisi kursu, 28. Ulusal Patoloji Kongresi kapsamında, 30 Ekim 2018, Ankara',
     'Uygulamalı mikroskop çalıştayı katkısı, 13-15 Mart 2019, Isparta',
     'Solunum zirvesi, baş boyun tümörlerinde sıradışı olgular sunumu, 13-15 Haziran 2019, Isparta',
-    '29. Ulusal Patoloji Kongresi, 23-26 Ekim 2019, Trabzon'
+    '29. Ulusal Patoloji Kongresi, 23-26 Ekim 2019, Trabzon',
+    '2025–2026 Global Cytology Educational Programı, American Society of Cytopathology (ASC) tarafından akredite edilmiş sürekli tıp eğitimi sertifikası. 12/09/2025'
   ];
 
   // SCI-Expanded Makaleler (güncellenmiş liste)
@@ -378,8 +379,8 @@ export function Yayinlar() {
               </div>
               <h2 className="text-left">Bilimsel Katılımlar ({scientificParticipations.length})</h2>
             </div>
-            <ChevronDown 
-              size={24} 
+            <ChevronDown
+              size={24}
               className={`transition-transform ${isExpanded('katilim') ? 'rotate-180' : ''}`}
             />
           </button>
@@ -410,8 +411,8 @@ export function Yayinlar() {
               </div>
               <h2 className="text-left">Uluslararası Hakemli Dergilerde Yayımlanan Makaleler ({sciPublications.length})</h2>
             </div>
-            <ChevronDown 
-              size={24} 
+            <ChevronDown
+              size={24}
               className={`transition-transform ${isExpanded('sci') ? 'rotate-180' : ''}`}
             />
           </button>
@@ -425,12 +426,11 @@ export function Yayinlar() {
                         {pub.year}
                       </div>
                       {pub.quartile && (
-                        <div className={`px-3 py-1 flex-shrink-0 ${
-                          pub.quartile === 'Q1' ? 'bg-[#27AE60] text-white' :
-                          pub.quartile === 'Q2' ? 'bg-[#00A6D6] text-white' :
-                          pub.quartile === 'Q3' ? 'bg-[#F39C12] text-white' :
-                          'bg-[#E74C3C] text-white'
-                        }`}>
+                        <div className={`px-3 py-1 flex-shrink-0 ${pub.quartile === 'Q1' ? 'bg-[#27AE60] text-white' :
+                            pub.quartile === 'Q2' ? 'bg-[#00A6D6] text-white' :
+                              pub.quartile === 'Q3' ? 'bg-[#F39C12] text-white' :
+                                'bg-[#E74C3C] text-white'
+                          }`}>
                           {pub.quartile}
                         </div>
                       )}
@@ -476,8 +476,8 @@ export function Yayinlar() {
               </div>
               <h2 className="text-left">Ulusal Hakemli Dergilerde Yayımlanan Makaleler ({nationalPublications.length})</h2>
             </div>
-            <ChevronDown 
-              size={24} 
+            <ChevronDown
+              size={24}
               className={`transition-transform ${isExpanded('ulusal') ? 'rotate-180' : ''}`}
             />
           </button>
@@ -532,8 +532,8 @@ export function Yayinlar() {
               </div>
               <h2 className="text-left">Kitaplar ({books.length})</h2>
             </div>
-            <ChevronDown 
-              size={24} 
+            <ChevronDown
+              size={24}
               className={`transition-transform ${isExpanded('kitap') ? 'rotate-180' : ''}`}
             />
           </button>
@@ -668,18 +668,18 @@ export function Yayinlar() {
         <h3 className="mb-3">Güncel Yayınlar</h3>
         <p className="text-muted-foreground m-0">
           Tüm yayınların güncel listesi için lütfen{' '}
-          <a 
-            href="https://w3.sdu.edu.tr/personel/02956/ibrahim-metin-ciris" 
-            target="_blank" 
+          <a
+            href="https://w3.sdu.edu.tr/personel/02956/ibrahim-metin-ciris"
+            target="_blank"
             rel="noopener noreferrer"
             className="text-[#00A6D6] hover:underline"
           >
             SDÜ Akademik Personel Sayfası
           </a>
           {' '}ve{' '}
-          <a 
-            href="https://scholar.google.com.tr/citations?user=zEF_KLsAAAAJ&hl=tr" 
-            target="_blank" 
+          <a
+            href="https://scholar.google.com.tr/citations?user=zEF_KLsAAAAJ&hl=tr"
+            target="_blank"
             rel="noopener noreferrer"
             className="text-[#00A6D6] hover:underline"
           >
