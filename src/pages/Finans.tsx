@@ -22,8 +22,8 @@ const economyData = [
 ];
 
 // --- Recharts Trend Grafiği ---
-const TrendChart = ({ title, dataKey, color, unit, value }: {
-    title: string, dataKey: string, color: string, unit: string, value: string
+const TrendChart = ({ title, dataKey, color, unit, value, date }: {
+    title: string, dataKey: string, color: string, unit: string, value: string, date: string
 }) => {
     return (
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col h-[320px]" style={{ backgroundColor: 'white' }}>
@@ -31,6 +31,9 @@ const TrendChart = ({ title, dataKey, color, unit, value }: {
                 <div>
                     <h3 className="text-sm font-semibold uppercase tracking-wider" style={{ color: '#64748b' }}>{title}</h3>
                     <p className="text-2xl font-bold mt-1" style={{ color: '#0f172a' }}>{unit}{value}</p>
+                    <p className="text-[10px] font-medium text-slate-400 uppercase tracking-tighter mt-1">
+                        Son Veri: <span className="text-slate-500 font-bold">{date}</span>
+                    </p>
                 </div>
                 <div className="p-2 rounded-lg" style={{ backgroundColor: color + '20', color: color }}>
                     {dataKey === 'faiz' && <Landmark size={20} />}
@@ -145,9 +148,8 @@ export function Finans() {
             </div>
 
             {/* Ekonomi Trend Grafikleri (RECHARTS - Gerçek 2024 Verileri) */}
-            <div className="flex flex-col mb-4">
-                <h2 className="text-2xl font-bold text-slate-800 mb-1">Ekonomik Göstergeler</h2>
-                <p className="text-slate-500 text-sm mb-4">Ocak - Aralık 2024 Yıllık Gelişim Trendi (%)</p>
+            <div className="flex flex-col mb-6">
+                <h2 className="text-2xl font-bold text-slate-800">Ekonomik Göstergeler</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
                 <TrendChart
@@ -156,6 +158,7 @@ export function Finans() {
                     color="#3b82f6"
                     unit="%"
                     value="50.00"
+                    date="Aralık 2024"
                 />
                 <TrendChart
                     title="Yıllık Enflasyon (TÜFE)"
@@ -163,6 +166,7 @@ export function Finans() {
                     color="#f97316"
                     unit="%"
                     value="44.38"
+                    date="Aralık 2024"
                 />
                 <TrendChart
                     title="Kira Artış Oranı"
@@ -170,6 +174,7 @@ export function Finans() {
                     color="#22c55e"
                     unit="%"
                     value="62.91"
+                    date="Aralık 2024"
                 />
             </div>
 
