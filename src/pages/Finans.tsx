@@ -1,98 +1,21 @@
 import React, { useEffect, useRef } from 'react';
 import { PageContainer } from '../components/PageContainer';
-import { TrendingUp, PieChart, Landmark, Percent, Home, Coins, Info } from 'lucide-react';
-import {
-    XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area
-} from 'recharts';
+import { TrendingUp, Landmark, Info, PieChart, Percent, Home, Coins } from 'lucide-react';
 
-// --- Gerçek 2024 Türkiye Ekonomi Verileri ---
-const economyData = [
-    { ay: 'Oca 25', faiz: 45.00, enflasyon: 48.50, kira: 55.00, asgari: 22000, memur: 49.25, issizlik: 9.1 },
-    { ay: 'Mar 25', faiz: 42.50, enflasyon: 45.00, kira: 54.00, asgari: 22000, memur: 49.25, issizlik: 8.6 },
-    { ay: 'May 25', faiz: 42.50, enflasyon: 42.00, kira: 53.00, asgari: 22000, memur: 49.25, issizlik: 8.4 },
-    { ay: 'Tem 25', faiz: 40.00, enflasyon: 38.00, kira: 52.00, asgari: 22000, memur: 19.31, issizlik: 8.8 },
-    { ay: 'Eyl 25', faiz: 39.50, enflasyon: 35.00, kira: 51.00, asgari: 22000, memur: 19.31, issizlik: 8.6 },
-    { ay: 'Kas 25', faiz: 38.50, enflasyon: 31.07, kira: 50.50, asgari: 22000, memur: 19.31, issizlik: 8.5 },
-    { ay: 'Ara 25', faiz: 38.00, enflasyon: 30.00, kira: 50.00, asgari: 28075, memur: 18.50, issizlik: 8.5 },
-];
 
-// --- Recharts Trend Grafiği ---
-const TrendChart = ({ title, dataKey, color, unit, value, date, link }: {
-    title: string, dataKey: string, color: string, unit: string, value: string, date: string, link: string
-}) => {
-    return (
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col h-[320px]" style={{ backgroundColor: 'white' }}>
-            <div className="flex justify-between items-start mb-4">
-                <div>
-                    <h3 className="text-sm font-semibold uppercase tracking-wider" style={{ color: '#64748b' }}>{title}</h3>
-                    <p className="text-2xl font-bold mt-1" style={{ color: '#0f172a' }}>{unit}{value}</p>
-                    <a
-                        href={link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[10px] font-medium text-slate-400 uppercase tracking-tighter mt-1 hover:text-blue-500 transition-colors flex items-center gap-1"
-                    >
-                        Son Veri: <span className="text-slate-500 font-bold">{date}</span>
-                        <Info size={10} />
-                    </a>
-                </div>
-                <div className="p-2 rounded-lg" style={{ backgroundColor: color + '20', color: color }}>
-                    {dataKey === 'faiz' && <Landmark size={20} />}
-                    {dataKey === 'enflasyon' && <Percent size={20} />}
-                    {dataKey === 'kira' && <Home size={20} />}
-                    {dataKey === 'asgari' && <Coins size={20} />}
-                    {dataKey === 'memur' && <TrendingUp size={20} />}
-                    {dataKey === 'issizlik' && <PieChart size={20} />}
-                </div>
-            </div>
-            <div className="flex-1 w-full overflow-hidden">
-                <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={economyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                        <defs>
-                            <linearGradient id={`color-${dataKey}`} x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor={color} stopOpacity={0.3} />
-                                <stop offset="95%" stopColor={color} stopOpacity={0} />
-                            </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                        <XAxis
-                            dataKey="ay"
-                            axisLine={false}
-                            tickLine={false}
-                            tick={{ fill: '#94a3b8', fontSize: 11 }}
-                            dy={10}
-                        />
-                        <YAxis hide domain={['dataMin - 5', 'dataMax + 5']} />
-                        <Tooltip
-                            contentStyle={{ borderRadius: '10px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                            formatter={(val: number) => [`${unit}${val.toFixed(2)}`, title]}
-                        />
-                        <Area
-                            type="monotone"
-                            dataKey={dataKey}
-                            stroke={color}
-                            strokeWidth={3}
-                            fillOpacity={1}
-                            fill={`url(#color-${dataKey})`}
-                        />
-                    </AreaChart>
-                </ResponsiveContainer>
-            </div>
-        </div>
-    );
-};
+// --- Canlı Veri Notu ---
+// Veriler TradingView ve Resmi Kurumlar (TCMB, TÜİK) üzerinden canlı olarak akmaktadır.
+// Bu sayfadaki tüm mali göstergeler otomatik güncellenmektedir.
 
-// --- TradingView Widget (Linkler maskelenmiş) ---
-const FinanceWidget = ({ symbol, title, height = 300 }: {
-    symbol: string; title: string, height?: number
-}) => {
+// --- Robust TradingView Widget (with Link Masking) ---
+const RobustTradingViewWidget = ({ symbol, title, height = 220 }: { symbol: string; title: string; height?: number }) => {
     const container = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const script = document.createElement("script");
+        script.src = "https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js";
         script.type = "text/javascript";
         script.async = true;
-        script.src = "https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js";
         script.innerHTML = JSON.stringify({
             "symbol": symbol,
             "width": "100%",
@@ -100,7 +23,7 @@ const FinanceWidget = ({ symbol, title, height = 300 }: {
             "locale": "tr",
             "dateRange": "12M",
             "colorTheme": "light",
-            "isTransparent": true,
+            "isTransparent": false,
             "autosize": true,
             "largeChartUrl": ""
         });
@@ -109,19 +32,16 @@ const FinanceWidget = ({ symbol, title, height = 300 }: {
             container.current.innerHTML = '';
             container.current.appendChild(script);
         }
-    }, [symbol, title, height]);
+    }, [symbol, height]);
 
     return (
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex flex-col gap-3 overflow-hidden" style={{ backgroundColor: 'white' }}>
-            <h3 className="text-lg font-semibold flex items-center gap-2" style={{ color: '#1e293b' }}>
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex flex-col gap-3 relative group overflow-hidden">
+            <h3 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
                 {title}
             </h3>
-            <div className="relative" style={{ height: height - 50, overflow: 'hidden' }}>
-                <div className="tradingview-widget-container" ref={container}></div>
-                {/* Link Maskeleme */}
-                <div className="absolute bottom-0 left-0 right-0 h-[45px] bg-white z-10"></div>
-                <div className="absolute top-0 right-0 w-[50px] h-[40px] bg-white z-10"></div>
-            </div>
+            <div className="tradingview-widget-container" ref={container}></div>
+            {/* Link Masking Layer */}
+            <div className="absolute inset-0 bg-transparent z-10 cursor-default" />
         </div>
     );
 };
@@ -151,88 +71,37 @@ export function Finans() {
                 </p>
             </div>
 
-            {/* Ekonomi Trend Grafikleri (RECHARTS - Gerçek 2024 Verileri) */}
-            <div className="flex flex-col mb-6">
-                <h2 className="text-2xl font-bold text-slate-800">Ekonomik Göstergeler</h2>
-            </div>
+            {/* Ekonomik Göstergeler (Canlı) */}
+            <h2 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-3">
+                <Landmark className="text-blue-600" />
+                Ekonomik Göstergeler (Canlı)
+            </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-                <TrendChart
-                    title="Politika Faizi (TCMB)"
-                    dataKey="faiz"
-                    color="#3b82f6"
-                    unit="%"
-                    value="38.00"
-                    date="Aralık 2025"
-                    link="https://www.tcmb.gov.tr/wps/wcm/connect/tr/tcmb+tr/main+menu/temel+faaliyetler/para+politikasi/merkez+bankasi+faiz+oranlari"
-                />
-                <TrendChart
-                    title="Yıllık Enflasyon (TÜFE)"
-                    dataKey="enflasyon"
-                    color="#f97316"
-                    unit="%"
-                    value="31.07"
-                    date="Kasım 2025"
-                    link="https://data.tuik.gov.tr/Kategori/GetKategori?p=enflasyon-ve-fiyat-106"
-                />
-                <TrendChart
-                    title="Kira Artış Oranı"
-                    dataKey="kira"
-                    color="#22c55e"
-                    unit="%"
-                    value="50.00"
-                    date="Aralık 2025"
-                    link="https://data.tuik.gov.tr/Kategori/GetKategori?p=enflasyon-ve-fiyat-106"
-                />
-                <TrendChart
-                    title="Asgari Ücret (Net)"
-                    dataKey="asgari"
-                    color="#84cc16"
-                    unit="₺"
-                    value="28.075"
-                    date="Aralık 2025"
-                    link="https://www.csgb.gov.tr/asgari-ucret/"
-                />
-                <TrendChart
-                    title="Memur Maaş Artışı"
-                    dataKey="memur"
-                    color="#06b6d4"
-                    unit="%"
-                    value="18.50"
-                    date="Ocak 2026 Tahmin"
-                    link="https://www.hmb.gov.tr/"
-                />
-                <TrendChart
-                    title="İşsizlik Oranı"
-                    dataKey="issizlik"
-                    color="#f43f5e"
-                    unit="%"
-                    value="8.50"
-                    date="Ekim 2025"
-                    link="https://data.tuik.gov.tr/Kategori/GetKategori?p=istihdam-isssizlik-ve-ucret-108"
-                />
+                <RobustTradingViewWidget symbol="ECONOMICS:TRINTR" title="Politika Faizi (TCMB)" height={280} />
+                <RobustTradingViewWidget symbol="ECONOMICS:TRIRYY" title="Yıllık Enflasyon (TÜFE)" height={280} />
+                <RobustTradingViewWidget symbol="ECONOMICS:TRUR" title="İşsizlik Oranı" height={280} />
             </div>
 
             {/* Döviz Kurları */}
-            <h2 className="text-2xl font-bold text-slate-800 mb-4 mt-12">Döviz Kurları</h2>
+            <h2 className="text-2xl font-bold text-slate-800 mb-4 mt-6">Döviz Kurları</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-                <FinanceWidget symbol="FX:USDTRY" title="Dolar / TL" height={300} />
-                <FinanceWidget symbol="FX:EURTRY" title="Euro / TL" height={300} />
-                <FinanceWidget symbol="BINANCE:BTCUSDT" title="Bitcoin (USDT)" height={300} />
+                <RobustTradingViewWidget symbol="FX_IDC:USDTRY" title="ABD Doları / TL" />
+                <RobustTradingViewWidget symbol="FX_IDC:EURTRY" title="Euro / TL" />
+                <RobustTradingViewWidget symbol="BITSTAMP:BTCUSD" title="Bitcoin / USD" />
             </div>
 
             {/* Altın & Gümüş */}
             <h2 className="text-2xl font-bold text-slate-800 mb-4 mt-12">Altın & Gümüş</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-                <FinanceWidget symbol="OANDA:XAUUSD" title="Ons Altın (USD)" height={300} />
-                <FinanceWidget symbol="FX_IDC:XAUTRYG" title="Gram Altın (TL)" height={300} />
-                <FinanceWidget symbol="OANDA:XAGUSD" title="Gümüş (USD)" height={300} />
+                <RobustTradingViewWidget symbol="TVC:GOLD" title="Ons Altın (USD)" />
+                <RobustTradingViewWidget symbol="OANDA:XAUTRY" title="Gram Altın (TL)" height={220} />
+                <RobustTradingViewWidget symbol="OANDA:XAGUSD" title="Gümüş (USD)" height={300} />
             </div>
 
-            {/* Ekonomi & Emtia */}
-            <h2 className="text-2xl font-bold text-slate-800 mb-4 mt-12">Ekonomi & Emtia</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mb-10">
-                <FinanceWidget symbol="TVC:USOIL" title="Ham Petrol (WTI)" height={300} />
-                <FinanceWidget symbol="ECONOMICS:TRGDPQY" title="GSYİH Büyüme Hızı (%)" height={300} />
+            {/* Emtia */}
+            <h2 className="text-2xl font-bold text-slate-800 mb-4 mt-12">Emtia</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+                <RobustTradingViewWidget symbol="TVC:USOIL" title="Ham Petrol (WTI)" height={300} />
             </div>
 
 
@@ -255,10 +124,9 @@ export function Finans() {
                                     Ekonomik Göstergeler
                                 </h5>
                                 <p className="text-slate-600 text-sm leading-relaxed">
-                                    <strong>Politika Faizi:</strong> T.C. Merkez Bankası (TCMB) resmi verileri (2025 Aralık)<br />
-                                    <strong>Enflasyon (TÜFE):</strong> Türkiye İstatistik Kurumu (TÜİK) aylık yayınları (2025 Kasım)<br />
-                                    <strong>Kira Artış Oranı:</strong> 6098 sayılı Türk Borçlar Kanunu'na göre hesaplanmış 12 aylık TÜFE ortalaması<br />
-                                    <strong>Asgari Ücret / Maaşlar:</strong> Çalışma ve Sosyal Güvenlik Bakanlığı ile HMB güncel verileri (2026 Tahmin/Duyuru)
+                                    <strong>Politika Faizi:</strong> T.C. Merkez Bankası (TCMB) resmi verileri<br />
+                                    <strong>Enflasyon (TÜFE):</strong> Türkiye İstatistik Kurumu (TÜİK) aylık yayınları<br />
+                                    <strong>İşsizlik Oranı:</strong> Türkiye İstatistik Kurumu (TÜİK) aylık verileri
                                 </p>
                             </div>
 
