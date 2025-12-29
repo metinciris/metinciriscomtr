@@ -1,30 +1,30 @@
 import React, { useEffect, useRef } from 'react';
 import { PageContainer } from '../components/PageContainer';
-import { TrendingUp, PieChart, Landmark, Percent, Home, Coins } from 'lucide-react';
+import { TrendingUp, PieChart, Landmark, Percent, Home, Coins, Info } from 'lucide-react';
 import {
     XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area
 } from 'recharts';
 
-// --- Veri Setleri (Türkiye Ekonomi Göstergeleri 2024-2025) ---
-const fascinationData = [
-    { ay: 'Oca', faiz: 45, enflasyon: 64.8, kira: 54.7 },
-    { ay: 'Şub', faiz: 45, enflasyon: 67.1, kira: 55.9 },
-    { ay: 'Mar', faiz: 50, enflasyon: 68.5, kira: 57.5 },
-    { ay: 'Nis', faiz: 50, enflasyon: 69.8, kira: 59.6 },
-    { ay: 'May', faiz: 50, enflasyon: 75.4, kira: 62.5 },
-    { ay: 'Haz', faiz: 50, enflasyon: 71.6, kira: 65.1 },
-    { ay: 'Tem', faiz: 50, enflasyon: 61.8, kira: 65.9 },
-    { ay: 'Ağu', faiz: 50, enflasyon: 52.0, kira: 70.0 },
-    { ay: 'Eyl', faiz: 50, enflasyon: 49.4, kira: 63.5 },
-    { ay: 'Eki', faiz: 50, enflasyon: 48.6, kira: 62.8 },
-    { ay: 'Kas', faiz: 50, enflasyon: 47.1, kira: 62.0 },
-    { ay: 'Ara', faiz: 50, enflasyon: 44.8, kira: 62.9 },
+// --- Gerçek 2024 Türkiye Ekonomi Verileri ---
+const economyData = [
+    { ay: 'Oca 24', faiz: 45.00, enflasyon: 64.77, kira: 54.68 },
+    { ay: 'Şub 24', faiz: 45.00, enflasyon: 67.07, kira: 55.89 },
+    { ay: 'Mar 24', faiz: 50.00, enflasyon: 68.50, kira: 57.52 },
+    { ay: 'Nis 24', faiz: 50.00, enflasyon: 69.80, kira: 59.55 },
+    { ay: 'May 24', faiz: 50.00, enflasyon: 75.45, kira: 62.52 },
+    { ay: 'Haz 24', faiz: 50.00, enflasyon: 71.60, kira: 65.08 },
+    { ay: 'Tem 24', faiz: 50.00, enflasyon: 61.78, kira: 65.93 },
+    { ay: 'Ağu 24', faiz: 50.00, enflasyon: 51.97, kira: 69.96 },
+    { ay: 'Eyl 24', faiz: 50.00, enflasyon: 49.38, kira: 63.45 },
+    { ay: 'Eki 24', faiz: 50.00, enflasyon: 48.58, kira: 62.79 },
+    { ay: 'Kas 24', faiz: 50.00, enflasyon: 47.09, kira: 61.98 },
+    { ay: 'Ara 24', faiz: 50.00, enflasyon: 44.38, kira: 62.91 },
 ];
 
-// --- Yardımcı Bileşenler ---
-
-// Recharts Trend Grafiği (Ekonomi verileri için - Reklamsız ve Profesyonel)
-const TrendChart = ({ title, dataKey, color, unit, value }: { title: string, dataKey: string, color: string, unit: string, value: string }) => {
+// --- Recharts Trend Grafiği ---
+const TrendChart = ({ title, dataKey, color, unit, value }: {
+    title: string, dataKey: string, color: string, unit: string, value: string
+}) => {
     return (
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col h-[320px]" style={{ backgroundColor: 'white' }}>
             <div className="flex justify-between items-start mb-4">
@@ -40,7 +40,7 @@ const TrendChart = ({ title, dataKey, color, unit, value }: { title: string, dat
             </div>
             <div className="flex-1 w-full overflow-hidden">
                 <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={fascinationData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <AreaChart data={economyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                         <defs>
                             <linearGradient id={`color-${dataKey}`} x1="0" y1="0" x2="0" y2="1">
                                 <stop offset="5%" stopColor={color} stopOpacity={0.3} />
@@ -58,7 +58,7 @@ const TrendChart = ({ title, dataKey, color, unit, value }: { title: string, dat
                         <YAxis hide domain={['dataMin - 5', 'dataMax + 5']} />
                         <Tooltip
                             contentStyle={{ borderRadius: '10px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                            formatter={(val: number) => [`${unit}${val}`, title]}
+                            formatter={(val: number) => [`${unit}${val.toFixed(2)}`, title]}
                         />
                         <Area
                             type="monotone"
@@ -75,50 +75,34 @@ const TrendChart = ({ title, dataKey, color, unit, value }: { title: string, dat
     );
 };
 
-// TradingView Widget (Linkler maskelenmiş)
-const RobustTradingViewWidget = ({ symbol, title, height = 300, type = "mini" }: { symbol: string; title: string, height?: number, type?: "mini" | "symbol" }) => {
+// --- TradingView Widget (Linkler maskelenmiş) ---
+const FinanceWidget = ({ symbol, title, height = 300 }: {
+    symbol: string; title: string, height?: number
+}) => {
     const container = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const script = document.createElement("script");
         script.type = "text/javascript";
         script.async = true;
-
-        if (type === "mini") {
-            script.src = "https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js";
-            script.innerHTML = JSON.stringify({
-                "symbol": symbol,
-                "width": "100%",
-                "height": height,
-                "locale": "tr",
-                "dateRange": "12M",
-                "colorTheme": "light",
-                "isTransparent": true,
-                "autosize": true,
-                "largeChartUrl": ""
-            });
-        } else {
-            script.src = "https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js";
-            script.innerHTML = JSON.stringify({
-                "symbols": [[title, symbol]],
-                "chartOnly": true,
-                "width": "100%",
-                "height": height,
-                "locale": "tr",
-                "colorTheme": "light",
-                "gridLineColor": "rgba(240, 243, 250, 0)",
-                "fontColor": "#787B86",
-                "isTransparent": true,
-                "autosize": true,
-                "container_id": "tv_chart_" + symbol.replace(":", "_")
-            });
-        }
+        script.src = "https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js";
+        script.innerHTML = JSON.stringify({
+            "symbol": symbol,
+            "width": "100%",
+            "height": height,
+            "locale": "tr",
+            "dateRange": "12M",
+            "colorTheme": "light",
+            "isTransparent": true,
+            "autosize": true,
+            "largeChartUrl": ""
+        });
 
         if (container.current) {
             container.current.innerHTML = '';
             container.current.appendChild(script);
         }
-    }, [symbol, title, height, type]);
+    }, [symbol, title, height]);
 
     return (
         <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex flex-col gap-3 overflow-hidden" style={{ backgroundColor: 'white' }}>
@@ -126,9 +110,8 @@ const RobustTradingViewWidget = ({ symbol, title, height = 300, type = "mini" }:
                 {title}
             </h3>
             <div className="relative" style={{ height: height - 50, overflow: 'hidden' }}>
-                <div id={"tv_chart_" + symbol.replace(":", "_")} className="tradingview-widget-container" ref={container}></div>
-
-                {/* Link ve Branding Maskeleme (Beyaz Overlay) */}
+                <div className="tradingview-widget-container" ref={container}></div>
+                {/* Link Maskeleme */}
                 <div className="absolute bottom-0 left-0 right-0 h-[45px] bg-white z-10"></div>
                 <div className="absolute top-0 right-0 w-[50px] h-[40px] bg-white z-10"></div>
             </div>
@@ -157,89 +140,121 @@ export function Finans() {
                     </div>
                 </div>
                 <p className="max-w-3xl text-lg opacity-90 leading-relaxed font-light" style={{ color: 'white' }}>
-                    Türkiye ekonomisindeki kritik makro göstergeleri (Faiz, Enflasyon, Kira) ve piyasalardan canlı borsa, döviz, altın verilerini tek bir ekrandan takip edin.
+                    Türkiye ekonomisindeki kritik makro göstergeleri (Faiz, Enflasyon, Kira) ve piyasalardan canlı döviz, altın, emtia verilerini tek bir ekrandan takip edin.
                 </p>
             </div>
 
-            {/* Ekonomi Trend Grafikleri (RECHARTS - Reklamsız, Tertemiz) */}
+            {/* Ekonomi Trend Grafikleri (RECHARTS - Gerçek 2024 Verileri) */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
                 <TrendChart
                     title="Politika Faizi (TCMB)"
                     dataKey="faiz"
                     color="#3b82f6"
                     unit="%"
-                    value="50.0"
+                    value="50.00"
                 />
                 <TrendChart
                     title="Yıllık Enflasyon (TÜFE)"
                     dataKey="enflasyon"
                     color="#f97316"
                     unit="%"
-                    value="44.8"
+                    value="44.38"
                 />
                 <TrendChart
                     title="Kira Artış Oranı"
                     dataKey="kira"
                     color="#22c55e"
                     unit="%"
-                    value="62.9"
+                    value="62.91"
                 />
             </div>
 
-            {/* Canlı Piyasa Grafikleri (TRADINGVIEW - Canlı & Maskelenmiş) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-                {/* BIST 100 - BIST:XU100 sembolü kullanılır */}
-                <RobustTradingViewWidget
-                    symbol="BIST:XU100"
-                    title="BIST 100"
-                    height={350}
-                    type="symbol"
-                />
-                <RobustTradingViewWidget
-                    symbol="FX:USDTRY"
-                    title="Dolar / TL"
-                    height={350}
-                />
-                <RobustTradingViewWidget
-                    symbol="OANDA:XAUUSD"
-                    title="Ons Altın (USD)"
-                    height={350}
-                />
-                <RobustTradingViewWidget
-                    symbol="BINANCE:BTCUSDT"
-                    title="Bitcoin (USDT)"
-                    height={350}
-                />
-                <RobustTradingViewWidget
-                    symbol="FX_IDC:XAUTRYG"
-                    title="Gram Altın (TL)"
-                    height={350}
-                />
+            {/* Döviz Kurları */}
+            <h2 className="text-2xl font-bold text-slate-800 mb-4 mt-12">Döviz Kurları</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+                <FinanceWidget symbol="FX:USDTRY" title="Dolar / TL" height={300} />
+                <FinanceWidget symbol="FX:EURTRY" title="Euro / TL" height={300} />
+                <FinanceWidget symbol="BINANCE:BTCUSDT" title="Bitcoin (USDT)" height={300} />
+            </div>
 
+            {/* Altın &귀금속 */}
+            <h2 className="text-2xl font-bold text-slate-800 mb-4 mt-12">Altın &귀금속</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+                <FinanceWidget symbol="OANDA:XAUUSD" title="Ons Altın (USD)" height={300} />
+                <FinanceWidget symbol="FX_IDC:XAUTRYG" title="Gram Altın (TL)" height={300} />
+                <FinanceWidget symbol="OANDA:XAGUSD" title="Gümüş (USD)" height={300} />
+            </div>
+
+            {/* Emtia */}
+            <h2 className="text-2xl font-bold text-slate-800 mb-4 mt-12">Emtia</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+                <FinanceWidget symbol="TVC:USOIL" title="Ham Petrol (WTI)" height={300} />
+                <FinanceWidget symbol="TVC:GOLD" title="Altın Vadeli (Comex)" height={300} />
                 <div className="bg-slate-50 p-8 rounded-xl border border-dashed border-slate-300 flex flex-col items-center justify-center text-center text-slate-400 h-[300px]">
                     <PieChart size={52} className="mb-4 opacity-10" />
-                    <p className="font-semibold text-slate-500">Gelecek Veriler</p>
-                    <span className="text-xs max-w-[200px]">Euro/TL, Gümüş, Petrol ve Sektörel Endeksler üzerinde çalışıyoruz.</span>
+                    <p className="font-semibold text-slate-500">Diğer Emtialar</p>
+                    <span className="text-xs max-w-[200px]">Bakır, Buğday ve Doğalgaz yakında eklenecek</span>
                 </div>
             </div>
 
-            {/* Bilgi ve Kaynaklar Paneli */}
-            <div className="p-8 bg-blue-50/50 rounded-3xl border border-blue-100 flex flex-col md:flex-row gap-8 items-center md:items-start mb-12">
-                <div className="p-5 bg-white rounded-2xl shadow-sm border border-blue-100">
-                    <Coins className="text-blue-600" size={32} />
-                </div>
-                <div>
-                    <h4 className="text-xl font-bold text-slate-900 mb-3">Veri Metodolojisi</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div>
-                            <p className="text-slate-600 text-sm leading-relaxed mb-4">
-                                <strong>Ekonomik Göstergeler (Üst Sıra):</strong> Faiz, Enflasyon ve Kira artış verileri Türkiye resmi kurumlarının (TCMB, TÜİK) verilerine dayanır. Reklam ve link içermemesi için <strong>Recharts</strong> ile özel olarak görselleştirilmiştir.
-                            </p>
+            {/* Sektörel Endeksler */}
+            <h2 className="text-2xl font-bold text-slate-800 mb-4 mt-12">Sektörel Endeksler (BIST)</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+                <FinanceWidget symbol="BIST:XUTEK" title="Teknoloji Endeksi" height={300} />
+                <FinanceWidget symbol="BIST:XUMAL" title="Mali Endeks" height={300} />
+                <FinanceWidget symbol="BIST:XUSIN" title="Sanayi Endeksi" height={300} />
+            </div>
+
+            {/* Detaylı Bilgilendirme Paneli */}
+            <div className="p-8 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl border-2 border-blue-200 shadow-lg mb-12">
+                <div className="flex items-start gap-6">
+                    <div className="p-4 bg-white rounded-2xl shadow-sm border border-blue-200">
+                        <Info className="text-blue-600" size={32} />
+                    </div>
+                    <div className="flex-1">
+                        <h4 className="text-2xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                            Veri Kaynakları & Metodoloji
+                        </h4>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div className="bg-white p-5 rounded-xl shadow-sm border border-blue-100">
+                                <h5 className="font-bold text-slate-800 mb-2 flex items-center gap-2">
+                                    <Landmark size={18} className="text-blue-600" />
+                                    Ekonomik Göstergeler
+                                </h5>
+                                <p className="text-slate-600 text-sm leading-relaxed">
+                                    <strong>Politika Faizi:</strong> T.C. Merkez Bankası (TCMB) resmi verileri<br />
+                                    <strong>Enflasyon (TÜFE):</strong> Türkiye İstatistik Kurumu (TÜİK) aylık yayınları<br />
+                                    <strong>Kira Artış Oranı:</strong> 6098 sayılı Türk Borçlar Kanunu'na göre hesaplanmış 12 aylık TÜFE ortalaması
+                                </p>
+                            </div>
+
+                            <div className="bg-white p-5 rounded-xl shadow-sm border border-blue-100">
+                                <h5 className="font-bold text-slate-800 mb-2 flex items-center gap-2">
+                                    <TrendingUp size={18} className="text-green-600" />
+                                    Piyasa Verileri
+                                </h5>
+                                <p className="text-slate-600 text-sm leading-relaxed">
+                                    <strong>Döviz, Altın, Emtia:</strong> TradingView platformu üzerinden gerçek zamanlı veri akışı<br />
+                                    <strong>Sektörel Endeksler:</strong> Borsa İstanbul (BIST) resmi verileri<br />
+                                    <strong>Güncelleme:</strong> Piyasa saatleri içinde canlı, borsa verileri 15 dakika gecikmeli olabilir
+                                </p>
+                            </div>
                         </div>
-                        <div>
-                            <p className="text-slate-600 text-sm leading-relaxed">
-                                <strong>Canlı Piyasalar (Alt Sıra):</strong> Döviz, Altın ve Kripto para verileri TradingView üzerinden gerçek zamanlı aktarılmaktadır. Branding linkleri kullanıcı deneyimini bozmaması adına maskelenmiştir.
-                            </p>
+
+                        <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-5">
+                            <div className="flex items-start gap-3">
+                                <Coins className="text-amber-600 mt-1 flex-shrink-0" size={24} />
+                                <div>
+                                    <h5 className="font-bold text-amber-900 mb-2">⚠️ Önemli Yasal Uyarı</h5>
+                                    <p className="text-amber-800 text-sm leading-relaxed">
+                                        Bu sayfada yer alan tüm bilgiler <strong>yalnızca bilgilendirme amaçlıdır</strong> ve hiçbir şekilde
+                                        <strong> yatırım danışmanlığı veya alım-satım tavsiyesi niteliği taşımamaktadır</strong>.
+                                        Yatırım kararlarınızı vermeden önce mutlaka profesyonel bir finansal danışmana başvurunuz.
+                                        Veriler üçüncü taraf kaynaklardan alınmakta olup, doğruluğu garanti edilmemektedir.
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
