@@ -22,8 +22,8 @@ const economyData = [
 ];
 
 // --- Recharts Trend Grafiği ---
-const TrendChart = ({ title, dataKey, color, unit, value, date }: {
-    title: string, dataKey: string, color: string, unit: string, value: string, date: string
+const TrendChart = ({ title, dataKey, color, unit, value, date, link }: {
+    title: string, dataKey: string, color: string, unit: string, value: string, date: string, link: string
 }) => {
     return (
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col h-[320px]" style={{ backgroundColor: 'white' }}>
@@ -31,9 +31,15 @@ const TrendChart = ({ title, dataKey, color, unit, value, date }: {
                 <div>
                     <h3 className="text-sm font-semibold uppercase tracking-wider" style={{ color: '#64748b' }}>{title}</h3>
                     <p className="text-2xl font-bold mt-1" style={{ color: '#0f172a' }}>{unit}{value}</p>
-                    <p className="text-[10px] font-medium text-slate-400 uppercase tracking-tighter mt-1">
+                    <a
+                        href={link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[10px] font-medium text-slate-400 uppercase tracking-tighter mt-1 hover:text-blue-500 transition-colors flex items-center gap-1"
+                    >
                         Son Veri: <span className="text-slate-500 font-bold">{date}</span>
-                    </p>
+                        <Info size={10} />
+                    </a>
                 </div>
                 <div className="p-2 rounded-lg" style={{ backgroundColor: color + '20', color: color }}>
                     {dataKey === 'faiz' && <Landmark size={20} />}
@@ -159,6 +165,7 @@ export function Finans() {
                     unit="%"
                     value="50.00"
                     date="Aralık 2024"
+                    link="https://www.tcmb.gov.tr/wps/wcm/connect/tr/tcmb+tr/main+menu/temel+faaliyetler/para+politikasi/merkez+bankasi+faiz+oranlari"
                 />
                 <TrendChart
                     title="Yıllık Enflasyon (TÜFE)"
@@ -167,6 +174,7 @@ export function Finans() {
                     unit="%"
                     value="44.38"
                     date="Aralık 2024"
+                    link="https://data.tuik.gov.tr/Kategori/GetKategori?p=enflasyon-ve-fiyat-106"
                 />
                 <TrendChart
                     title="Kira Artış Oranı"
@@ -175,6 +183,7 @@ export function Finans() {
                     unit="%"
                     value="62.91"
                     date="Aralık 2024"
+                    link="https://data.tuik.gov.tr/Kategori/GetKategori?p=enflasyon-ve-fiyat-106"
                 />
             </div>
 
@@ -198,7 +207,7 @@ export function Finans() {
             <h2 className="text-2xl font-bold text-slate-800 mb-4 mt-12">Emtia</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mb-10">
                 <FinanceWidget symbol="TVC:USOIL" title="Ham Petrol (WTI)" height={300} />
-                <FinanceWidget symbol="TVC:GOLD" title="Altın Vadeli (Comex)" height={300} />
+                <FinanceWidget symbol="ICEEUR:TTF1!" title="Avrupa Doğalgaz (TTF)" height={300} />
             </div>
 
 
