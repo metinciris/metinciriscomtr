@@ -7,18 +7,18 @@ import {
 
 // --- Gerçek 2024 Türkiye Ekonomi Verileri ---
 const economyData = [
-    { ay: 'Oca 24', faiz: 45.00, enflasyon: 64.77, kira: 54.68 },
-    { ay: 'Şub 24', faiz: 45.00, enflasyon: 67.07, kira: 55.89 },
-    { ay: 'Mar 24', faiz: 50.00, enflasyon: 68.50, kira: 57.52 },
-    { ay: 'Nis 24', faiz: 50.00, enflasyon: 69.80, kira: 59.55 },
-    { ay: 'May 24', faiz: 50.00, enflasyon: 75.45, kira: 62.52 },
-    { ay: 'Haz 24', faiz: 50.00, enflasyon: 71.60, kira: 65.08 },
-    { ay: 'Tem 24', faiz: 50.00, enflasyon: 61.78, kira: 65.93 },
-    { ay: 'Ağu 24', faiz: 50.00, enflasyon: 51.97, kira: 69.96 },
-    { ay: 'Eyl 24', faiz: 50.00, enflasyon: 49.38, kira: 63.45 },
-    { ay: 'Eki 24', faiz: 50.00, enflasyon: 48.58, kira: 62.79 },
-    { ay: 'Kas 24', faiz: 50.00, enflasyon: 47.09, kira: 61.98 },
-    { ay: 'Ara 24', faiz: 50.00, enflasyon: 44.38, kira: 62.91 },
+    { ay: 'Oca 24', faiz: 45.00, enflasyon: 64.77, kira: 54.68, asgari: 17002, memur: 49.25, issizlik: 9.1 },
+    { ay: 'Şub 24', faiz: 45.00, enflasyon: 67.07, kira: 55.89, asgari: 17002, memur: 49.25, issizlik: 8.7 },
+    { ay: 'Mar 24', faiz: 50.00, enflasyon: 68.50, kira: 57.52, asgari: 17002, memur: 49.25, issizlik: 8.6 },
+    { ay: 'Nis 24', faiz: 50.00, enflasyon: 69.80, kira: 59.55, asgari: 17002, memur: 49.25, issizlik: 8.5 },
+    { ay: 'May 24', faiz: 50.00, enflasyon: 75.45, kira: 62.52, asgari: 17002, memur: 49.25, issizlik: 8.4 },
+    { ay: 'Haz 24', faiz: 50.00, enflasyon: 71.60, kira: 65.08, asgari: 17002, memur: 49.25, issizlik: 9.2 },
+    { ay: 'Tem 24', faiz: 50.00, enflasyon: 61.78, kira: 65.93, asgari: 17002, memur: 19.31, issizlik: 8.8 },
+    { ay: 'Ağu 24', faiz: 50.00, enflasyon: 51.97, kira: 69.96, asgari: 17002, memur: 19.31, issizlik: 8.5 },
+    { ay: 'Eyl 24', faiz: 50.00, enflasyon: 49.38, kira: 63.45, asgari: 17002, memur: 19.31, issizlik: 8.6 },
+    { ay: 'Eki 24', faiz: 50.00, enflasyon: 48.58, kira: 62.79, asgari: 17002, memur: 19.31, issizlik: 8.5 },
+    { ay: 'Kas 24', faiz: 50.00, enflasyon: 47.09, kira: 61.98, asgari: 17002, memur: 19.31, issizlik: 8.4 },
+    { ay: 'Ara 24', faiz: 50.00, enflasyon: 44.38, kira: 62.91, asgari: 17002, memur: 19.31, issizlik: 8.5 },
 ];
 
 // --- Recharts Trend Grafiği ---
@@ -45,6 +45,9 @@ const TrendChart = ({ title, dataKey, color, unit, value, date, link }: {
                     {dataKey === 'faiz' && <Landmark size={20} />}
                     {dataKey === 'enflasyon' && <Percent size={20} />}
                     {dataKey === 'kira' && <Home size={20} />}
+                    {dataKey === 'asgari' && <Coins size={20} />}
+                    {dataKey === 'memur' && <TrendingUp size={20} />}
+                    {dataKey === 'issizlik' && <PieChart size={20} />}
                 </div>
             </div>
             <div className="flex-1 w-full overflow-hidden">
@@ -185,6 +188,33 @@ export function Finans() {
                     date="Aralık 2024"
                     link="https://data.tuik.gov.tr/Kategori/GetKategori?p=enflasyon-ve-fiyat-106"
                 />
+                <TrendChart
+                    title="Asgari Ücret (Net)"
+                    dataKey="asgari"
+                    color="#84cc16"
+                    unit="₺"
+                    value="17.002"
+                    date="Aralık 2024"
+                    link="https://www.csgb.gov.tr/asgari-ucret/"
+                />
+                <TrendChart
+                    title="Memur Maaş Artışı"
+                    dataKey="memur"
+                    color="#06b6d4"
+                    unit="%"
+                    value="19.31"
+                    date="Temmuz 2024"
+                    link="https://www.hmb.gov.tr/"
+                />
+                <TrendChart
+                    title="İşsizlik Oranı"
+                    dataKey="issizlik"
+                    color="#f43f5e"
+                    unit="%"
+                    value="8.50"
+                    date="Aralık 2024"
+                    link="https://data.tuik.gov.tr/Kategori/GetKategori?p=istihdam-isssizlik-ve-ucret-108"
+                />
             </div>
 
             {/* Döviz Kurları */}
@@ -207,7 +237,7 @@ export function Finans() {
             <h2 className="text-2xl font-bold text-slate-800 mb-4 mt-12">Emtia</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mb-10">
                 <FinanceWidget symbol="TVC:USOIL" title="Ham Petrol (WTI)" height={300} />
-                <FinanceWidget symbol="ICEEUR:TTF1!" title="Avrupa Doğalgaz (TTF)" height={300} />
+                <FinanceWidget symbol="NYMEX:NG1!" title="Doğalgaz Vadeli (NYMEX)" height={300} />
             </div>
 
 
@@ -232,7 +262,8 @@ export function Finans() {
                                 <p className="text-slate-600 text-sm leading-relaxed">
                                     <strong>Politika Faizi:</strong> T.C. Merkez Bankası (TCMB) resmi verileri<br />
                                     <strong>Enflasyon (TÜFE):</strong> Türkiye İstatistik Kurumu (TÜİK) aylık yayınları<br />
-                                    <strong>Kira Artış Oranı:</strong> 6098 sayılı Türk Borçlar Kanunu'na göre hesaplanmış 12 aylık TÜFE ortalaması
+                                    <strong>Kira Artış Oranı:</strong> 6098 sayılı Türk Borçlar Kanunu'na göre hesaplanmış 12 aylık TÜFE ortalaması<br />
+                                    <strong>Asgari Ücret / Maaşlar:</strong> Çalışma ve Sosyal Güvenlik Bakanlığı ile HMB verileri
                                 </p>
                             </div>
 
