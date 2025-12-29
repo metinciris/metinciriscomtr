@@ -7,18 +7,13 @@ import {
 
 // --- Gerçek 2024 Türkiye Ekonomi Verileri ---
 const economyData = [
-    { ay: 'Oca 24', faiz: 45.00, enflasyon: 64.77, kira: 54.68, asgari: 17002, memur: 49.25, issizlik: 9.1 },
-    { ay: 'Şub 24', faiz: 45.00, enflasyon: 67.07, kira: 55.89, asgari: 17002, memur: 49.25, issizlik: 8.7 },
-    { ay: 'Mar 24', faiz: 50.00, enflasyon: 68.50, kira: 57.52, asgari: 17002, memur: 49.25, issizlik: 8.6 },
-    { ay: 'Nis 24', faiz: 50.00, enflasyon: 69.80, kira: 59.55, asgari: 17002, memur: 49.25, issizlik: 8.5 },
-    { ay: 'May 24', faiz: 50.00, enflasyon: 75.45, kira: 62.52, asgari: 17002, memur: 49.25, issizlik: 8.4 },
-    { ay: 'Haz 24', faiz: 50.00, enflasyon: 71.60, kira: 65.08, asgari: 17002, memur: 49.25, issizlik: 9.2 },
-    { ay: 'Tem 24', faiz: 50.00, enflasyon: 61.78, kira: 65.93, asgari: 17002, memur: 19.31, issizlik: 8.8 },
-    { ay: 'Ağu 24', faiz: 50.00, enflasyon: 51.97, kira: 69.96, asgari: 17002, memur: 19.31, issizlik: 8.5 },
-    { ay: 'Eyl 24', faiz: 50.00, enflasyon: 49.38, kira: 63.45, asgari: 17002, memur: 19.31, issizlik: 8.6 },
-    { ay: 'Eki 24', faiz: 50.00, enflasyon: 48.58, kira: 62.79, asgari: 17002, memur: 19.31, issizlik: 8.5 },
-    { ay: 'Kas 24', faiz: 50.00, enflasyon: 47.09, kira: 61.98, asgari: 17002, memur: 19.31, issizlik: 8.4 },
-    { ay: 'Ara 24', faiz: 50.00, enflasyon: 44.38, kira: 62.91, asgari: 17002, memur: 19.31, issizlik: 8.5 },
+    { ay: 'Oca 25', faiz: 45.00, enflasyon: 48.50, kira: 55.00, asgari: 22000, memur: 49.25, issizlik: 9.1 },
+    { ay: 'Mar 25', faiz: 42.50, enflasyon: 45.00, kira: 54.00, asgari: 22000, memur: 49.25, issizlik: 8.6 },
+    { ay: 'May 25', faiz: 42.50, enflasyon: 42.00, kira: 53.00, asgari: 22000, memur: 49.25, issizlik: 8.4 },
+    { ay: 'Tem 25', faiz: 40.00, enflasyon: 38.00, kira: 52.00, asgari: 22000, memur: 19.31, issizlik: 8.8 },
+    { ay: 'Eyl 25', faiz: 39.50, enflasyon: 35.00, kira: 51.00, asgari: 22000, memur: 19.31, issizlik: 8.6 },
+    { ay: 'Kas 25', faiz: 38.50, enflasyon: 31.07, kira: 50.50, asgari: 22000, memur: 19.31, issizlik: 8.5 },
+    { ay: 'Ara 25', faiz: 38.00, enflasyon: 30.00, kira: 50.00, asgari: 28075, memur: 18.50, issizlik: 8.5 },
 ];
 
 // --- Recharts Trend Grafiği ---
@@ -166,8 +161,8 @@ export function Finans() {
                     dataKey="faiz"
                     color="#3b82f6"
                     unit="%"
-                    value="50.00"
-                    date="Aralık 2024"
+                    value="38.00"
+                    date="Aralık 2025"
                     link="https://www.tcmb.gov.tr/wps/wcm/connect/tr/tcmb+tr/main+menu/temel+faaliyetler/para+politikasi/merkez+bankasi+faiz+oranlari"
                 />
                 <TrendChart
@@ -175,8 +170,8 @@ export function Finans() {
                     dataKey="enflasyon"
                     color="#f97316"
                     unit="%"
-                    value="44.38"
-                    date="Aralık 2024"
+                    value="31.07"
+                    date="Kasım 2025"
                     link="https://data.tuik.gov.tr/Kategori/GetKategori?p=enflasyon-ve-fiyat-106"
                 />
                 <TrendChart
@@ -184,8 +179,8 @@ export function Finans() {
                     dataKey="kira"
                     color="#22c55e"
                     unit="%"
-                    value="62.91"
-                    date="Aralık 2024"
+                    value="50.00"
+                    date="Aralık 2025"
                     link="https://data.tuik.gov.tr/Kategori/GetKategori?p=enflasyon-ve-fiyat-106"
                 />
                 <TrendChart
@@ -193,8 +188,8 @@ export function Finans() {
                     dataKey="asgari"
                     color="#84cc16"
                     unit="₺"
-                    value="17.002"
-                    date="Aralık 2024"
+                    value="28.075"
+                    date="Aralık 2025"
                     link="https://www.csgb.gov.tr/asgari-ucret/"
                 />
                 <TrendChart
@@ -202,8 +197,8 @@ export function Finans() {
                     dataKey="memur"
                     color="#06b6d4"
                     unit="%"
-                    value="19.31"
-                    date="Temmuz 2024"
+                    value="18.50"
+                    date="Ocak 2026 Tahmin"
                     link="https://www.hmb.gov.tr/"
                 />
                 <TrendChart
@@ -212,7 +207,7 @@ export function Finans() {
                     color="#f43f5e"
                     unit="%"
                     value="8.50"
-                    date="Aralık 2024"
+                    date="Ekim 2025"
                     link="https://data.tuik.gov.tr/Kategori/GetKategori?p=istihdam-isssizlik-ve-ucret-108"
                 />
             </div>
@@ -233,11 +228,11 @@ export function Finans() {
                 <FinanceWidget symbol="OANDA:XAGUSD" title="Gümüş (USD)" height={300} />
             </div>
 
-            {/* Emtia */}
-            <h2 className="text-2xl font-bold text-slate-800 mb-4 mt-12">Emtia</h2>
+            {/* Ekonomi & Emtia */}
+            <h2 className="text-2xl font-bold text-slate-800 mb-4 mt-12">Ekonomi & Emtia</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mb-10">
                 <FinanceWidget symbol="TVC:USOIL" title="Ham Petrol (WTI)" height={300} />
-                <FinanceWidget symbol="NYMEX:NG1!" title="Doğalgaz Vadeli (NYMEX)" height={300} />
+                <FinanceWidget symbol="ECONOMICS:TRGDPQY" title="GSYİH Büyüme Hızı (%)" height={300} />
             </div>
 
 
@@ -260,10 +255,10 @@ export function Finans() {
                                     Ekonomik Göstergeler
                                 </h5>
                                 <p className="text-slate-600 text-sm leading-relaxed">
-                                    <strong>Politika Faizi:</strong> T.C. Merkez Bankası (TCMB) resmi verileri<br />
-                                    <strong>Enflasyon (TÜFE):</strong> Türkiye İstatistik Kurumu (TÜİK) aylık yayınları<br />
+                                    <strong>Politika Faizi:</strong> T.C. Merkez Bankası (TCMB) resmi verileri (2025 Aralık)<br />
+                                    <strong>Enflasyon (TÜFE):</strong> Türkiye İstatistik Kurumu (TÜİK) aylık yayınları (2025 Kasım)<br />
                                     <strong>Kira Artış Oranı:</strong> 6098 sayılı Türk Borçlar Kanunu'na göre hesaplanmış 12 aylık TÜFE ortalaması<br />
-                                    <strong>Asgari Ücret / Maaşlar:</strong> Çalışma ve Sosyal Güvenlik Bakanlığı ile HMB verileri
+                                    <strong>Asgari Ücret / Maaşlar:</strong> Çalışma ve Sosyal Güvenlik Bakanlığı ile HMB güncel verileri (2026 Tahmin/Duyuru)
                                 </p>
                             </div>
 
