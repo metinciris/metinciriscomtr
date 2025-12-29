@@ -188,9 +188,9 @@ export function Finans() {
 
             {/* Canlı Piyasa Grafikleri (TRADINGVIEW - Canlı & Maskelenmiş) */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-                {/* BIST 100 - Symbol Overview widget'ı borsa verileri için daha iyidir */}
+                {/* BIST 100 - BIST:XU100 sembolü kullanılır */}
                 <RobustTradingViewWidget
-                    symbol="BINANCE:BIST100" // Daha yüksek erişilebilirlik için Binance feed'i deniyoruz
+                    symbol="BIST:XU100"
                     title="BIST 100"
                     height={350}
                     type="symbol"
