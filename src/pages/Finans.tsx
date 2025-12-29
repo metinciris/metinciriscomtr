@@ -145,6 +145,10 @@ export function Finans() {
             </div>
 
             {/* Ekonomi Trend Grafikleri (RECHARTS - Gerçek 2024 Verileri) */}
+            <div className="flex flex-col mb-4">
+                <h2 className="text-2xl font-bold text-slate-800 mb-1">Ekonomik Göstergeler</h2>
+                <p className="text-slate-500 text-sm mb-4">Ocak - Aralık 2024 Yıllık Gelişim Trendi (%)</p>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
                 <TrendChart
                     title="Politika Faizi (TCMB)"
@@ -177,8 +181,8 @@ export function Finans() {
                 <FinanceWidget symbol="BINANCE:BTCUSDT" title="Bitcoin (USDT)" height={300} />
             </div>
 
-            {/* Altın &귀금속 */}
-            <h2 className="text-2xl font-bold text-slate-800 mb-4 mt-12">Altın &귀금속</h2>
+            {/* Altın & Gümüş */}
+            <h2 className="text-2xl font-bold text-slate-800 mb-4 mt-12">Altın & Gümüş</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
                 <FinanceWidget symbol="OANDA:XAUUSD" title="Ons Altın (USD)" height={300} />
                 <FinanceWidget symbol="FX_IDC:XAUTRYG" title="Gram Altın (TL)" height={300} />
@@ -187,23 +191,12 @@ export function Finans() {
 
             {/* Emtia */}
             <h2 className="text-2xl font-bold text-slate-800 mb-4 mt-12">Emtia</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mb-10">
                 <FinanceWidget symbol="TVC:USOIL" title="Ham Petrol (WTI)" height={300} />
                 <FinanceWidget symbol="TVC:GOLD" title="Altın Vadeli (Comex)" height={300} />
-                <div className="bg-slate-50 p-8 rounded-xl border border-dashed border-slate-300 flex flex-col items-center justify-center text-center text-slate-400 h-[300px]">
-                    <PieChart size={52} className="mb-4 opacity-10" />
-                    <p className="font-semibold text-slate-500">Diğer Emtialar</p>
-                    <span className="text-xs max-w-[200px]">Bakır, Buğday ve Doğalgaz yakında eklenecek</span>
-                </div>
             </div>
 
-            {/* Sektörel Endeksler */}
-            <h2 className="text-2xl font-bold text-slate-800 mb-4 mt-12">Sektörel Endeksler (BIST)</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-                <FinanceWidget symbol="BIST:XUTEK" title="Teknoloji Endeksi" height={300} />
-                <FinanceWidget symbol="BIST:XUMAL" title="Mali Endeks" height={300} />
-                <FinanceWidget symbol="BIST:XUSIN" title="Sanayi Endeksi" height={300} />
-            </div>
+
 
             {/* Detaylı Bilgilendirme Paneli */}
             <div className="p-8 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl border-2 border-blue-200 shadow-lg mb-12">
@@ -236,7 +229,6 @@ export function Finans() {
                                 </h5>
                                 <p className="text-slate-600 text-sm leading-relaxed">
                                     <strong>Döviz, Altın, Emtia:</strong> TradingView platformu üzerinden gerçek zamanlı veri akışı<br />
-                                    <strong>Sektörel Endeksler:</strong> Borsa İstanbul (BIST) resmi verileri<br />
                                     <strong>Güncelleme:</strong> Piyasa saatleri içinde canlı, borsa verileri 15 dakika gecikmeli olabilir
                                 </p>
                             </div>
