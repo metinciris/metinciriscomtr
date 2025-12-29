@@ -1,7 +1,7 @@
 import React from 'react';
 import { PageContainer } from '../components/PageContainer';
 import { MetroTile } from '../components/MetroTile';
-import { FileBarChart, Activity, FileText, AlertCircle, Microscope, Box, BookOpen, Calculator } from 'lucide-react';
+import { FileBarChart, Activity, FileText, AlertCircle, Microscope, Box, BookOpen, Calculator, TrendingUp } from 'lucide-react';
 
 interface DigerCalismalarProps {
     onNavigate?: (page: string) => void;
@@ -123,6 +123,15 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
                     style={{ backgroundColor: '#0088cc' }}
                     size="medium"
                     onClick={() => handleNavigate('makale-takip')}
+                />
+                <MetroTile
+                    title="Finans"
+                    subtitle="Canlı piyasa verileri"
+                    icon={<TrendingUp size={40} />}
+                    color=""
+                    style={{ backgroundColor: '#2C3E50' }}
+                    size="medium"
+                    onClick={() => handleNavigate('finans')}
                 />
 
             </div>
