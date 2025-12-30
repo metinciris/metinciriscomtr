@@ -143,7 +143,7 @@ export function Finans() {
                     Piyasa Bazlı Öncü Göstergeler (Canlı)
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <RobustTradingViewWidget symbol="TVC:TR10Y" title="TR 10Y Tahvil Faizi" height={280} />
+                    <RobustTradingViewWidget symbol="TR10Y" title="TR 10Y Tahvil Faizi" height={280} />
                     <RobustTradingViewWidget symbol="FX_IDC:USDTRY" title="USD / TRY Kuru" height={280} />
                     <RobustTradingViewWidget symbol="FX_IDC:XAUTRYG" title="Gram Altın (TL)" height={280} />
                 </div>
