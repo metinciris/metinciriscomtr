@@ -1,11 +1,35 @@
 import React, { useEffect, useRef } from 'react';
 import { PageContainer } from '../components/PageContainer';
-import { TrendingUp, Landmark, Info, PieChart, Percent, Home, Coins } from 'lucide-react';
+import { TrendingUp, Landmark, Info, PieChart, Percent, Home, Coins, ArrowUpRight, Activity } from 'lucide-react';
 
 
 // --- Canlı Veri Notu ---
-// Veriler TradingView ve Resmi Kurumlar (TCMB, TÜİK) üzerinden canlı olarak akmaktadır.
-// Bu sayfadaki tüm mali göstergeler otomatik güncellenmektedir.
+// Veriler TradingView piyasa kaynakları ve Resmi Kurumlar (TCMB, TÜİK) üzerinden alınmaktadır.
+// Piyasa bazlı göstergeler (Döviz, Altın, Tahvil) canlıdır; Makro veriler (Enflasyon, Faiz) periyodik güncellenir.
+
+// --- Macro Indicator Card (For Official Static Data) ---
+const MacroIndicatorCard = ({ title, value, unit, date, icon: Icon, colorClass }: { title: string; value: string; unit: string; date: string; icon: any; colorClass: string }) => (
+    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between hover:shadow-md transition-shadow relative overflow-hidden group">
+        <div className={`absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 rounded-full opacity-5 group-hover:opacity-10 transition-opacity ${colorClass.replace('text-', 'bg-')}`} />
+        <div>
+            <div className="flex items-center justify-between mb-4">
+                <div className={`p-3 rounded-xl ${colorClass.replace('text-', 'bg-').replace('-600', '-50')} ${colorClass}`}>
+                    <Icon size={24} />
+                </div>
+                <span className="text-xs font-medium text-slate-400 bg-slate-50 px-2 py-1 rounded-lg">{date}</span>
+            </div>
+            <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-1">{title}</h3>
+            <div className="flex items-baseline gap-1">
+                <span className="text-3xl font-black text-slate-800">{value}</span>
+                <span className="text-lg font-bold text-slate-400">{unit}</span>
+            </div>
+        </div>
+        <div className="mt-4 pt-4 border-t border-slate-50 flex items-center gap-2 text-xs font-medium text-slate-400">
+            <Info size={14} />
+            Resmi Kurum Verisi (TCMB/TÜİK)
+        </div>
+    </div>
+);
 
 // --- Robust TradingView Widget (with Link Masking) ---
 const RobustTradingViewWidget = ({ symbol, title, height = 220 }: { symbol: string; title: string; height?: number }) => {
@@ -35,9 +59,12 @@ const RobustTradingViewWidget = ({ symbol, title, height = 220 }: { symbol: stri
     }, [symbol, height]);
 
     return (
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex flex-col gap-3 relative group overflow-hidden">
-            <h3 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                {title}
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex flex-col gap-3 relative group overflow-hidden hover:shadow-md transition-shadow">
+            <h3 className="text-lg font-semibold text-slate-800 flex items-center justify-between gap-2">
+                <span className="flex items-center gap-2">
+                    {title}
+                </span>
+                <ArrowUpRight size={18} className="text-slate-300 group-hover:text-indigo-500 transition-colors" />
             </h3>
             <div className="tradingview-widget-container" ref={container}></div>
             {/* Link Masking Layer */}
@@ -51,112 +78,105 @@ export function Finans() {
         <PageContainer>
             {/* Üst Bilgi Paneli */}
             <div
-                className="p-12 mb-8 rounded-xl shadow-lg border-b-4 border-slate-800"
+                className="p-12 mb-10 rounded-3xl shadow-xl border-b-8 border-indigo-900/20"
                 style={{
                     background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
                     color: 'white'
                 }}
             >
-                <div className="flex items-center gap-5 mb-5">
-                    <div className="p-4 bg-indigo-600 rounded-2xl shadow-xl">
-                        <TrendingUp size={36} color="white" />
+                <div className="flex items-center gap-6 mb-6">
+                    <div className="p-5 bg-indigo-600 rounded-3xl shadow-2xl rotate-3">
+                        <TrendingUp size={42} color="white" />
                     </div>
                     <div>
-                        <h1 className="text-4xl font-extrabold m-0 leading-tight" style={{ color: 'white' }}>Finansal Göstergeler</h1>
-                        <p className="text-indigo-200 font-medium m-0 opacity-80">Canlı Veriler & Yıllık Trend Analizleri</p>
+                        <h1 className="text-5xl font-black m-0 tracking-tight" style={{ color: 'white' }}>Finans Paneli</h1>
+                        <p className="text-indigo-300 text-xl font-medium m-0 opacity-90">Ekonomik Nabız & Piyasa Verileri</p>
                     </div>
                 </div>
-                <p className="max-w-3xl text-lg opacity-90 leading-relaxed font-light" style={{ color: 'white' }}>
-                    Türkiye ekonomisindeki kritik makro göstergeleri (Faiz, Enflasyon, Kira) ve piyasalardan canlı döviz, altın, emtia verilerini tek bir ekrandan takip edin.
+                <p className="max-w-3xl text-xl opacity-80 leading-relaxed font-normal" style={{ color: 'white' }}>
+                    Türkiye ekonomisinin yönünü tayin eden resmi makro veriler ile küresel piyasalardan anlık döviz, altın ve emtia fiyatlarını takip edin.
                 </p>
             </div>
 
-            {/* Ekonomik Göstergeler (Canlı) */}
-            <h2 className="text-2xl font-bold text-slate-800 mb-4 flex items-center gap-3">
-                <Landmark className="text-blue-600" />
-                Ekonomik Göstergeler (Canlı)
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-                <RobustTradingViewWidget symbol="ECONOMICS:TRINTR" title="Politika Faizi (TCMB)" height={280} />
-                <RobustTradingViewWidget symbol="ECONOMICS:TRIRYY" title="Yıllık Enflasyon (TÜFE)" height={280} />
-                <RobustTradingViewWidget symbol="ECONOMICS:TRUR" title="İşsizlik Oranı" height={280} />
-            </div>
-
-            {/* Döviz Kurları */}
-            <h2 className="text-2xl font-bold text-slate-800 mb-4 mt-6">Döviz Kurları</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-                <RobustTradingViewWidget symbol="FX_IDC:USDTRY" title="ABD Doları / TL" />
-                <RobustTradingViewWidget symbol="FX_IDC:EURTRY" title="Euro / TL" />
-                <RobustTradingViewWidget symbol="BITSTAMP:BTCUSD" title="Bitcoin / USD" />
-            </div>
-
-            {/* Altın & Gümüş */}
-            <h2 className="text-2xl font-bold text-slate-800 mb-4 mt-12">Altın & Gümüş</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-                <RobustTradingViewWidget symbol="TVC:GOLD" title="Ons Altın (USD)" />
-                <RobustTradingViewWidget symbol="OANDA:XAUTRY" title="Gram Altın (TL)" height={220} />
-                <RobustTradingViewWidget symbol="OANDA:XAGUSD" title="Gümüş (USD)" height={300} />
-            </div>
-
-            {/* Emtia */}
-            <h2 className="text-2xl font-bold text-slate-800 mb-4 mt-12">Emtia</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-                <RobustTradingViewWidget symbol="TVC:USOIL" title="Ham Petrol (WTI)" height={300} />
-            </div>
-
-
-
-            {/* Detaylı Bilgilendirme Paneli */}
-            <div className="p-8 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl border-2 border-blue-200 shadow-lg mb-12">
-                <div className="flex items-start gap-6">
-                    <div className="p-4 bg-white rounded-2xl shadow-sm border border-blue-200">
-                        <Info className="text-blue-600" size={32} />
+            {/* Bölüm: Resmi Makro Göstergeler */}
+            <div className="mb-12">
+                <h2 className="text-2xl font-black text-slate-800 mb-6 flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-200">
+                        <Landmark size={20} color="white" />
                     </div>
-                    <div className="flex-1">
-                        <h4 className="text-2xl font-bold text-slate-900 mb-4 flex items-center gap-2">
-                            Veri Kaynakları & Metodoloji
-                        </h4>
+                    Resmi Makro Göstergeler
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <MacroIndicatorCard
+                        title="Politika Faizi (TCMB)"
+                        value="38.00"
+                        unit="%"
+                        date="Aralık 2025"
+                        icon={Percent}
+                        colorClass="text-blue-600"
+                    />
+                    <MacroIndicatorCard
+                        title="Yıllık Enflasyon (TÜFE)"
+                        value="31.07"
+                        unit="%"
+                        date="Kasım 2025"
+                        icon={Activity}
+                        colorClass="text-rose-600"
+                    />
+                    <MacroIndicatorCard
+                        title="İşsizlik Oranı"
+                        value="9.30"
+                        unit="%"
+                        date="Ekim 2025"
+                        icon={PieChart}
+                        colorClass="text-amber-600"
+                    />
+                </div>
+            </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                            <div className="bg-white p-5 rounded-xl shadow-sm border border-blue-100">
-                                <h5 className="font-bold text-slate-800 mb-2 flex items-center gap-2">
-                                    <Landmark size={18} className="text-blue-600" />
-                                    Ekonomik Göstergeler
-                                </h5>
-                                <p className="text-slate-600 text-sm leading-relaxed">
-                                    <strong>Politika Faizi:</strong> T.C. Merkez Bankası (TCMB) resmi verileri<br />
-                                    <strong>Enflasyon (TÜFE):</strong> Türkiye İstatistik Kurumu (TÜİK) aylık yayınları<br />
-                                    <strong>İşsizlik Oranı:</strong> Türkiye İstatistik Kurumu (TÜİK) aylık verileri
-                                </p>
-                            </div>
-
-                            <div className="bg-white p-5 rounded-xl shadow-sm border border-blue-100">
-                                <h5 className="font-bold text-slate-800 mb-2 flex items-center gap-2">
-                                    <TrendingUp size={18} className="text-green-600" />
-                                    Piyasa Verileri
-                                </h5>
-                                <p className="text-slate-600 text-sm leading-relaxed">
-                                    <strong>Döviz, Altın, Emtia:</strong> TradingView platformu üzerinden gerçek zamanlı veri akışı<br />
-                                    <strong>Güncelleme:</strong> Piyasa saatleri içinde canlı, borsa verileri 15 dakika gecikmeli olabilir
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-5">
-                            <div className="flex items-start gap-3">
-                                <Coins className="text-amber-600 mt-1 flex-shrink-0" size={24} />
-                                <div>
-                                    <h5 className="font-bold text-amber-900 mb-2">⚠️ Önemli Yasal Uyarı</h5>
-                                    <p className="text-amber-800 text-sm leading-relaxed">
-                                        Bu sayfada yer alan tüm bilgiler <strong>yalnızca bilgilendirme amaçlıdır</strong> ve hiçbir şekilde
-                                        <strong> yatırım danışmanlığı veya alım-satım tavsiyesi niteliği taşımamaktadır</strong>.
-                                        Yatırım kararlarınızı vermeden önce mutlaka profesyonel bir finansal danışmana başvurunuz.
-                                        Veriler üçüncü taraf kaynaklardan alınmakta olup, doğruluğu garanti edilmemektedir.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
+            {/* Bölüm: Piyasa Bazlı Öncü Göstergeler */}
+            <div className="mb-12">
+                <h2 className="text-2xl font-black text-slate-800 mb-6 flex items-center gap-3">
+                    <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200">
+                        <TrendingUp size={20} color="white" />
                     </div>
+                    Piyasa Bazlı Öncü Göstergeler (Canlı)
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <RobustTradingViewWidget symbol="TVC:TR10Y" title="TR 10Y Tahvil Faizi" height={280} />
+                    <RobustTradingViewWidget symbol="FX_IDC:USDTRY" title="USD / TRY Kuru" height={280} />
+                    <RobustTradingViewWidget symbol="FX_IDC:XAUTRYG" title="Gram Altın (TL)" height={280} />
+                </div>
+                <p className="mt-4 text-sm text-slate-500 italic">
+                    * Tahvil faizleri, piyasanın gelecek enflasyon ve risk beklentisini yansıtan "proxy" bir göstergedir.
+                </p>
+            </div>
+
+            {/* Diğer Kurlar & Emtia */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-12">
+                <div>
+                    <h2 className="text-2xl font-black text-slate-800 mb-6 flex items-center gap-3">Euro & Kripto</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <RobustTradingViewWidget symbol="FX_IDC:EURTRY" title="Euro / TL" />
+                        <RobustTradingViewWidget symbol="BITSTAMP:BTCUSD" title="Bitcoin / USD" />
+                    </div>
+                </div>
+                <div>
+                    <h2 className="text-2xl font-black text-slate-800 mb-6 flex items-center gap-3">Emtia & Ons</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <RobustTradingViewWidget symbol="TVC:GOLD" title="Ons Altın (USD)" />
+                        <RobustTradingViewWidget symbol="TVC:USOIL" title="Ham Petrol (Brent)" />
+                    </div>
+                </div>
+            </div>
+
+            {/* Bilgilendirme Paneli */}
+            <div className="p-8 bg-slate-50 rounded-3xl border border-slate-100 mb-12">
+                <div className="flex items-start gap-4 text-slate-600 leading-relaxed text-sm">
+                    <Info className="text-indigo-600 shrink-0 mt-1" size={20} />
+                    <p>
+                        Bu sayfada sunulan <strong>Resmi Makro Veriler</strong> (Faiz, Enflasyon, İşsizlik) T.C. Merkez Bankası ve TÜİK verileri olup, duyuru takvimine göre periyodik olarak güncellenmektedir. <strong>Canlı Piyasa Verileri</strong> (Döviz, Altın, Tahvil) ise TradingView altyapısı ile global piyasalardan anlık olarak çekilmektedir. Buradaki bilgiler yalnızca bilgilendirme amaçlıdır, yatırım tavsiyesi değildir ve doğruluğu garanti edilmez.
+                    </p>
                 </div>
             </div>
         </PageContainer>
