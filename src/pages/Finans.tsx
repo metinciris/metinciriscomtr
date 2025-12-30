@@ -106,7 +106,7 @@ export function Finans() {
                     </div>
                     Resmi Makro Göstergeler
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     <MacroIndicatorCard
                         title="Politika Faizi (TCMB)"
                         value="38.00"
@@ -122,6 +122,14 @@ export function Finans() {
                         date="Kasım 2025"
                         icon={Activity}
                         colorClass="text-rose-600"
+                    />
+                    <MacroIndicatorCard
+                        title="10Y Tahvil Faizi"
+                        value="28.45"
+                        unit="%"
+                        date="Aralık 2025"
+                        icon={TrendingUp}
+                        colorClass="text-indigo-600"
                     />
                     <MacroIndicatorCard
                         title="İşsizlik Oranı"
@@ -142,25 +150,7 @@ export function Finans() {
                     </div>
                     Piyasa Bazlı Öncü Göstergeler (Canlı)
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {/* TR 10Y Tahvil Faizi Widget (Advanced Iframe version to bypass restrictions) */}
-                    <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex flex-col gap-3 relative group overflow-hidden hover:shadow-md transition-shadow">
-                        <h3 className="text-lg font-semibold text-slate-800 flex items-center justify-between gap-2">
-                            <span className="flex items-center gap-2">TR 10Y Tahvil Faizi</span>
-                            <ArrowUpRight size={18} className="text-slate-300 group-hover:text-indigo-500 transition-colors" />
-                        </h3>
-                        <div className="h-[280px] w-full overflow-hidden rounded-lg border border-slate-50">
-                            <iframe
-                                src="https://s.tradingview.com/widgetembed/?symbol=TVC%3ATR10Y&interval=D&hidesidetoolbar=1&symboledit=1&saveimage=0&toolbarbg=f1f3f6&theme=light&style=1&timezone=Etc%2FUTC&studies=%5B%5D&locale=tr"
-                                width="100%"
-                                height="100%"
-                                frameBorder="0"
-                                scrolling="no"
-                            />
-                        </div>
-                        {/* Link Masking Layer - Iframes are harder to mask perfectly but this helps prevent unintentional clicks to TV site */}
-                        <div className="absolute top-0 left-0 w-full h-12 bg-transparent z-10 cursor-default" />
-                    </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <RobustTradingViewWidget symbol="FX_IDC:USDTRY" title="USD / TRY Kuru" height={280} />
                     <RobustTradingViewWidget symbol="FX_IDC:XAUTRYG" title="Gram Altın (TL)" height={280} />
                 </div>
