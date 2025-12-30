@@ -106,7 +106,7 @@ export function Finans() {
                     </div>
                     Resmi Makro Göstergeler
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <MacroIndicatorCard
                         title="Politika Faizi (TCMB)"
                         value="38.00"
@@ -138,6 +138,22 @@ export function Finans() {
                         date="Ekim 2025"
                         icon={PieChart}
                         colorClass="text-amber-600"
+                    />
+                    <MacroIndicatorCard
+                        title="GSYH Büyüme Oranı"
+                        value="3.70"
+                        unit="%"
+                        date="2025 - Q3"
+                        icon={TrendingUp}
+                        colorClass="text-emerald-600"
+                    />
+                    <MacroIndicatorCard
+                        title="TCMB Brüt Rezervleri"
+                        value="192.3"
+                        unit="Mlr $"
+                        date="Aralık 2025"
+                        icon={Coins}
+                        colorClass="text-cyan-600"
                     />
                 </div>
             </div>
