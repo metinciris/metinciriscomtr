@@ -1,6 +1,7 @@
 import React from 'react';
 import { Layout } from './components/Layout';
 import { Toaster } from './components/ui/sonner';
+import { SEO } from './components/SEO';
 
 /**
  * Sayfaları lazy yükle:
@@ -263,6 +264,7 @@ export default function App() {
 
   return (
     <>
+      <SEO currentPage={currentPage} />
       <Layout currentPage={currentPage} onNavigate={navigate}>
         <React.Suspense
           fallback={
