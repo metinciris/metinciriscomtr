@@ -133,6 +133,15 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
                     size="medium"
                     onClick={() => handleNavigate('finans')}
                 />
+                <MetroTile
+                    title="PubMed Trend"
+                    subtitle="Yayın trend analizi"
+                    icon={<TrendingUp size={40} />}
+                    color=""
+                    style={{ backgroundColor: '#7c3aed' }}
+                    size="medium"
+                    onClick={() => handleNavigate('pubmed-trend')}
+                />
 
             </div>
         </PageContainer>

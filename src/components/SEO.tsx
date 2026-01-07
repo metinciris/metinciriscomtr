@@ -137,6 +137,10 @@ const PAGE_METADATA: Record<string, { title: string; description: string }> = {
         title: 'Finansal Göstergeler | Prof Dr Metin Çiriş',
         description: 'Canlı ekonomik veriler ve makro göstergeler.'
     },
+    'pubmed-trend': {
+        title: 'PubMed Trend Analizi | Prof Dr Metin Çiriş',
+        description: 'Son 20 yılın PubMed yayın trendlerini analiz edin ve karşılaştırın.'
+    },
     '404': {
         title: 'Sayfa Bulunamadı | Prof Dr Metin Çiriş',
         description: 'Aradığınız sayfa mevcut değil.'
