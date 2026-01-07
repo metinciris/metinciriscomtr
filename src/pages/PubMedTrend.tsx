@@ -636,35 +636,47 @@ export function PubMedTrend() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {tableYears.map(year => (
-                                    <tr key={year} className="border-b border-slate-200 hover:bg-blue-50/50 transition-colors group/row even:bg-slate-100/40">
-                                        <td className="py-3 px-4 font-black text-slate-500 sticky left-0 bg-white group-hover/row:bg-blue-50/50 transition-colors border-r border-slate-100">
-                                            {year}
-                                        </td>
-                                        {activeTerms.map(row => {
-                                            const yearData = row.data.find(d => d.year === year);
-                                            return (
-                                                <td key={row.id} className="text-right py-3 px-4">
-                                                    {yearData ? (
-                                                        yearData.loading ? (
-                                                            <span className="inline-block w-16 h-4 bg-slate-100 animate-pulse rounded-lg" />
-                                                        ) : yearData.error ? (
-                                                            <span className="text-red-500 font-bold">Hata</span>
+                                {tableYears.map((year, idx) => {
+                                    const isEven = idx % 2 !== 0; // Alternate coloring
+                                    const rowBackground = isEven ? '#f1f5f9' : 'transparent';
+
+                                    return (
+                                        <tr
+                                            key={year}
+                                            className="border-b border-slate-200 hover:bg-blue-50 transition-colors group/row"
+                                            style={{ backgroundColor: rowBackground }}
+                                        >
+                                            <td
+                                                className="py-3 px-4 font-black text-slate-500 sticky left-0 z-10 transition-colors border-r border-slate-100 shadow-sm"
+                                                style={{ backgroundColor: isEven ? '#f1f5f9' : '#ffffff' }}
+                                            >
+                                                {year}
+                                            </td>
+                                            {activeTerms.map(row => {
+                                                const yearData = row.data.find(d => d.year === year);
+                                                return (
+                                                    <td key={row.id} className="text-right py-3 px-4">
+                                                        {yearData ? (
+                                                            yearData.loading ? (
+                                                                <span className="inline-block w-16 h-4 bg-slate-100 animate-pulse rounded-lg" />
+                                                            ) : yearData.error ? (
+                                                                <span className="text-red-500 font-bold">Hata</span>
+                                                            ) : (
+                                                                <span className="font-bold text-slate-700">
+                                                                    {yearData.count.toLocaleString('tr-TR')}
+                                                                </span>
+                                                            )
+                                                        ) : row.isSearching ? (
+                                                            <span className="inline-block w-16 h-4 bg-blue-50 animate-pulse rounded-lg" />
                                                         ) : (
-                                                            <span className="font-bold text-slate-700">
-                                                                {yearData.count.toLocaleString('tr-TR')}
-                                                            </span>
-                                                        )
-                                                    ) : row.isSearching ? (
-                                                        <span className="inline-block w-16 h-4 bg-blue-50 animate-pulse rounded-lg" />
-                                                    ) : (
-                                                        <span className="text-slate-200">—</span>
-                                                    )}
-                                                </td>
-                                            );
-                                        })}
-                                    </tr>
-                                ))}
+                                                            <span className="text-slate-200">—</span>
+                                                        )}
+                                                    </td>
+                                                );
+                                            })}
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
                     </div>
