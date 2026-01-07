@@ -415,138 +415,152 @@ export function PubMedTrend() {
 
             {/* Search Rows Section */}
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 mb-8">
-                <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-                    <Search size={24} className="text-purple-600" />
-                    Arama Terimleri
-                </h2>
+                <div className="max-w-4xl mx-auto">
+                    <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                        <Search size={24} className="text-blue-600" />
+                        Arama Terimleri
+                    </h2>
 
-                {/* Suggested Terms Chips */}
-                <div className="mb-6">
-                    <p className="text-sm font-semibold text-slate-500 mb-3 flex items-center gap-2">
-                        <Lightbulb size={16} className="text-amber-500" />
-                        Hazır Arama Önerileri (Tıklayın):
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                        {DEFAULT_SUGGESTIONS.map((suggestion) => (
-                            <button
-                                key={suggestion}
-                                onClick={() => handleSuggestedTermClick(suggestion)}
-                                className="px-3 py-1.5 bg-purple-50 text-purple-700 border border-purple-100 rounded-full text-sm font-medium hover:bg-purple-600 hover:text-white transition-all shadow-sm active:scale-95"
-                            >
-                                {suggestion}
-                            </button>
-                        ))}
+                    {/* Suggested Terms Chips */}
+                    <div className="mb-8 p-4 bg-blue-50/50 rounded-2xl border border-blue-100">
+                        <p className="text-xs font-bold text-blue-800 uppercase tracking-wider mb-3 flex items-center gap-2">
+                            <Lightbulb size={14} className="text-amber-500" />
+                            Hızlı Arama Önerileri
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                            {DEFAULT_SUGGESTIONS.map((suggestion) => (
+                                <button
+                                    key={suggestion}
+                                    onClick={() => handleSuggestedTermClick(suggestion)}
+                                    className="px-4 py-2 bg-white text-blue-600 border border-blue-200 rounded-xl text-sm font-semibold hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all shadow-sm active:scale-95"
+                                >
+                                    {suggestion}
+                                </button>
+                            ))}
+                        </div>
                     </div>
-                </div>
 
-                <div className="space-y-4">
-                    {searchRows.map((row, index) => (
-                        <div key={row.id} className="relative">
-                            <div className="flex items-center gap-3">
-                                {/* Color indicator */}
-                                <div
-                                    className="w-4 h-4 rounded-full shrink-0"
-                                    style={{ backgroundColor: row.color }}
-                                />
-
-                                {/* Input */}
-                                <div className="flex-1 relative">
-                                    <input
-                                        type="text"
-                                        value={row.term}
-                                        onChange={(e) => handleTermChange(row.id, e.target.value)}
-                                        placeholder="örn: breast cancer genomics"
-                                        className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-slate-800 bg-white"
-                                        disabled={row.isSearching}
+                    <div className="space-y-6">
+                        {searchRows.map((row, index) => (
+                            <div key={row.id} className="relative group p-4 bg-slate-50/50 rounded-2xl border border-slate-100/50 hover:bg-white hover:shadow-md transition-all">
+                                <div className="flex items-center gap-4">
+                                    {/* Color indicator */}
+                                    <div
+                                        className="w-1.5 h-12 rounded-full shrink-0"
+                                        style={{ backgroundColor: row.color }}
                                     />
 
-                                    {/* Suggestion dropdown */}
-                                    {row.showSuggestion && row.suggestion && (
-                                        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg z-10 p-3">
-                                            <div className="flex items-center gap-2 text-amber-600 text-sm">
-                                                <Lightbulb size={16} />
-                                                <span>Şunu mu demek istediniz:</span>
-                                                <button
-                                                    onClick={() => acceptSuggestion(row.id, row.suggestion!.corrected)}
-                                                    className="font-semibold text-purple-600 hover:underline"
-                                                >
-                                                    {row.suggestion.corrected}
-                                                </button>
-                                                <button
-                                                    onClick={() => setSearchRows(prev =>
-                                                        prev.map(r => r.id === row.id ? { ...r, showSuggestion: false } : r)
-                                                    )}
-                                                    className="ml-auto text-slate-400 hover:text-slate-600"
-                                                >
-                                                    ✕
-                                                </button>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Search button - Explicit dark background and white text to avoid visibility issues */}
-                                <button
-                                    onClick={() => searchRow(row.id)}
-                                    disabled={row.isSearching || !row.term.trim()}
-                                    className={`px-10 py-3 text-lg font-black rounded-xl flex items-center gap-2 shrink-0 transition-all active:scale-95 shadow-lg
-                                        ${row.isSearching || !row.term.trim()
-                                            ? 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none'
-                                            : 'bg-[#1e1b4b] text-white hover:bg-black hover:shadow-indigo-200'
-                                        }`}
-                                    style={{
-                                        backgroundColor: !row.isSearching && row.term.trim() ? '#1e1b4b' : undefined,
-                                        color: !row.isSearching && row.term.trim() ? 'white' : undefined,
-                                    }}
-                                >
-                                    {row.isSearching ? (
-                                        <Loader2 size={20} className="animate-spin" />
-                                    ) : (
-                                        <Search size={20} strokeWidth={3} />
-                                    )}
-                                    ARA
-                                </button>
-
-                                {/* Clear button */}
-                                <button
-                                    onClick={() => clearRow(row.id)}
-                                    disabled={row.isSearching}
-                                    className="px-3 py-3 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed shrink-0 transition-colors"
-                                    title="Temizle"
-                                >
-                                    <RotateCcw size={18} />
-                                </button>
-
-                                {/* Remove row button */}
-                                {searchRows.length > 1 && (
-                                    <button
-                                        onClick={() => removeRow(row.id)}
-                                        disabled={row.isSearching}
-                                        className="px-3 py-3 bg-red-50 text-red-500 rounded-xl hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed shrink-0 transition-colors"
-                                        title="Satırı Sil"
-                                    >
-                                        <Trash2 size={18} />
-                                    </button>
-                                )}
-                            </div>
-
-                            {/* Progress indicator */}
-                            {row.isSearching && (
-                                <div className="mt-2 flex items-center gap-2 text-sm text-purple-600">
-                                    <Loader2 size={14} className="animate-spin" />
-                                    <span>
-                                        Yükleniyor... ({row.data.length}/20 yıl)
-                                    </span>
-                                    <div className="flex-1 h-1 bg-purple-100 rounded-full overflow-hidden">
-                                        <div
-                                            className="h-full bg-purple-600 transition-all duration-300"
-                                            style={{ width: `${(row.data.length / 20) * 100}%` }}
+                                    {/* Input */}
+                                    <div className="flex-1 relative">
+                                        <input
+                                            type="text"
+                                            value={row.term}
+                                            onChange={(e) => handleTermChange(row.id, e.target.value)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter' && row.term.trim() && !row.isSearching) {
+                                                    searchRow(row.id);
+                                                }
+                                            }}
+                                            placeholder="Arama terimi girin..."
+                                            className="w-full px-5 py-4 border-2 border-slate-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 text-slate-800 bg-white shadow-sm font-medium transition-all"
+                                            disabled={row.isSearching}
                                         />
+
+                                        {/* Suggestion dropdown */}
+                                        {row.showSuggestion && row.suggestion && (
+                                            <div className="absolute top-full left-0 right-0 mt-2 bg-white border-2 border-amber-100 rounded-2xl shadow-xl z-20 p-4 animate-in fade-in slide-in-from-top-2">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="p-2 bg-amber-50 rounded-full text-amber-600">
+                                                        <Lightbulb size={18} />
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Öneri:</p>
+                                                        <button
+                                                            onClick={() => acceptSuggestion(row.id, row.suggestion!.corrected)}
+                                                            className="text-lg font-black text-blue-600 hover:text-blue-800 transition-colors underline decoration-2 decoration-blue-200 underline-offset-4"
+                                                        >
+                                                            {row.suggestion.corrected}
+                                                        </button>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => setSearchRows(prev =>
+                                                            prev.map(r => r.id === row.id ? { ...r, showSuggestion: false } : r)
+                                                        )}
+                                                        className="p-2 hover:bg-slate-100 rounded-full text-slate-400 transition-colors"
+                                                    >
+                                                        ✕
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Search button */}
+                                    <button
+                                        onClick={() => searchRow(row.id)}
+                                        disabled={row.isSearching || !row.term.trim()}
+                                        className={`px-16 py-4 text-lg font-black rounded-2xl flex items-center justify-center gap-3 shrink-0 transition-all active:scale-95 shadow-xl
+                                            ${row.isSearching || !row.term.trim()
+                                                ? 'bg-slate-100 text-slate-300 cursor-not-allowed shadow-none'
+                                                : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-blue-200'
+                                            }`}
+                                    >
+                                        {row.isSearching ? (
+                                            <Loader2 size={24} className="animate-spin" />
+                                        ) : (
+                                            <Search size={24} strokeWidth={3} />
+                                        )}
+                                        ARA
+                                    </button>
+
+                                    {/* Action buttons wrapper */}
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => clearRow(row.id)}
+                                            disabled={row.isSearching}
+                                            className="p-4 bg-white text-slate-400 border border-slate-100 rounded-2xl hover:bg-slate-50 hover:text-slate-600 disabled:opacity-50 transition-all shadow-sm"
+                                            title="Temizle"
+                                        >
+                                            <RotateCcw size={20} />
+                                        </button>
+
+                                        {searchRows.length > 1 && (
+                                            <button
+                                                onClick={() => removeRow(row.id)}
+                                                disabled={row.isSearching}
+                                                className="p-4 bg-white text-slate-400 border border-slate-100 rounded-2xl hover:bg-red-50 hover:text-red-500 disabled:opacity-50 transition-all shadow-sm"
+                                                title="Sil"
+                                            >
+                                                <Trash2 size={20} />
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
-                            )}
-                        </div>
-                    ))}
+
+                                {/* Progress indicator */}
+                                {row.isSearching && (
+                                    <div className="mt-4 flex items-center gap-4 p-3 bg-blue-50/80 rounded-xl border border-blue-100/50">
+                                        <div className="flex items-center gap-2 font-black text-blue-700 text-sm">
+                                            <div className="relative">
+                                                <Loader2 size={16} className="animate-spin" />
+                                                <div className="absolute inset-0 bg-blue-400 rounded-full animate-ping opacity-20" />
+                                            </div>
+                                            <span className="tracking-tighter uppercase font-black">Aranıyor...</span>
+                                            <span className="px-2 py-0.5 bg-blue-600 text-white rounded-lg text-xs leading-none">
+                                                {row.data.length}/20 yıl
+                                            </span>
+                                        </div>
+                                        <div className="flex-1 h-2 bg-blue-200/50 rounded-full overflow-hidden shadow-inner">
+                                            <div
+                                                className="h-full bg-blue-600 transition-all duration-500 ease-out"
+                                                style={{ width: `${(row.data.length / 20) * 100}%` }}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
                 </div>
 
                 {/* Action buttons */}
