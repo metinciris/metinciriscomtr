@@ -65,10 +65,10 @@ interface ChartDataPoint {
 
 export function PubMedTrend() {
     const [searchRows, setSearchRows] = useState<SearchRow[]>(() => {
-        // Initialize with 3 rows, first 3 with default suggestions
+        // Initialize with 3 empty rows
         return Array.from({ length: 3 }, (_, i) => ({
             id: `row-${Date.now()}-${i}`,
-            term: DEFAULT_SUGGESTIONS[i] || '',
+            term: '',
             isSearching: false,
             data: [],
             color: COLORS[i % COLORS.length],
@@ -225,11 +225,10 @@ export function PubMedTrend() {
     }, []);
 
     // Add new search row
-    const addRow = useCallback(() => {
-        const nextSuggestionIndex = searchRows.length;
+    const addRow = useCallback((termValue: string = '') => {
         const newRow: SearchRow = {
-            id: `row-${Date.now()}`,
-            term: DEFAULT_SUGGESTIONS[nextSuggestionIndex] || '',
+            id: `row-${Date.now()}-${Math.random()}`,
+            term: termValue,
             isSearching: false,
             data: [],
             color: COLORS[colorIndexRef.current % COLORS.length],
@@ -238,7 +237,28 @@ export function PubMedTrend() {
         };
         colorIndexRef.current++;
         setSearchRows(prev => [...prev, newRow]);
-    }, [searchRows.length]);
+
+        // If a term was provided, trigger search automatically
+        if (termValue) {
+            setTimeout(() => searchRow(newRow.id), 100);
+        }
+    }, [searchRow]);
+
+    // Handle suggestion chip click
+    const handleSuggestedTermClick = useCallback((term: string) => {
+        // Find first empty row
+        const emptyRow = searchRows.find(row => !row.term.trim() && !row.isSearching);
+
+        if (emptyRow) {
+            handleTermChange(emptyRow.id, term);
+            // Optional: trigger search immediately
+            setTimeout(() => searchRow(emptyRow.id), 100);
+        } else {
+            // Add new row with the term
+            addRow(term);
+        }
+        toast.success(`"${term}" eklendi`);
+    }, [searchRows, handleTermChange, searchRow, addRow]);
 
     // Remove a row
     const removeRow = useCallback((rowId: string) => {
@@ -400,6 +420,25 @@ export function PubMedTrend() {
                     Arama Terimleri
                 </h2>
 
+                {/* Suggested Terms Chips */}
+                <div className="mb-6">
+                    <p className="text-sm font-semibold text-slate-500 mb-3 flex items-center gap-2">
+                        <Lightbulb size={16} className="text-amber-500" />
+                        Hazır Arama Önerileri (Tıklayın):
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                        {DEFAULT_SUGGESTIONS.map((suggestion) => (
+                            <button
+                                key={suggestion}
+                                onClick={() => handleSuggestedTermClick(suggestion)}
+                                className="px-3 py-1.5 bg-purple-50 text-purple-700 border border-purple-100 rounded-full text-sm font-medium hover:bg-purple-600 hover:text-white transition-all shadow-sm active:scale-95"
+                            >
+                                {suggestion}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
                 <div className="space-y-4">
                     {searchRows.map((row, index) => (
                         <div key={row.id} className="relative">
@@ -446,11 +485,19 @@ export function PubMedTrend() {
                                     )}
                                 </div>
 
-                                {/* Search button */}
+                                {/* Search button - Explicit dark background and white text to avoid visibility issues */}
                                 <button
                                     onClick={() => searchRow(row.id)}
                                     disabled={row.isSearching || !row.term.trim()}
-                                    className="px-10 py-3 bg-indigo-900 text-white text-lg font-black rounded-xl hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shrink-0 transition-all active:scale-95 shadow-lg shadow-indigo-200"
+                                    className={`px-10 py-3 text-lg font-black rounded-xl flex items-center gap-2 shrink-0 transition-all active:scale-95 shadow-lg
+                                        ${row.isSearching || !row.term.trim()
+                                            ? 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none'
+                                            : 'bg-[#1e1b4b] text-white hover:bg-black hover:shadow-indigo-200'
+                                        }`}
+                                    style={{
+                                        backgroundColor: !row.isSearching && row.term.trim() ? '#1e1b4b' : undefined,
+                                        color: !row.isSearching && row.term.trim() ? 'white' : undefined,
+                                    }}
                                 >
                                     {row.isSearching ? (
                                         <Loader2 size={20} className="animate-spin" />
@@ -505,7 +552,7 @@ export function PubMedTrend() {
                 {/* Action buttons */}
                 <div className="flex flex-wrap gap-3 mt-6 pt-6 border-t border-slate-100">
                     <button
-                        onClick={addRow}
+                        onClick={() => addRow()}
                         className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 flex items-center gap-2 transition-colors"
                     >
                         <Plus size={18} />
