@@ -432,8 +432,8 @@ export function PubMedTrend() {
                                 <button
                                     key={suggestion}
                                     onClick={() => handleSuggestedTermClick(suggestion)}
-                                    className="px-4 py-2 bg-white text-blue-600 border-2 border-blue-100 rounded-xl text-sm font-black hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all shadow-sm active:scale-95"
-                                    style={{ transitionDuration: '0.2s' }}
+                                    className="px-4 py-2 bg-white text-blue-600 border-2 border-blue-100 rounded-xl text-sm font-black hover:bg-blue-50 transition-all shadow-sm active:scale-95"
+                                    style={{ transitionDuration: '0.2s', color: '#2563eb' }}
                                 >
                                     {suggestion}
                                 </button>
@@ -609,65 +609,67 @@ export function PubMedTrend() {
             </div>
 
             {/* Data Table Section */}
-            {activeTerms.length > 0 && (
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 mb-8 overflow-x-auto">
-                    <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-                        <AlertCircle size={24} className="text-purple-600" />
-                        Yıllık Veri Tablosu
-                    </h2>
+            {
+                activeTerms.length > 0 && (
+                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 mb-8 overflow-x-auto">
+                        <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                            <AlertCircle size={24} className="text-purple-600" />
+                            Yıllık Veri Tablosu
+                        </h2>
 
-                    <table className="w-full text-sm">
-                        <thead>
-                            <tr className="border-b border-slate-200">
-                                <th className="text-left py-3 px-4 font-semibold text-slate-600 bg-slate-50 sticky left-0">
-                                    Yıl
-                                </th>
-                                {activeTerms.map(row => (
-                                    <th
-                                        key={row.id}
-                                        className="text-right py-3 px-4 font-semibold bg-slate-50"
-                                        style={{ color: row.color }}
-                                    >
-                                        {row.term}
-                                        {row.isSearching && ' ⏳'}
+                        <table className="w-full text-sm">
+                            <thead>
+                                <tr className="border-b border-slate-200">
+                                    <th className="text-left py-4 px-4 font-black text-slate-600 bg-slate-100 sticky left-0 z-10 border-r border-slate-200">
+                                        Yıl
                                     </th>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {tableYears.map(year => (
-                                <tr key={year} className="border-b border-slate-100 hover:bg-blue-50/30 transition-colors group/row even:bg-slate-50/50">
-                                    <td className="py-3 px-4 font-black text-slate-500 sticky left-0 bg-white group-hover/row:bg-blue-50/30 transition-colors">
-                                        {year}
-                                    </td>
-                                    {activeTerms.map(row => {
-                                        const yearData = row.data.find(d => d.year === year);
-                                        return (
-                                            <td key={row.id} className="text-right py-3 px-4">
-                                                {yearData ? (
-                                                    yearData.loading ? (
-                                                        <span className="inline-block w-16 h-4 bg-slate-100 animate-pulse rounded-lg" />
-                                                    ) : yearData.error ? (
-                                                        <span className="text-red-500 font-bold">Hata</span>
-                                                    ) : (
-                                                        <span className="font-bold text-slate-700">
-                                                            {yearData.count.toLocaleString('tr-TR')}
-                                                        </span>
-                                                    )
-                                                ) : row.isSearching ? (
-                                                    <span className="inline-block w-16 h-4 bg-blue-50 animate-pulse rounded-lg" />
-                                                ) : (
-                                                    <span className="text-slate-200">—</span>
-                                                )}
-                                            </td>
-                                        );
-                                    })}
+                                    {activeTerms.map(row => (
+                                        <th
+                                            key={row.id}
+                                            className="text-right py-3 px-4 font-semibold bg-slate-50"
+                                            style={{ color: row.color }}
+                                        >
+                                            {row.term}
+                                            {row.isSearching && ' ⏳'}
+                                        </th>
+                                    ))}
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            )}
+                            </thead>
+                            <tbody>
+                                {tableYears.map(year => (
+                                    <tr key={year} className="border-b border-slate-200 hover:bg-blue-50/50 transition-colors group/row even:bg-slate-100/40">
+                                        <td className="py-3 px-4 font-black text-slate-500 sticky left-0 bg-white group-hover/row:bg-blue-50/50 transition-colors border-r border-slate-100">
+                                            {year}
+                                        </td>
+                                        {activeTerms.map(row => {
+                                            const yearData = row.data.find(d => d.year === year);
+                                            return (
+                                                <td key={row.id} className="text-right py-3 px-4">
+                                                    {yearData ? (
+                                                        yearData.loading ? (
+                                                            <span className="inline-block w-16 h-4 bg-slate-100 animate-pulse rounded-lg" />
+                                                        ) : yearData.error ? (
+                                                            <span className="text-red-500 font-bold">Hata</span>
+                                                        ) : (
+                                                            <span className="font-bold text-slate-700">
+                                                                {yearData.count.toLocaleString('tr-TR')}
+                                                            </span>
+                                                        )
+                                                    ) : row.isSearching ? (
+                                                        <span className="inline-block w-16 h-4 bg-blue-50 animate-pulse rounded-lg" />
+                                                    ) : (
+                                                        <span className="text-slate-200">—</span>
+                                                    )}
+                                                </td>
+                                            );
+                                        })}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )
+            }
 
             {/* Footer Info */}
             <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
@@ -687,6 +689,6 @@ export function PubMedTrend() {
                     </div>
                 </div>
             </div>
-        </PageContainer>
+        </PageContainer >
     );
 }
