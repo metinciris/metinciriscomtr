@@ -65,8 +65,8 @@ interface ChartDataPoint {
 
 export function PubMedTrend() {
     const [searchRows, setSearchRows] = useState<SearchRow[]>(() => {
-        // Initialize with 3 empty rows
-        return Array.from({ length: 3 }, (_, i) => ({
+        // Initialize with 2 empty rows
+        return Array.from({ length: 2 }, (_, i) => ({
             id: `row-${Date.now()}-${i}`,
             term: '',
             isSearching: false,
@@ -79,7 +79,7 @@ export function PubMedTrend() {
 
     const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
     const suggestionTimeoutRef = useRef<Record<string, NodeJS.Timeout>>({});
-    const colorIndexRef = useRef(3); // Start from 3 since first 3 are used
+    const colorIndexRef = useRef(2); // Start from 2 since first 2 are used
 
     // Generate chart data from all search rows
     useEffect(() => {
@@ -414,9 +414,9 @@ export function PubMedTrend() {
             </div>
 
             {/* Search Rows Section */}
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 mb-8">
-                <div className="max-w-4xl mx-auto">
-                    <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+            <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 mb-8">
+                <div className="w-full">
+                    <h2 className="text-2xl font-black text-slate-800 mb-8 flex items-center gap-3">
                         <Search size={24} className="text-blue-600" />
                         Arama Terimleri
                     </h2>
@@ -432,7 +432,8 @@ export function PubMedTrend() {
                                 <button
                                     key={suggestion}
                                     onClick={() => handleSuggestedTermClick(suggestion)}
-                                    className="px-4 py-2 bg-white text-blue-600 border border-blue-200 rounded-xl text-sm font-semibold hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all shadow-sm active:scale-95"
+                                    className="px-4 py-2 bg-white text-blue-600 border-2 border-blue-100 rounded-xl text-sm font-black hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all shadow-sm active:scale-95"
+                                    style={{ transitionDuration: '0.2s' }}
                                 >
                                     {suggestion}
                                 </button>
