@@ -85,11 +85,12 @@ export function PubMedTrend() {
     useEffect(() => {
         const currentYear = new Date().getFullYear();
         const startYear = currentYear - 19;
-        const years = Array.from({ length: 20 }, (_, i) => startYear + i);
+        // Only include years up to currentYear - 1 in the graph
+        const chartYears = Array.from({ length: 19 }, (_, i) => startYear + i);
 
         const activeRows = searchRows.filter(row => row.data.length > 0);
 
-        const newChartData: ChartDataPoint[] = years.map(year => {
+        const newChartData: ChartDataPoint[] = chartYears.map(year => {
             const point: ChartDataPoint = { year };
             activeRows.forEach(row => {
                 const yearData = row.data.find(d => d.year === year);
@@ -335,7 +336,7 @@ export function PubMedTrend() {
                 </div>
                 <p className="max-w-3xl text-xl opacity-80 leading-relaxed font-normal" style={{ color: 'white' }}>
                     Farklı arama terimleri için son 20 yıldaki ({startYear}-{currentYear}) PubMed yayın sayılarını karşılaştırın.
-                    Veriler yıl yıl yüklenerek grafikte görselleştirilir.
+                    Veriler yıl yıl yüklenerek grafikte ({startYear}-{currentYear - 1}) görselleştirilir.
                 </p>
             </div>
 
@@ -693,7 +694,8 @@ export function PubMedTrend() {
                         </p>
                         <ul className="list-disc list-inside space-y-1 text-slate-500">
                             <li>Veriler NCBI PubMed E-utilities API üzerinden çekilmektedir</li>
-                            <li>Güncel Son 20 yıl ({startYear}-{currentYear}) için yayın sayıları gösterilir</li>
+                            <li>Güncel Son 20 yıl ({startYear}-{currentYear}) için yayın sayıları tabloda gösterilir</li>
+                            <li>Grafik güncel yılı (incomplete data) hariç tutarak son 19 yılı gösterir</li>
                             <li>Rate limit aşımını önlemek için istekler kuyruğa alınır (max 3 eşzamanlı)</li>
                             <li>Aynı terim tekrar arandığında önbellekten hızlı yüklenir</li>
                             <li>Yanlış yazımlarda ESpell API ile öneri sunulur</li>
