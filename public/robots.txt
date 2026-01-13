@@ -1,0 +1,9 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://metinciris.com.tr/sitemap.xml
+
+# Crawl-delay (Türk siteler için önerilen)
+Crawl-delay: 1
