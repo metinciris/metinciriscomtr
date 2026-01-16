@@ -151,7 +151,7 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
         const parsed: StudentRecord[] = lines.map(line => {
             const id = line.substring(profile.idStart - 1, profile.idStart - 1 + profile.idLen).trim();
             const name = line.substring(profile.nameStart - 1, profile.nameStart - 1 + profile.nameLen).trim();
-            const booklet = line.substring(profile.bookletStart - 1, profile.bookletStart - 1 + profile.bookletLen).trim() || 'A';
+            let booklet = line.substring(profile.bookletStart - 1, profile.bookletStart - 1 + 1).trim() || 'A';
             const answers = line.substring(profile.answersStart - 1).toUpperCase();
 
             const messages: string[] = [];
@@ -177,36 +177,70 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
     function calculateResults(): AnalysisResult[] {
         if (students.length === 0 || answerKeys.length === 0) return [];
 
-        const refKey = answerKeys.find(k => k.booklet === 'A') || answerKeys[0];
+        const refKey = answerKeys.find(k => k.booklet === 'A');
         if (!refKey) return [];
 
         return students.map(student => {
             let studentAnswers = student.answers;
-            const studentKey = answerKeys.find(k => k.booklet === student.booklet) || refKey;
 
-            // If we have mapping and student is not in A, we might need to reorder or just compare with their own booklet key
-            // The rule: şıklar değişmez, soru sırası değişir.
-            // So if we have a mapping for booklet B to A, we map student's answers in B to A's order, then compare with A's key.
+            // Mapping: if student is not A, map their answers to A's order
+            if (student.booklet !== 'A') {
+                const map = mappings.find(m => m.fromBooklet === student.booklet);
+                if (map) {
+                    // map.order contains A-indices (1-based) in student's order
+                    // e.g. B1 is A5, B2 is A12...
+                    // so we need to construct a string where result[A-index-1] = B[student-index]
+                    const reordered = new Array(refKey.answers.length).fill(' ');
+                    for (let i = 0; i < map.order.length; i++) {
+                        const aIdx = map.order[i] - 1;
+                        if (aIdx >= 0 && aIdx < reordered.length) {
+                            reordered[aIdx] = studentAnswers[i] || ' ';
+                        }
+                    }
+                    studentAnswers = reordered.join('');
+                }
+            }
 
             let rights = 0, wrongs = 0, empties = 0, invalids = 0;
-            const subResults: any[] = [];
+            const subResults: any[] = subjects.map(s => ({ name: s.name, rights: 0, wrongs: 0, empties: 0, net: 0 }));
 
-            // Comparison logic
-            const targetAnswers = studentKey.answers;
+            // Comparison logic (now always against RefKey A)
+            const targetAnswers = refKey.answers;
             for (let i = 0; i < targetAnswers.length; i++) {
                 const sAns = studentAnswers[i] || ' ';
                 const kAns = targetAnswers[i];
 
+                let isRight = false, isWrong = false, isEmpty = false;
+
                 if (kAns === ' ' || kAns === '#') { // Cancelled question
-                    if (scoring.cancelMode === 'correct') rights++;
-                    continue;
+                    if (scoring.cancelMode === 'correct') isRight = true;
+                } else if (sAns === ' ') {
+                    isEmpty = true;
+                } else if (sAns === '*') {
+                    invalids++;
+                } else if (sAns === kAns) {
+                    isRight = true;
+                } else {
+                    isWrong = true;
                 }
 
-                if (sAns === ' ') empties++;
-                else if (sAns === '*') invalids++;
-                else if (sAns === kAns) rights++;
-                else wrongs++;
+                if (isRight) rights++;
+                if (isWrong) wrongs++;
+                if (isEmpty) empties++;
+
+                // Subject attribution
+                const qNum = i + 1;
+                const subIdx = subjects.findIndex(s => qNum >= s.start && qNum <= s.end);
+                if (subIdx !== -1) {
+                    if (isRight) subResults[subIdx].rights++;
+                    if (isWrong) subResults[subIdx].wrongs++;
+                    if (isEmpty) subResults[subIdx].empties++;
+                }
             }
+
+            subResults.forEach(sr => {
+                sr.net = sr.rights - (scoring.penalty ? sr.wrongs / 4 : 0);
+            });
 
             const net = rights - (scoring.penalty ? wrongs / 4 : 0);
             const activeQuestions = targetAnswers.split('').filter(c => c !== ' ' && c !== '#').length;
@@ -217,56 +251,117 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
                 studentName: student.name,
                 booklet: student.booklet,
                 rights, wrongs, empties, invalids, net, score,
-                subjectResults: [],
-                answers: studentAnswers
+                subjectResults: subResults,
+                answers: studentAnswers // now normalized to A order
             };
         });
     }
 
     // --- Sub-Components (Steps) ---
 
-    const Step1_Profile = () => (
-        <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div
-                    style={{ backgroundColor: 'white' }}
-                    className="p-6 rounded-none shadow-md border-2 border-slate-200 hover:border-[#3498db] transition-colors"
-                >
-                    <label className="block text-xs font-black text-slate-800 mb-3 uppercase tracking-widest">Öğrenci No (ID)</label>
-                    <div className="flex gap-2 text-slate-900">
-                        <input type="number" value={profile.idStart} onChange={e => setProfile({ ...profile, idStart: Number(e.target.value) })} className="w-24 p-2 border-2 border-slate-300 focus:border-slate-900 outline-none font-black bg-slate-50" placeholder="Başla" />
-                        <span className="self-center font-bold">/</span>
-                        <input type="number" value={profile.idLen} onChange={e => setProfile({ ...profile, idLen: Number(e.target.value) })} className="w-24 p-2 border-2 border-slate-300 focus:border-slate-900 outline-none font-black bg-slate-50" placeholder="Boy" />
-                    </div>
-                </div>
-                <div className="bg-white p-6 rounded-none shadow-sm border-2 border-slate-100 hover:border-slate-300 transition-colors">
-                    <label className="block text-xs font-black text-slate-900 mb-3 uppercase tracking-widest">İsim Soyad</label>
-                    <div className="flex gap-2 text-slate-800">
-                        <input type="number" value={profile.nameStart} onChange={e => setProfile({ ...profile, nameStart: Number(e.target.value) })} className="w-24 p-2 border-2 border-slate-200 focus:border-slate-800 outline-none font-bold bg-slate-50" />
-                        <span className="self-center font-bold">/</span>
-                        <input type="number" value={profile.nameLen} onChange={e => setProfile({ ...profile, nameLen: Number(e.target.value) })} className="w-24 p-2 border-2 border-slate-200 focus:border-slate-800 outline-none font-bold bg-slate-50" />
-                    </div>
-                </div>
-                <div className="bg-white p-6 rounded-none shadow-sm border-2 border-slate-100 hover:border-slate-300 transition-colors">
-                    <label className="block text-xs font-black text-slate-900 mb-3 uppercase tracking-widest">Kitapçık</label>
-                    <div className="flex gap-2 text-slate-800">
-                        <input type="number" value={profile.bookletStart} onChange={e => setProfile({ ...profile, bookletStart: Number(e.target.value) })} className="w-24 p-2 border-2 border-slate-200 focus:border-slate-800 outline-none font-bold bg-slate-50" />
-                        <span className="self-center font-bold">/</span>
-                        <input type="number" value={profile.bookletLen} onChange={e => setProfile({ ...profile, bookletLen: Number(e.target.value) })} className="w-24 p-2 border-2 border-slate-200 focus:border-slate-800 outline-none font-bold bg-slate-50" />
-                    </div>
-                </div>
-                <div className="bg-white p-6 rounded-none shadow-sm border-2 border-slate-100 hover:border-slate-300 transition-colors">
-                    <label className="block text-xs font-black text-slate-900 mb-3 uppercase tracking-widest">Cevap Başlangıcı</label>
-                    <input type="number" value={profile.answersStart} onChange={e => setProfile({ ...profile, answersStart: Number(e.target.value) })} className="w-full p-2 border-2 border-slate-200 focus:border-slate-800 outline-none font-bold bg-slate-50" />
-                </div>
-            </div>
+    const Step1_Profile = () => {
+        const exportConfig = () => {
+            const data = JSON.stringify(profile, null, 2);
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `Sınav_Dizaynı_${profile.name}.json`;
+            link.click();
+            toast.success("Dizayn dışa aktarıldı.");
+        };
 
-            <div className="bg-amber-50 p-4 rounded border border-amber-200 text-amber-800 text-sm">
-                <Info className="inline-block mr-2" size={16} />
-                Not: Pozisyonlar 1'den başlar (Excel mantığı).
+        const importConfig = (e: React.ChangeEvent<HTMLInputElement>) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (re) => {
+                try {
+                    const json = JSON.parse(re.target?.result as string);
+                    setProfile({ ...DEFAULT_PROFILE, ...json, id: 'imported_' + Date.now() });
+                    toast.success("Dizayn içe aktarıldı.");
+                } catch (err) {
+                    toast.error("Geçersiz dosya formatı.");
+                }
+            };
+            reader.readAsText(file);
+        };
+
+        return (
+            <div className="space-y-6">
+                <div className="flex justify-between items-center bg-slate-50 p-4 border border-slate-200">
+                    <h3 className="text-lg font-bold text-slate-800">Dizayn Yönetimi</h3>
+                    <div className="flex gap-2">
+                        <label className="cursor-pointer bg-white text-slate-700 px-4 py-2 text-xs font-black uppercase border-2 border-slate-300 hover:border-slate-800 transition-all flex items-center gap-2">
+                            <Upload size={14} /> Şablon Yükle
+                            <input type="file" className="hidden" accept=".json" onChange={importConfig} />
+                        </label>
+                        <button onClick={exportConfig} className="bg-white text-slate-700 px-4 py-2 text-xs font-black uppercase border-2 border-slate-300 hover:border-slate-800 transition-all flex items-center gap-2">
+                            <Download size={14} /> Şablonu İndir
+                        </button>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div
+                        style={{ backgroundColor: 'white' }}
+                        className="p-6 rounded-none shadow-md border-2 border-slate-200 hover:border-[#3498db] transition-colors"
+                    >
+                        <label className="block text-xs font-black text-slate-800 mb-3 uppercase tracking-widest">Öğrenci No (ID)</label>
+                        <div className="flex gap-2 text-slate-900">
+                            <div className="flex-1">
+                                <span className="text-[10px] text-slate-400 block mb-1">Başlangıç Karakter</span>
+                                <input type="number" value={profile.idStart} onChange={e => setProfile({ ...profile, idStart: Number(e.target.value) })} className="w-full p-2 border-2 border-slate-300 focus:border-slate-900 outline-none font-black bg-slate-50" />
+                            </div>
+                            <div className="flex-1">
+                                <span className="text-[10px] text-slate-400 block mb-1">Karakter Sayısı</span>
+                                <input type="number" value={profile.idLen} onChange={e => setProfile({ ...profile, idLen: Number(e.target.value) })} className="w-full p-2 border-2 border-slate-300 focus:border-slate-900 outline-none font-black bg-slate-50" />
+                            </div>
+                        </div>
+                    </div>
+                    <div className="bg-white p-6 rounded-none shadow-sm border-2 border-slate-100 hover:border-slate-300 transition-colors">
+                        <label className="block text-xs font-black text-slate-900 mb-3 uppercase tracking-widest">İsim Soyad</label>
+                        <div className="flex gap-2 text-slate-800">
+                            <div className="flex-1">
+                                <span className="text-[10px] text-slate-400 block mb-1">Başlangıç Karakter</span>
+                                <input type="number" value={profile.nameStart} onChange={e => setProfile({ ...profile, nameStart: Number(e.target.value) })} className="w-full p-2 border-2 border-slate-200 focus:border-slate-800 outline-none font-bold bg-slate-50" />
+                            </div>
+                            <div className="flex-1">
+                                <span className="text-[10px] text-slate-400 block mb-1">Karakter Sayısı</span>
+                                <input type="number" value={profile.nameLen} onChange={e => setProfile({ ...profile, nameLen: Number(e.target.value) })} className="w-full p-2 border-2 border-slate-200 focus:border-slate-800 outline-none font-bold bg-slate-50" />
+                            </div>
+                        </div>
+                    </div>
+                    <div className="bg-white p-6 rounded-none shadow-sm border-2 border-slate-100 hover:border-slate-300 transition-colors">
+                        <label className="block text-xs font-black text-slate-900 mb-3 uppercase tracking-widest">Kitapçık Türü</label>
+                        <div className="flex gap-2 text-slate-800">
+                            <div className="flex-1">
+                                <span className="text-[10px] text-slate-400 block mb-1">Kaçıncı Karakter?</span>
+                                <input type="number" value={profile.bookletStart} onChange={e => setProfile({ ...profile, bookletStart: Number(e.target.value) })} className="w-full p-2 border-2 border-slate-200 focus:border-slate-800 outline-none font-bold bg-slate-50" />
+                            </div>
+                            <div className="flex-1 opacity-50">
+                                <span className="text-[10px] text-slate-400 block mb-1">Sabit: 1 Karakter</span>
+                                <input type="number" disabled value={1} className="w-full p-2 border-2 border-slate-100 bg-slate-100 text-slate-400 outline-none font-bold" />
+                            </div>
+                        </div>
+                    </div>
+                    <div className="bg-white p-6 rounded-none shadow-sm border-2 border-slate-100 hover:border-slate-300 transition-colors md:col-span-1 lg:col-span-1">
+                        <label className="block text-xs font-black text-slate-900 mb-3 uppercase tracking-widest">Cevap Başlangıcı (Karakter)</label>
+                        <input type="number" value={profile.answersStart} onChange={e => setProfile({ ...profile, answersStart: Number(e.target.value) })} className="w-full p-2 border-2 border-slate-200 focus:border-slate-800 outline-none font-bold bg-slate-50" />
+                    </div>
+                </div>
+
+                <div className="bg-blue-50 p-6 rounded border border-blue-100 text-blue-900 text-sm space-y-2">
+                    <p className="font-bold flex items-center gap-2"><Info size={16} /> Önemli Notlar:</p>
+                    <ul className="list-disc list-inside opacity-90 space-y-1">
+                        <li>Karakter pozisyonları 1'den başlar (Excel mantığı).</li>
+                        <li><strong>Kitapçık Türü:</strong> Eğer DAT dosyasında belirtilmemişse veya boşsa, tüm öğrenciler otomatik olarak <strong>A kitapçığı</strong> olarak değerlendirilir.</li>
+                        <li>Dizaynınızı JSON dosyası olarak kaydedip daha sonra tekrar yükleyebilirsiniz.</li>
+                    </ul>
+                </div>
             </div>
-        </div>
-    );
+        );
+    };
 
     const Step2_DataEntry = () => (
         <div className="space-y-4">
@@ -355,6 +450,7 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
     const Step4_AnswerKey = () => {
         const [activeBooklet, setActiveBooklet] = useState('A');
         const currentKey = answerKeys.find(k => k.booklet === activeBooklet)?.answers || '';
+        const isNoBooklet = !students.some(s => s.booklet && s.booklet !== 'A');
 
         const updateKey = (booklet: string, val: string) => {
             const cleanVal = val.toUpperCase().replace(/[^A-E *#]/g, '');
@@ -394,7 +490,10 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
 
                 <div className="bg-white p-6 rounded border shadow-sm space-y-4">
                     <div className="flex justify-between items-center">
-                        <h4 className="font-bold text-slate-800">{activeBooklet} Kitapçığı Cevapları</h4>
+                        <h4 className="font-bold text-slate-800">
+                            {activeBooklet} Kitapçığı Cevapları
+                            {activeBooklet === 'A' && isNoBooklet && <span className="text-xs font-normal text-slate-400 ml-2">(Kitapçık türü belirtilmediyse bunu kullanın)</span>}
+                        </h4>
                         <div className="flex gap-2">
                             <label className="cursor-pointer bg-slate-100 text-slate-700 px-3 py-1 rounded text-xs font-semibold hover:bg-slate-200 border">
                                 <Upload size={14} className="inline mr-1" /> Dosyadan Yükle
@@ -456,6 +555,71 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
     };
 
     const Step8_Analysis = () => {
+        const sortedResults = useMemo(() => [...results].sort((a, b) => b.score - a.score), [results]);
+        // Ayırıcılık indeksi için üst %27 ve aynı sayıda alt %27 grubu belirlenir.
+        const topCount = Math.ceil(results.length * 0.27) || 1;
+        const topGroup = sortedResults.slice(0, topCount);
+        const bottomGroup = sortedResults.slice(-topCount);
+
+        const missingMappings = useMemo(() => {
+            const usedBooklets = Array.from(new Set(students.map(s => s.booklet))).filter(b => b !== 'A');
+            return usedBooklets.filter(b => !mappings.some(m => m.fromBooklet === b));
+        }, [students, mappings]);
+
+        const questionStats = useMemo(() => {
+            if (results.length === 0 || answerKeys.length === 0) return [];
+            if (missingMappings.length > 0) return []; // Don't show stats if mapping is missing
+
+            const refKey = answerKeys.find(k => k.booklet === 'A');
+            if (!refKey) return [];
+
+            const stats = [];
+            const ansLen = refKey.answers.length;
+
+            for (let i = 0; i < ansLen; i++) {
+                const correctAns = refKey.answers[i];
+                if (correctAns === ' ' || correctAns === '#') continue;
+
+                const distributions: Record<string, number> = { A: 0, B: 0, C: 0, D: 0, E: 0, ' ': 0, '*': 0 };
+                let correctCount = 0;
+                let topCorrect = 0;
+                let bottomCorrect = 0;
+
+                results.forEach(r => {
+                    const ans = r.answers[i] || ' ';
+                    distributions[ans] = (distributions[ans] || 0) + 1;
+                    if (ans === correctAns) correctCount++;
+                });
+
+                topGroup.forEach(r => { if (r.answers[i] === correctAns) topCorrect++; });
+                bottomGroup.forEach(r => { if (r.answers[i] === correctAns) bottomCorrect++; });
+
+                const diffIndex = correctCount / results.length;
+                const discIndex = (topCorrect - bottomCorrect) / topCount;
+
+                // Simple evaluation
+                let evalText = '';
+                if (discIndex > 0.4) evalText = 'Mükemmel ayırıcı';
+                else if (discIndex > 0.3) evalText = 'İyi ayırıcı';
+                else if (discIndex > 0.2) evalText = 'Düzeltilmeli';
+                else evalText = 'Çok zayıf / Hatalı';
+
+                if (diffIndex < 0.3) evalText += ' (Zor)';
+                else if (diffIndex > 0.7) evalText += ' (Kolay)';
+                else evalText += ' (Orta)';
+
+                stats.push({
+                    number: i + 1,
+                    correctAns,
+                    diffIndex,
+                    discIndex,
+                    evalText,
+                    distributions
+                });
+            }
+            return stats;
+        }, [results, answerKeys, topGroup, bottomGroup]);
+
         const scoreData = useMemo(() => {
             const ranges = [
                 { name: '0-20', count: 0 },
@@ -479,6 +643,19 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
 
         return (
             <div className="space-y-8">
+                {missingMappings.length > 0 && (
+                    <div className="bg-rose-50 p-6 border-2 border-rose-200 rounded text-rose-800 space-y-3">
+                        <div className="flex items-center gap-3 font-black uppercase tracking-widest text-sm">
+                            <AlertTriangle size={24} /> Eksik Kitapçık Eşleştirmesi!
+                        </div>
+                        <p className="text-sm">
+                            Sınavda kullanılan <strong>{missingMappings.join(', ')}</strong> kitapçıkları için henüz bir eşleştirme (mapping) tanımlamadınız.
+                            Doğru istatistiksel analiz için lütfen <strong>Adım 5</strong>'e giderek bu kitapçıkların A kitapçığına göre dizilimini girin.
+                        </p>
+                    </div>
+                )}
+
+                {/* Stats Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-emerald-500 text-white p-6 rounded-none shadow-lg border-b-4 border-emerald-700">
                         <div className="text-sm opacity-80 font-bold uppercase tracking-tight">Toplam Öğrenci</div>
@@ -497,6 +674,29 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
                         <div className="text-4xl font-extrabold">{results.length > 0 ? Math.min(...results.map(r => r.score)).toFixed(1) : 0}</div>
                     </motion.div>
                 </div>
+
+                {/* Subject Results */}
+                {subjects.length > 0 && (
+                    <div className="bg-white p-6 border shadow-sm">
+                        <h4 className="font-bold text-slate-800 mb-6 uppercase tracking-wider text-sm">Ders/Konu Bazlı Başarı Oranları</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {subjects.map((sub, idx) => {
+                                const subStats = results.map(r => r.subjectResults[idx]);
+                                const avgNet = subStats.reduce((acc, s) => acc + (s?.net || 0), 0) / (results.length || 1);
+                                const totalQ = sub.end - sub.start + 1;
+                                return (
+                                    <div key={idx} className="p-4 bg-slate-50 border-l-4 border-[#3498db]">
+                                        <div className="font-black text-slate-800 text-xs mb-1 uppercase tracking-tight">{sub.name}</div>
+                                        <div className="text-2xl font-black text-slate-900">{avgNet.toFixed(2)} <small className="text-xs text-slate-400 font-bold">NET (Ort)</small></div>
+                                        <div className="w-full bg-white h-2 mt-2 rounded-full overflow-hidden">
+                                            <div className="bg-[#3498db] h-full" style={{ width: `${(avgNet / totalQ) * 100}%` }}></div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div className="bg-white p-6 border shadow-sm">
@@ -534,6 +734,57 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
                     </div>
                 </div>
 
+                {/* Detailed Question Analysis Table */}
+                <div className="bg-white rounded border shadow-sm overflow-hidden">
+                    <div className="p-4 border-b bg-slate-50">
+                        <h3 className="font-bold text-slate-800 uppercase tracking-widest text-sm flex items-center gap-2">
+                            Soru Bazlı İstatistik ve Analiz
+                            {mappings.length > 0 && <span className="text-[10px] bg-sky-100 text-sky-700 px-2 py-0.5 rounded ml-2">Mapping Aktif</span>}
+                        </h3>
+                    </div>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse text-xs">
+                            <thead className="bg-slate-800 text-white uppercase tracking-wider">
+                                <tr>
+                                    <th className="p-3">No</th>
+                                    <th className="p-3 text-center">Doğru</th>
+                                    <th className="p-3 text-center">A</th>
+                                    <th className="p-3 text-center">B</th>
+                                    <th className="p-3 text-center">C</th>
+                                    <th className="p-3 text-center">D</th>
+                                    <th className="p-3 text-center">E</th>
+                                    <th className="p-3 text-center">B/H</th>
+                                    <th className="p-3 text-center">Zorluk (P)</th>
+                                    <th className="p-3 text-center">Ayır. (D)</th>
+                                    <th className="p-3">Değerlendirme</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {questionStats.map((qs, i) => (
+                                    <tr key={i} className="border-b last:border-0 hover:bg-slate-50 transition-colors">
+                                        <td className="p-3 font-bold">{qs.number}</td>
+                                        <td className="p-3 text-center font-black text-emerald-600">{qs.correctAns}</td>
+                                        {['A', 'B', 'C', 'D', 'E'].map(opt => (
+                                            <td key={opt} className={`p-3 text-center ${qs.correctAns === opt ? 'bg-emerald-50 font-black' : 'text-slate-400'}`}>
+                                                {qs.distributions[opt] || 0}
+                                            </td>
+                                        ))}
+                                        <td className="p-3 text-center text-slate-400">{(qs.distributions[' '] || 0) + (qs.distributions['*'] || 0)}</td>
+                                        <td className={`p-3 text-center font-bold ${qs.diffIndex < 0.3 ? 'text-rose-600' : qs.diffIndex > 0.7 ? 'text-emerald-600' : ''}`}>
+                                            {qs.diffIndex.toFixed(2)}
+                                        </td>
+                                        <td className={`p-3 text-center font-bold ${qs.discIndex < 0.2 ? 'text-rose-600' : 'text-emerald-600'}`}>
+                                            {qs.discIndex.toFixed(2)}
+                                        </td>
+                                        <td className="p-3 italic text-slate-500">{qs.evalText}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {/* Original Results Table */}
                 <div className="bg-white rounded border shadow-sm overflow-hidden">
                     <div className="p-4 border-b bg-slate-50 flex flex-wrap justify-between items-center gap-4">
                         <h3 className="font-bold text-slate-800 uppercase tracking-widest text-sm italic">Öğrenci Detaylı Analiz Paneli</h3>
@@ -601,19 +852,142 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
         return false;
     };
 
-    const StepPlaceholder = (id: number) => (
-        <div className="bg-white p-12 rounded-lg border-2 border-dashed border-slate-200 text-center">
-            <div className="inline-block p-4 bg-slate-50 rounded-full mb-4">
-                {STEPS[id - 1].icon}
+    const Step5_Mapping = () => {
+        const [bulkText, setBulkText] = useState('');
+        const [activeFrom, setActiveFrom] = useState('B');
+
+        const currentMapping = mappings.find(m => m.fromBooklet === activeFrom);
+
+        const applyBulk = () => {
+            // Expecting list of numbers separated by space, comma or tab
+            const numbers = bulkText.split(/[\s,\t]+/).filter(x => x).map(Number);
+            if (numbers.length === 0) {
+                toast.error("Geçersiz veri.");
+                return;
+            }
+            const otherMappings = mappings.filter(m => m.fromBooklet !== activeFrom);
+            setMappings([...otherMappings, { fromBooklet: activeFrom, toBooklet: 'A', order: numbers }]);
+            toast.success(`${activeFrom} -> A eşleştirmesi güncellendi.`);
+            setBulkText('');
+        };
+
+        const booklets = ['B', 'C', 'D'];
+
+        return (
+            <div className="space-y-6">
+                <div className="bg-amber-50 p-4 border border-amber-200 rounded text-amber-800 text-sm flex gap-3">
+                    <Info size={20} className="shrink-0" />
+                    <p>
+                        Eğer sınavınız <strong>tek kitapçık</strong> türü ise (sadece A) bu adımı <strong>atlayabilirsiniz</strong>.
+                        Farklı kitapçıklar varsa, her sorunun A kitapçığındaki hangi soruya denk geldiğini buraya girin.
+                    </p>
+                </div>
+
+                <div className="flex gap-2">
+                    {booklets.map(b => (
+                        <button
+                            key={b}
+                            onClick={() => setActiveFrom(b)}
+                            className={`px-8 py-3 font-bold text-xs uppercase tracking-widest border-2 transition-all ${activeFrom === b ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-500 border-slate-100 hover:border-slate-300'}`}
+                        >
+                            {b} Kitapçığı
+                        </button>
+                    ))}
+                </div>
+
+                <div className="bg-white p-6 border-2 border-slate-100 shadow-sm space-y-6">
+                    <h4 className="font-black text-slate-800 uppercase tracking-widest text-sm underline decoration-[#3498db] decoration-4">
+                        {activeFrom} → A Eşleştirmesi
+                    </h4>
+
+                    <div className="space-y-2">
+                        <label className="block text-xs font-bold text-slate-500 uppercase">Toplu Eşleştirme Yapıştır</label>
+                        <textarea
+                            className="w-full h-32 p-4 font-mono text-sm border-2 border-slate-100 bg-slate-50 focus:bg-white focus:border-slate-800 outline-none transition-all"
+                            placeholder="Örn: 5, 12, 1, 8... (A kitapçığındaki soru numaralarını aralarına boşluk veya virgül koyarak yazın)"
+                            value={bulkText}
+                            onChange={e => setBulkText(e.target.value)}
+                        />
+                        <button
+                            onClick={applyBulk}
+                            className="bg-emerald-600 text-white px-8 py-3 text-xs font-black uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-lg"
+                        >
+                            Eşleştirmeyi Uygula
+                        </button>
+                    </div>
+
+                    {currentMapping && (
+                        <div className="grid grid-cols-5 md:grid-cols-10 gap-2 pt-4 border-t">
+                            {currentMapping.order.map((aNum, idx) => (
+                                <div key={idx} className="bg-slate-50 p-2 border border-slate-200 text-center">
+                                    <div className="text-[10px] text-slate-400 font-bold mb-1">{activeFrom} {idx + 1}</div>
+                                    <div className="font-extrabold text-slate-800">A {aNum}</div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
-            <h3 className="text-xl font-bold text-slate-800 mb-2">{STEPS[id - 1].title}</h3>
-            <p className="text-slate-500 mb-6 max-w-md mx-auto">{STEPS[id - 1].description}</p>
-            <div className="bg-amber-50 text-amber-700 p-4 rounded text-sm border border-amber-100 flex items-center gap-3 justify-center">
-                <Info size={18} />
-                Bu özellik geliştirme aşamasındadır.
+        );
+    };
+
+    const Step6_Subjects = () => {
+        const [newName, setNewName] = useState('');
+        const [newStart, setNewStart] = useState(1);
+        const [newEnd, setNewEnd] = useState(10);
+
+        const addSubject = () => {
+            if (!newName) return;
+            setSubjects([...subjects, { name: newName, start: newStart, end: newEnd }]);
+            setNewName('');
+        };
+
+        const removeSubject = (idx: number) => {
+            setSubjects(subjects.filter((_, i) => i !== idx));
+        };
+
+        return (
+            <div className="space-y-6">
+                <div className="bg-slate-50 p-6 border-2 border-slate-200 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                    <div className="md:col-span-2">
+                        <label className="block text-xs font-black text-slate-500 uppercase mb-2">Ders / Konu Adı</label>
+                        <input type="text" value={newName} onChange={e => setNewName(e.target.value)} className="w-full p-3 border-2 border-white outline-none focus:border-slate-800 font-bold" placeholder="Örn: Anatomi" />
+                    </div>
+                    <div>
+                        <label className="block text-xs font-black text-slate-500 uppercase mb-2">Başlangıç Soru</label>
+                        <input type="number" value={newStart} onChange={e => setNewStart(Number(e.target.value))} className="w-full p-3 border-2 border-white outline-none focus:border-slate-800 font-bold" />
+                    </div>
+                    <div>
+                        <label className="block text-xs font-black text-slate-500 uppercase mb-2">Bitiş Soru</label>
+                        <input type="number" value={newEnd} onChange={e => setNewEnd(Number(e.target.value))} className="w-full p-3 border-2 border-white outline-none focus:border-slate-800 font-bold" />
+                    </div>
+                    <button onClick={addSubject} className="md:col-span-4 bg-slate-900 text-white p-4 text-xs font-black uppercase tracking-widest hover:bg-black transition-all">
+                        Listeye Ekle
+                    </button>
+                </div>
+
+                <div className="space-y-2">
+                    {subjects.map((s, i) => (
+                        <div key={i} className="flex justify-between items-center p-4 bg-white border-2 border-slate-100 hover:border-slate-300 transition-all">
+                            <div className="flex items-center gap-6">
+                                <div className="bg-slate-900 text-white w-10 h-10 flex items-center justify-center font-black">{i + 1}</div>
+                                <div>
+                                    <div className="font-black text-slate-800 uppercase tracking-tight">{s.name}</div>
+                                    <div className="text-xs text-slate-400 font-bold">A Kitapçığı Soru Aralığı: {s.start} - {s.end}</div>
+                                </div>
+                            </div>
+                            <button onClick={() => removeSubject(i)} className="text-rose-500 hover:bg-rose-50 p-2 rounded transition-colors">
+                                <XCircle size={20} />
+                            </button>
+                        </div>
+                    ))}
+                    {subjects.length === 0 && (
+                        <div className="p-12 text-center text-slate-400 italic bg-white border-2 border-dashed border-slate-100">Henüz ders tanımlanmadı.</div>
+                    )}
+                </div>
             </div>
-        </div>
-    );
+        );
+    };
 
     return (
         <PageContainer>
@@ -635,9 +1009,13 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
                         </div>
                         <h1 className="text-4xl font-extrabold tracking-tight m-0 text-white drop-shadow-lg">ONLINE TEST SINAV ANALİZİ</h1>
                     </div>
-                    <p className="text-slate-200 max-w-4xl text-lg font-medium leading-relaxed">
+                    <p className="text-slate-200 max-w-4xl text-lg font-medium leading-relaxed mb-4">
                         Hızlı, güvenilir ve tamamen tarayıcı tabanlı optik form analiz sistemi. Adımları takip ederek sonuçlarınızı anında raporlayın.
                     </p>
+                    <div className="bg-slate-800/40 p-3 border-l-4 border-[#3498db] text-xs font-bold text-slate-300 inline-flex items-center gap-3">
+                        <Info size={16} className="text-[#3498db] shrink-0" />
+                        <span>Güvenlik Notu: Hiçbir veriniz internete gönderilmez. Tüm analizler tamamen tarayıcınızda yapılır.</span>
+                    </div>
                 </div>
             </div>
 
@@ -692,8 +1070,8 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
                                         {step.id === 2 && <Step2_DataEntry />}
                                         {step.id === 3 && <Step3_Preview />}
                                         {step.id === 4 && <Step4_AnswerKey />}
-                                        {step.id === 5 && StepPlaceholder(5)}
-                                        {step.id === 6 && StepPlaceholder(6)}
+                                        {step.id === 5 && <Step5_Mapping />}
+                                        {step.id === 6 && <Step6_Subjects />}
                                         {step.id === 7 && (
                                             <div className="space-y-8 max-w-4xl">
                                                 <h4 className="font-extrabold text-slate-900 uppercase tracking-widest text-sm mb-6 border-b-4 border-slate-900 pb-2 inline-block">Puanlama Kriterleri</h4>
