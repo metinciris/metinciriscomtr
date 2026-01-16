@@ -128,8 +128,8 @@ const LenfNoduSayaci = React.lazy(async () => import('./pages/LenfNoduSayaci').t
 const PubMedTrend = React.lazy(() =>
   import('./pages/PubMedTrend').then((m) => ({ default: m.PubMedTrend })),
 );
-const Antigraviti = React.lazy(() =>
-  import('./pages/Antigraviti').then((m) => ({ default: m.Antigraviti })),
+const OnlineTestAnaliz = React.lazy(() =>
+  import('./pages/OnlineTestAnaliz').then((m) => ({ default: m.OnlineTestAnaliz })),
 );
 
 export default function App() {
@@ -200,7 +200,7 @@ export default function App() {
       case 'portfolyo':
         return <Portfolyo />;
       case 'sinav-analizi':
-        return <SinavAnalizi />;
+        return <SinavAnalizi onNavigate={navigate} />;
 
       case 'yayinlar':
         return <Yayinlar />;
@@ -262,8 +262,8 @@ export default function App() {
       case 'pubmed-trend':
         return <PubMedTrend />;
 
-      case 'antigraviti':
-        return <Antigraviti />;
+      case 'online-test-analiz':
+        return <OnlineTestAnaliz onNavigate={navigate} />;
 
       case '404':
         return <NotFound onNavigate={navigate} />;

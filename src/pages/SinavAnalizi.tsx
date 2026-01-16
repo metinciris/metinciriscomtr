@@ -3,14 +3,30 @@ import { PageContainer } from '../components/PageContainer';
 import { FileBarChart, Github, ExternalLink, FileSpreadsheet, Sparkles } from 'lucide-react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 
-export function SinavAnalizi() {
+interface SinavAnaliziProps {
+  onNavigate: (page: string) => void;
+}
+
+export function SinavAnalizi({ onNavigate }: SinavAnaliziProps) {
   return (
     <PageContainer>
       <div className="bg-gradient-to-r from-[#00A6D6] to-[#0078D4] text-white p-12 mb-8">
         <h1 className="text-white mb-4">Sınav Analiz Sistemi</h1>
-        <p className="text-white/90">
+        <p className="text-white/90 mb-6">
           Optik cevap kağıdına işaretlenmiş test sınavlarını analiz eden Excel dosyası: Universal Analiz
         </p>
+
+        {/* NEW: Online Analysis CTA */}
+        <div className="bg-white/10 backdrop-blur-md p-6 border border-white/20 rounded-lg inline-block">
+          <p className="text-white font-bold mb-4">Ek bir yazılıma ihtiyaç duymadan online analiz yapmak ister misiniz?</p>
+          <button
+            onClick={() => onNavigate('online-test-analiz')}
+            className="bg-white text-[#0078D4] px-8 py-3 font-black text-sm uppercase tracking-widest hover:bg-[#f1f5f9] transition-all shadow-xl flex items-center gap-2"
+          >
+            <Sparkles size={18} />
+            Hemen Online Analizi Başlat
+          </button>
+        </div>
       </div>
 
       {/* Açık Kaynak Duyurusu */}
@@ -21,7 +37,7 @@ export function SinavAnalizi() {
           <Sparkles size={32} />
         </div>
         <p className="text-white/90 max-w-2xl mx-auto">
-          Universal Analiz Excel dosyaları artık Github'ta açık kaynak olarak sunuluyor. 
+          Universal Analiz Excel dosyaları artık Github'ta açık kaynak olarak sunuluyor.
           Katkıda bulunabilir ve projeyi geliştirebilirsiniz!
         </p>
       </div>
@@ -36,7 +52,7 @@ export function SinavAnalizi() {
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="mb-4">Universal Analiz</h2>
           <p className="text-muted-foreground mb-6">
-            Optik cevap kağıdına işaretlenmiş test sınavlarını analiz eden güçlü bir Excel dosyası. 
+            Optik cevap kağıdına işaretlenmiş test sınavlarını analiz eden güçlü bir Excel dosyası.
             Öğrencilerin performansını detaylı şekilde analiz eder ve raporlar.
           </p>
         </div>
@@ -58,8 +74,8 @@ export function SinavAnalizi() {
               </div>
             </div>
             <p className="text-muted-foreground mb-6">
-              Github üzerinden Universal Analiz dosyalarını indirin. 200 soruluk tam sürüm ve yardımcı 
-              dosyalar dahil. Analizi yapılmış sanal sınav ve sanal öğrencileri içerir. Kaynak kodlarını 
+              Github üzerinden Universal Analiz dosyalarını indirin. 200 soruluk tam sürüm ve yardımcı
+              dosyalar dahil. Analizi yapılmış sanal sınav ve sanal öğrencileri içerir. Kaynak kodlarını
               inceleyin ve projeye katkıda bulunun.
             </p>
             <a
@@ -116,7 +132,7 @@ export function SinavAnalizi() {
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-white mb-4">Koordinatörlük Blogu</h2>
           <p className="text-white/90 mb-6">
-            Sınav analizi, eğitim koordinatörlüğü ve öğretim teknikleri hakkında daha fazla bilgi için 
+            Sınav analizi, eğitim koordinatörlüğü ve öğretim teknikleri hakkında daha fazla bilgi için
             koordinatörlük blogunu ziyaret edin.
           </p>
           <a
@@ -227,7 +243,7 @@ export function SinavAnalizi() {
         <h2 className="mb-6 text-center">Destek ve Katkı</h2>
         <div className="max-w-3xl mx-auto">
           <p className="text-muted-foreground text-center mb-6">
-            Universal Analiz açık kaynak bir projedir. Github üzerinden projeye katkıda bulunabilir, 
+            Universal Analiz açık kaynak bir projedir. Github üzerinden projeye katkıda bulunabilir,
             hata bildirebilir veya yeni özellik önerebilirsiniz.
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
@@ -257,11 +273,11 @@ export function SinavAnalizi() {
       <div className="bg-[#FFF3E0] border-l-4 border-[#FF8C00] p-6">
         <h3 className="mb-3">Kullanım Notu</h3>
         <p className="text-muted-foreground mb-4">
-          Universal Analiz Microsoft Excel gerektirir. Dosyayı açtıktan sonra makroların etkinleştirilmesi 
+          Universal Analiz Microsoft Excel gerektirir. Dosyayı açtıktan sonra makroların etkinleştirilmesi
           gerekebilir. Detaylı kullanım talimatları için Github sayfasındaki README dosyasını okuyunuz.
         </p>
         <p className="text-muted-foreground m-0">
-          Sorularınız veya sorunlarınız için Github Issues bölümünü kullanabilir veya 
+          Sorularınız veya sorunlarınız için Github Issues bölümünü kullanabilir veya
           koordinatörlük blogu üzerinden iletişime geçebilirsiniz.
         </p>
       </div>

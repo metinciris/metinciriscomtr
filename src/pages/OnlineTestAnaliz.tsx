@@ -17,7 +17,8 @@ import {
     Search,
     Filter,
     Info,
-    Activity
+    Activity,
+    FileSpreadsheet
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'motion/react';
@@ -114,12 +115,14 @@ const STEPS = [
     { id: 8, title: 'Analiz & Rapor', icon: <Download size={20} />, description: 'Sonuçları görün ve indirin.' }
 ];
 
-// --- Main Component ---
+interface OnlineTestAnalizProps {
+    onNavigate: (page: string) => void;
+}
 
-export function Antigraviti() {
+export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
     const [currentStep, setCurrentStep] = useState(1);
     const [profile, setProfile] = useState<Profile>(() => {
-        const saved = localStorage.getItem('antigraviti_profile');
+        const saved = localStorage.getItem('online_test_analiz_profile');
         return saved ? JSON.parse(saved) : DEFAULT_PROFILE;
     });
     const [datContent, setDatContent] = useState('');
@@ -135,7 +138,7 @@ export function Antigraviti() {
     const results = useMemo(() => calculateResults(), [students, answerKeys, mappings, subjects, scoring]);
 
     useEffect(() => {
-        localStorage.setItem('antigraviti_profile', JSON.stringify(profile));
+        localStorage.setItem('online_test_analiz_profile', JSON.stringify(profile));
     }, [profile]);
 
     // --- Handlers ---
@@ -776,6 +779,22 @@ export function Antigraviti() {
                         </AnimatePresence>
                     </div>
                 ))}
+            </div>
+            {/* Footer / Backlink Section */}
+            <div className="max-w-6xl mx-auto mt-12 pb-20">
+                <div className="bg-[#f8fafc] border-2 border-dashed border-slate-200 p-8 text-center rounded-sm">
+                    <h3 className="text-lg font-bold text-slate-800 mb-2">Excel Tabanlı Çözüm mü Arıyorsunuz?</h3>
+                    <p className="text-slate-500 mb-6">
+                        Daha kapsamlı analizler ve offline kullanım için Universal Analiz Excel dosyamızı kullanabilirsiniz.
+                    </p>
+                    <button
+                        onClick={() => onNavigate('sinav-analizi')}
+                        className="inline-flex items-center gap-2 bg-slate-800 text-white px-8 py-3 font-bold text-xs uppercase tracking-widest hover:bg-black transition-all shadow-lg"
+                    >
+                        <FileSpreadsheet size={18} />
+                        Excel (Universal Analiz) Sayfasına Git
+                    </button>
+                </div>
             </div>
         </PageContainer>
     );

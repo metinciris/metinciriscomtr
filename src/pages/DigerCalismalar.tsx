@@ -143,13 +143,13 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
                     onClick={() => handleNavigate('pubmed-trend')}
                 />
                 <MetroTile
-                    title="Sınav Analizi"
-                    subtitle="Online test sınav analizi"
-                    icon={<FileText size={40} />}
+                    title="Online Test Analizi"
+                    subtitle="Tarayıcı tabanlı sınav analizi"
+                    icon={<Activity size={40} />}
                     color=""
-                    style={{ backgroundColor: '#2C3E50' }}
+                    style={{ backgroundColor: '#1e293b' }}
                     size="medium"
-                    onClick={() => handleNavigate('antigraviti')}
+                    onClick={() => handleNavigate('online-test-analiz')}
                 />
 
             </div>
