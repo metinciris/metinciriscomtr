@@ -142,6 +142,15 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
                     size="medium"
                     onClick={() => handleNavigate('pubmed-trend')}
                 />
+                <MetroTile
+                    title="Antigraviti"
+                    subtitle="Sınav Analiz Sistemi"
+                    icon={<FileText size={40} />}
+                    color=""
+                    style={{ backgroundColor: '#2C3E50' }}
+                    size="medium"
+                    onClick={() => handleNavigate('antigraviti')}
+                />
 
             </div>
         </PageContainer>
