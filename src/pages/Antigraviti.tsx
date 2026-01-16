@@ -104,12 +104,12 @@ const DEFAULT_PROFILE: Profile = {
 };
 
 const STEPS = [
-    { id: 1, title: 'Profil', icon: <Settings size={20} />, description: 'DAT dosya yapısını tanımlayın.' },
+    { id: 1, title: 'Cevap kağıdı dizaynı', icon: <Settings size={20} />, description: 'DAT dosya yapısını tanımlayın.' },
     { id: 2, title: 'Veri Girişi', icon: <Upload size={20} />, description: 'DAT dosyasını yükleyin veya yapıştırın.' },
     { id: 3, title: 'Önizleme', icon: <Eye size={20} />, description: 'Yüklenen verileri kontrol edin.' },
     { id: 4, title: 'Cevap Anahtarı', icon: <Key size={20} />, description: 'Doğru cevapları girin.' },
     { id: 5, title: 'Kitapçık/Mapping', icon: <MapIcon size={20} />, description: 'Kitapçık dönüşümlerini ayarlayın.' },
-    { id: 6, title: 'Konu Planı', icon: <BookOpen size={20} />, description: 'Ders ve konu kapsamlarını belirleyin.' },
+    { id: 6, title: 'Konu Ders sıralaması', icon: <BookOpen size={20} />, description: 'Ders ve konu kapsamlarını belirleyin.' },
     { id: 7, title: 'Puanlama', icon: <Calculator size={20} />, description: 'Puanlama kurallarını ayarlayın.' },
     { id: 8, title: 'Analiz & Rapor', icon: <Download size={20} />, description: 'Sonuçları görün ve indirin.' }
 ];
@@ -225,33 +225,33 @@ export function Antigraviti() {
     const Step1_Profile = () => (
         <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="bg-white p-4 rounded shadow-sm border border-slate-100">
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">Öğrenci No (ID)</label>
-                    <div className="flex gap-2 text-slate-600">
-                        <input type="number" value={profile.idStart} onChange={e => setProfile({ ...profile, idStart: Number(e.target.value) })} className="w-20 p-2 border rounded" placeholder="Başlangıç" />
-                        <span className="self-center">/</span>
-                        <input type="number" value={profile.idLen} onChange={e => setProfile({ ...profile, idLen: Number(e.target.value) })} className="w-20 p-2 border rounded" placeholder="Uzunluk" />
+                <div className="bg-white p-6 rounded-none shadow-sm border-2 border-slate-100 hover:border-slate-300 transition-colors">
+                    <label className="block text-xs font-black text-slate-900 mb-3 uppercase tracking-widest">Öğrenci No (ID)</label>
+                    <div className="flex gap-2 text-slate-800">
+                        <input type="number" value={profile.idStart} onChange={e => setProfile({ ...profile, idStart: Number(e.target.value) })} className="w-24 p-2 border-2 border-slate-200 focus:border-slate-800 outline-none font-bold bg-slate-50" placeholder="Başla" />
+                        <span className="self-center font-bold">/</span>
+                        <input type="number" value={profile.idLen} onChange={e => setProfile({ ...profile, idLen: Number(e.target.value) })} className="w-24 p-2 border-2 border-slate-200 focus:border-slate-800 outline-none font-bold bg-slate-50" placeholder="Boy" />
                     </div>
                 </div>
-                <div className="bg-white p-4 rounded shadow-sm border border-slate-100">
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">İsim Soyad</label>
-                    <div className="flex gap-2 text-slate-600">
-                        <input type="number" value={profile.nameStart} onChange={e => setProfile({ ...profile, nameStart: Number(e.target.value) })} className="w-20 p-2 border rounded" />
-                        <span className="self-center">/</span>
-                        <input type="number" value={profile.nameLen} onChange={e => setProfile({ ...profile, nameLen: Number(e.target.value) })} className="w-20 p-2 border rounded" />
+                <div className="bg-white p-6 rounded-none shadow-sm border-2 border-slate-100 hover:border-slate-300 transition-colors">
+                    <label className="block text-xs font-black text-slate-900 mb-3 uppercase tracking-widest">İsim Soyad</label>
+                    <div className="flex gap-2 text-slate-800">
+                        <input type="number" value={profile.nameStart} onChange={e => setProfile({ ...profile, nameStart: Number(e.target.value) })} className="w-24 p-2 border-2 border-slate-200 focus:border-slate-800 outline-none font-bold bg-slate-50" />
+                        <span className="self-center font-bold">/</span>
+                        <input type="number" value={profile.nameLen} onChange={e => setProfile({ ...profile, nameLen: Number(e.target.value) })} className="w-24 p-2 border-2 border-slate-200 focus:border-slate-800 outline-none font-bold bg-slate-50" />
                     </div>
                 </div>
-                <div className="bg-white p-4 rounded shadow-sm border border-slate-100">
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">Kitapçık</label>
-                    <div className="flex gap-2 text-slate-600">
-                        <input type="number" value={profile.bookletStart} onChange={e => setProfile({ ...profile, bookletStart: Number(e.target.value) })} className="w-20 p-2 border rounded" />
-                        <span className="self-center">/</span>
-                        <input type="number" value={profile.bookletLen} onChange={e => setProfile({ ...profile, bookletLen: Number(e.target.value) })} className="w-20 p-2 border rounded" />
+                <div className="bg-white p-6 rounded-none shadow-sm border-2 border-slate-100 hover:border-slate-300 transition-colors">
+                    <label className="block text-xs font-black text-slate-900 mb-3 uppercase tracking-widest">Kitapçık</label>
+                    <div className="flex gap-2 text-slate-800">
+                        <input type="number" value={profile.bookletStart} onChange={e => setProfile({ ...profile, bookletStart: Number(e.target.value) })} className="w-24 p-2 border-2 border-slate-200 focus:border-slate-800 outline-none font-bold bg-slate-50" />
+                        <span className="self-center font-bold">/</span>
+                        <input type="number" value={profile.bookletLen} onChange={e => setProfile({ ...profile, bookletLen: Number(e.target.value) })} className="w-24 p-2 border-2 border-slate-200 focus:border-slate-800 outline-none font-bold bg-slate-50" />
                     </div>
                 </div>
-                <div className="bg-white p-4 rounded shadow-sm border border-slate-100">
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">Cevap Başlangıç Pozisyonu</label>
-                    <input type="number" value={profile.answersStart} onChange={e => setProfile({ ...profile, answersStart: Number(e.target.value) })} className="w-full p-2 border rounded text-slate-600" />
+                <div className="bg-white p-6 rounded-none shadow-sm border-2 border-slate-100 hover:border-slate-300 transition-colors">
+                    <label className="block text-xs font-black text-slate-900 mb-3 uppercase tracking-widest">Cevap Başlangıcı</label>
+                    <input type="number" value={profile.answersStart} onChange={e => setProfile({ ...profile, answersStart: Number(e.target.value) })} className="w-full p-2 border-2 border-slate-200 focus:border-slate-800 outline-none font-bold bg-slate-50" />
                 </div>
             </div>
 
@@ -264,15 +264,18 @@ export function Antigraviti() {
 
     const Step2_DataEntry = () => (
         <div className="space-y-4">
-            <div className="flex justify-between items-center mb-2">
-                <h3 className="text-lg font-bold text-slate-800">DAT İçeriği</h3>
-                <select value={encoding} onChange={e => setEncoding(e.target.value)} className="p-1 border rounded text-sm text-slate-600">
-                    <option value="UTF-8">UTF-8</option>
-                    <option value="ISO-8859-9">Windows-1254 (Türkçe)</option>
-                </select>
+            <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold text-slate-900 tracking-tight">DAT İçeriği</h3>
+                <div className="flex items-center gap-3">
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Kodlama:</span>
+                    <select value={encoding} onChange={e => setEncoding(e.target.value)} className="p-2 border-2 border-slate-200 bg-white rounded-none font-bold text-slate-800 focus:border-slate-800 outline-none">
+                        <option value="UTF-8">UTF-8</option>
+                        <option value="ISO-8859-9">Windows-1254 (TR)</option>
+                    </select>
+                </div>
             </div>
             <textarea
-                className="w-full h-64 p-4 font-mono text-xs border rounded bg-slate-50 focus:bg-white text-slate-800"
+                className="w-full h-80 p-6 font-mono text-sm border-2 border-slate-100 bg-slate-50 focus:bg-white focus:border-slate-800 text-slate-900 outline-none transition-all shadow-inner"
                 placeholder="DAT dosyası içeriğini buraya yapıştırın veya dosyayı sürükleyin..."
                 value={datContent}
                 onChange={e => {
@@ -281,8 +284,8 @@ export function Antigraviti() {
                 }}
             />
             <div className="flex gap-4">
-                <label className="flex-1 cursor-pointer bg-slate-800 text-white p-4 rounded text-center hover:bg-slate-700 transition">
-                    <Upload size={20} className="inline mr-2" /> Dosya Seç (.dat / .txt)
+                <label className="flex-1 cursor-pointer bg-slate-900 text-white p-5 rounded-none text-center font-black uppercase tracking-widest hover:bg-black transition shadow-xl active:scale-[0.98]">
+                    <Upload size={24} className="inline mr-3" /> Dosyadan Yükle (.dat / .txt)
                     <input type="file" className="hidden" onChange={async (e) => {
                         const file = e.target.files?.[0];
                         if (!file) return;
@@ -302,17 +305,17 @@ export function Antigraviti() {
 
     const Step3_Preview = () => (
         <div className="space-y-4">
-            <div className="bg-white rounded border shadow-sm overflow-hidden">
+            <div className="bg-white rounded-none border-2 border-slate-100 shadow-lg overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse text-sm">
-                        <thead className="bg-slate-100 text-slate-700">
+                        <thead className="bg-[#1e293b] text-white">
                             <tr>
-                                <th className="p-3 border-b">ID</th>
-                                <th className="p-3 border-b">Ad Soyad</th>
-                                <th className="p-3 border-b">Kit.</th>
-                                <th className="p-3 border-b">Soru S.</th>
-                                <th className="p-3 border-b">İlk 10 Cevap</th>
-                                <th className="p-3 border-b">Durum</th>
+                                <th className="p-4 border-b border-slate-700 font-black uppercase tracking-widest text-[11px]">ID</th>
+                                <th className="p-4 border-b border-slate-700 font-black uppercase tracking-widest text-[11px]">Ad Soyad</th>
+                                <th className="p-4 border-b border-slate-700 font-black uppercase tracking-widest text-[11px]">Kit.</th>
+                                <th className="p-4 border-b border-slate-700 font-black uppercase tracking-widest text-[11px]">Soru S.</th>
+                                <th className="p-4 border-b border-slate-700 font-black uppercase tracking-widest text-[11px]">İlk 10 Cevap</th>
+                                <th className="p-4 border-b border-slate-700 font-black uppercase tracking-widest text-[11px]">Durum</th>
                             </tr>
                         </thead>
                         <tbody className="text-slate-600">
@@ -584,6 +587,14 @@ export function Antigraviti() {
         );
     };
 
+    const isStepDone = (stepId: number) => {
+        if (stepId === 1) return true; // Always setup
+        if (stepId === 2) return datContent.length > 0;
+        if (stepId === 3) return students.length > 0;
+        if (stepId === 4) return answerKeys.length > 0;
+        return false;
+    };
+
     const StepPlaceholder = (id: number) => (
         <div className="bg-white p-12 rounded-lg border-2 border-dashed border-slate-200 text-center">
             <div className="inline-block p-4 bg-slate-50 rounded-full mb-4">
@@ -600,123 +611,160 @@ export function Antigraviti() {
 
     return (
         <PageContainer>
-            <div className="bg-[#2C3E50] text-white p-8 mb-8 rounded-none border-l-8 border-[#1ABC9C] shadow-lg">
-                <div className="flex items-center gap-4 mb-2">
-                    <div className="p-3 bg-[#1ABC9C] text-white font-bold text-2xl uppercase tracking-tighter">
-                        AG
-                    </div>
-                    <h1 className="text-3xl font-bold tracking-tight m-0">ANTIGRAVITI / SINAV ANALİZ</h1>
+            {/* Header Section - Modern Dark Theme */}
+            <div className="bg-[#1e293b] text-white p-10 mb-8 rounded-none border-l-8 border-[#3498db] shadow-2xl overflow-hidden relative">
+                <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
+                    <Activity size={120} />
                 </div>
-                <p className="text-slate-300 max-w-4xl text-lg font-light">
-                    Hızlı, güvenilir ve tamamen tarayıcı tabanlı optik form analiz sistemi. Metro UI tasarımı ile 1-2-3 adımında sonuçlarınızı alın.
-                </p>
+                <div className="relative z-10">
+                    <div className="flex items-center gap-4 mb-3">
+                        <div className="p-3 bg-[#3498db] text-white font-black text-2xl uppercase tracking-widest shadow-lg">
+                            OT
+                        </div>
+                        <h1 className="text-4xl font-extrabold tracking-tight m-0 text-white drop-shadow-lg">ONLINE TEST SINAV ANALİZİ</h1>
+                    </div>
+                    <p className="text-slate-300 max-w-4xl text-lg font-medium leading-relaxed">
+                        Hızlı, güvenilir ve tamamen tarayıcı tabanlı optik form analiz sistemi. Adımları takip ederek sonuçlarınızı anında raporlayın.
+                    </p>
+                </div>
             </div>
 
-            <div className="flex flex-col lg:flex-row gap-8">
-                {/* Sidebar Steps */}
-                <div className="lg:w-64 flex flex-col gap-1">
-                    {STEPS.map(step => (
+            {/* Accordion Layout */}
+            <div className="max-w-6xl mx-auto space-y-3 pb-20">
+                {STEPS.map((step) => (
+                    <div key={step.id} className="bg-white border-2 border-slate-100 shadow-xl overflow-hidden rounded-sm transition-all duration-300 hover:border-slate-300">
+                        {/* Accordion Header */}
                         <button
-                            key={step.id}
-                            onClick={() => setCurrentStep(step.id)}
-                            className={`flex items-center gap-4 p-4 text-left transition-all group ${currentStep === step.id
-                                ? 'bg-[#1ABC9C] text-white shadow-md transform translate-x-2'
-                                : 'bg-white text-slate-600 hover:bg-slate-50 border-b border-slate-100 last:border-0'
+                            onClick={() => setCurrentStep(currentStep === step.id ? 0 : step.id)}
+                            className={`w-full flex items-center justify-between p-5 text-left transition-colors ${currentStep === step.id ? 'bg-slate-50' : 'bg-white hover:bg-slate-50'
                                 }`}
                         >
-                            <div className={`${currentStep === step.id ? 'text-white' : 'text-slate-400 group-hover:text-[#1ABC9C]'}`}>
-                                {step.icon}
-                            </div>
-                            <div>
-                                <div className="text-xs font-bold opacity-60 uppercase tracking-wider">Adım {step.id}</div>
-                                <div className="font-bold truncate">{step.title}</div>
-                            </div>
-                        </button>
-                    ))}
-                </div>
-
-                {/* Content Area */}
-                <div className="flex-1 bg-white p-8 shadow-2xl border border-slate-100 relative min-h-[600px] flex flex-col rounded-sm">
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={currentStep}
-                            initial={{ x: 20, opacity: 0 }}
-                            animate={{ x: 0, opacity: 1 }}
-                            exit={{ x: -20, opacity: 0 }}
-                            transition={{ duration: 0.2 }}
-                            className="flex-1"
-                        >
-                            {currentStep === 1 && <Step1_Profile />}
-                            {currentStep === 2 && <Step2_DataEntry />}
-                            {currentStep === 3 && <Step3_Preview />}
-                            {currentStep === 4 && <Step4_AnswerKey />}
-                            {currentStep === 5 && StepPlaceholder(5)}
-                            {currentStep === 6 && StepPlaceholder(6)}
-                            {currentStep === 7 && (
-                                <div className="space-y-6">
-                                    <h4 className="font-bold text-slate-800 uppercase tracking-widest text-sm mb-6 border-b-2 border-slate-800 pb-2">Puanlama Kriterleri</h4>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="p-6 border-l-4 border-slate-800 bg-slate-50">
-                                            <label className="block font-bold mb-2 text-xs uppercase tracking-tighter">Toplam Sınav Puanı</label>
-                                            <input type="number" className="w-full p-3 border-2 border-slate-200 focus:border-slate-800 outline-none transition font-bold text-xl" value={scoring.totalScore} onChange={e => setScoring({ ...scoring, totalScore: Number(e.target.value) })} />
-                                        </div>
-                                        <div className="p-6 border-l-4 border-slate-800 bg-slate-50">
-                                            <label className="block font-bold mb-2 text-xs uppercase tracking-tighter">Net Hesabı</label>
-                                            <div className="flex items-center gap-4 mt-2">
-                                                <label className="flex items-center gap-3 cursor-pointer group">
-                                                    <input type="checkbox" checked={scoring.penalty} onChange={e => setScoring({ ...scoring, penalty: e.target.checked })} className="w-6 h-6 accent-slate-800" />
-                                                    <span className="font-bold group-hover:text-sky-600 transition">4 Yanlış 1 Doğruyu Götürür</span>
-                                                </label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="p-6 border-l-4 border-slate-800 bg-slate-50">
-                                        <label className="block font-bold mb-4 text-xs uppercase tracking-tighter">İptal Edilen Soru Davranışı</label>
-                                        <div className="flex flex-wrap gap-4 mt-2">
-                                            <button
-                                                onClick={() => setScoring({ ...scoring, cancelMode: 'count' })}
-                                                className={`px-6 py-3 font-bold text-xs uppercase tracking-widest border-2 transition-all ${scoring.cancelMode === 'count' ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-800'}`}
-                                            >
-                                                İptal Soruyu Sayma
-                                            </button>
-                                            <button
-                                                onClick={() => setScoring({ ...scoring, cancelMode: 'correct' })}
-                                                className={`px-6 py-3 font-bold text-xs uppercase tracking-widest border-2 transition-all ${scoring.cancelMode === 'correct' ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-800'}`}
-                                            >
-                                                Herkese Doğru Kabul Et
-                                            </button>
-                                        </div>
-                                    </div>
+                            <div className="flex items-center gap-5">
+                                <div className={`p-3 rounded-none shadow-sm transition-colors ${currentStep === step.id ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-500'
+                                    }`}>
+                                    {isStepDone(step.id) && currentStep !== step.id ? (
+                                        <CheckCircle size={24} className="text-emerald-500" />
+                                    ) : (
+                                        React.cloneElement(step.icon as React.ReactElement<any>, { size: 24 })
+                                    )}
                                 </div>
-                            )}
-                            {currentStep === 8 && <Step8_Analysis />}
-                        </motion.div>
-                    </AnimatePresence>
+                                <div>
+                                    <div className="text-[10px] font-black uppercase tracking-[0.2em] text-[#3498db] mb-0.5">Adım {step.id}</div>
+                                    <h2 className="text-xl font-bold text-slate-900 tracking-tight">{step.title}</h2>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                {isStepDone(step.id) && (
+                                    <span className="text-[10px] font-bold bg-emerald-100 text-emerald-700 px-2 py-1 rounded uppercase tracking-wider">Tamamlandı</span>
+                                )}
+                                <div className={`transition-transform duration-300 ${currentStep === step.id ? 'rotate-180' : ''}`}>
+                                    <ChevronRight size={24} className="text-slate-400" />
+                                </div>
+                            </div>
+                        </button>
 
-                    <div className="mt-12 flex justify-between border-t pt-8">
-                        <button
-                            onClick={handleBack}
-                            disabled={currentStep === 1}
-                            className={`flex items-center gap-2 px-6 py-2 font-bold uppercase tracking-widest transition ${currentStep === 1 ? 'text-slate-300' : 'text-slate-600 hover:text-black'
-                                }`}
-                        >
-                            <ChevronLeft size={20} /> Geri
-                        </button>
-                        <div className="text-slate-300 font-bold self-center">
-                            ADIM {currentStep} / 8
-                        </div>
-                        <button
-                            onClick={handleNext}
-                            disabled={currentStep === 8}
-                            className={`flex items-center gap-2 px-8 py-2 font-bold uppercase tracking-widest transition shadow-lg ${currentStep === 8
-                                ? 'bg-slate-100 text-slate-400'
-                                : 'bg-[#2C3E50] text-white hover:bg-[#34495E]'
-                                }`}
-                        >
-                            İleri <ChevronRight size={20} />
-                        </button>
+                        {/* Accordion Content */}
+                        <AnimatePresence>
+                            {currentStep === step.id && (
+                                <motion.div
+                                    initial={{ height: 0, opacity: 0 }}
+                                    animate={{ height: 'auto', opacity: 1 }}
+                                    exit={{ height: 0, opacity: 0 }}
+                                    transition={{ duration: 0.3, ease: 'easeInOut' }}
+                                    className="border-t border-slate-100"
+                                >
+                                    <div className="p-8 bg-white min-h-[300px]">
+                                        {step.id === 1 && <Step1_Profile />}
+                                        {step.id === 2 && <Step2_DataEntry />}
+                                        {step.id === 3 && <Step3_Preview />}
+                                        {step.id === 4 && <Step4_AnswerKey />}
+                                        {step.id === 5 && StepPlaceholder(5)}
+                                        {step.id === 6 && StepPlaceholder(6)}
+                                        {step.id === 7 && (
+                                            <div className="space-y-8 max-w-4xl">
+                                                <h4 className="font-extrabold text-slate-900 uppercase tracking-widest text-sm mb-6 border-b-4 border-slate-900 pb-2 inline-block">Puanlama Kriterleri</h4>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                                    <div className="p-8 border-2 border-slate-100 bg-slate-50 hover:border-[#3498db] transition-colors relative overflow-hidden group">
+                                                        <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                                                            <Calculator size={64} />
+                                                        </div>
+                                                        <label className="block font-black mb-3 text-xs uppercase tracking-widest text-[#3498db]">Toplam Sınav Puanı</label>
+                                                        <input
+                                                            type="number"
+                                                            className="w-full p-4 border-2 border-white focus:border-[#3498db] focus:ring-4 focus:ring-sky-100 outline-none transition-all font-black text-3xl bg-white shadow-sm"
+                                                            value={scoring.totalScore}
+                                                            onChange={e => setScoring({ ...scoring, totalScore: Number(e.target.value) })}
+                                                        />
+                                                    </div>
+                                                    <div className="p-8 border-2 border-slate-100 bg-slate-50 hover:border-[#3498db] transition-colors relative overflow-hidden group">
+                                                        <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                                                            <CheckCircle size={64} />
+                                                        </div>
+                                                        <label className="block font-black mb-3 text-xs uppercase tracking-widest text-[#3498db]">Net Hesabı</label>
+                                                        <div className="flex items-center gap-4 mt-2">
+                                                            <label className="flex items-center gap-4 cursor-pointer group/chk">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={scoring.penalty}
+                                                                    onChange={e => setScoring({ ...scoring, penalty: e.target.checked })}
+                                                                    className="w-8 h-8 accent-[#3498db]"
+                                                                />
+                                                                <span className="font-bold text-lg text-slate-800 group-hover/chk:text-[#3498db] transition-colors">4 Yanlış 1 Doğruyu Götürür</span>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="p-8 border-2 border-slate-100 bg-slate-50 hover:border-[#3498db] transition-colors">
+                                                    <label className="block font-black mb-6 text-xs uppercase tracking-widest text-[#3498db]">İptal Edilen Soru Davranışı</label>
+                                                    <div className="flex flex-wrap gap-4">
+                                                        <button
+                                                            onClick={() => setScoring({ ...scoring, cancelMode: 'count' })}
+                                                            className={`px-8 py-4 font-black text-xs uppercase tracking-[0.2em] border-2 transition-all shadow-sm ${scoring.cancelMode === 'count'
+                                                                ? 'bg-slate-900 text-white border-slate-900 scale-105'
+                                                                : 'bg-white text-slate-600 border-slate-200 hover:border-slate-900'
+                                                                }`}
+                                                        >
+                                                            İptal Soruyu Sayma
+                                                        </button>
+                                                        <button
+                                                            onClick={() => setScoring({ ...scoring, cancelMode: 'correct' })}
+                                                            className={`px-8 py-4 font-black text-xs uppercase tracking-[0.2em] border-2 transition-all shadow-sm ${scoring.cancelMode === 'correct'
+                                                                ? 'bg-slate-900 text-white border-slate-900 scale-105'
+                                                                : 'bg-white text-slate-600 border-slate-200 hover:border-slate-900'
+                                                                }`}
+                                                        >
+                                                            Herkese Doğru Kabul Et
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+                                        {step.id === 8 && <Step8_Analysis />}
+
+                                        <div className="mt-12 flex justify-end gap-3 border-t pt-8">
+                                            {step.id > 1 && (
+                                                <button
+                                                    onClick={() => setCurrentStep(step.id - 1)}
+                                                    className="flex items-center gap-2 px-6 py-3 font-bold text-xs uppercase tracking-widest text-slate-500 hover:text-slate-900 transition-colors"
+                                                >
+                                                    <ChevronLeft size={18} /> Önceki Adım
+                                                </button>
+                                            )}
+                                            {step.id < 8 && (
+                                                <button
+                                                    onClick={() => setCurrentStep(step.id + 1)}
+                                                    className="flex items-center gap-3 px-10 py-4 bg-[#3498db] text-white font-black text-xs uppercase tracking-[0.2em] hover:bg-[#2980b9] shadow-lg hover:shadow-sky-200 transition-all active:scale-95"
+                                                >
+                                                    Sonraki Adım <ChevronRight size={18} />
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </div>
-                </div>
+                ))}
             </div>
         </PageContainer>
     );
