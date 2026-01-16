@@ -225,12 +225,15 @@ export function Antigraviti() {
     const Step1_Profile = () => (
         <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="bg-white p-6 rounded-none shadow-sm border-2 border-slate-100 hover:border-slate-300 transition-colors">
-                    <label className="block text-xs font-black text-slate-900 mb-3 uppercase tracking-widest">Öğrenci No (ID)</label>
-                    <div className="flex gap-2 text-slate-800">
-                        <input type="number" value={profile.idStart} onChange={e => setProfile({ ...profile, idStart: Number(e.target.value) })} className="w-24 p-2 border-2 border-slate-200 focus:border-slate-800 outline-none font-bold bg-slate-50" placeholder="Başla" />
+                <div
+                    style={{ backgroundColor: 'white' }}
+                    className="p-6 rounded-none shadow-md border-2 border-slate-200 hover:border-[#3498db] transition-colors"
+                >
+                    <label className="block text-xs font-black text-slate-800 mb-3 uppercase tracking-widest">Öğrenci No (ID)</label>
+                    <div className="flex gap-2 text-slate-900">
+                        <input type="number" value={profile.idStart} onChange={e => setProfile({ ...profile, idStart: Number(e.target.value) })} className="w-24 p-2 border-2 border-slate-300 focus:border-slate-900 outline-none font-black bg-slate-50" placeholder="Başla" />
                         <span className="self-center font-bold">/</span>
-                        <input type="number" value={profile.idLen} onChange={e => setProfile({ ...profile, idLen: Number(e.target.value) })} className="w-24 p-2 border-2 border-slate-200 focus:border-slate-800 outline-none font-bold bg-slate-50" placeholder="Boy" />
+                        <input type="number" value={profile.idLen} onChange={e => setProfile({ ...profile, idLen: Number(e.target.value) })} className="w-24 p-2 border-2 border-slate-300 focus:border-slate-900 outline-none font-black bg-slate-50" placeholder="Boy" />
                     </div>
                 </div>
                 <div className="bg-white p-6 rounded-none shadow-sm border-2 border-slate-100 hover:border-slate-300 transition-colors">
@@ -305,16 +308,16 @@ export function Antigraviti() {
 
     const Step3_Preview = () => (
         <div className="space-y-4">
-            <div className="bg-white rounded-none border-2 border-slate-100 shadow-lg overflow-hidden">
+            <div className="bg-white rounded-none border-2 border-slate-200 shadow-xl overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse text-sm">
-                        <thead className="bg-[#1e293b] text-white">
+                        <thead style={{ backgroundColor: '#1e293b' }} className="text-white">
                             <tr>
                                 <th className="p-4 border-b border-slate-700 font-black uppercase tracking-widest text-[11px]">ID</th>
                                 <th className="p-4 border-b border-slate-700 font-black uppercase tracking-widest text-[11px]">Ad Soyad</th>
                                 <th className="p-4 border-b border-slate-700 font-black uppercase tracking-widest text-[11px]">Kit.</th>
-                                <th className="p-4 border-b border-slate-700 font-black uppercase tracking-widest text-[11px]">Soru S.</th>
-                                <th className="p-4 border-b border-slate-700 font-black uppercase tracking-widest text-[11px]">İlk 10 Cevap</th>
+                                <th className="p-3 border-b border-slate-700 font-black uppercase tracking-widest text-[11px]">Soru</th>
+                                <th className="p-4 border-b border-slate-700 font-black uppercase tracking-widest text-[11px]">Cevaplar</th>
                                 <th className="p-4 border-b border-slate-700 font-black uppercase tracking-widest text-[11px]">Durum</th>
                             </tr>
                         </thead>
@@ -611,19 +614,25 @@ export function Antigraviti() {
 
     return (
         <PageContainer>
-            {/* Header Section - Modern Dark Theme */}
-            <div className="bg-[#1e293b] text-white p-10 mb-8 rounded-none border-l-8 border-[#3498db] shadow-2xl overflow-hidden relative">
+            {/* Header Section - Modern Dark Theme with Forced Contrast */}
+            <div
+                style={{ backgroundColor: '#1e293b' }}
+                className="text-white p-10 mb-8 rounded-none border-l-8 border-[#3498db] shadow-2xl overflow-hidden relative"
+            >
                 <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
                     <Activity size={120} />
                 </div>
                 <div className="relative z-10">
                     <div className="flex items-center gap-4 mb-3">
-                        <div className="p-3 bg-[#3498db] text-white font-black text-2xl uppercase tracking-widest shadow-lg">
+                        <div
+                            style={{ backgroundColor: '#3498db' }}
+                            className="p-3 text-white font-black text-2xl uppercase tracking-widest shadow-lg"
+                        >
                             OT
                         </div>
                         <h1 className="text-4xl font-extrabold tracking-tight m-0 text-white drop-shadow-lg">ONLINE TEST SINAV ANALİZİ</h1>
                     </div>
-                    <p className="text-slate-300 max-w-4xl text-lg font-medium leading-relaxed">
+                    <p className="text-slate-200 max-w-4xl text-lg font-medium leading-relaxed">
                         Hızlı, güvenilir ve tamamen tarayıcı tabanlı optik form analiz sistemi. Adımları takip ederek sonuçlarınızı anında raporlayın.
                     </p>
                 </div>
@@ -640,8 +649,10 @@ export function Antigraviti() {
                                 }`}
                         >
                             <div className="flex items-center gap-5">
-                                <div className={`p-3 rounded-none shadow-sm transition-colors ${currentStep === step.id ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-500'
-                                    }`}>
+                                <div
+                                    style={currentStep === step.id ? { backgroundColor: '#1e293b', color: 'white' } : { backgroundColor: '#f1f5f9', color: '#64748b' }}
+                                    className={`p-3 rounded-none shadow-md transition-colors`}
+                                >
                                     {isStepDone(step.id) && currentStep !== step.id ? (
                                         <CheckCircle size={24} className="text-emerald-500" />
                                     ) : (
@@ -673,7 +684,7 @@ export function Antigraviti() {
                                     transition={{ duration: 0.3, ease: 'easeInOut' }}
                                     className="border-t border-slate-100"
                                 >
-                                    <div className="p-8 bg-white min-h-[300px]">
+                                    <div className="p-8 bg-white min-h-[300px] border-x-2 border-b-2 border-slate-200">
                                         {step.id === 1 && <Step1_Profile />}
                                         {step.id === 2 && <Step2_DataEntry />}
                                         {step.id === 3 && <Step3_Preview />}
