@@ -177,6 +177,11 @@ const PAGE_METADATA: Record<string, { title: string; description: string; keywor
         description: 'Son 20 yılın PubMed yayın trendlerini analiz edin ve karşılaştırın.',
         keywords: 'PubMed trend, yayın analizi, bilimsel trend, literatür istatistik'
     },
+    'online-test-analiz': {
+        title: 'Online Test Sınav Analizi | Prof Dr Metin Çiriş',
+        description: 'Tarayıcı üzerinden hızlı ve güvenilir optik form analiz sistemi. DAT dosyalarınızı analiz edin.',
+        keywords: 'online sınav analizi, test analizi, optik form, patoloji eğitim'
+    },
     '404': {
         title: 'Sayfa Bulunamadı | Prof Dr Metin Çiriş',
         description: 'Aradığınız sayfa mevcut değil.'

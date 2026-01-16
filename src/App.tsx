@@ -146,7 +146,7 @@ export default function App() {
         'donem-3', 'galeri', 'portfolyo', 'sinav-analizi', 'yayinlar', 'podcast',
         'blog', 'github', 'facebook', 'linkedin', 'diger-calismalar', 'fetus-uzunluklari',
         'rcb-calculator', 'gist-raporlama', 'makale', 'deprem', 'svs-reader',
-        'tani-tuzaklari', 'ayin-vakasi', 'prizma-3d', 'makale-takip', 'lenf-nodu', 'finans', 'pubmed-trend', 'antigraviti'
+        'tani-tuzaklari', 'ayin-vakasi', 'prizma-3d', 'makale-takip', 'lenf-nodu', 'finans', 'pubmed-trend', 'online-test-analiz'
       ];
 
       if (validPages.includes(hash)) {
