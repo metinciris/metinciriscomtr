@@ -126,21 +126,100 @@
 
   body {
     background-color: #f1f5f9;
-    /* Explicit safer gray background */
+    /* Explicit neutral background */
     @apply text-foreground;
+    font-family: inherit;
+  }
+
+  /* Resetting aggressive opinions to allow component-level styling */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  p,
+  label,
+  button,
+  input {
+    color: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    line-height: inherit;
+    margin: 0;
   }
 }
 
-/* Removed aggressive :where typography overrides to allow component-level styling */
-
-html {
-  font-size: var(--font-size);
+/* Custom Component Styles - Isolated */
+.podcast-html-content p {
+  margin: 4px 0;
 }
 
-/* Safari'de toast sürüklenirken metin seçimini engelle */
-[data-sonner-toast][data-swiped="true"] {
-  -webkit-user-select: none;
-  /* Safari / iOS Safari */
-  user-select: none;
-  /* Diğer modern tarayıcılar */
+.podcast-html-content b {
+  display: block;
+  margin-top: 12px;
+}
+
+.podcast-journal-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  background: #ffffff;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  border-left: 4px solid #3498db;
+}
+
+.podcast-article-card {
+  background: #ffffff;
+  border-radius: 1rem;
+  padding: 1rem 1.25rem;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  border: 2px solid transparent;
+  transition: all 0.25s ease;
+}
+
+.podcast-article-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  border-color: #3498db;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.25s ease-out forwards;
+}
+
+.animate-fade-out {
+  animation: fadeOut 0.40s ease-out forwards;
 }
