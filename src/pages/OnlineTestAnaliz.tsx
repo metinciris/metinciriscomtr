@@ -105,14 +105,13 @@ const DEFAULT_PROFILE: Profile = {
 };
 
 const STEPS = [
-    { id: 1, title: 'Cevap kağıdı dizaynı', icon: <Settings size={20} />, description: 'DAT dosya yapısını tanımlayın.' },
-    { id: 2, title: 'Veri Girişi', icon: <Upload size={20} />, description: 'DAT dosyasını yükleyin veya yapıştırın.' },
-    { id: 3, title: 'Önizleme', icon: <Eye size={20} />, description: 'Yüklenen verileri kontrol edin.' },
-    { id: 4, title: 'Cevap Anahtarı', icon: <Key size={20} />, description: 'Doğru cevapları girin.' },
-    { id: 5, title: 'Kitapçık/Mapping', icon: <MapIcon size={20} />, description: 'Kitapçık dönüşümlerini ayarlayın.' },
-    { id: 6, title: 'Konu Ders sıralaması', icon: <BookOpen size={20} />, description: 'Ders ve konu kapsamlarını belirleyin.' },
-    { id: 7, title: 'Puanlama', icon: <Calculator size={20} />, description: 'Puanlama kurallarını ayarlayın.' },
-    { id: 8, title: 'Analiz & Rapor', icon: <Download size={20} />, description: 'Sonuçları görün ve indirin.' }
+    { id: 1, title: 'Veri Girişi', icon: <Upload size={20} />, description: 'DAT dosyasını yükleyin veya yapıştırın.' },
+    { id: 2, title: 'Dizayn & Önizleme', icon: <Settings size={20} />, description: 'DAT dosya yapısını tanımlayın ve kontrol edin.' },
+    { id: 3, title: 'Cevap Anahtarı', icon: <Key size={20} />, description: 'Doğru cevapları girin.' },
+    { id: 4, title: 'Kitapçık/Mapping', icon: <MapIcon size={20} />, description: 'Kitapçık dönüşümlerini ayarlayın.' },
+    { id: 5, title: 'Konu Ders sıralaması', icon: <BookOpen size={20} />, description: 'Ders ve konu kapsamlarını belirleyin.' },
+    { id: 6, title: 'Puanlama Kriterleri', icon: <Calculator size={20} />, description: 'Puanlama kurallarını ayarlayın.' },
+    { id: 7, title: 'Analiz & Rapor', icon: <Download size={20} />, description: 'Sonuçları görün ve indirin.' }
 ];
 
 interface OnlineTestAnalizProps {
@@ -139,11 +138,12 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
 
     useEffect(() => {
         localStorage.setItem('online_test_analiz_profile', JSON.stringify(profile));
-    }, [profile]);
+        if (datContent) parseDat(datContent);
+    }, [profile, datContent]);
 
     // --- Handlers ---
 
-    const handleNext = () => currentStep < 8 && setCurrentStep(prev => prev + 1);
+    const handleNext = () => currentStep < 7 && setCurrentStep(prev => prev + 1);
     const handleBack = () => currentStep > 1 && setCurrentStep(prev => prev - 1);
 
     const parseDat = (content: string) => {
@@ -379,10 +379,7 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
                 className="w-full h-80 p-6 font-mono text-sm border-2 border-slate-100 bg-slate-50 focus:bg-white focus:border-slate-800 text-slate-900 outline-none transition-all shadow-inner"
                 placeholder="DAT dosyası içeriğini buraya yapıştırın veya dosyayı sürükleyin..."
                 value={datContent}
-                onChange={e => {
-                    setDatContent(e.target.value);
-                    parseDat(e.target.value);
-                }}
+                onChange={e => setDatContent(e.target.value)}
             />
             <div className="flex gap-4">
                 <label className="flex-1 cursor-pointer bg-slate-900 text-white p-5 rounded-none text-center font-black uppercase tracking-widest hover:bg-black transition shadow-xl active:scale-[0.98]">
@@ -394,9 +391,7 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
                         reader.onload = (re) => {
                             const text = re.target?.result as string;
                             setDatContent(text);
-                            parseDat(text);
                         };
-                        // In a real app we'd use encoding here
                         reader.readAsText(file, encoding);
                     }} />
                 </label>
@@ -845,11 +840,10 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
     };
 
     const isStepDone = (stepId: number) => {
-        if (stepId === 1) return true; // Always setup
-        if (stepId === 2) return datContent.length > 0;
-        if (stepId === 3) return students.length > 0;
-        if (stepId === 4) return answerKeys.length > 0;
-        return false;
+        if (stepId === 1) return datContent.length > 0;
+        if (stepId === 2) return students.length > 0;
+        if (stepId === 3) return answerKeys.length > 0;
+        return true;
     };
 
     const Step5_Mapping = () => {
@@ -1066,13 +1060,30 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
                                     className="border-t border-slate-100"
                                 >
                                     <div className="p-8 bg-white min-h-[300px] border-x-2 border-b-2 border-slate-200">
-                                        {step.id === 1 && <Step1_Profile />}
-                                        {step.id === 2 && <Step2_DataEntry />}
-                                        {step.id === 3 && <Step3_Preview />}
-                                        {step.id === 4 && <Step4_AnswerKey />}
-                                        {step.id === 5 && <Step5_Mapping />}
-                                        {step.id === 6 && <Step6_Subjects />}
-                                        {step.id === 7 && (
+                                        {step.id === 1 && <Step2_DataEntry />}
+                                        {step.id === 2 && (
+                                            <div className="space-y-12">
+                                                <Step1_Profile />
+                                                <div className="border-t-4 border-slate-900 pt-12">
+                                                    <div className="flex justify-between items-center mb-6">
+                                                        <h4 className="text-xl font-black text-slate-900 uppercase tracking-widest flex items-center gap-3">
+                                                            <Eye size={24} className="text-[#3498db]" /> Veri Ayrıştırma Önizlemesi
+                                                        </h4>
+                                                        <button
+                                                            onClick={() => setCurrentStep(3)}
+                                                            className="bg-[#2ecc71] text-white px-8 py-3 text-xs font-black uppercase tracking-widest hover:bg-[#27ae60] transition-all shadow-lg"
+                                                        >
+                                                            Dizaynı Kabul Et ve Devam Et
+                                                        </button>
+                                                    </div>
+                                                    <Step3_Preview />
+                                                </div>
+                                            </div>
+                                        )}
+                                        {step.id === 3 && <Step4_AnswerKey />}
+                                        {step.id === 4 && <Step5_Mapping />}
+                                        {step.id === 5 && <Step6_Subjects />}
+                                        {step.id === 6 && (
                                             <div className="space-y-8 max-w-4xl">
                                                 <h4 className="font-extrabold text-slate-900 uppercase tracking-widest text-sm mb-6 border-b-4 border-slate-900 pb-2 inline-block">Puanlama Kriterleri</h4>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -1131,7 +1142,7 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
                                                 </div>
                                             </div>
                                         )}
-                                        {step.id === 8 && <Step8_Analysis />}
+                                        {step.id === 7 && <Step8_Analysis />}
 
                                         <div className="mt-12 flex justify-end gap-3 border-t pt-8">
                                             {step.id > 1 && (
@@ -1142,7 +1153,7 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
                                                     <ChevronLeft size={18} /> Önceki Adım
                                                 </button>
                                             )}
-                                            {step.id < 8 && (
+                                            {step.id < 7 && (
                                                 <button
                                                     onClick={() => setCurrentStep(step.id + 1)}
                                                     className="flex items-center gap-3 px-10 py-4 bg-[#3498db] text-white font-black text-xs uppercase tracking-[0.2em] hover:bg-[#2980b9] shadow-lg hover:shadow-sky-200 transition-all active:scale-95"
