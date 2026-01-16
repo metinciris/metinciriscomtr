@@ -592,16 +592,21 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
                 const diffIndex = correctCount / results.length;
                 const discIndex = (topCorrect - bottomCorrect) / topCount;
 
-                // Simple evaluation
-                let evalText = '';
-                if (discIndex > 0.4) evalText = 'Mükemmel ayırıcı';
-                else if (discIndex > 0.3) evalText = 'İyi ayırıcı';
-                else if (discIndex > 0.2) evalText = 'Düzeltilmeli';
-                else evalText = 'Çok zayıf / Hatalı';
+                // Improved evaluation logic
+                let diffText = '';
+                if (diffIndex >= 0.85) diffText = 'Çok Kolay';
+                else if (diffIndex >= 0.70) diffText = 'Kolay';
+                else if (diffIndex >= 0.40) diffText = 'Orta';
+                else if (diffIndex >= 0.25) diffText = 'Zor';
+                else diffText = 'Çok Zor';
 
-                if (diffIndex < 0.3) evalText += ' (Zor)';
-                else if (diffIndex > 0.7) evalText += ' (Kolay)';
-                else evalText += ' (Orta)';
+                let discText = '';
+                if (discIndex >= 0.40) discText = 'Mükemmel Ayırıcı';
+                else if (discIndex >= 0.30) discText = 'İyi Ayırıcı';
+                else if (discIndex >= 0.20) discText = 'Zayıf (Düzeltilmeli)';
+                else discText = 'Çok Zayıf (Hatalı/Ayırıcı Değil)';
+
+                const evalText = `${discText} (${diffText})`;
 
                 stats.push({
                     number: i + 1,
@@ -731,11 +736,26 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
 
                 {/* Detailed Question Analysis Table */}
                 <div className="bg-white rounded border shadow-sm overflow-hidden">
-                    <div className="p-4 border-b bg-slate-50">
-                        <h3 className="font-bold text-slate-800 uppercase tracking-widest text-sm flex items-center gap-2">
-                            Soru Bazlı İstatistik ve Analiz
-                            {mappings.length > 0 && <span className="text-[10px] bg-sky-100 text-sky-700 px-2 py-0.5 rounded ml-2">Mapping Aktif</span>}
-                        </h3>
+                    <div className="p-4 border-b bg-slate-50 flex justify-between items-center">
+                        <h3 className="font-bold text-slate-800 uppercase tracking-widest text-sm italic">Soru Bazlı İstatistik ve Analiz</h3>
+                        <button
+                            onClick={() => {
+                                let csv = "sep=;\nNo;Doğru;A;B;C;D;E;B/H;Zorluk (P);Ayır. (D);Değerlendirme\n";
+                                questionStats.forEach(qs => {
+                                    csv += `${qs.number};${qs.correctAns};${qs.distributions.A};${qs.distributions.B};${qs.distributions.C};${qs.distributions.D};${qs.distributions.E};${(qs.distributions[' '] || 0) + (qs.distributions['*'] || 0)};${qs.diffIndex.toFixed(2).replace('.', ',')};${qs.discIndex.toFixed(2).replace('.', ',')};${qs.evalText}\n`;
+                                });
+                                const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csv], { type: 'text/csv;charset=utf-8;' });
+                                const url = URL.createObjectURL(blob);
+                                const link = document.createElement("a");
+                                link.setAttribute("href", url);
+                                link.setAttribute("download", `Soru_Analizi_${new Date().toLocaleDateString('tr-TR')}.csv`);
+                                link.click();
+                                toast.success("Soru analizi raporu indirildi.");
+                            }}
+                            className="flex items-center gap-2 bg-slate-800 text-white px-4 py-2 text-xs font-bold uppercase hover:bg-black transition shadow-sm"
+                        >
+                            <Download size={14} /> İstatistikleri İndir
+                        </button>
                     </div>
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse text-xs">
@@ -786,17 +806,17 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
                         <div className="flex gap-2">
                             <button
                                 onClick={() => {
-                                    let csv = "ID;Ad Soyad;Kitapçık;Doğru;Yanlış;Boş;İptal;Net;Puan\n";
+                                    let csv = "sep=;\nID;Ad Soyad;Kitapçık;Doğru;Yanlış;Boş;İptal;Net;Puan\n";
                                     results.forEach(r => {
-                                        csv += `${r.studentId};${r.studentName};${r.booklet};${r.rights};${r.wrongs};${r.empties};${r.invalids};${r.net};${r.score}\n`;
+                                        csv += `${r.studentId};${r.studentName};${r.booklet};${r.rights};${r.wrongs};${r.empties};${r.invalids};${r.net.toFixed(2).replace('.', ',')};${r.score.toFixed(2).replace('.', ',')}\n`;
                                     });
                                     const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csv], { type: 'text/csv;charset=utf-8;' });
                                     const url = URL.createObjectURL(blob);
                                     const link = document.createElement("a");
                                     link.setAttribute("href", url);
-                                    link.setAttribute("download", `Analiz_${new Date().toLocaleDateString('tr-TR')}.csv`);
+                                    link.setAttribute("download", `Ogrenci_Sonuclari_${new Date().toLocaleDateString('tr-TR')}.csv`);
                                     link.click();
-                                    toast.success("Rapor indirildi.");
+                                    toast.success("Öğrenci sonuç raporu indirildi.");
                                 }}
                                 className="flex items-center gap-2 bg-emerald-600 text-white px-6 py-2 rounded-none font-bold text-xs uppercase hover:bg-emerald-700 transition shadow-md"
                             >
