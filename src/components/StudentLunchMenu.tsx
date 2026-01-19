@@ -14,7 +14,7 @@ export function StudentLunchMenu() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch('/data/ogrenci-ogle-menu.json')
+        fetch(`/data/ogrenci-ogle-menu.json?t=${Date.now()}`)
             .then((res) => {
                 if (!res.ok) throw new Error('Menu not found');
                 return res.json();
