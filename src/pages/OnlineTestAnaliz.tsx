@@ -1,1954 +1,1696 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { PageContainer } from '../components/PageContainer';
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
-  Settings,
-  Upload,
-  Eye,
-  Key,
-  Map as MapIcon,
+  AlertCircle,
   BookOpen,
-  Calculator,
-  Download,
+  CheckCircle2,
+  ChevronDown,
   ChevronRight,
-  ChevronLeft,
-  AlertTriangle,
-  CheckCircle,
-  XCircle,
-  Search,
+  Clipboard,
+  Download,
+  FileText,
   Info,
-  Activity,
-  FileSpreadsheet
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { motion, AnimatePresence } from 'motion/react';
+  Settings2,
+  Upload,
+  Wand2,
+  XCircle,
+} from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import {
-  BarChart as ReBarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip as ReTooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell
-} from 'recharts';
-
-// -----------------------------
-// Types
-// -----------------------------
-
-interface Profile {
-  id: string;
-  name: string;
-  idStart: number;
-  idLen: number;
-  nameStart: number;
-  nameLen: number;
-  bookletStart: number;
-  bookletLen: number;
-  answersStart: number;
-  noBooklet: boolean;
-}
-
-interface StudentRecord {
-  raw: string;
-  id: string;
-  name: string;
-  booklet: string;
-  answers: string; // raw order (their booklet order)
-  status: 'OK' | 'Warning' | 'Error';
-  messages: string[];
-}
-
-interface AnswerKey {
-  booklet: string; // A/B/C/D
-  answers: string; // booklet order
-}
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@/components/ui/alert";
+import { Progress } from "@/components/ui/progress";
 
 /**
- * Mapping is stored as A->X order (what the user pasted from Excel):
- * aToOrder[i] = X_question_number (1-based) where A question (i+1) appears in that booklet.
+ * OnlineTestAnaliz.tsx
+ * - Mapping: Excel tablo (A->B/C/D sıra) yapıştırılınca otomatik tersine çevirip (B sıra -> A soru no) order üretir.
+ * - A anahtar + mapping varsa B/C/D anahtarlarını arka planda üretip yüklenen anahtarlarla karşılaştırır.
+ * - Mapping yoksa: her kitapçık kendi anahtarıyla puanlanır; A’ya normalize analiz adımları kısıtlanır.
  */
-interface Mapping {
-  fromBooklet: string; // B/C/D
-  toBooklet: 'A';
-  aToOrder: number[]; // length = qCount, 1-based indices
-}
 
-interface SubjectRange {
+type Booklet = "A" | "B" | "C" | "D";
+
+type Student = {
+  id: string;
   name: string;
-  start: number; // A order
-  end: number;   // A order
-}
-
-type CancelMode = 'count' | 'correct';
-type InvalidMode = 'wrong' | 'separate';
-
-interface ScoringConfig {
-  totalScore: number;
-  penalty: boolean;
-  cancelMode: CancelMode;
-  invalidMode: InvalidMode;
-}
-
-interface AnalysisResult {
-  studentId: string;
-  studentName: string;
-  booklet: string;
-
-  rights: number;
-  wrongs: number;
-  empties: number;
-  invalids: number;
-
-  net: number;
-  score: number;
-
-  normalizedToA?: string;
-
-  subjectResults?: { name: string; rights: number; wrongs: number; empties: number; net: number }[];
-}
-
-type StepStatus = 'pending' | 'done' | 'skipped';
-
-// -----------------------------
-// Constants
-// -----------------------------
-
-const DEFAULT_PROFILE: Profile = {
-  id: 'varsayilan',
-  name: 'Varsayılan Şablon',
-  idStart: 21,
-  idLen: 10,
-  nameStart: 1,
-  nameLen: 20,
-  bookletStart: 31,
-  bookletLen: 1,
-  answersStart: 32,
-  noBooklet: false
+  booklet: Booklet;
+  answers: string; // ham (kitapçık sırası)
 };
 
-const STEPS = [
-  { id: 1, title: 'Veri Girişi', icon: <Upload size={20} />, description: 'DAT dosyasını yükleyin veya yapıştırın.' },
-  { id: 2, title: 'Dizayn & Önizleme', icon: <Settings size={20} />, description: 'DAT dosya yapısını tanımlayın ve kontrol edin.' },
-  { id: 3, title: 'Cevap Anahtarı', icon: <Key size={20} />, description: 'Doğru cevapları girin.' },
-  { id: 4, title: 'Kitapçık/Mapping', icon: <MapIcon size={20} />, description: 'Kitapçık dönüşümlerini ayarlayın.' },
-  { id: 5, title: 'Konu Ders sıralaması', icon: <BookOpen size={20} />, description: 'Ders ve konu kapsamlarını belirleyin.' },
-  { id: 6, title: 'Puanlama Kriterleri', icon: <Calculator size={20} />, description: 'Puanlama kurallarını ayarlayın.' },
-  { id: 7, title: 'Analiz & Rapor', icon: <Download size={20} />, description: 'Sonuçları görün ve indirin.' }
-];
+type AnswerKey = {
+  booklet: Booklet;
+  answers: string; // kitapçık sırası (optik uyumlu)
+};
 
-interface OnlineTestAnalizProps {
-  onNavigate: (page: string) => void;
+type Mapping = {
+  fromBooklet: Exclude<Booklet, "A">;
+  order: number[]; // kitapçık soru sırası i (1..N) -> A soru no (1..N)
+  source: "table" | "list";
+};
+
+type Subject = {
+  name: string;
+  start: number;
+  end: number;
+};
+
+type Scoring = {
+  correct: number;
+  wrong: number; // negative allowed
+  blank: number;
+  maxScore: number;
+};
+
+type ResultRow = {
+  studentId: string;
+  name: string;
+  booklet: Booklet;
+  correct: number;
+  wrong: number;
+  blank: number;
+  net: number;
+  score: number;
+  // normalize edilmiş cevaplar (A sırası) varsa buraya
+  answersA?: string;
+};
+
+type StepStatus = "todo" | "done" | "skipped" | "warning";
+
+const DEFAULT_PROFILE = {
+  nameStart: 1,
+  nameLen: 30,
+  idStart: 31,
+  idLen: 10,
+  bookletPos: 0, // 0 = yok
+  answersStart: 45,
+  questionCount: 95,
+  noBooklet: false,
+};
+
+function cleanVal(s: string) {
+  return (s || "")
+    .toUpperCase()
+    .replace(/[^ABCDE*#\s]/g, "")
+    .replace(/\s+/g, "")
+    .trim();
 }
 
-// -----------------------------
-// Helpers
-// -----------------------------
-
-function clamp(n: number, min: number, max: number) {
+function clampInt(n: number, min: number, max: number) {
+  if (!Number.isFinite(n)) return min;
   return Math.max(min, Math.min(max, n));
 }
 
-function cleanAnswerString(val: string) {
-  return val
-    .toUpperCase()
-    .replace(/\r/g, '')
-    .replace(/[^\sA-E*#]/g, '')
-    .replace(/\t/g, ' ')
-    .replace(/\n/g, '')
-    .replace(/#/g, '#');
-}
-
-function isCancelledKeyChar(k: string) {
-  return k === ' ' || k === '#';
-}
-
-function safeCharAt(s: string, idx: number) {
-  if (!s) return ' ';
-  return s[idx] ?? ' ';
-}
-
-/**
- * Invert A->X mapping into X->A mapping (both 1-based arrays)
- * xToA[xIndex] = aQuestionNumber
- */
-function invertAToOrder(aToOrder: number[], qCount: number): number[] | null {
-  if (aToOrder.length < qCount) return null;
-  const xToA = new Array<number>(qCount).fill(0);
-
-  for (let a = 0; a < qCount; a++) {
-    const xQ = aToOrder[a];
-    if (!Number.isFinite(xQ)) return null;
-    const xIdx = xQ - 1;
-    if (xIdx < 0 || xIdx >= qCount) return null;
-    xToA[xIdx] = a + 1;
+function isPermutation1toN(arr: number[], n: number) {
+  if (arr.length !== n) return false;
+  const seen = new Set<number>();
+  for (const x of arr) {
+    if (!Number.isInteger(x) || x < 1 || x > n) return false;
+    if (seen.has(x)) return false;
+    seen.add(x);
   }
-  if (xToA.some(v => v === 0)) return null;
-  return xToA;
+  return seen.size === n;
 }
 
 /**
- * Build booklet key from A key + A->X mapping.
- * Returns X-order key string.
+ * Excel tablo formatı örneği:
+ * A anahtar | B kitapçık sıra | C kitapçık sıra | D kitapçık sıra | Soru No
+ * E         | 12             | 8              | 16             | 1
+ *
+ * Buradan: orderB[12-1] = 1  (B1..N -> A soru no)
  */
-function deriveBookletKeyFromA(aKey: string, aToOrder: number[], qCount: number): string | null {
-  if (!aKey || aKey.length < qCount) return null;
-  if (aToOrder.length < qCount) return null;
+function parseMappingFromTableText(
+  text: string,
+  questionCount: number
+): {
+  mappings: Mapping[];
+  warnings: string[];
+} {
+  const warnings: string[] = [];
+  const lines = (text || "")
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
 
-  const out = new Array<string>(qCount).fill(' ');
-  for (let a = 0; a < qCount; a++) {
-    const xQ = aToOrder[a];
-    const xIdx = xQ - 1;
-    if (xIdx < 0 || xIdx >= qCount) return null;
-    out[xIdx] = safeCharAt(aKey, a);
-  }
-  return out.join('');
-}
+  if (!lines.length) return { mappings: [], warnings };
 
-function listNumbersFromText(txt: string): number[] {
-  return txt
-    .trim()
-    .split(/[\s,;]+/g)
-    .filter(Boolean)
-    .map(x => Number(x))
-    .filter(n => Number.isFinite(n));
-}
+  // header olabilir
+  const dataLines = lines.filter((l) => /\d/.test(l));
+  if (!dataLines.length) return { mappings: [], warnings };
 
-/**
- * Parse Excel-like table:
- * Columns (TSV/CSV-ish): A_anahtar, B_sira, C_sira, D_sira, SoruNo
- */
-function parseMappingTable(text: string) {
-  const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-  if (lines.length < 2) return null;
+  // satır split: önce tab, yoksa çoklu boşluk
+  const splitRow = (line: string) => {
+    const tabParts = line.split(/\t+/).map((x) => x.trim()).filter(Boolean);
+    if (tabParts.length >= 4) return tabParts;
+    return line.split(/\s+/).map((x) => x.trim()).filter(Boolean);
+  };
 
-  const rows: { aAns?: string; b?: number; c?: number; d?: number; q?: number }[] = [];
+  // table parse: her satırdan integer’ları çek
+  // beklenen integer sayısı: 4 (B,C,D,SoruNo) veya 5 (A key hariç dahil) fark etmez.
+  const rows: Array<{
+    aNo: number;
+    bPos?: number;
+    cPos?: number;
+    dPos?: number;
+    aKeyLetter?: string;
+  }> = [];
 
-  for (const line of lines) {
-    let cells = line.split('\t').map(c => c.trim()).filter(Boolean);
-    if (cells.length < 5) {
-      cells = line.split(/\s+/g).map(c => c.trim()).filter(Boolean);
+  for (const line of dataLines) {
+    const parts = splitRow(line);
+    // Örnek: ["E","12","8","16","1"] veya ["12","8","16","1"]
+    const ints = parts
+      .map((p) => {
+        const m = p.match(/^\d+$/);
+        return m ? parseInt(p, 10) : null;
+      })
+      .filter((x): x is number => x !== null);
+
+    // minimum 2 sayı olmazsa geç
+    if (ints.length < 2) continue;
+
+    // Heuristik: satırda 4 sayı varsa sonu SoruNo kabul edelim: [B,C,D,SoruNo]
+    // 2-3 sayı varsa: [B,SoruNo] gibi olabilir.
+    // Bizim beklediğimiz: B,C,D ve A soru no.
+    let bPos: number | undefined;
+    let cPos: number | undefined;
+    let dPos: number | undefined;
+    let aNo: number | undefined;
+
+    if (ints.length >= 4) {
+      // son = soruNo
+      aNo = ints[ints.length - 1];
+      // önceki üç = B,C,D (en yaygın)
+      const bcd = ints.slice(ints.length - 4, ints.length - 1);
+      bPos = bcd[0];
+      cPos = bcd[1];
+      dPos = bcd[2];
+    } else if (ints.length === 3) {
+      aNo = ints[2];
+      bPos = ints[0];
+      cPos = ints[1];
+    } else if (ints.length === 2) {
+      aNo = ints[1];
+      bPos = ints[0];
     }
-    if (cells.length < 5) continue;
 
-    const last = cells[cells.length - 1];
-    if (!/^\d+$/.test(last)) continue;
+    if (!aNo || aNo < 1 || aNo > questionCount) continue;
 
-    const q = Number(last);
-    const aAns = cells[0]?.toUpperCase();
-    const b = Number(cells[1]);
-    const c = Number(cells[2]);
-    const d = Number(cells[3]);
+    // A harfini yakala (varsa)
+    const letter = parts.find((p) => /^[ABCDE]$/.test(p)) || undefined;
 
-    rows.push({ aAns, b, c, d, q });
+    rows.push({
+      aNo,
+      bPos,
+      cPos,
+      dPos,
+      aKeyLetter: letter,
+    });
   }
 
-  if (rows.length === 0) return null;
+  if (!rows.length) return { mappings: [], warnings };
 
-  const qCount = Math.max(...rows.map(r => r.q ?? 0));
-  const aKeyArr = new Array<string>(qCount).fill(' ');
-  const aToB = new Array<number>(qCount).fill(0);
-  const aToC = new Array<number>(qCount).fill(0);
-  const aToD = new Array<number>(qCount).fill(0);
+  // order dizilerini üret (B/C/D soru sırası -> A soru no)
+  const orderB = new Array<number | null>(questionCount).fill(null);
+  const orderC = new Array<number | null>(questionCount).fill(null);
+  const orderD = new Array<number | null>(questionCount).fill(null);
 
   for (const r of rows) {
-    if (!r.q) continue;
-    const i = r.q - 1;
-
-    if (r.aAns && /^[A-E#]$/.test(r.aAns)) aKeyArr[i] = r.aAns === '#' ? '#' : r.aAns;
-    if (Number.isFinite(r.b ?? NaN)) aToB[i] = r.b!;
-    if (Number.isFinite(r.c ?? NaN)) aToC[i] = r.c!;
-    if (Number.isFinite(r.d ?? NaN)) aToD[i] = r.d!;
+    if (r.bPos && r.bPos >= 1 && r.bPos <= questionCount) orderB[r.bPos - 1] = r.aNo;
+    if (r.cPos && r.cPos >= 1 && r.cPos <= questionCount) orderC[r.cPos - 1] = r.aNo;
+    if (r.dPos && r.dPos >= 1 && r.dPos <= questionCount) orderD[r.dPos - 1] = r.aNo;
   }
 
-  const hasB = aToB.every(n => n > 0);
-  const hasC = aToC.every(n => n > 0);
-  const hasD = aToD.every(n => n > 0);
+  const mappings: Mapping[] = [];
+  const finalize = (from: Exclude<Booklet, "A">, orderMaybe: Array<number | null>) => {
+    const missing = orderMaybe.filter((x) => x === null).length;
+    const order = orderMaybe.map((x) => x ?? -1);
+    if (missing === 0 && isPermutation1toN(order as number[], questionCount)) {
+      mappings.push({
+        fromBooklet: from,
+        order: order as number[],
+        source: "table",
+      });
+    } else {
+      // Eğer tabloda o kitapçık yoksa hiç ekleme; varsa warning ver
+      const filled = orderMaybe.some((x) => x !== null);
+      if (filled) {
+        warnings.push(
+          `${from} mapping tablosu eksik/bozuk görünüyor (boş hücre: ${missing}).`
+        );
+      }
+    }
+  };
+
+  finalize("B", orderB);
+  finalize("C", orderC);
+  finalize("D", orderD);
+
+  if (!mappings.length && warnings.length === 0) {
+    warnings.push("Mapping tablosu okunamadı (format beklenenden farklı olabilir).");
+  }
+
+  return { mappings, warnings };
+}
+
+/**
+ * Liste formatı: "1 2 3 4 ... N"
+ * Bu zaten "kitapçık sırası -> A soru no" (order) olarak kabul edilir.
+ */
+function parseMappingFromListText(text: string, questionCount: number): number[] | null {
+  const nums = (text || "")
+    .split(/[^0-9]+/)
+    .map((x) => x.trim())
+    .filter(Boolean)
+    .map((x) => parseInt(x, 10))
+    .filter((n) => Number.isInteger(n));
+
+  if (!nums.length) return null;
+  if (nums.length !== questionCount) return null;
+  if (!isPermutation1toN(nums, questionCount)) return null;
+  return nums;
+}
+
+/**
+ * A anahtar + order (kitapçık sırası -> A soru no) => kitapçık anahtarını üret
+ */
+function deriveBookletKeyFromA(aKey: string, order: number[], questionCount: number) {
+  const a = cleanVal(aKey);
+  if (a.length !== questionCount) return "";
+  const out = new Array<string>(questionCount).fill("*");
+  for (let i = 0; i < questionCount; i++) {
+    const aNo = order[i] - 1;
+    if (aNo >= 0 && aNo < questionCount) out[i] = a[aNo];
+  }
+  return out.join("");
+}
+
+/**
+ * Öğrenci cevaplarını A sırasına normalize et:
+ * order[i] = A soru no (1..N)  // kitapçık soru i+1 hangi A sorusu?
+ */
+function normalizeAnswersToA(answers: string, order: number[], questionCount: number) {
+  const src = cleanVal(answers);
+  const out = new Array<string>(questionCount).fill("*");
+  const len = Math.min(src.length, order.length, questionCount);
+  for (let i = 0; i < len; i++) {
+    const aNo = order[i] - 1;
+    if (aNo >= 0 && aNo < questionCount) out[aNo] = src[i];
+  }
+  return out.join("");
+}
+
+function scoreOne(
+  answers: string,
+  key: string,
+  scoring: Scoring,
+  questionCount: number
+): { correct: number; wrong: number; blank: number; net: number; score: number } {
+  const a = (answers || "").padEnd(questionCount, "*").slice(0, questionCount);
+  const k = (key || "").padEnd(questionCount, "*").slice(0, questionCount);
+
+  let correct = 0;
+  let wrong = 0;
+  let blank = 0;
+
+  for (let i = 0; i < questionCount; i++) {
+    const ch = a[i];
+    const kk = k[i];
+
+    const isBlank = ch === "*" || ch === " " || ch === "#" || ch === "";
+    if (isBlank) {
+      blank++;
+      continue;
+    }
+    if (ch === kk) correct++;
+    else wrong++;
+  }
+
+  const net = correct * scoring.correct + wrong * scoring.wrong + blank * scoring.blank;
+  // Score bar’daki NaN/undefined hatalarını engelle
+  const safeNet = Number.isFinite(net) ? net : 0;
+  const maxNet = questionCount * scoring.correct;
+  const score =
+    maxNet > 0
+      ? (safeNet / maxNet) * scoring.maxScore
+      : 0;
 
   return {
-    qCount,
-    aKey: aKeyArr.join(''),
-    mappings: {
-      B: hasB ? aToB : null,
-      C: hasC ? aToC : null,
-      D: hasD ? aToD : null
-    }
+    correct,
+    wrong,
+    blank,
+    net: safeNet,
+    score: Number.isFinite(score) ? score : 0,
   };
 }
 
-function sliceSafe(s: string, start1: number, len: number) {
-  const start0 = Math.max(0, (start1 || 1) - 1);
-  if (len <= 0) return '';
-  return (s || '').substring(start0, start0 + len);
-}
-
-type Segment = { key: string; label: string; start: number; end: number; value: string; overlaps: string[] };
-
-function buildSegments(profile: Profile, sampleLine: string, qCount: number, detectedQuestionCount: number): Segment[] {
-  const segs: Omit<Segment, 'overlaps'>[] = [];
-
-  const idStart = profile.idStart || 1;
-  const idEnd = idStart + (profile.idLen || 0) - 1;
-
-  const nameStart = profile.nameStart || 1;
-  const nameEnd = nameStart + (profile.nameLen || 0) - 1;
-
-  segs.push({
-    key: 'name',
-    label: 'İsim',
-    start: nameStart,
-    end: nameEnd,
-    value: sliceSafe(sampleLine, nameStart, Math.max(0, profile.nameLen || 0))
-  });
-
-  segs.push({
-    key: 'id',
-    label: 'Öğrenci No',
-    start: idStart,
-    end: idEnd,
-    value: sliceSafe(sampleLine, idStart, Math.max(0, profile.idLen || 0))
-  });
-
-  if (!profile.noBooklet) {
-    const bStart = profile.bookletStart || 1;
-    const bLen = profile.bookletLen || 1;
-    segs.push({
-      key: 'booklet',
-      label: 'Kitapçık',
-      start: bStart,
-      end: bStart + bLen - 1,
-      value: sliceSafe(sampleLine, bStart, bLen)
-    });
-  }
-
-  const aStart = profile.answersStart || 1;
-  const expected = qCount || detectedQuestionCount || 0;
-  const aEnd = expected > 0 ? aStart + expected - 1 : Math.max(aStart, (sampleLine?.length || 0));
-
-  segs.push({
-    key: 'answers',
-    label: 'Cevaplar',
-    start: aStart,
-    end: aEnd,
-    value: expected > 0 ? sliceSafe(sampleLine, aStart, expected) : (sampleLine ? sampleLine.substring(Math.max(0, aStart - 1)) : '')
-  });
-
-  // overlap detection
-  const out: Segment[] = segs.map(s => ({ ...s, overlaps: [] }));
-  for (let i = 0; i < out.length; i++) {
-    for (let j = i + 1; j < out.length; j++) {
-      const a = out[i], b = out[j];
-      const ov = Math.max(a.start, b.start) <= Math.min(a.end, b.end);
-      if (ov) {
-        a.overlaps.push(b.label);
-        b.overlaps.push(a.label);
-      }
+function diffKeys(loaded: string, derived: string) {
+  const a = cleanVal(loaded);
+  const b = cleanVal(derived);
+  const n = Math.min(a.length, b.length);
+  let match = 0;
+  let mismatch = 0;
+  const firstDiff: Array<{ idx: number; a: string; b: string }> = [];
+  for (let i = 0; i < n; i++) {
+    if (a[i] === b[i]) match++;
+    else {
+      mismatch++;
+      if (firstDiff.length < 5) firstDiff.push({ idx: i + 1, a: a[i], b: b[i] });
     }
   }
-
-  return out;
+  // uzunluk farklarını da mismatch say
+  mismatch += Math.abs(a.length - b.length);
+  return { match, mismatch, n, firstDiff };
 }
 
-function compareKeys(entered: string, derived: string, qCount: number) {
-  const len = Math.min(entered?.length || 0, derived?.length || 0, qCount || 0);
-  if (!len) return null;
-
-  const mismatchPositions: number[] = [];
-  for (let i = 0; i < len; i++) {
-    const e = safeCharAt(entered, i);
-    const d = safeCharAt(derived, i);
-    if (e !== d) mismatchPositions.push(i + 1);
+function detectOverlap(ranges: Array<{ name: string; start: number; end: number }>) {
+  const sorted = [...ranges].sort((x, y) => x.start - y.start);
+  const collisions: Array<{ a: string; b: string }> = [];
+  for (let i = 0; i < sorted.length - 1; i++) {
+    const cur = sorted[i];
+    const next = sorted[i + 1];
+    if (cur.end >= next.start) {
+      collisions.push({ a: cur.name, b: next.name });
+    }
   }
-
-  const mismatches = mismatchPositions.length;
-  const match = len - mismatches;
-  const pct = len ? (match / len) * 100 : 0;
-
-  return { mismatches, mismatchPositions, len, pct };
+  return collisions;
 }
 
-// -----------------------------
-// UI: Top progress bar
-// -----------------------------
-function StepTopBar(props: {
-  statuses: { id: number; title: string; status: StepStatus }[];
-  currentStep: number;
-  onGo: (id: number) => void;
-}) {
-  const { statuses, currentStep, onGo } = props;
+export default function OnlineTestAnaliz() {
+  // --- State
+  const [datContent, setDatContent] = useState<string>("");
+  const [students, setStudents] = useState<Student[]>([]);
+  const [answerKeys, setAnswerKeys] = useState<AnswerKey[]>([
+    { booklet: "A", answers: "" },
+    { booklet: "B", answers: "" },
+    { booklet: "C", answers: "" },
+    { booklet: "D", answers: "" },
+  ]);
+  const [mappings, setMappings] = useState<Mapping[]>([]);
+  const [mappingPaste, setMappingPaste] = useState<string>("");
+  const [mappingMode, setMappingMode] = useState<"table" | "list">("table");
+  const [mappingBookletForList, setMappingBookletForList] = useState<Exclude<Booklet, "A">>("B");
 
-  const doneCount = statuses.filter(s => s.status === 'done').length;
-  const skippedCount = statuses.filter(s => s.status === 'skipped').length;
-  const total = statuses.length;
-
-  return (
-    <div className="bg-white border-2 border-slate-100 shadow-sm p-4 flex flex-col gap-3">
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <div className="font-black text-slate-800 uppercase tracking-widest text-xs flex items-center gap-2">
-          <Activity size={16} className="text-[#3498db]" />
-          Adım Durumu
-        </div>
-        <div className="text-xs font-bold text-slate-500">
-          Tamamlandı: <span className="text-emerald-700">{doneCount}</span> • Atlandı: <span className="text-amber-700">{skippedCount}</span> • Toplam: {total}
-        </div>
-      </div>
-
-      <div className="flex flex-wrap gap-2">
-        {statuses.map(s => {
-          const cls =
-            s.status === 'done'
-              ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
-              : s.status === 'skipped'
-                ? 'bg-amber-100 text-amber-800 border-amber-200'
-                : 'bg-slate-50 text-slate-500 border-slate-200';
-
-          return (
-            <button
-              key={s.id}
-              onClick={() => onGo(s.id)}
-              className={`px-3 py-2 border text-xs font-black uppercase tracking-wider hover:brightness-95 transition ${cls} ${currentStep === s.id ? 'ring-2 ring-[#3498db]' : ''}`}
-              title={s.title}
-            >
-              {s.id}. {s.title} {s.status === 'done' ? '✓' : s.status === 'skipped' ? '↷' : ''}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-// -----------------------------
-// Step Components
-// -----------------------------
-
-function Step1DataEntry(props: {
-  datContent: string;
-  setDatContent: (v: string) => void;
-  encoding: string;
-  setEncoding: (v: string) => void;
-  detectedQuestionCount: number;
-}) {
-  const { datContent, setDatContent, encoding, setEncoding, detectedQuestionCount } = props;
-
-  return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-xl font-bold text-slate-900 tracking-tight">DAT İçeriği</h3>
-        <div className="flex items-center gap-3">
-          {detectedQuestionCount > 0 && (
-            <div className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold border border-emerald-200">
-              Bu sınavda {detectedQuestionCount} soru tespit edildi.
-            </div>
-          )}
-          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Kodlama:</span>
-          <select
-            value={encoding}
-            onChange={e => {
-              try {
-                setEncoding(e.target.value);
-                // eslint-disable-next-line no-new
-                new TextDecoder(e.target.value);
-              } catch {
-                toast.error('Seçilen kodlama bu tarayıcıda desteklenmiyor.');
-              }
-            }}
-            className="p-2 border-2 border-slate-200 bg-white rounded-none font-bold text-slate-800 focus:border-slate-800 outline-none"
-          >
-            <option value="utf-8">UTF-8</option>
-            <option value="windows-1254">Windows-1254 (TR)</option>
-          </select>
-        </div>
-      </div>
-
-      <textarea
-        className="w-full h-80 p-6 font-mono text-sm border-2 border-slate-100 bg-slate-50 focus:bg-white focus:border-slate-800 text-slate-900 outline-none transition-all shadow-inner"
-        placeholder="DAT dosyası içeriğini buraya yapıştırın veya dosyayı sürükleyin..."
-        value={datContent}
-        onChange={e => setDatContent(e.target.value)}
-      />
-
-      <div className="flex gap-4">
-        <label className="flex-1 cursor-pointer bg-slate-900 text-white p-5 rounded-none text-center font-black uppercase tracking-widest hover:bg-black transition shadow-xl active:scale-[0.98]">
-          <Upload size={24} className="inline mr-3" /> Dosyadan Yükle (.dat / .txt)
-          <input
-            type="file"
-            className="hidden"
-            onChange={async e => {
-              const file = e.target.files?.[0];
-              if (!file) return;
-              const reader = new FileReader();
-              reader.onload = re => {
-                const text = (re.target?.result as string) ?? '';
-                setDatContent(text);
-              };
-              try {
-                reader.readAsText(file, encoding);
-              } catch {
-                toast.error('Dosya okuma hatası: Kodlama desteklenmiyor olabilir.');
-              }
-            }}
-          />
-        </label>
-      </div>
-    </div>
-  );
-}
-
-function Step2Profile(props: {
-  profile: Profile;
-  setProfile: (p: Profile) => void;
-  sampleLine: string;
-  qCount: number;
-  detectedQuestionCount: number;
-}) {
-  const { profile, setProfile, sampleLine, qCount, detectedQuestionCount } = props;
-
-  const segments = useMemo(() => buildSegments(profile, sampleLine || '', qCount, detectedQuestionCount), [profile, sampleLine, qCount, detectedQuestionCount]);
-  const overlaps = useMemo(() => segments.filter(s => s.overlaps.length > 0), [segments]);
-
-  const exportConfig = () => {
-    const data = JSON.stringify(profile, null, 2);
-    const blob = new Blob([data], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `Sinav_Dizayni_${profile.name}.json`;
-    link.click();
-    toast.success('Dizayn dışa aktarıldı.');
-  };
-
-  const importConfig = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = re => {
-      try {
-        const json = JSON.parse(re.target?.result as string);
-        setProfile({ ...DEFAULT_PROFILE, ...json, id: 'imported_' + Date.now() });
-        toast.success('Dizayn içe aktarıldı.');
-      } catch {
-        toast.error('Geçersiz dosya formatı.');
-      }
-    };
-    reader.readAsText(file);
-  };
-
-  return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center bg-slate-50 p-4 border border-slate-200">
-        <h3 className="text-lg font-bold text-slate-800">Dizayn Yönetimi</h3>
-        <div className="flex gap-2">
-          <label className="cursor-pointer bg-white text-slate-700 px-4 py-2 text-xs font-black uppercase border-2 border-slate-300 hover:border-slate-800 transition-all flex items-center gap-2">
-            <Upload size={14} /> Şablon Yükle
-            <input type="file" className="hidden" accept=".json" onChange={importConfig} />
-          </label>
-          <button
-            onClick={exportConfig}
-            className="bg-white text-slate-700 px-4 py-2 text-xs font-black uppercase border-2 border-slate-300 hover:border-slate-800 transition-all flex items-center gap-2"
-          >
-            <Download size={14} /> Şablonu İndir
-          </button>
-        </div>
-      </div>
-
-      {sampleLine ? (
-        <div className="bg-white border-2 border-slate-100 shadow-sm p-6 space-y-4">
-          <div className="flex items-center gap-2 font-black text-slate-800 uppercase tracking-widest text-xs">
-            <Eye size={16} className="text-[#3498db]" />
-            Örnek Satır (DAT ilk satır)
-          </div>
-
-          <div className="text-xs text-slate-500">
-            İlk {Math.min(160, sampleLine.length)} karakter gösteriliyor. (Çok uzunsa kırpılır)
-          </div>
-
-          <div className="font-mono text-xs bg-slate-50 border p-3 overflow-x-auto whitespace-pre">
-            {sampleLine.slice(0, 160)}
-            {sampleLine.length > 160 ? '…' : ''}
-          </div>
-
-          {overlaps.length > 0 && (
-            <div className="bg-rose-50 border border-rose-200 p-4 rounded text-rose-800 text-sm flex gap-3">
-              <AlertTriangle size={18} className="shrink-0" />
-              <div>
-                <div className="font-bold mb-1">Karakter yerleşimi çakışıyor!</div>
-                <div className="text-xs opacity-90">
-                  Çakışan alanlar:{" "}
-                  {overlaps.map(s => `${s.label} ↔ (${s.overlaps.join(', ')}) [${s.start}-${s.end}]`).join(' • ')}
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {segments.map(seg => (
-              <div
-                key={seg.key}
-                className={`p-4 border-2 ${seg.overlaps.length ? 'border-rose-200 bg-rose-50' : 'border-slate-100 bg-white'}`}
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <div className="font-black text-slate-800 text-xs uppercase tracking-widest">
-                    {seg.label}
-                  </div>
-                  <div className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded">
-                    {seg.start}-{seg.end}
-                  </div>
-                </div>
-                <div className="mt-2 font-mono text-xs bg-white border p-2 break-all">
-                  {seg.value || <span className="text-slate-400 italic">(boş)</span>}
-                </div>
-                {seg.overlaps.length > 0 && (
-                  <div className="mt-2 text-[11px] text-rose-700 font-bold">
-                    Çakışıyor: {seg.overlaps.join(', ')}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : (
-        <div className="bg-amber-50 p-4 border border-amber-200 rounded text-amber-800 text-sm flex gap-3">
-          <Info size={18} className="shrink-0" />
-          <p>Örnek satır göstermek için önce DAT içeriğini girin (Adım 1).</p>
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div className="p-6 rounded-none shadow-md border-2 border-slate-200 hover:border-[#3498db] transition-colors bg-white">
-          <label className="block text-xs font-black text-slate-800 mb-3 uppercase tracking-widest">Öğrenci No (ID)</label>
-          <div className="flex gap-2 text-slate-900">
-            <div className="flex-1">
-              <span className="text-[10px] text-slate-400 block mb-1">Başlangıç</span>
-              <input
-                type="number"
-                value={profile.idStart}
-                onChange={e => setProfile({ ...profile, idStart: Number(e.target.value) })}
-                className="w-full p-2 border-2 border-slate-300 focus:border-slate-900 outline-none font-black bg-slate-50"
-              />
-            </div>
-            <div className="flex-1">
-              <span className="text-[10px] text-slate-400 block mb-1">Uzunluk</span>
-              <input
-                type="number"
-                value={profile.idLen}
-                onChange={e => setProfile({ ...profile, idLen: Number(e.target.value) })}
-                className="w-full p-2 border-2 border-slate-300 focus:border-slate-900 outline-none font-black bg-slate-50"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-none shadow-sm border-2 border-slate-100 hover:border-slate-300 transition-colors">
-          <label className="block text-xs font-black text-slate-900 mb-3 uppercase tracking-widest">İsim Soyad</label>
-          <div className="flex gap-2 text-slate-800">
-            <div className="flex-1">
-              <span className="text-[10px] text-slate-400 block mb-1">Başlangıç</span>
-              <input
-                type="number"
-                value={profile.nameStart}
-                onChange={e => setProfile({ ...profile, nameStart: Number(e.target.value) })}
-                className="w-full p-2 border-2 border-slate-200 focus:border-slate-800 outline-none font-bold bg-slate-50"
-              />
-            </div>
-            <div className="flex-1">
-              <span className="text-[10px] text-slate-400 block mb-1">Uzunluk</span>
-              <input
-                type="number"
-                value={profile.nameLen}
-                onChange={e => setProfile({ ...profile, nameLen: Number(e.target.value) })}
-                className="w-full p-2 border-2 border-slate-200 focus:border-slate-800 outline-none font-bold bg-slate-50"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-none shadow-sm border-2 border-slate-100 hover:border-slate-300 transition-colors">
-          <label className="block text-xs font-black text-slate-900 mb-3 uppercase tracking-widest">Kitapçık</label>
-
-          <div className="mb-4">
-            <label className="flex items-center gap-3 cursor-pointer group">
-              <input
-                type="checkbox"
-                checked={profile.noBooklet}
-                onChange={e => setProfile({ ...profile, noBooklet: e.target.checked })}
-                className="w-5 h-5 accent-[#3498db]"
-              />
-              <span className="text-sm font-bold text-slate-700 group-hover:text-[#3498db] transition-colors">
-                Bu DAT dosyasında kitapçık bilgisi YOK (tek kitapçık)
-              </span>
-            </label>
-          </div>
-
-          <div className={`flex gap-2 text-slate-800 ${profile.noBooklet ? 'opacity-40 pointer-events-none' : ''}`}>
-            <div className="flex-1">
-              <span className="text-[10px] text-slate-400 block mb-1">Başlangıç</span>
-              <input
-                type="number"
-                value={profile.bookletStart}
-                onChange={e => setProfile({ ...profile, bookletStart: Number(e.target.value) })}
-                className="w-full p-2 border-2 border-slate-200 focus:border-slate-800 outline-none font-bold bg-slate-50"
-                disabled={profile.noBooklet}
-              />
-            </div>
-            <div className="flex-1 opacity-50">
-              <span className="text-[10px] text-slate-400 block mb-1">Sabit: 1</span>
-              <input type="number" disabled value={1} className="w-full p-2 border-2 border-slate-100 bg-slate-100 text-slate-400 outline-none font-bold" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-none shadow-sm border-2 border-slate-100 hover:border-slate-300 transition-colors md:col-span-1 lg:col-span-1">
-          <label className="block text-xs font-black text-slate-900 mb-3 uppercase tracking-widest">Cevap Başlangıcı (Karakter)</label>
-          <input
-            type="number"
-            value={profile.answersStart}
-            onChange={e => setProfile({ ...profile, answersStart: Number(e.target.value) })}
-            className="w-full p-2 border-2 border-slate-200 focus:border-slate-800 outline-none font-bold bg-slate-50"
-          />
-        </div>
-      </div>
-
-      <div className="bg-blue-50 p-6 rounded border border-blue-100 text-blue-900 text-sm space-y-2">
-        <p className="font-bold flex items-center gap-2">
-          <Info size={16} /> Önemli Notlar
-        </p>
-        <ul className="list-disc list-inside opacity-90 space-y-1">
-          <li>Karakter pozisyonları 1'den başlar.</li>
-          <li>Çakışma uyarısı görürsen, başlangıç/uzunluk değerlerinden birini düzelt.</li>
-          <li>Kitapçık yoksa tüm öğrenciler A kabul edilir.</li>
-        </ul>
-      </div>
-    </div>
-  );
-}
-
-function Step2Preview(props: { students: StudentRecord[] }) {
-  const { students } = props;
-
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'OK' | 'Warning' | 'Error'>('all');
-  const [selectedStudent, setSelectedStudent] = useState<StudentRecord | null>(null);
-
-  const filteredStudents = useMemo(() => {
-    return students.filter(s => {
-      const matchesSearch =
-        searchTerm === '' ||
-        s.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.name.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesStatus = statusFilter === 'all' || s.status === statusFilter;
-      return matchesSearch && matchesStatus;
-    });
-  }, [students, searchTerm, statusFilter]);
-
-  const errorCount = students.filter(s => s.status === 'Error').length;
-  const warningCount = students.filter(s => s.status === 'Warning').length;
-
-  return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap gap-4 items-center bg-slate-50 p-4 border border-slate-200">
-        <div className="flex items-center gap-2 flex-1 min-w-[200px]">
-          <Search size={18} className="text-slate-400" />
-          <input
-            type="text"
-            placeholder="ID veya isim ara..."
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-            className="flex-1 p-2 border border-slate-200 rounded text-sm outline-none focus:border-slate-400"
-          />
-        </div>
-        <div className="flex gap-2">
-          <button onClick={() => setStatusFilter('all')} className={`px-3 py-1 text-xs font-bold rounded ${statusFilter === 'all' ? 'bg-slate-800 text-white' : 'bg-white border'}`}>
-            Tümü ({students.length})
-          </button>
-          <button
-            onClick={() => setStatusFilter('Error')}
-            className={`px-3 py-1 text-xs font-bold rounded ${statusFilter === 'Error' ? 'bg-rose-600 text-white' : 'bg-white border text-rose-600'}`}
-          >
-            Hatalı ({errorCount})
-          </button>
-          <button
-            onClick={() => setStatusFilter('Warning')}
-            className={`px-3 py-1 text-xs font-bold rounded ${statusFilter === 'Warning' ? 'bg-amber-500 text-white' : 'bg-white border text-amber-600'}`}
-          >
-            Uyarı ({warningCount})
-          </button>
-        </div>
-      </div>
-
-      {selectedStudent && (
-        <div className="bg-amber-50 p-4 border border-amber-200 rounded">
-          <div className="flex justify-between items-start mb-2">
-            <div>
-              <span className="font-bold text-slate-800">{selectedStudent.id}</span> - <span>{selectedStudent.name}</span>
-            </div>
-            <button onClick={() => setSelectedStudent(null)} className="text-slate-400 hover:text-slate-600">
-              ✕
-            </button>
-          </div>
-          <div className="text-xs font-mono bg-white p-2 border rounded mb-2 break-all">{selectedStudent.answers}</div>
-          {selectedStudent.messages.length > 0 && (
-            <ul className="text-sm text-amber-800 list-disc list-inside">
-              {selectedStudent.messages.map((m, i) => (
-                <li key={i}>{m}</li>
-              ))}
-            </ul>
-          )}
-        </div>
-      )}
-
-      <div className="bg-white rounded-none border-2 border-slate-200 shadow-xl overflow-hidden">
-        <div className="overflow-x-auto max-h-[500px]">
-          <table className="w-full text-left border-collapse text-sm">
-            <thead style={{ backgroundColor: '#1e293b' }} className="text-white sticky top-0">
-              <tr>
-                <th className="p-4 border-b border-slate-700 font-black uppercase tracking-widest text-[11px]">ID</th>
-                <th className="p-4 border-b border-slate-700 font-black uppercase tracking-widest text-[11px]">Ad Soyad</th>
-                <th className="p-4 border-b border-slate-700 font-black uppercase tracking-widest text-[11px]">Kit.</th>
-                <th className="p-3 border-b border-slate-700 font-black uppercase tracking-widest text-[11px]">Soru</th>
-                <th className="p-4 border-b border-slate-700 font-black uppercase tracking-widest text-[11px]">Cevaplar</th>
-                <th className="p-4 border-b border-slate-700 font-black uppercase tracking-widest text-[11px]">Durum</th>
-              </tr>
-            </thead>
-            <tbody className="text-slate-600">
-              {filteredStudents.map((s, i) => (
-                <tr
-                  key={i}
-                  onClick={() => setSelectedStudent(s)}
-                  className={`hover:bg-slate-50 border-b last:border-0 cursor-pointer ${s.status === 'Error' ? 'bg-rose-50' : s.status === 'Warning' ? 'bg-amber-50' : ''}`}
-                >
-                  <td className="p-3">{s.id}</td>
-                  <td className="p-3">{s.name}</td>
-                  <td className="p-3">{s.booklet}</td>
-                  <td className="p-3">{s.answers.length}</td>
-                  <td className="p-3 font-mono text-xs">{s.answers.substring(0, 12)}...</td>
-                  <td className="p-3">
-                    {s.status === 'OK' && <CheckCircle size={16} className="text-emerald-500" />}
-                    {s.status === 'Warning' && <AlertTriangle size={16} className="text-amber-500" />}
-                    {s.status === 'Error' && <XCircle size={16} className="text-rose-500" />}
-                  </td>
-                </tr>
-              ))}
-              {filteredStudents.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="p-12 text-center text-slate-400 italic">
-                    Veri bulunamadı. Lütfen DAT yükleyin.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <p className="text-sm text-slate-500 italic">* Hata varsa, DAT dosyasını düzelterek yeniden yükleyin. Sistem üzerinden düzenleme yapılamaz.</p>
-    </div>
-  );
-}
-
-function KeyVerificationPanel(props: {
-  qCount: number;
-  derivedKeys: Record<string, string | null>;
-  answerKeys: AnswerKey[];
-  setAnswerKeys: (k: AnswerKey[]) => void;
-}) {
-  const { qCount, derivedKeys, answerKeys, setAnswerKeys } = props;
-
-  const rows = (['B', 'C', 'D'] as const).map(bk => {
-    const derived = derivedKeys[bk];
-    const entered = answerKeys.find(k => k.booklet === bk)?.answers || '';
-    const cmp = derived && entered ? compareKeys(entered, derived, qCount) : null;
-    return { bk, derived, entered, cmp };
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [scoring, setScoring] = useState<Scoring>({
+    correct: 1,
+    wrong: -0.25,
+    blank: 0,
+    maxScore: 100,
   });
 
-  const useDerived = (bk: string) => {
-    const dk = derivedKeys[bk];
-    if (!dk) return;
-    const other = answerKeys.filter(k => k.booklet !== bk);
-    setAnswerKeys([...other, { booklet: bk, answers: dk }]);
-    toast.success(`${bk} anahtarı otomatik anahtarla dolduruldu.`);
-  };
+  const [profile, setProfile] = useState(() => {
+    try {
+      const saved = localStorage.getItem("dat_profile_v2");
+      return saved ? { ...DEFAULT_PROFILE, ...JSON.parse(saved) } : DEFAULT_PROFILE;
+    } catch {
+      return DEFAULT_PROFILE;
+    }
+  });
 
-  return (
-    <div className="bg-white border-2 border-slate-100 shadow-sm p-6 space-y-4">
-      <div className="flex items-center gap-2 font-black text-slate-800 uppercase tracking-widest text-xs">
-        <Key size={16} className="text-[#3498db]" />
-        Anahtar Doğrulama (A + mapping → otomatik B/C/D)
-      </div>
+  const [activeStep, setActiveStep] = useState<number>(1);
+  const [touchedSteps, setTouchedSteps] = useState<Set<number>>(new Set([1]));
+  const [activeKeyBooklet, setActiveKeyBooklet] = useState<Booklet>("A");
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        {rows.map(r => (
-          <div key={r.bk} className="border-2 border-slate-100 p-4 bg-slate-50">
-            <div className="flex items-center justify-between gap-2">
-              <div className="font-black text-slate-900">{r.bk} Kitapçığı</div>
-              {r.derived ? (
-                <span className="text-[10px] font-bold bg-emerald-100 text-emerald-700 px-2 py-1 rounded">Otomatik Var</span>
-              ) : (
-                <span className="text-[10px] font-bold bg-slate-200 text-slate-600 px-2 py-1 rounded">Mapping Yok</span>
-              )}
-            </div>
+  // --- Refs for scrolling
+  const stepRefs = useRef<Record<number, HTMLDivElement | null>>({});
 
-            {r.derived ? (
-              <>
-                <div className="mt-3 text-[11px] text-slate-600 font-bold">Girilen anahtar ile uyum</div>
-                {r.entered ? (
-                  r.cmp ? (
-                    <div className="mt-1 space-y-2">
-                      <div className={`text-sm font-black ${r.cmp.mismatches === 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
-                        %{r.cmp.pct.toFixed(1)} • {r.cmp.mismatches} uyuşmazlık
-                      </div>
-                      {r.cmp.mismatches > 0 && (
-                        <div className="text-[11px] text-rose-700">
-                          İlk 30: {r.cmp.mismatchPositions.slice(0, 30).join(', ')}
-                        </div>
-                      )}
-                      <button
-                        onClick={() => useDerived(r.bk)}
-                        className="mt-2 w-full bg-emerald-600 text-white py-2 text-xs font-black uppercase tracking-widest hover:bg-emerald-700 transition"
-                      >
-                        Otomatik Anahtarı Kullan
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="mt-2 text-xs text-slate-500 italic">Karşılaştırma için soru sayısı yok.</div>
-                  )
-                ) : (
-                  <div className="mt-2 text-xs text-slate-500 italic">
-                    Girilen {r.bk} anahtarı yok. (İstersen otomatiği kullan)
-                    <button
-                      onClick={() => useDerived(r.bk)}
-                      className="mt-2 w-full bg-slate-900 text-white py-2 text-xs font-black uppercase tracking-widest hover:bg-black transition"
-                    >
-                      Otomatik Anahtarı Yapıştır
-                    </button>
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="mt-3 text-xs text-slate-500 italic">Önce mapping girilince otomatik anahtar oluşur.</div>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function Step3AnswerKey(props: {
-  profile: Profile;
-  detectedQuestionCount: number;
-  answerKeys: AnswerKey[];
-  setAnswerKeys: (keys: AnswerKey[]) => void;
-
-  qCount: number;
-  derivedKeys: Record<string, string | null>;
-  activeBooklet: string;
-  setActiveBooklet: (b: string) => void;
-}) {
-  const { profile, detectedQuestionCount, answerKeys, setAnswerKeys, qCount, derivedKeys, activeBooklet, setActiveBooklet } = props;
-
-  const isNoBooklet = profile.noBooklet;
-  const booklets = isNoBooklet ? ['A'] : ['A', 'B', 'C', 'D'];
-
-  const currentKey = answerKeys.find(k => k.booklet === activeBooklet)?.answers || '';
-
-  const updateKey = (booklet: string, val: string) => {
-    const cleanVal = cleanAnswerString(val);
-    const otherKeys = answerKeys.filter(k => k.booklet !== booklet);
-    setAnswerKeys([...otherKeys, { booklet, answers: cleanVal }]);
-  };
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, booklet: string) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = re => {
-      const text = (re.target?.result as string) ?? '';
-      updateKey(booklet, text.trim());
-      toast.success(`${booklet} kitapçığı yüklendi.`);
-    };
-    reader.readAsText(file);
-  };
-
-  const canShowDerived = !isNoBooklet && activeBooklet !== 'A' && !!derivedKeys[activeBooklet];
-
-  const derived = derivedKeys[activeBooklet] || '';
-  const entered = currentKey || '';
-  const cmp = canShowDerived && entered ? compareKeys(entered, derived, qCount) : null;
-
-  return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap gap-2 mb-4">
-        {booklets.map(bk => (
-          <button
-            key={bk}
-            onClick={() => setActiveBooklet(bk)}
-            className={`px-6 py-2 font-bold transition-all border-b-4 ${
-              activeBooklet === bk ? 'bg-slate-800 text-white border-[#1ABC9C]' : 'bg-white text-slate-500 border-transparent hover:bg-slate-50'
-            }`}
-          >
-            {bk} Kitapçığı
-          </button>
-        ))}
-      </div>
-
-      <div className="bg-white p-6 rounded border shadow-sm space-y-4">
-        <div className="flex justify-between items-center gap-3 flex-wrap">
-          <h4 className="font-bold text-slate-800">
-            {activeBooklet} Kitapçığı Cevapları{' '}
-            {activeBooklet === 'A' && isNoBooklet && <span className="text-xs font-normal text-slate-400 ml-2">(Tek kitapçık)</span>}
-          </h4>
-          <div className="flex gap-2 flex-wrap">
-            <label className="cursor-pointer bg-slate-100 text-slate-700 px-3 py-1 rounded text-xs font-semibold hover:bg-slate-200 border">
-              <Upload size={14} className="inline mr-1" /> Dosyadan Yükle
-              <input type="file" className="hidden" onChange={e => handleFileUpload(e, activeBooklet)} />
-            </label>
-            <button onClick={() => updateKey(activeBooklet, '')} className="bg-rose-50 text-rose-600 px-3 py-1 rounded text-xs font-semibold hover:bg-rose-100 border border-rose-100">
-              Temizle
-            </button>
-
-            {canShowDerived && (
-              <button
-                onClick={() => {
-                  const dk = derivedKeys[activeBooklet];
-                  if (!dk) return;
-                  updateKey(activeBooklet, dk);
-                  toast.success(`${activeBooklet} anahtarı otomatik anahtardan dolduruldu.`);
-                }}
-                className="bg-emerald-600 text-white px-3 py-1 rounded text-xs font-semibold hover:bg-emerald-700 border border-emerald-600"
-              >
-                Otomatik Anahtarı Kullan
-              </button>
-            )}
-          </div>
-        </div>
-
-        <textarea
-          className="w-full h-32 p-4 font-mono text-xl border rounded bg-slate-50 text-slate-800 tracking-[0.2em] focus:ring-2 focus:ring-[#1ABC9C] outline-none"
-          placeholder={`Örn: ABCDEABCDE... (Soru sayısı ~ ${qCount || detectedQuestionCount || 0})`}
-          onChange={e => updateKey(activeBooklet, e.target.value)}
-          value={currentKey}
-        />
-
-        {!isNoBooklet && activeBooklet !== 'A' && derivedKeys[activeBooklet] && (
-          <div className="bg-slate-50 border p-4 rounded space-y-2">
-            <div className="flex items-center justify-between flex-wrap gap-2">
-              <div className="font-bold text-slate-800 text-sm">
-                Otomatik Üretilen {activeBooklet} Anahtarı (A anahtarı + mapping)
-              </div>
-              {cmp && (
-                <div className={`text-xs font-bold px-2 py-1 rounded ${cmp.mismatches === 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
-                  %{cmp.pct.toFixed(1)} • Uyuşmayan: {cmp.mismatches}
-                </div>
-              )}
-            </div>
-            <div className="font-mono text-xs break-all bg-white border p-2">{derivedKeys[activeBooklet]}</div>
-            {cmp && cmp.mismatches > 0 && (
-              <div className="text-xs text-rose-700">Uyuşmayan soru numaraları (ilk 30): {cmp.mismatchPositions.slice(0, 30).join(', ')}</div>
-            )}
-          </div>
-        )}
-
-        <div className="flex gap-4 text-xs font-semibold text-slate-500 pt-4 border-t flex-wrap">
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 bg-[#1ABC9C] rounded-full"></div>
-            <span>Puanlanan: {currentKey.split('').filter(c => c !== ' ' && c !== '#').length}</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 bg-amber-400 rounded-full"></div>
-            <span>İptal/Boş(#/boşluk): {currentKey.split('').filter(c => c === ' ' || c === '#').length}</span>
-          </div>
-          {!!qCount && (
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 bg-slate-400 rounded-full"></div>
-              <span>Beklenen Soru: {qCount}</span>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="bg-blue-50 p-4 rounded border border-blue-100 text-blue-800 text-sm flex gap-3">
-        <Info size={18} className="shrink-0" />
-        <div>
-          <p className="font-bold mb-1">İpucu</p>
-          <ul className="list-disc list-inside opacity-80 space-y-1">
-            <li>Sadece A anahtarı + mapping girersen, B/C/D otomatik üretilecek.</li>
-            <li># veya boşluk: soruyu iptal eder.</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Step4Mapping(props: {
-  profile: Profile;
-  qCount: number;
-  students: StudentRecord[];
-  mappings: Mapping[];
-  setMappings: (m: Mapping[]) => void;
-  answerKeys: AnswerKey[];
-  setAnswerKeys: (k: AnswerKey[]) => void;
-
-  derivedKeys: Record<string, string | null>;
-  missingMappings: string[];
-
-  skipMapping: boolean;
-  setSkipMapping: (v: boolean) => void;
-}) {
-  const { profile, qCount, students, mappings, setMappings, answerKeys, setAnswerKeys, derivedKeys, missingMappings, skipMapping, setSkipMapping } = props;
-
-  const [bulkText, setBulkText] = useState('');
-  const [tableText, setTableText] = useState('');
-  const [activeFrom, setActiveFrom] = useState<'B' | 'C' | 'D'>('B');
-
-  const isNoBooklet = profile.noBooklet;
+  const questionCount = useMemo(() => {
+    const aKey = answerKeys.find((k) => k.booklet === "A")?.answers || "";
+    const aLen = cleanVal(aKey).length;
+    if (aLen > 0) return aLen;
+    if (profile.questionCount > 0) return profile.questionCount;
+    const first = students[0]?.answers || "";
+    const firstLen = cleanVal(first).length;
+    return firstLen || 0;
+  }, [answerKeys, profile.questionCount, students]);
 
   const usedBooklets = useMemo(() => {
-    const set = new Set(students.map(s => s.booklet));
-    return Array.from(set);
+    const set = new Set<Booklet>();
+    for (const s of students) set.add(s.booklet);
+    return Array.from(set).sort();
   }, [students]);
 
-  const currentMapping = mappings.find(m => m.fromBooklet === activeFrom);
+  const usedNonA = useMemo(() => {
+    return usedBooklets.filter((b) => b !== "A") as Exclude<Booklet, "A">[];
+  }, [usedBooklets]);
 
-  const applyBulk = () => {
-    const numbers = listNumbersFromText(bulkText);
-    if (numbers.length === 0) {
-      toast.error('Geçersiz veri.');
-      return;
+  const aKey = useMemo(() => answerKeys.find((k) => k.booklet === "A")?.answers || "", [answerKeys]);
+
+  const mappingByBooklet = useMemo(() => {
+    const map = new Map<Exclude<Booklet, "A">, Mapping>();
+    for (const m of mappings) map.set(m.fromBooklet, m);
+    return map;
+  }, [mappings]);
+
+  const mappingCoverageComplete = useMemo(() => {
+    if (!usedNonA.length) return true; // sadece A varsa mapping gerekmiyor
+    if (!cleanVal(aKey) || cleanVal(aKey).length !== questionCount) return false;
+    for (const b of usedNonA) {
+      const m = mappingByBooklet.get(b);
+      if (!m || m.order.length !== questionCount) return false;
+      if (!isPermutation1toN(m.order, questionCount)) return false;
     }
-    if (qCount > 0 && numbers.length !== qCount) {
-      toast.error(`Bu sınav ${qCount} soru görünüyor. Yapıştırdığınız liste ${numbers.length} adet. (Uzunluk aynı olmalı)`);
-      return;
+    return true;
+  }, [usedNonA, mappingByBooklet, aKey, questionCount]);
+
+  const derivedKeys = useMemo(() => {
+    const out: Partial<Record<Booklet, string>> = {};
+    const a = cleanVal(aKey);
+    if (a.length !== questionCount) return out;
+    for (const b of ["B", "C", "D"] as const) {
+      const m = mappingByBooklet.get(b);
+      if (!m) continue;
+      out[b] = deriveBookletKeyFromA(a, m.order, questionCount);
+    }
+    return out;
+  }, [aKey, mappingByBooklet, questionCount]);
+
+  // --- DAT parsing
+  function parseDat(raw: string) {
+    const lines = (raw || "").split(/\r?\n/).filter((l) => l.trim().length > 0);
+    const parsed: Student[] = [];
+
+    for (const line of lines) {
+      const name = (line.substring(profile.nameStart - 1, profile.nameStart - 1 + profile.nameLen) || "")
+        .trim();
+      const id = (line.substring(profile.idStart - 1, profile.idStart - 1 + profile.idLen) || "")
+        .trim();
+
+      let booklet: Booklet = "A";
+      if (!profile.noBooklet && profile.bookletPos > 0) {
+        const ch = (line.substring(profile.bookletPos - 1, profile.bookletPos) || "A")
+          .trim()
+          .toUpperCase();
+        if (ch === "B" || ch === "C" || ch === "D" || ch === "A") booklet = ch;
+      }
+
+      const ans = line.substring(profile.answersStart - 1).trim();
+      const answers = cleanVal(ans);
+
+      if (!id && !name && !answers) continue;
+
+      parsed.push({
+        id: id || `NOID_${parsed.length + 1}`,
+        name: name || "İSİMSİZ",
+        booklet,
+        answers,
+      });
     }
 
-    const other = mappings.filter(m => m.fromBooklet !== activeFrom);
-    setMappings([...other, { fromBooklet: activeFrom, toBooklet: 'A', aToOrder: numbers }]);
-    toast.success(`${activeFrom} mapping güncellendi (A → ${activeFrom}).`);
-    setBulkText('');
-    setSkipMapping(false);
-  };
+    setStudents(parsed);
+  }
 
-  const applyTable = () => {
-    const parsed = parseMappingTable(tableText);
-    if (!parsed) {
-      toast.error('Tablo okunamadı. Excel’den kopyalayıp (tab ayrımlı) yapıştırdığınızdan emin olun.');
-      return;
+  useEffect(() => {
+    try {
+      localStorage.setItem("dat_profile_v2", JSON.stringify(profile));
+    } catch {}
+    if (datContent) parseDat(datContent);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile, datContent]);
+
+  // --- Step logic (tamamlandı/atlandı vb.)
+  function markTouched(step: number) {
+    setTouchedSteps((prev) => new Set(prev).add(step));
+  }
+
+  function stepStatus(step: number): StepStatus {
+    const aLen = cleanVal(aKey).length;
+    const hasStudents = students.length > 0;
+    const hasDat = datContent.trim().length > 0;
+
+    switch (step) {
+      case 1:
+        return hasDat ? "done" : "todo";
+      case 2:
+        return hasStudents ? "done" : hasDat ? "todo" : "warning";
+      case 3:
+        return aLen === questionCount && questionCount > 0 ? "done" : hasStudents ? "todo" : "warning";
+      case 4:
+        if (!usedNonA.length) return "skipped";
+        // mapping hiç yoksa: todo (atlayabilirsiniz ama analiz kısıtlı)
+        if (!mappings.length) return "todo";
+        return mappingCoverageComplete ? "done" : "warning";
+      case 5:
+        return subjects.length ? "done" : "skipped";
+      case 6:
+        // default scoring “hazır”; kullanıcı hiç girmediyse done demeyelim
+        return touchedSteps.has(6) ? "done" : "skipped";
+      case 7:
+        // sonuç üretilebiliyorsa done sayalım
+        if (!hasStudents) return "warning";
+        if (aLen !== questionCount) return "warning";
+        return "done";
+      default:
+        return "todo";
     }
+  }
 
-    const other = mappings.filter(m => !['B', 'C', 'D'].includes(m.fromBooklet));
-    const next: Mapping[] = [...other];
+  const stepMeta = useMemo(() => {
+    const statuses = Array.from({ length: 7 }, (_, i) => stepStatus(i + 1));
+    const done = statuses.filter((s) => s === "done").length;
+    const skipped = statuses.filter((s) => s === "skipped").length;
+    const warning = statuses.filter((s) => s === "warning").length;
+    return { statuses, done, skipped, warning, total: 7 };
+  }, [datContent, students, aKey, questionCount, usedNonA.length, mappings.length, mappingCoverageComplete, subjects.length, touchedSteps]);
 
-    if (parsed.mappings.B) next.push({ fromBooklet: 'B', toBooklet: 'A', aToOrder: parsed.mappings.B });
-    if (parsed.mappings.C) next.push({ fromBooklet: 'C', toBooklet: 'A', aToOrder: parsed.mappings.C });
-    if (parsed.mappings.D) next.push({ fromBooklet: 'D', toBooklet: 'A', aToOrder: parsed.mappings.D });
+  function goToStep(step: number) {
+    setActiveStep(step);
+    markTouched(step);
+    requestAnimationFrame(() => {
+      const el = stepRefs.current[step];
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+        // header offset
+        window.scrollBy({ top: -110, left: 0, behavior: "smooth" });
+      }
+    });
+  }
 
-    setMappings(next);
+  // --- Calculate results
+  const results = useMemo(() => {
+    const out: ResultRow[] = [];
+    const a = cleanVal(aKey);
+    if (!students.length) return out;
 
-    const aKeyExisting = answerKeys.find(k => k.booklet === 'A')?.answers ?? '';
-    if (!aKeyExisting || aKeyExisting.trim().length === 0) {
-      const otherKeys = answerKeys.filter(k => k.booklet !== 'A');
-      setAnswerKeys([...otherKeys, { booklet: 'A', answers: cleanAnswerString(parsed.aKey) }]);
-      toast.success('Tablodan A anahtarı da alındı.');
+    for (const s of students) {
+      const bookletKey = answerKeys.find((k) => k.booklet === s.booklet)?.answers || "";
+      const kA = a;
+      const kOwn = cleanVal(bookletKey);
+
+      let answersForScoring = s.answers;
+      let keyForScoring = kOwn;
+      let answersA: string | undefined = undefined;
+
+      if (s.booklet === "A") {
+        keyForScoring = kA;
+        answersForScoring = s.answers;
+        answersA = s.answers.padEnd(questionCount, "*").slice(0, questionCount);
+      } else {
+        const m = mappingByBooklet.get(s.booklet as Exclude<Booklet, "A">);
+        const canNormalize = m && kA.length === questionCount && m.order.length === questionCount && isPermutation1toN(m.order, questionCount);
+
+        if (canNormalize) {
+          // normalize student answers -> A order; key = A
+          answersA = normalizeAnswersToA(s.answers, m!.order, questionCount);
+          answersForScoring = answersA;
+          keyForScoring = kA;
+        } else {
+          // mapping yok/bozuk => kendi kitapçık anahtarıyla puanla
+          // (kendi anahtar da yoksa A ile denemek yerine uyarı modunda net/puan yine çıkar ama güvenilmez olur)
+          if (kOwn.length === questionCount) {
+            answersForScoring = s.answers;
+            keyForScoring = kOwn;
+          } else if (kA.length === questionCount) {
+            // fallback (uyarı)
+            answersForScoring = s.answers;
+            keyForScoring = kA;
+          }
+        }
+      }
+
+      const sc = scoreOne(answersForScoring, keyForScoring, scoring, questionCount);
+
+      out.push({
+        studentId: s.id,
+        name: s.name,
+        booklet: s.booklet,
+        correct: sc.correct,
+        wrong: sc.wrong,
+        blank: sc.blank,
+        net: sc.net,
+        score: sc.score,
+        answersA,
+      });
     }
+    return out;
+  }, [students, answerKeys, aKey, scoring, mappingByBooklet, questionCount]);
 
-    setSkipMapping(false);
-    toast.success('Tablodan mapping(ler) alındı.');
-  };
+  // --- Analysis helpers (only if we have A-order for everyone)
+  const canDoGlobalQuestionAnalysis = useMemo(() => {
+    // A anahtar şart
+    if (cleanVal(aKey).length !== questionCount) return false;
+    // Eğer B/C/D kullanılmışsa mapping complete olsun
+    if (usedNonA.length && !mappingCoverageComplete) return false;
+    return true;
+  }, [aKey, questionCount, usedNonA.length, mappingCoverageComplete]);
 
-  const booklets = ['B', 'C', 'D'] as const;
+  // --- UI helpers
+  function statusBadge(s: StepStatus) {
+    if (s === "done")
+      return <Badge className="ml-2">Tamam</Badge>;
+    if (s === "skipped")
+      return <Badge variant="secondary" className="ml-2">Atlanabilir</Badge>;
+    if (s === "warning")
+      return <Badge variant="destructive" className="ml-2">Dikkat</Badge>;
+    return <Badge variant="outline" className="ml-2">Eksik</Badge>;
+  }
 
-  const mappingCompleteness = useMemo(() => {
-    const missing = usedBooklets.filter(b => b !== 'A' && b !== '' && !mappings.some(m => m.fromBooklet === b));
-    return missing;
-  }, [usedBooklets, mappings]);
-
-  return (
-    <div className="space-y-6">
-      {isNoBooklet ? (
-        <div className="bg-emerald-50 p-4 border border-emerald-200 rounded text-emerald-800 text-sm flex gap-3">
-          <Info size={20} className="shrink-0" />
-          <p>
-            Bu sınav <strong>tek kitapçık</strong> görünüyor. Mapping gerekmiyor.
-          </p>
-        </div>
-      ) : (
-        <div className="bg-amber-50 p-4 border border-amber-200 rounded text-amber-800 text-sm flex gap-3">
-          <Info size={20} className="shrink-0" />
-          <div className="space-y-2">
-            <p>
-              <strong>Mapping = soru sırası dönüşümü</strong>. Bu ekranda beklenen:
-              <br />
-              <span className="font-mono">A’daki Soru 1 → {activeFrom}’de kaçıncı soru?</span> (yani <strong>A → {activeFrom}</strong>)
-            </p>
-            <ul className="list-disc list-inside opacity-90">
-              <li>
-                <strong>Mapping girersen:</strong> B/C/D anahtarları A’dan otomatik üretilir + soru/konu analizi doğru çalışır.
-              </li>
-              <li>
-                <strong>Mapping girmezsen:</strong> sadece toplam doğru/yanlış hesaplanır; soru/konu analizi güvenilir olmaz.
-              </li>
-            </ul>
+  // --- Step components
+  function StepHeader({
+    step,
+    icon,
+    title,
+  }: {
+    step: number;
+    icon: React.ReactNode;
+    title: string;
+  }) {
+    const st = stepStatus(step);
+    const isActive = activeStep === step;
+    return (
+      <div
+        className="flex items-center justify-between cursor-pointer select-none"
+        onClick={() => goToStep(step)}
+      >
+        <div className="flex items-center gap-3">
+          <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-muted">
+            {icon}
+          </div>
+          <div className="flex flex-col">
+            <div className="flex items-center">
+              <span className="font-semibold">{step}. {title}</span>
+              {/* “girilmediyse tamam” yazmasın: status doğrudan kriterle */}
+              {statusBadge(st)}
+            </div>
+            {step === 4 && usedNonA.length > 0 && !mappings.length && (
+              <span className="text-xs text-muted-foreground">
+                Mapping girmeden devam edebilirsiniz; bu durumda kitapçıklar kendi anahtarıyla değerlendirilir.
+              </span>
+            )}
           </div>
         </div>
-      )}
+        {isActive ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+      </div>
+    );
+  }
 
-      {!isNoBooklet && mappingCompleteness.length > 0 && !skipMapping && (
-        <div className="bg-rose-50 p-4 border border-rose-200 rounded text-rose-800 text-sm flex gap-3">
-          <AlertTriangle size={20} className="shrink-0" />
-          <div className="space-y-2">
-            <p>
-              Bu DAT içinde şu kitapçıklar var: <strong>{mappingCompleteness.join(', ')}</strong>. Bunlar için mapping girilmemiş.
-            </p>
-            <button
-              onClick={() => {
-                setSkipMapping(true);
-                toast.info('Mapping atlandı: soru/konu analizi kapalı, sadece toplam doğru/yanlış.');
+  function StepContainer({
+    step,
+    children,
+  }: {
+    step: number;
+    children: React.ReactNode;
+  }) {
+    const isActive = activeStep === step;
+    return (
+      <div
+        ref={(el) => {
+          stepRefs.current[step] = el;
+        }}
+        className="border rounded-2xl p-4 bg-card"
+      >
+        {children}
+        {!isActive && (
+          <div className="mt-2 text-xs text-muted-foreground">
+            {/* collapsed hint */}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // --- Step 1: DAT upload
+  function Step1_DAT() {
+    const onFile = async (file: File) => {
+      const text = await file.text();
+      setDatContent(text);
+      markTouched(1);
+      goToStep(2);
+    };
+
+    return (
+      <Card className="rounded-2xl shadow-sm">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="w-5 h-5" />
+            DAT Dosyası
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              onClick={() => document.getElementById("datFileInput")?.click()}
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              DAT Yükle
+            </Button>
+            <input
+              id="datFileInput"
+              type="file"
+              accept=".dat,.txt"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) onFile(f);
               }}
-              className="bg-amber-600 text-white px-4 py-2 text-xs font-black uppercase tracking-widest hover:bg-amber-700 transition"
-            >
-              Mapping’i Atla (Sadece Toplam Doğru/Yanlış)
-            </button>
-          </div>
-        </div>
-      )}
-
-      {!isNoBooklet && skipMapping && (
-        <div className="bg-amber-50 p-4 border border-amber-200 rounded text-amber-900 text-sm flex gap-3">
-          <Info size={20} className="shrink-0" />
-          <div className="space-y-2">
-            <p><strong>Mapping atlandı.</strong> Soru analizi ve konu/ders analizi kapalı olacak.</p>
-            <button
-              onClick={() => setSkipMapping(false)}
-              className="bg-slate-900 text-white px-4 py-2 text-xs font-black uppercase tracking-widest hover:bg-black transition"
-            >
-              Atlamayı Kaldır (Mapping gireceğim)
-            </button>
-          </div>
-        </div>
-      )}
-
-      {!isNoBooklet && (
-        <>
-          <KeyVerificationPanel qCount={qCount} derivedKeys={derivedKeys} answerKeys={answerKeys} setAnswerKeys={setAnswerKeys} />
-
-          <div className="bg-white p-6 border-2 border-slate-100 shadow-sm space-y-4">
-            <h4 className="font-black text-slate-800 uppercase tracking-widest text-sm">Excel Tablosunu Yapıştır (Önerilen)</h4>
-            <p className="text-sm text-slate-600">
-              Excel tablosu: <span className="font-mono">A anahtar | B sıra | C sıra | D sıra | Soru No</span>
-            </p>
-
-            <textarea
-              className="w-full h-40 p-4 font-mono text-xs border-2 border-slate-100 bg-slate-50 focus:bg-white focus:border-slate-800 outline-none transition-all"
-              placeholder="Excel tablosunu buraya yapıştır..."
-              value={tableText}
-              onChange={e => setTableText(e.target.value)}
             />
+            <Button
+              variant="ghost"
+              onClick={() => {
+                navigator.clipboard.writeText(datContent || "");
+              }}
+              disabled={!datContent}
+            >
+              <Clipboard className="w-4 h-4 mr-2" />
+              Kopyala
+            </Button>
+          </div>
 
-            <button onClick={applyTable} className="bg-slate-900 text-white px-8 py-3 text-xs font-black uppercase tracking-widest hover:bg-black transition-all shadow-lg">
-              Tabloyu Oku ve Uygula
-            </button>
+          <div className="space-y-2">
+            <Label>Ham İçerik (opsiyonel)</Label>
+            <Textarea
+              value={datContent}
+              onChange={(e) => {
+                setDatContent(e.target.value);
+                markTouched(1);
+              }}
+              placeholder="DAT içeriğini buraya yapıştırabilirsiniz..."
+              className="min-h-[140px]"
+            />
+          </div>
+
+          {datContent && (
+            <Alert>
+              <Info className="w-4 h-4" />
+              <AlertTitle>Yüklendi</AlertTitle>
+              <AlertDescription>
+                {datContent.split(/\r?\n/).filter((l) => l.trim()).length} satır okundu.
+              </AlertDescription>
+            </Alert>
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // --- Step 2: Design Management
+  function Step2_Profile() {
+    const firstLine = useMemo(() => {
+      const line = (datContent || "").split(/\r?\n/).find((l) => l.trim());
+      return line || "";
+    }, [datContent]);
+
+    const sample = useMemo(() => {
+      if (!firstLine) return null;
+      const name = firstLine.substring(profile.nameStart - 1, profile.nameStart - 1 + profile.nameLen).trim();
+      const id = firstLine.substring(profile.idStart - 1, profile.idStart - 1 + profile.idLen).trim();
+      const booklet = profile.noBooklet || profile.bookletPos <= 0
+        ? "(yok)"
+        : firstLine.substring(profile.bookletPos - 1, profile.bookletPos).trim().toUpperCase();
+      const answers = cleanVal(firstLine.substring(profile.answersStart - 1).trim()).slice(0, questionCount);
+      return { name, id, booklet, answers };
+    }, [firstLine, profile, questionCount]);
+
+    const collisions = useMemo(() => {
+      const ranges = [
+        { name: "Ad Soyad", start: profile.nameStart, end: profile.nameStart + profile.nameLen - 1 },
+        { name: "No", start: profile.idStart, end: profile.idStart + profile.idLen - 1 },
+        ...(profile.noBooklet || profile.bookletPos <= 0
+          ? []
+          : [{ name: "Kitapçık", start: profile.bookletPos, end: profile.bookletPos }]),
+        { name: "Cevaplar", start: profile.answersStart, end: profile.answersStart + questionCount - 1 },
+      ];
+      return detectOverlap(ranges);
+    }, [profile, questionCount]);
+
+    return (
+      <Card className="rounded-2xl shadow-sm">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Settings2 className="w-5 h-5" />
+            Dizayn Yönetimi
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {collisions.length > 0 && (
+            <Alert variant="destructive">
+              <AlertCircle className="w-4 h-4" />
+              <AlertTitle>Çakışma var</AlertTitle>
+              <AlertDescription>
+                Alanlar çakışıyor:{" "}
+                {collisions.map((c, i) => (
+                  <span key={i} className="font-medium">
+                    {c.a} ↔ {c.b}{" "}
+                  </span>
+                ))}
+                <div className="mt-2 text-xs opacity-90">
+                  İlk DAT satırı: <span className="font-mono break-all">{firstLine || "(boş)"}</span>
+                </div>
+              </AlertDescription>
+            </Alert>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Ad Soyad Başlangıç</Label>
+              <Input
+                type="number"
+                value={profile.nameStart}
+                onChange={(e) => {
+                  setProfile((p: any) => ({ ...p, nameStart: clampInt(parseInt(e.target.value, 10), 1, 999) }));
+                  markTouched(2);
+                }}
+              />
+              {sample && <div className="text-xs"><span className="text-muted-foreground">Örnek:</span> <span className="font-semibold text-emerald-600">{sample.name}</span></div>}
+            </div>
+
+            <div className="space-y-2">
+              <Label>Ad Soyad Uzunluk</Label>
+              <Input
+                type="number"
+                value={profile.nameLen}
+                onChange={(e) => {
+                  setProfile((p: any) => ({ ...p, nameLen: clampInt(parseInt(e.target.value, 10), 1, 200) }));
+                  markTouched(2);
+                }}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>No Başlangıç</Label>
+              <Input
+                type="number"
+                value={profile.idStart}
+                onChange={(e) => {
+                  setProfile((p: any) => ({ ...p, idStart: clampInt(parseInt(e.target.value, 10), 1, 999) }));
+                  markTouched(2);
+                }}
+              />
+              {sample && <div className="text-xs"><span className="text-muted-foreground">Örnek:</span> <span className="font-semibold text-sky-600">{sample.id}</span></div>}
+            </div>
+
+            <div className="space-y-2">
+              <Label>No Uzunluk</Label>
+              <Input
+                type="number"
+                value={profile.idLen}
+                onChange={(e) => {
+                  setProfile((p: any) => ({ ...p, idLen: clampInt(parseInt(e.target.value, 10), 1, 50) }));
+                  markTouched(2);
+                }}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label>Kitapçık Yok</Label>
+                <Switch
+                  checked={profile.noBooklet}
+                  onCheckedChange={(v) => {
+                    setProfile((p: any) => ({ ...p, noBooklet: v }));
+                    markTouched(2);
+                  }}
+                />
+              </div>
+              {!profile.noBooklet && (
+                <>
+                  <Label>Kitapçık Pozisyonu</Label>
+                  <Input
+                    type="number"
+                    value={profile.bookletPos}
+                    onChange={(e) => {
+                      setProfile((p: any) => ({ ...p, bookletPos: clampInt(parseInt(e.target.value, 10), 1, 999) }));
+                      markTouched(2);
+                    }}
+                  />
+                  {sample && <div className="text-xs"><span className="text-muted-foreground">Örnek:</span> <span className="font-semibold text-violet-600">{sample.booklet}</span></div>}
+                </>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label>Cevaplar Başlangıç</Label>
+              <Input
+                type="number"
+                value={profile.answersStart}
+                onChange={(e) => {
+                  setProfile((p: any) => ({ ...p, answersStart: clampInt(parseInt(e.target.value, 10), 1, 999) }));
+                  markTouched(2);
+                }}
+              />
+              {sample && (
+                <div className="text-xs">
+                  <span className="text-muted-foreground">Örnek:</span>{" "}
+                  <span className="font-mono text-amber-700 break-all">{sample.answers}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label>Soru Sayısı</Label>
+              <Input
+                type="number"
+                value={profile.questionCount}
+                onChange={(e) => {
+                  setProfile((p: any) => ({ ...p, questionCount: clampInt(parseInt(e.target.value, 10), 1, 300) }));
+                  markTouched(2);
+                }}
+              />
+            </div>
           </div>
 
           <div className="flex gap-2">
-            {booklets.map(b => (
-              <button
-                key={b}
-                onClick={() => setActiveFrom(b)}
-                className={`px-8 py-3 font-bold text-xs uppercase tracking-widest border-2 transition-all ${
-                  activeFrom === b ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-500 border-slate-100 hover:border-slate-300'
-                }`}
-              >
-                {b} Kitapçığı
-              </button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (datContent) parseDat(datContent);
+                goToStep(3);
+              }}
+              disabled={!datContent}
+            >
+              <Wand2 className="w-4 h-4 mr-2" />
+              Uygula & Devam
+            </Button>
+          </div>
+
+          {students.length > 0 && (
+            <Alert>
+              <CheckCircle2 className="w-4 h-4" />
+              <AlertTitle>Okundu</AlertTitle>
+              <AlertDescription>
+                {students.length} öğrenci bulundu. Kitapçık dağılımı:{" "}
+                {(["A", "B", "C", "D"] as Booklet[])
+                  .map((b) => `${b}:${students.filter((s) => s.booklet === b).length}`)
+                  .join("  ")}
+              </AlertDescription>
+            </Alert>
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // --- Step 3: Answer keys (with derived preview + diff)
+  function Step3_AnswerKeys() {
+    const updateKey = (booklet: Booklet, text: string) => {
+      setAnswerKeys((prev) =>
+        prev.map((k) => (k.booklet === booklet ? { ...k, answers: cleanVal(text) } : k))
+      );
+      markTouched(3);
+    };
+
+    const canShowDerived = (booklet: Exclude<Booklet, "A">) => {
+      return cleanVal(aKey).length === questionCount && !!mappingByBooklet.get(booklet);
+    };
+
+    const renderKeyPanel = (b: Booklet) => {
+      const loaded = answerKeys.find((k) => k.booklet === b)?.answers || "";
+      const derived = (b !== "A" ? derivedKeys[b] : undefined) || "";
+      const showCompare = b !== "A" && canShowDerived(b as Exclude<Booklet, "A">);
+
+      const diff = showCompare && cleanVal(loaded).length === questionCount
+        ? diffKeys(loaded, derived)
+        : null;
+
+      return (
+        <div className="space-y-3">
+          <div className="space-y-2">
+            <Label>{b} Kitapçık Anahtarı</Label>
+            <Textarea
+              value={loaded}
+              onChange={(e) => updateKey(b, e.target.value)}
+              placeholder={`${b} anahtarını yapıştırın (A-E, *, #)...`}
+              className="min-h-[120px] font-mono"
+            />
+            <div className="text-xs text-muted-foreground">
+              Uzunluk: {cleanVal(loaded).length} / {questionCount}
+            </div>
+          </div>
+
+          {showCompare && (
+            <div className="space-y-2 rounded-xl border p-3 bg-muted/40">
+              <div className="flex items-center justify-between">
+                <div className="text-sm font-semibold">Mapping’e göre oluşan {b} anahtarı</div>
+                <Badge variant="secondary">{(derived || "").length}/{questionCount}</Badge>
+              </div>
+              <Textarea
+                value={derived || ""}
+                readOnly
+                className="min-h-[120px] font-mono"
+              />
+              {diff && (
+                <Alert variant={diff.mismatch === 0 ? "default" : "destructive"}>
+                  {diff.mismatch === 0 ? <CheckCircle2 className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
+                  <AlertTitle>
+                    {diff.mismatch === 0
+                      ? "Yüklenen anahtar mapping ile birebir aynı"
+                      : `Uyumsuzluk var: ${diff.match}/${questionCount} eşleşti`}
+                  </AlertTitle>
+                  {diff.mismatch !== 0 && (
+                    <AlertDescription className="text-xs">
+                      İlk farklar:{" "}
+                      {diff.firstDiff.map((d, i) => (
+                        <span key={i} className="font-mono">
+                          #{d.idx}:{d.a}≠{d.b}{" "}
+                        </span>
+                      ))}
+                    </AlertDescription>
+                  )}
+                </Alert>
+              )}
+              {!cleanVal(loaded) && (
+                <div className="text-xs text-muted-foreground">
+                  (İsterseniz B/C/D anahtarını hiç girmeyin — mapping ile otomatik üretilebilir.)
+                </div>
+              )}
+            </div>
+          )}
+
+          {b !== "A" && !showCompare && (
+            <Alert>
+              <Info className="w-4 h-4" />
+              <AlertTitle>Not</AlertTitle>
+              <AlertDescription className="text-sm">
+                Bu kitapçık için mapping yoksa/eksikse, bu kitapçığın anahtarıyla değerlendirme yapılır.
+                Mapping girerseniz sistem otomatik {b} anahtarını üretecek ve burada gösterecektir.
+              </AlertDescription>
+            </Alert>
+          )}
+        </div>
+      );
+    };
+
+    const availableTabs: Booklet[] = profile.noBooklet ? ["A"] : ["A", "B", "C", "D"];
+
+    return (
+      <Card className="rounded-2xl shadow-sm">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BookOpen className="w-5 h-5" />
+            Cevap Anahtarları
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Tabs value={activeKeyBooklet} onValueChange={(v) => setActiveKeyBooklet(v as Booklet)}>
+            <TabsList className="w-full justify-start">
+              {availableTabs.map((b) => (
+                <TabsTrigger key={b} value={b}>
+                  {b}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+
+            {availableTabs.map((b) => (
+              <TabsContent key={b} value={b} className="mt-4">
+                {renderKeyPanel(b)}
+              </TabsContent>
+            ))}
+          </Tabs>
+
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => goToStep(4)}
+              disabled={cleanVal(aKey).length !== questionCount || questionCount === 0}
+            >
+              Devam (Mapping)
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // --- Step 4: Mapping
+  function Step4_Mapping() {
+    const apply = () => {
+      markTouched(4);
+
+      if (!usedNonA.length) {
+        setMappings([]);
+        return;
+      }
+
+      if (mappingMode === "table") {
+        const parsed = parseMappingFromTableText(mappingPaste, questionCount);
+        if (parsed.warnings.length) {
+          // warnings shown in UI below
+        }
+        // sadece kullanılan kitapçıkları al (B/C/D)
+        const filtered = parsed.mappings.filter((m) => usedNonA.includes(m.fromBooklet));
+        setMappings(filtered);
+      } else {
+        const order = parseMappingFromListText(mappingPaste, questionCount);
+        if (!order) return;
+        setMappings((prev) => {
+          const rest = prev.filter((m) => m.fromBooklet !== mappingBookletForList);
+          return [
+            ...rest,
+            {
+              fromBooklet: mappingBookletForList,
+              order,
+              source: "list",
+            },
+          ];
+        });
+      }
+    };
+
+    const tableParsePreview = useMemo(() => {
+      if (mappingMode !== "table") return null;
+      if (!mappingPaste.trim()) return null;
+      return parseMappingFromTableText(mappingPaste, questionCount);
+    }, [mappingMode, mappingPaste, questionCount]);
+
+    const mappingSummary = useMemo(() => {
+      const rows = (["B", "C", "D"] as const).map((b) => {
+        const m = mappingByBooklet.get(b);
+        return {
+          b,
+          ok: !!m && m.order.length === questionCount && isPermutation1toN(m.order, questionCount),
+          source: m?.source || "-",
+        };
+      });
+      return rows;
+    }, [mappingByBooklet, questionCount]);
+
+    return (
+      <Card className="rounded-2xl shadow-sm">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Wand2 className="w-5 h-5" />
+            Kitapçık Mapping
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {usedNonA.length === 0 ? (
+            <Alert>
+              <Info className="w-4 h-4" />
+              <AlertTitle>Mapping gerekmiyor</AlertTitle>
+              <AlertDescription>
+                Bu DAT içinde sadece A kitapçık var.
+              </AlertDescription>
+            </Alert>
+          ) : (
+            <Alert>
+              <Info className="w-4 h-4" />
+              <AlertTitle>Atlayabilirsiniz</AlertTitle>
+              <AlertDescription className="text-sm">
+                Mapping girmezseniz: <b>her kitapçık kendi anahtarıyla</b> puanlanır. <br />
+                Mapping girerseniz: tüm kitapçıklar <b>A sırasına normalize</b> edilip tek analizde birleşir ve
+                sistem B/C/D anahtarlarını otomatik üretip karşılaştırır.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {usedNonA.length > 0 && (
+            <>
+              <div className="flex flex-col md:flex-row gap-3 md:items-end">
+                <div className="space-y-2">
+                  <Label>Mapping Girişi</Label>
+                  <Select value={mappingMode} onValueChange={(v) => setMappingMode(v as any)}>
+                    <SelectTrigger className="w-[260px]">
+                      <SelectValue placeholder="Seçin" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="table">Excel tablo (A→B/C/D sıra)</SelectItem>
+                      <SelectItem value="list">Sıra listesi (B sıra→A soru no)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {mappingMode === "list" && (
+                  <div className="space-y-2">
+                    <Label>Hangi kitapçık?</Label>
+                    <Select
+                      value={mappingBookletForList}
+                      onValueChange={(v) => setMappingBookletForList(v as any)}
+                    >
+                      <SelectTrigger className="w-[120px]">
+                        <SelectValue placeholder="B" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="B">B</SelectItem>
+                        <SelectItem value="C">C</SelectItem>
+                        <SelectItem value="D">D</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label>
+                  {mappingMode === "table"
+                    ? "Excel mapping tablosunu buraya yapıştırın"
+                    : "B/C/D için sıra listesini (1..N permütasyon) yapıştırın"}
+                </Label>
+                <Textarea
+                  value={mappingPaste}
+                  onChange={(e) => {
+                    setMappingPaste(e.target.value);
+                    markTouched(4);
+                  }}
+                  className="min-h-[160px] font-mono"
+                  placeholder={
+                    mappingMode === "table"
+                      ? "A anahtar  B kitapçık sıra  C kitapçık sıra  D kitapçık sıra  Soru No ..."
+                      : "Örn: 5 1 2 3 4 ... (toplam N sayı)"
+                  }
+                />
+              </div>
+
+              <div className="flex gap-2">
+                <Button onClick={apply}>
+                  Uygula
+                </Button>
+                <Button variant="outline" onClick={() => goToStep(5)}>
+                  Devam
+                </Button>
+              </div>
+
+              {tableParsePreview?.warnings?.length ? (
+                <Alert variant="destructive">
+                  <AlertCircle className="w-4 h-4" />
+                  <AlertTitle>Mapping uyarısı</AlertTitle>
+                  <AlertDescription className="text-sm">
+                    {tableParsePreview.warnings.map((w, i) => (
+                      <div key={i}>• {w}</div>
+                    ))}
+                  </AlertDescription>
+                </Alert>
+              ) : null}
+
+              <div className="rounded-xl border p-3">
+                <div className="font-semibold mb-2">Mapping Durumu</div>
+                <div className="flex flex-wrap gap-2">
+                  {mappingSummary.map((r) => (
+                    <Badge key={r.b} variant={r.ok ? "default" : "secondary"}>
+                      {r.b}: {r.ok ? "OK" : "Yok/Eksik"} ({r.source})
+                    </Badge>
+                  ))}
+                </div>
+                {!mappingCoverageComplete && usedNonA.length > 0 && (
+                  <div className="text-xs text-muted-foreground mt-2">
+                    Mapping eksikse, global soru analizi (A’ya normalize) kısıtlı olur.
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // --- Step 5: Subjects (optional)
+  function Step5_Subjects() {
+    const addSubject = () => {
+      setSubjects((prev) => [
+        ...prev,
+        { name: `Ders ${prev.length + 1}`, start: 1, end: questionCount },
+      ]);
+      markTouched(5);
+    };
+
+    const update = (idx: number, patch: Partial<Subject>) => {
+      setSubjects((prev) => prev.map((s, i) => (i === idx ? { ...s, ...patch } : s)));
+      markTouched(5);
+    };
+
+    const remove = (idx: number) => {
+      setSubjects((prev) => prev.filter((_, i) => i !== idx));
+      markTouched(5);
+    };
+
+    return (
+      <Card className="rounded-2xl shadow-sm">
+        <CardHeader>
+          <CardTitle>Ders / Test Bölümleri (Opsiyonel)</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Alert>
+            <Info className="w-4 h-4" />
+            <AlertTitle>Atlanabilir</AlertTitle>
+            <AlertDescription>
+              Ders/test bölümü girmediğinizde analiz “tek test” gibi çalışır.
+            </AlertDescription>
+          </Alert>
+
+          <div className="space-y-3">
+            {subjects.map((s, idx) => (
+              <div key={idx} className="rounded-xl border p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <Input
+                    value={s.name}
+                    onChange={(e) => update(idx, { name: e.target.value })}
+                    className="max-w-[260px]"
+                  />
+                  <Button variant="ghost" onClick={() => remove(idx)}>
+                    Sil
+                  </Button>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label>Başlangıç</Label>
+                    <Input
+                      type="number"
+                      value={s.start}
+                      onChange={(e) => update(idx, { start: clampInt(parseInt(e.target.value, 10), 1, questionCount) })}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label>Bitiş</Label>
+                    <Input
+                      type="number"
+                      value={s.end}
+                      onChange={(e) => update(idx, { end: clampInt(parseInt(e.target.value, 10), 1, questionCount) })}
+                    />
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
 
-          <div className="bg-white p-6 border-2 border-slate-100 shadow-sm space-y-6">
-            <h4 className="font-black text-slate-800 uppercase tracking-widest text-sm underline decoration-[#3498db] decoration-4">
-              A → {activeFrom} Mapping (Soru Sırası)
-            </h4>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={addSubject}>
+              Ekle
+            </Button>
+            <Button variant="outline" onClick={() => goToStep(6)}>
+              Devam
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
+  // --- Step 6: Scoring
+  function Step6_Scoring() {
+    const update = (patch: Partial<Scoring>) => {
+      setScoring((prev) => ({ ...prev, ...patch }));
+      markTouched(6);
+    };
+
+    return (
+      <Card className="rounded-2xl shadow-sm">
+        <CardHeader>
+          <CardTitle>Puanlama</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Alert>
+            <Info className="w-4 h-4" />
+            <AlertTitle>Varsayılanlar hazır</AlertTitle>
+            <AlertDescription>
+              Doğru=1, Yanlış=-0.25, Boş=0, Maks=100. Değiştirmek isterseniz buradan ayarlayın.
+            </AlertDescription>
+          </Alert>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="space-y-2">
-              <label className="block text-xs font-bold text-slate-500 uppercase">Toplu Liste Yapıştır</label>
-              <textarea
-                className="w-full h-32 p-4 font-mono text-sm border-2 border-slate-100 bg-slate-50 focus:bg-white focus:border-slate-800 outline-none transition-all"
-                placeholder={`Örn: 12 13 14 ... (A soru 1→${activeFrom} kaçıncı soru?)`}
-                value={bulkText}
-                onChange={e => setBulkText(e.target.value)}
+              <Label>Doğru</Label>
+              <Input
+                type="number"
+                value={scoring.correct}
+                onChange={(e) => update({ correct: parseFloat(e.target.value) })}
               />
-              <button onClick={applyBulk} className="bg-emerald-600 text-white px-8 py-3 text-xs font-black uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-lg">
-                Eşleştirmeyi Uygula
-              </button>
             </div>
-
-            {currentMapping && (
-              <div className="grid grid-cols-5 md:grid-cols-10 gap-2 pt-4 border-t">
-                {currentMapping.aToOrder.slice(0, 50).map((xNum, idx) => (
-                  <div key={idx} className="bg-slate-50 p-2 border border-slate-200 text-center">
-                    <div className="text-[10px] text-slate-400 font-bold mb-1">A {idx + 1}</div>
-                    <div className="font-extrabold text-slate-800">
-                      {activeFrom} {xNum}
-                    </div>
-                  </div>
-                ))}
-                {currentMapping.aToOrder.length > 50 && (
-                  <div className="col-span-full text-xs text-slate-500 italic">Önizleme ilk 50 soru gösteriliyor.</div>
-                )}
-              </div>
-            )}
+            <div className="space-y-2">
+              <Label>Yanlış</Label>
+              <Input
+                type="number"
+                value={scoring.wrong}
+                onChange={(e) => update({ wrong: parseFloat(e.target.value) })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Boş</Label>
+              <Input
+                type="number"
+                value={scoring.blank}
+                onChange={(e) => update({ blank: parseFloat(e.target.value) })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Maks Puan</Label>
+              <Input
+                type="number"
+                value={scoring.maxScore}
+                onChange={(e) => update({ maxScore: parseFloat(e.target.value) })}
+              />
+            </div>
           </div>
-        </>
-      )}
-    </div>
-  );
-}
 
-function Step5Subjects(props: {
-  subjects: SubjectRange[];
-  setSubjects: (s: SubjectRange[]) => void;
-
-  skipSubjects: boolean;
-  setSkipSubjects: (v: boolean) => void;
-}) {
-  const { subjects, setSubjects, skipSubjects, setSkipSubjects } = props;
-
-  const [newName, setNewName] = useState('');
-  const [newStart, setNewStart] = useState(1);
-  const [newEnd, setNewEnd] = useState(10);
-
-  const addSubject = () => {
-    if (!newName) return;
-    setSubjects([...subjects, { name: newName, start: newStart, end: newEnd }]);
-    setNewName('');
-    setSkipSubjects(false);
-  };
-
-  const removeSubject = (idx: number) => {
-    setSubjects(subjects.filter((_, i) => i !== idx));
-  };
-
-  return (
-    <div className="space-y-6">
-      {subjects.length === 0 && !skipSubjects && (
-        <div className="bg-amber-50 p-4 border border-amber-200 rounded text-amber-900 text-sm flex items-start gap-3">
-          <Info size={18} className="shrink-0 mt-0.5" />
-          <div className="space-y-2">
-            <p>Bu adım isteğe bağlı. Ders/konu analizi istemiyorsan atlayabilirsin.</p>
-            <button
-              onClick={() => {
-                setSkipSubjects(true);
-                toast.info('Konu/Ders tanımı atlandı.');
-              }}
-              className="bg-amber-600 text-white px-4 py-2 text-xs font-black uppercase tracking-widest hover:bg-amber-700 transition"
-            >
-              Konu Tanımlamayı Atla
-            </button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => goToStep(7)}>
+              Analize Geç
+            </Button>
           </div>
-        </div>
-      )}
+        </CardContent>
+      </Card>
+    );
+  }
 
-      {skipSubjects && (
-        <div className="bg-amber-50 p-4 border border-amber-200 rounded text-amber-900 text-sm flex items-start gap-3">
-          <Info size={18} className="shrink-0 mt-0.5" />
-          <div className="space-y-2">
-            <p><strong>Bu adım atlandı.</strong> Ders/Konu bazlı netler raporda görünmeyecek.</p>
-            <button
-              onClick={() => setSkipSubjects(false)}
-              className="bg-slate-900 text-white px-4 py-2 text-xs font-black uppercase tracking-widest hover:bg-black transition"
-            >
-              Atlamayı Kaldır
-            </button>
-          </div>
-        </div>
-      )}
+  // --- Step 7: Analysis (Step7Analysis’i “boş çıkmasın” diye guard’lı bıraktım)
+  function Step7_Analysis() {
+    const aLen = cleanVal(aKey).length;
 
-      <div className="bg-slate-50 p-6 border-2 border-slate-200 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-        <div className="md:col-span-2">
-          <label className="block text-xs font-black text-slate-500 uppercase mb-2">Ders / Konu Adı</label>
-          <input
-            type="text"
-            value={newName}
-            onChange={e => setNewName(e.target.value)}
-            className="w-full p-3 border-2 border-white outline-none focus:border-slate-800 font-bold"
-            placeholder="Örn: Patoloji"
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-black text-slate-500 uppercase mb-2">Başlangıç Soru</label>
-          <input type="number" value={newStart} onChange={e => setNewStart(Number(e.target.value))} className="w-full p-3 border-2 border-white outline-none focus:border-slate-800 font-bold" />
-        </div>
-        <div>
-          <label className="block text-xs font-black text-slate-500 uppercase mb-2">Bitiş Soru</label>
-          <input type="number" value={newEnd} onChange={e => setNewEnd(Number(e.target.value))} className="w-full p-3 border-2 border-white outline-none focus:border-slate-800 font-bold" />
-        </div>
-        <button onClick={addSubject} className="md:col-span-4 bg-slate-900 text-white p-4 text-xs font-black uppercase tracking-widest hover:bg-black transition-all">
-          Listeye Ekle
-        </button>
-      </div>
+    if (!students.length) {
+      return (
+        <Alert variant="destructive">
+          <AlertCircle className="w-4 h-4" />
+          <AlertTitle>Öğrenci yok</AlertTitle>
+          <AlertDescription>Önce DAT yükleyin ve dizaynı ayarlayın.</AlertDescription>
+        </Alert>
+      );
+    }
 
-      <div className="space-y-2">
-        {subjects.map((s, i) => (
-          <div key={i} className="flex justify-between items-center p-4 bg-white border-2 border-slate-100 hover:border-slate-300 transition-all">
-            <div className="flex items-center gap-6">
-              <div className="bg-slate-900 text-white w-10 h-10 flex items-center justify-center font-black">{i + 1}</div>
-              <div>
-                <div className="font-black text-slate-800 uppercase tracking-tight">{s.name}</div>
-                <div className="text-xs text-slate-400 font-bold">
-                  A Kitapçığı Soru Aralığı: {s.start} - {s.end}
-                </div>
+    if (aLen !== questionCount) {
+      return (
+        <Alert variant="destructive">
+          <AlertCircle className="w-4 h-4" />
+          <AlertTitle>A Anahtarı Eksik</AlertTitle>
+          <AlertDescription>
+            A anahtar uzunluğu {aLen}. Beklenen {questionCount}.
+          </AlertDescription>
+        </Alert>
+      );
+    }
+
+    if (!canDoGlobalQuestionAnalysis) {
+      return (
+        <Alert>
+          <Info className="w-4 h-4" />
+          <AlertTitle>Analiz Kısıtlı Mod</AlertTitle>
+          <AlertDescription>
+            Mapping eksik/bozuk olduğu için tüm kitapçıkları A sırasına normalize eden soru bazlı analiz kısıtlıdır.
+            Puanlama yine yapılır (kitapçık anahtarlarıyla).
+          </AlertDescription>
+        </Alert>
+      );
+    }
+
+    // Score distribution (NaN-safe)
+    const ranges = [
+      { label: "0–20", count: 0 },
+      { label: "20–40", count: 0 },
+      { label: "40–60", count: 0 },
+      { label: "60–80", count: 0 },
+      { label: "80–100", count: 0 },
+    ];
+
+    for (const r of results) {
+      const s = Number.isFinite(r.score) ? r.score : 0;
+      const idx = clampInt(Math.floor(s / 20), 0, 4);
+      ranges[idx].count++;
+    }
+
+    const maxCount = Math.max(1, ...ranges.map((r) => r.count));
+    const top = [...results].sort((a, b) => b.score - a.score).slice(0, 10);
+
+    return (
+      <div className="space-y-4">
+        <Card className="rounded-2xl">
+          <CardHeader>
+            <CardTitle>Özet</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="rounded-xl border p-3">
+              <div className="text-xs text-muted-foreground">Öğrenci</div>
+              <div className="text-2xl font-semibold">{results.length}</div>
+            </div>
+            <div className="rounded-xl border p-3">
+              <div className="text-xs text-muted-foreground">Soru</div>
+              <div className="text-2xl font-semibold">{questionCount}</div>
+            </div>
+            <div className="rounded-xl border p-3">
+              <div className="text-xs text-muted-foreground">Mapping</div>
+              <div className="text-2xl font-semibold">
+                {mappingCoverageComplete ? "OK" : "Eksik"}
               </div>
             </div>
-            <button onClick={() => removeSubject(i)} className="text-rose-500 hover:bg-rose-50 p-2 rounded transition-colors">
-              <XCircle size={20} />
-            </button>
-          </div>
-        ))}
-        {subjects.length === 0 && !skipSubjects && (
-          <div className="p-12 text-center text-slate-400 italic bg-white border-2 border-dashed border-slate-100">Henüz ders tanımlanmadı.</div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function Step6Scoring(props: { scoring: ScoringConfig; setScoring: (s: ScoringConfig) => void }) {
-  const { scoring, setScoring } = props;
-
-  return (
-    <div className="space-y-8 max-w-4xl">
-      <h4 className="font-extrabold text-slate-900 uppercase tracking-widest text-sm mb-6 border-b-4 border-slate-900 pb-2 inline-block">Puanlama Kriterleri</h4>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="p-8 border-2 border-slate-100 bg-slate-50 hover:border-[#3498db] transition-colors relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-            <Calculator size={64} />
-          </div>
-          <label className="block font-black mb-3 text-xs uppercase tracking-widest text-[#3498db]">Toplam Sınav Puanı</label>
-          <input
-            type="number"
-            className="w-full p-4 border-2 border-white focus:border-[#3498db] focus:ring-4 focus:ring-sky-100 outline-none transition-all font-black text-3xl bg-white shadow-sm"
-            value={scoring.totalScore}
-            onChange={e => setScoring({ ...scoring, totalScore: Number(e.target.value) })}
-          />
-        </div>
-
-        <div className="p-8 border-2 border-slate-100 bg-slate-50 hover:border-[#3498db] transition-colors relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-            <CheckCircle size={64} />
-          </div>
-          <label className="block font-black mb-3 text-xs uppercase tracking-widest text-[#3498db]">Net Hesabı</label>
-          <div className="flex items-center gap-4 mt-2">
-            <label className="flex items-center gap-4 cursor-pointer group/chk">
-              <input
-                type="checkbox"
-                checked={scoring.penalty}
-                onChange={e => setScoring({ ...scoring, penalty: e.target.checked })}
-                className="w-8 h-8 accent-[#3498db]"
-              />
-              <span className="font-bold text-lg text-slate-800 group-hover/chk:text-[#3498db] transition-colors">4 Yanlış 1 Doğruyu Götürür</span>
-            </label>
-          </div>
-        </div>
-      </div>
-
-      <div className="p-8 border-2 border-slate-100 bg-slate-50 hover:border-[#3498db] transition-colors">
-        <label className="block font-black mb-6 text-xs uppercase tracking-widest text-[#3498db]">İptal Edilen Soru Davranışı</label>
-        <div className="flex flex-wrap gap-4">
-          <button
-            onClick={() => setScoring({ ...scoring, cancelMode: 'count' })}
-            className={`px-8 py-4 font-black text-xs uppercase tracking-[0.2em] border-2 transition-all shadow-sm ${
-              scoring.cancelMode === 'count' ? 'bg-slate-900 text-white border-slate-900 scale-105' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-900'
-            }`}
-          >
-            İptal Soruyu Sayma
-          </button>
-          <button
-            onClick={() => setScoring({ ...scoring, cancelMode: 'correct' })}
-            className={`px-8 py-4 font-black text-xs uppercase tracking-[0.2em] border-2 transition-all shadow-sm ${
-              scoring.cancelMode === 'correct' ? 'bg-slate-900 text-white border-slate-900 scale-105' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-900'
-            }`}
-          >
-            Herkese Doğru Kabul Et
-          </button>
-        </div>
-      </div>
-
-      <div className="p-8 border-2 border-slate-100 bg-slate-50 hover:border-[#3498db] transition-colors">
-        <label className="block font-black mb-6 text-xs uppercase tracking-widest text-[#3498db]">Geçersiz (*) Cevap Davranışı</label>
-        <div className="flex flex-wrap gap-4">
-          <button
-            onClick={() => setScoring({ ...scoring, invalidMode: 'wrong' })}
-            className={`px-8 py-4 font-black text-xs uppercase tracking-[0.2em] border-2 transition-all shadow-sm ${
-              scoring.invalidMode === 'wrong' ? 'bg-slate-900 text-white border-slate-900 scale-105' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-900'
-            }`}
-          >
-            Yanlış Say (Nete Dahil)
-          </button>
-          <button
-            onClick={() => setScoring({ ...scoring, invalidMode: 'separate' })}
-            className={`px-8 py-4 font-black text-xs uppercase tracking-[0.2em] border-2 transition-all shadow-sm ${
-              scoring.invalidMode === 'separate' ? 'bg-slate-900 text-white border-slate-900 scale-105' : 'bg-white text-slate-600 border-slate-200 hover:border-slate-900'
-            }`}
-          >
-            Ayrı Say (Nete Dahil Etme)
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Step7Analysis aynen kalabilir (önceki sürümdeki gibi) — burada kısaltmak için dokunmadım.
-// Senin projede zaten Step7Analysis fonksiyonu vardı; onu önceki mesajdaki sürümden aynen bırakabilirsin.
-// (Bu dosyayı tek parça tutuyorsan Step7Analysis’i önceki sürümden kopyala-yapıştır.)
-
-function Step7Analysis(props: any) {
-  // Bu fonksiyonun gövdesini önceki sürümden aynen kullan.
-  // (Kodu burada tekrar uzatmayayım diye placeholder bıraktım.)
-  return (
-    <div className="bg-amber-50 p-4 border border-amber-200 rounded text-amber-900 text-sm">
-      Step7Analysis bölümünü önceki sürümden aynen bırak.
-    </div>
-  );
-}
-
-// -----------------------------
-// Main Component
-// -----------------------------
-
-export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
-  const [currentStep, setCurrentStep] = useState<number>(1);
-
-  const [stepTouched, setStepTouched] = useState<Record<number, boolean>>({ 1: true });
-
-  const [skipMapping, setSkipMapping] = useState(false);
-  const [skipSubjects, setSkipSubjects] = useState(false);
-
-  const [profile, setProfile] = useState<Profile>(() => {
-    const saved = localStorage.getItem('online_test_analiz_profile');
-    return saved ? JSON.parse(saved) : DEFAULT_PROFILE;
-  });
-
-  const [datContent, setDatContent] = useState('');
-  const [encoding, setEncoding] = useState('utf-8');
-  const [students, setStudents] = useState<StudentRecord[]>([]);
-
-  const [answerKeys, setAnswerKeys] = useState<AnswerKey[]>([]);
-  const [mappings, setMappings] = useState<Mapping[]>([]);
-  const [subjects, setSubjects] = useState<SubjectRange[]>([]);
-  const [scoring, setScoring] = useState<ScoringConfig>({
-    totalScore: 100,
-    penalty: true,
-    cancelMode: 'count',
-    invalidMode: 'separate'
-  });
-
-  const [activeKeyBooklet, setActiveKeyBooklet] = useState<string>('A');
-
-  const stepHeaderRefs = useRef<Record<number, HTMLButtonElement | null>>({});
-
-  const sampleLine = useMemo(() => {
-    const l = datContent.split(/\r?\n/).find(x => x.trim().length > 0);
-    return l || '';
-  }, [datContent]);
-
-  const detectedQuestionCount = useMemo(() => {
-    if (!students.length) return 0;
-    return students[0]?.answers?.length || 0;
-  }, [students]);
-
-  const aKey = useMemo(() => {
-    return answerKeys.find(k => k.booklet === 'A')?.answers ?? null;
-  }, [answerKeys]);
-
-  const qCount = useMemo(() => {
-    const aLen = aKey?.length ?? 0;
-    return aLen || detectedQuestionCount || 0;
-  }, [aKey, detectedQuestionCount]);
-
-  useEffect(() => {
-    localStorage.setItem('online_test_analiz_profile', JSON.stringify(profile));
-  }, [profile]);
-
-  useEffect(() => {
-    if (!datContent) {
-      setStudents([]);
-      return;
-    }
-    parseDat(datContent, profile, setStudents);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [datContent, profile]);
-
-  useEffect(() => {
-    if (profile.noBooklet && activeKeyBooklet !== 'A') setActiveKeyBooklet('A');
-  }, [profile.noBooklet, activeKeyBooklet]);
-
-  const derivedKeys = useMemo(() => {
-    const out: Record<string, string | null> = { B: null, C: null, D: null };
-    if (!aKey || !qCount) return out;
-    (['B', 'C', 'D'] as const).forEach(bk => {
-      const map = mappings.find(m => m.fromBooklet === bk);
-      if (!map) return;
-      out[bk] = deriveBookletKeyFromA(aKey, map.aToOrder, qCount);
-    });
-    return out;
-  }, [aKey, mappings, qCount]);
-
-  const usedNonABooklets = useMemo(() => {
-    const set = new Set(students.map(s => s.booklet));
-    return Array.from(set).filter(b => b && b !== 'A');
-  }, [students]);
-
-  const missingMappings = useMemo(() => {
-    if (profile.noBooklet) return [];
-    return usedNonABooklets.filter(b => !mappings.some(m => m.fromBooklet === b));
-  }, [usedNonABooklets, mappings, profile.noBooklet]);
-
-  const canDoQuestionStats = useMemo(() => {
-    if (profile.noBooklet) return !!aKey;
-    if (!aKey || !qCount) return false;
-    if (missingMappings.length > 0) return false;
-    if (skipMapping) return false;
-    return true;
-  }, [profile.noBooklet, aKey, qCount, missingMappings, skipMapping]);
-
-  // RESULTS + Step7Analysis: önceki sürümdeki hesap kısmını aynen kullanabilirsin.
-  // Burada uzun tutmamak için results boş bıraktım (senin projede zaten vardı).
-  const results = useMemo<AnalysisResult[]>(() => {
-    // Bu bölümü önceki sürümden aynen kopyala (mapping/normalize + puan hesap).
-    return [];
-  }, []);
-
-  const getStepStatus = (stepId: number): StepStatus => {
-    const touched = !!stepTouched[stepId];
-
-    if (stepId === 1) return touched && datContent.trim().length > 0 ? 'done' : 'pending';
-    if (stepId === 2) return touched && students.length > 0 ? 'done' : 'pending';
-
-    if (stepId === 3) {
-      const a = answerKeys.find(k => k.booklet === 'A')?.answers || '';
-      return touched && a && qCount > 0 && a.length >= qCount ? 'done' : 'pending';
-    }
-
-    if (stepId === 4) {
-      if (profile.noBooklet) return touched ? 'done' : 'pending';
-      if (skipMapping) return touched ? 'skipped' : 'pending';
-      return touched && missingMappings.length === 0 ? 'done' : 'pending';
-    }
-
-    if (stepId === 5) {
-      if (skipSubjects) return touched ? 'skipped' : 'pending';
-      return touched && subjects.length > 0 ? 'done' : 'pending';
-    }
-
-    if (stepId === 6) {
-      return touched ? 'done' : 'pending';
-    }
-
-    if (stepId === 7) {
-      return touched ? 'done' : 'pending';
-    }
-
-    return 'pending';
-  };
-
-  const statuses = useMemo(() => {
-    return STEPS.map(s => ({ id: s.id, title: s.title, status: getStepStatus(s.id) }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stepTouched, datContent, students, answerKeys, qCount, profile.noBooklet, skipMapping, missingMappings, skipSubjects, subjects.length]);
-
-  const goToStep = (id: number) => {
-    setStepTouched(prev => ({ ...prev, [id]: true }));
-
-    setCurrentStep(prev => (prev === id ? 0 : id));
-
-    const doScroll = () => {
-      const btn = stepHeaderRefs.current[id];
-      if (!btn) return;
-      btn.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      window.scrollBy({ top: -110, left: 0, behavior: 'smooth' });
-    };
-
-    // 2 aşamalı: animasyon sonrası da hizala
-    setTimeout(doScroll, 30);
-    setTimeout(doScroll, 380);
-  };
-
-  return (
-    <PageContainer>
-      <div style={{ backgroundColor: '#1e293b' }} className="text-white p-10 mb-6 rounded-none border-l-8 border-[#3498db] shadow-2xl overflow-hidden relative">
-        <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
-          <Activity size={120} />
-        </div>
-        <div className="relative z-10">
-          <div className="flex items-center gap-4 mb-3">
-            <div style={{ backgroundColor: '#3498db' }} className="p-3 text-white font-black text-2xl uppercase tracking-widest shadow-lg">
-              OT
+            <div className="rounded-xl border p-3">
+              <div className="text-xs text-muted-foreground">Anahtar</div>
+              <div className="text-2xl font-semibold">A</div>
             </div>
-            <h1 className="text-4xl font-extrabold tracking-tight m-0 text-white drop-shadow-lg">ONLINE TEST SINAV ANALİZİ</h1>
-          </div>
-          <p className="text-slate-200 max-w-4xl text-lg font-medium leading-relaxed mb-4">
-            Hızlı, güvenilir ve tamamen tarayıcı tabanlı optik form analiz sistemi. Adımları takip ederek sonuçlarınızı anında raporlayın.
-          </p>
-          <div className="bg-slate-800/40 p-3 border-l-4 border-[#3498db] text-xs font-bold text-slate-300 inline-flex items-center gap-3">
-            <Info size={16} className="text-[#3498db] shrink-0" />
-            <span>Güvenlik Notu: Hiçbir veriniz internete gönderilmez. Tüm analizler tamamen tarayıcınızda yapılır.</span>
-          </div>
-        </div>
-      </div>
+          </CardContent>
+        </Card>
 
-      <div className="max-w-6xl mx-auto mb-4">
-        <StepTopBar statuses={statuses} currentStep={currentStep} onGo={goToStep} />
-      </div>
+        <Card className="rounded-2xl">
+          <CardHeader>
+            <CardTitle>Puan Dağılımı</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {ranges.map((r) => (
+              <div key={r.label} className="space-y-1">
+                <div className="flex justify-between text-sm">
+                  <span>{r.label}</span>
+                  <span className="text-muted-foreground">{r.count}</span>
+                </div>
+                <Progress value={(r.count / maxCount) * 100} />
+              </div>
+            ))}
+          </CardContent>
+        </Card>
 
-      <div className="max-w-6xl mx-auto space-y-3 pb-20">
-        {STEPS.map(step => {
-          const st = getStepStatus(step.id);
-          const badge =
-            st === 'done' ? (
-              <span className="text-[10px] font-bold bg-emerald-100 text-emerald-700 px-2 py-1 rounded uppercase tracking-wider">Tamamlandı</span>
-            ) : st === 'skipped' ? (
-              <span className="text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-1 rounded uppercase tracking-wider">Atlandı</span>
-            ) : null;
-
-          return (
-            <div key={step.id} className="bg-white border-2 border-slate-100 shadow-xl overflow-hidden rounded-sm transition-all duration-300 hover:border-slate-300">
-              <button
-                ref={el => {
-                  stepHeaderRefs.current[step.id] = el;
-                }}
-                onClick={() => goToStep(step.id)}
-                className={`w-full flex items-center justify-between p-5 text-left transition-colors ${currentStep === step.id ? 'bg-slate-50' : 'bg-white hover:bg-slate-50'}`}
-              >
-                <div className="flex items-center gap-5">
-                  <div
-                    style={currentStep === step.id ? { backgroundColor: '#1e293b', color: 'white' } : { backgroundColor: '#f1f5f9', color: '#64748b' }}
-                    className="p-3 rounded-none shadow-md transition-colors"
-                  >
-                    {st === 'done' && currentStep !== step.id ? <CheckCircle size={24} className="text-emerald-500" /> : React.cloneElement(step.icon as any, { size: 24 })}
-                  </div>
-                  <div>
-                    <div className="text-[10px] font-black uppercase tracking-[0.2em] text-[#3498db] mb-0.5">Adım {step.id}</div>
-                    <h2 className="text-xl font-bold text-slate-900 tracking-tight">{step.title}</h2>
+        <Card className="rounded-2xl">
+          <CardHeader>
+            <CardTitle>En Yüksek 10</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {top.map((r) => (
+              <div key={r.studentId} className="flex items-center justify-between rounded-xl border p-3">
+                <div>
+                  <div className="font-semibold">{r.name}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {r.studentId} • {r.booklet} • Doğru:{r.correct} Yanlış:{r.wrong} Boş:{r.blank}
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  {badge}
-                  <div className={`transition-transform duration-300 ${currentStep === step.id ? 'rotate-180' : ''}`}>
-                    <ChevronRight size={24} className="text-slate-400" />
-                  </div>
-                </div>
-              </button>
+                <Badge>{r.score.toFixed(2)}</Badge>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
 
-              <AnimatePresence>
-                {currentStep === step.id && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3, ease: 'easeInOut' }}
-                    className="border-t border-slate-100"
-                  >
-                    <div className="p-8 bg-white min-h-[300px] border-x-2 border-b-2 border-slate-200">
-                      {step.id === 1 && (
-                        <Step1DataEntry
-                          datContent={datContent}
-                          setDatContent={setDatContent}
-                          encoding={encoding}
-                          setEncoding={setEncoding}
-                          detectedQuestionCount={detectedQuestionCount}
-                        />
-                      )}
-
-                      {step.id === 2 && (
-                        <div className="space-y-12">
-                          <Step2Profile
-                            profile={profile}
-                            setProfile={setProfile}
-                            sampleLine={sampleLine}
-                            qCount={qCount}
-                            detectedQuestionCount={detectedQuestionCount}
-                          />
-                          <div className="border-t-4 border-slate-900 pt-12">
-                            <div className="flex justify-between items-center mb-6 flex-wrap gap-2">
-                              <h4 className="text-xl font-black text-slate-900 uppercase tracking-widest flex items-center gap-3">
-                                <Eye size={24} className="text-[#3498db]" /> Veri Ayrıştırma Önizlemesi
-                              </h4>
-                              <button onClick={() => goToStep(3)} className="bg-[#2ecc71] text-white px-8 py-3 text-xs font-black uppercase tracking-widest hover:bg-[#27ae60] transition-all shadow-lg">
-                                Dizaynı Kabul Et ve Devam Et
-                              </button>
-                            </div>
-                            <Step2Preview students={students} />
-                          </div>
-                        </div>
-                      )}
-
-                      {step.id === 3 && (
-                        <Step3AnswerKey
-                          profile={profile}
-                          detectedQuestionCount={detectedQuestionCount}
-                          answerKeys={answerKeys}
-                          setAnswerKeys={setAnswerKeys}
-                          qCount={qCount}
-                          derivedKeys={derivedKeys}
-                          activeBooklet={activeKeyBooklet}
-                          setActiveBooklet={setActiveKeyBooklet}
-                        />
-                      )}
-
-                      {step.id === 4 && (
-                        <Step4Mapping
-                          profile={profile}
-                          qCount={qCount}
-                          students={students}
-                          mappings={mappings}
-                          setMappings={setMappings}
-                          answerKeys={answerKeys}
-                          setAnswerKeys={setAnswerKeys}
-                          derivedKeys={derivedKeys}
-                          missingMappings={missingMappings}
-                          skipMapping={skipMapping}
-                          setSkipMapping={setSkipMapping}
-                        />
-                      )}
-
-                      {step.id === 5 && (
-                        <Step5Subjects
-                          subjects={subjects}
-                          setSubjects={setSubjects}
-                          skipSubjects={skipSubjects}
-                          setSkipSubjects={setSkipSubjects}
-                        />
-                      )}
-
-                      {step.id === 6 && <Step6Scoring scoring={scoring} setScoring={setScoring} />}
-
-                      {step.id === 7 && (
-                        <Step7Analysis
-                          results={results}
-                          students={students}
-                          subjects={subjects}
-                          scoring={scoring}
-                          qCount={qCount}
-                          canDoQuestionStats={canDoQuestionStats}
-                          missingMappings={missingMappings}
-                          aKey={aKey}
-                        />
-                      )}
-
-                      <div className="mt-12 flex justify-end gap-3 border-t pt-8">
-                        {step.id > 1 && (
-                          <button onClick={() => goToStep(step.id - 1)} className="flex items-center gap-2 px-6 py-3 font-bold text-xs uppercase tracking-widest text-slate-500 hover:text-slate-900 transition-colors">
-                            <ChevronLeft size={18} /> Önceki Adım
-                          </button>
-                        )}
-                        {step.id < 7 && (
-                          <button
-                            onClick={() => goToStep(step.id + 1)}
-                            className="flex items-center gap-3 px-10 py-4 bg-[#3498db] text-white font-black text-xs uppercase tracking-[0.2em] hover:bg-[#2980b9] shadow-lg hover:shadow-sky-200 transition-all active:scale-95"
-                          >
-                            Sonraki Adım <ChevronRight size={18} />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="max-w-6xl mx-auto mt-12 pb-20">
-        <div className="bg-[#f8fafc] border-2 border-dashed border-slate-200 p-8 text-center rounded-sm">
-          <h3 className="text-lg font-bold text-slate-800 mb-2">Excel Tabanlı Çözüm mü Arıyorsunuz?</h3>
-          <p className="text-slate-500 mb-6">Daha kapsamlı analizler ve offline kullanım için Universal Analiz Excel dosyamızı kullanabilirsiniz.</p>
-          <button
-            onClick={() => onNavigate('sinav-analizi')}
-            className="inline-flex items-center gap-2 bg-slate-800 text-white px-8 py-3 font-bold text-xs uppercase tracking-widest hover:bg-black transition-all shadow-lg"
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => {
+              // CSV export (simple)
+              const header = ["Ad Soyad", "No", "Kitapçık", "Doğru", "Yanlış", "Boş", "Net", "Puan"].join(";");
+              const rows = results.map((r) =>
+                [
+                  r.name,
+                  r.studentId,
+                  r.booklet,
+                  r.correct,
+                  r.wrong,
+                  r.blank,
+                  r.net.toFixed(2).replace(".", ","),
+                  r.score.toFixed(2).replace(".", ","),
+                ].join(";")
+              );
+              const csv = ["sep=;", header, ...rows].join("\n");
+              const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = "Ogrenci_Sonuclari.csv";
+              a.click();
+              URL.revokeObjectURL(url);
+            }}
           >
-            <FileSpreadsheet size={18} />
-            Excel (Universal Analiz) Sayfasına Git
-          </button>
+            <Download className="w-4 h-4 mr-2" />
+            CSV indir
+          </Button>
         </div>
       </div>
-    </PageContainer>
+    );
+  }
+
+  return (
+    <div className="max-w-5xl mx-auto p-4 space-y-4">
+      {/* Üst progress bar (tamamlananlar en üstte) */}
+      <Card className="rounded-2xl sticky top-2 z-10 backdrop-blur bg-card/95">
+        <CardContent className="py-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="text-sm">
+              <span className="font-semibold">Aşamalar</span>{" "}
+              <span className="text-muted-foreground">
+                {stepMeta.done} • Atlandı: {stepMeta.skipped} • Toplam: {stepMeta.total}
+              </span>
+              {stepMeta.warning > 0 && (
+                <span className="ml-2 text-xs text-red-600">
+                  ({stepMeta.warning} dikkat)
+                </span>
+              )}
+            </div>
+            <div className="flex gap-1 flex-wrap justify-end">
+              {Array.from({ length: 7 }, (_, i) => i + 1).map((n) => {
+                const st = stepStatus(n);
+                return (
+                  <Button
+                    key={n}
+                    size="sm"
+                    variant={activeStep === n ? "default" : st === "done" ? "secondary" : "outline"}
+                    onClick={() => goToStep(n)}
+                    className="h-8 px-2"
+                  >
+                    {n}
+                  </Button>
+                );
+              })}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Steps */}
+      <StepContainer step={1}>
+        <StepHeader step={1} title="DAT Yükleme" icon={<Upload className="w-4 h-4" />} />
+        {activeStep === 1 && <div className="mt-4"><Step1_DAT /></div>}
+      </StepContainer>
+
+      <StepContainer step={2}>
+        <StepHeader step={2} title="Dizayn Yönetimi" icon={<Settings2 className="w-4 h-4" />} />
+        {activeStep === 2 && <div className="mt-4"><Step2_Profile /></div>}
+      </StepContainer>
+
+      <StepContainer step={3}>
+        <StepHeader step={3} title="Cevap Anahtarları" icon={<BookOpen className="w-4 h-4" />} />
+        {activeStep === 3 && <div className="mt-4"><Step3_AnswerKeys /></div>}
+      </StepContainer>
+
+      <StepContainer step={4}>
+        <StepHeader step={4} title="Kitapçık Mapping" icon={<Wand2 className="w-4 h-4" />} />
+        {activeStep === 4 && <div className="mt-4"><Step4_Mapping /></div>}
+      </StepContainer>
+
+      <StepContainer step={5}>
+        <StepHeader step={5} title="Ders/Test Bölümleri" icon={<FileText className="w-4 h-4" />} />
+        {activeStep === 5 && <div className="mt-4"><Step5_Subjects /></div>}
+      </StepContainer>
+
+      <StepContainer step={6}>
+        <StepHeader step={6} title="Puanlama" icon={<Settings2 className="w-4 h-4" />} />
+        {activeStep === 6 && <div className="mt-4"><Step6_Scoring /></div>}
+      </StepContainer>
+
+      <StepContainer step={7}>
+        <StepHeader step={7} title="Analiz" icon={<CheckCircle2 className="w-4 h-4" />} />
+        {activeStep === 7 && <div className="mt-4"><Step7_Analysis /></div>}
+      </StepContainer>
+    </div>
   );
-}
-
-// -----------------------------
-// DAT parser
-// -----------------------------
-function parseDat(content: string, profile: Profile, setStudents: (s: StudentRecord[]) => void) {
-  const lines = content.split(/\r?\n/).filter(line => line.trim().length > 0);
-
-  const parsed: StudentRecord[] = lines.map(line => {
-    const safeSub = (start1: number, len?: number) => {
-      const start = Math.max(0, (start1 || 1) - 1);
-      if (!len) return line.substring(start);
-      return line.substring(start, start + len);
-    };
-
-    const id = safeSub(profile.idStart, profile.idLen).trim();
-    const name = safeSub(profile.nameStart, profile.nameLen).trim();
-
-    const bookletRaw = profile.noBooklet ? 'A' : (safeSub(profile.bookletStart, 1).trim() || 'A');
-    const booklet = /^[A-D]$/.test(bookletRaw) ? bookletRaw : 'A';
-
-    const answers = safeSub(profile.answersStart).toUpperCase();
-
-    const messages: string[] = [];
-    let status: 'OK' | 'Warning' | 'Error' = 'OK';
-
-    if (!id) {
-      status = 'Error';
-      messages.push('Öğrenci numarası eksik.');
-    } else {
-      if (!/^\d+$/.test(id)) {
-        status = 'Error';
-        messages.push(`Öğrenci numarası sadece rakam olmalıdır: ${id}`);
-      }
-      if (id.startsWith('0')) {
-        status = 'Error';
-        messages.push(`Öğrenci numarası 0 ile başlayamaz (kurumsal kural): ${id}`);
-      }
-    }
-
-    if (!name) {
-      if (status !== 'Error') status = 'Warning';
-      messages.push('İsim alanı boş.');
-    }
-
-    const invalidChars = answers.match(/[^A-E *#]/g);
-    if (invalidChars) {
-      status = 'Error';
-      const uniqueInvalids = [...new Set(invalidChars)].map(char => {
-        if (char === '\t') return 'TAB';
-        if (char === '\r') return 'CR';
-        if (char === '\n') return 'LF';
-        if (char.charCodeAt(0) < 32) return `ORD(${char.charCodeAt(0)})`;
-        return `'${char}'`;
-      });
-      messages.push(`Cevaplarda geçersiz karakter bulundu: ${uniqueInvalids.join(', ')}`);
-    }
-
-    if (answers.includes('*')) {
-      if (status !== 'Error') status = 'Warning';
-      messages.push('Çift işaretlenmiş (*) sorular var.');
-    }
-
-    if (line.includes('\uFFFD')) {
-      if (status !== 'Error') status = 'Warning';
-      const msg = 'Kodlama yanlış olabilir (okunmayan karakterler var).';
-      if (!messages.includes(msg)) messages.push(msg);
-    }
-
-    return { raw: line, id, name, booklet, answers, status, messages };
-  });
-
-  setStudents(parsed);
 }
