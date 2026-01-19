@@ -47,6 +47,7 @@ interface Profile {
     bookletStart: number;
     bookletLen: number;
     answersStart: number;
+    noBooklet: boolean;
 }
 
 interface StudentRecord {
@@ -101,7 +102,8 @@ const DEFAULT_PROFILE: Profile = {
     nameLen: 20,
     bookletStart: 31,
     bookletLen: 1,
-    answersStart: 32
+    answersStart: 32,
+    noBooklet: false
 };
 
 const STEPS = [
@@ -125,12 +127,12 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
         return saved ? JSON.parse(saved) : DEFAULT_PROFILE;
     });
     const [datContent, setDatContent] = useState('');
-    const [encoding, setEncoding] = useState('UTF-8');
+    const [encoding, setEncoding] = useState('utf-8');
     const [students, setStudents] = useState<StudentRecord[]>([]);
     const [answerKeys, setAnswerKeys] = useState<AnswerKey[]>([]);
     const [mappings, setMappings] = useState<Mapping[]>([]);
     const [subjects, setSubjects] = useState<SubjectRange[]>([]);
-    const [scoring, setScoring] = useState({ totalScore: 100, penalty: true, cancelMode: 'count' }); // count: sayma, correct: doğru kabul et
+    const [scoring, setScoring] = useState({ totalScore: 100, penalty: true, cancelMode: 'count', invalidMode: 'separate' }); // invalidMode: 'wrong' | 'separate'
     const [studentList, setStudentList] = useState<Map<string, string>>(new Map()); // ID -> Name comparison list
 
     // Derived analysis
@@ -151,7 +153,8 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
         const parsed: StudentRecord[] = lines.map(line => {
             const id = line.substring(profile.idStart - 1, profile.idStart - 1 + profile.idLen).trim();
             const name = line.substring(profile.nameStart - 1, profile.nameStart - 1 + profile.nameLen).trim();
-            let booklet = line.substring(profile.bookletStart - 1, profile.bookletStart - 1 + 1).trim() || 'A';
+            // If noBooklet is checked, always use 'A'
+            let booklet = profile.noBooklet ? 'A' : (line.substring(profile.bookletStart - 1, profile.bookletStart - 1 + 1).trim() || 'A');
             const answers = line.substring(profile.answersStart - 1).toUpperCase();
 
             const messages: string[] = [];
@@ -162,11 +165,25 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
                 messages.push('Öğrenci numarası eksik.');
             }
             if (!name) {
-                status = 'Warning';
+                if (status !== 'Error') status = 'Warning';
                 messages.push('İsim alanı boş.');
             }
+            // Check for invalid characters (anything not A-E, space, or *)
+            const invalidChars = answers.match(/[^A-E *]/g);
+            if (invalidChars) {
+                status = 'Error';
+                messages.push(`Geçersiz karakter bulundu: ${[...new Set(invalidChars)].join(', ')}`);
+            }
             if (answers.includes('*')) {
+                if (status !== 'Error') status = 'Warning';
                 messages.push('Çift işaretlenmiş (*) sorular var.');
+            }
+
+            // Encoding check (looking for replacement character)
+            if (line.includes('\uFFFD')) {
+                if (status !== 'Error') status = 'Warning';
+                const msg = 'Kodlama yanlış olabilir (okunmayan karakterler var).';
+                if (!messages.includes(msg)) messages.push(msg);
             }
 
             return { raw: line, id, name, booklet, answers, status, messages };
@@ -218,6 +235,8 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
                     isEmpty = true;
                 } else if (sAns === '*') {
                     invalids++;
+                    // If invalidMode is 'wrong', also count as wrong for net calculation
+                    if (scoring.invalidMode === 'wrong') isWrong = true;
                 } else if (sAns === kAns) {
                     isRight = true;
                 } else {
@@ -244,6 +263,7 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
 
             const net = rights - (scoring.penalty ? wrongs / 4 : 0);
             const activeQuestions = targetAnswers.split('').filter(c => c !== ' ' && c !== '#').length;
+
             const score = (net / activeQuestions) * scoring.totalScore;
 
             return {
@@ -334,10 +354,23 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
                     </div>
                     <div className="bg-white p-6 rounded-none shadow-sm border-2 border-slate-100 hover:border-slate-300 transition-colors">
                         <label className="block text-xs font-black text-slate-900 mb-3 uppercase tracking-widest">Kitapçık Türü</label>
-                        <div className="flex gap-2 text-slate-800">
+                        <div className="mb-4">
+                            <label className="flex items-center gap-3 cursor-pointer group">
+                                <input
+                                    type="checkbox"
+                                    checked={profile.noBooklet}
+                                    onChange={e => setProfile({ ...profile, noBooklet: e.target.checked })}
+                                    className="w-5 h-5 accent-[#3498db]"
+                                />
+                                <span className="text-sm font-bold text-slate-700 group-hover:text-[#3498db] transition-colors">
+                                    Bu DAT dosyasında kitapçık bilgisi YOK (tek kitapçık)
+                                </span>
+                            </label>
+                        </div>
+                        <div className={`flex gap-2 text-slate-800 ${profile.noBooklet ? 'opacity-40 pointer-events-none' : ''}`}>
                             <div className="flex-1">
                                 <span className="text-[10px] text-slate-400 block mb-1">Kaçıncı Karakter?</span>
-                                <input type="number" value={profile.bookletStart} onChange={e => setProfile({ ...profile, bookletStart: Number(e.target.value) })} className="w-full p-2 border-2 border-slate-200 focus:border-slate-800 outline-none font-bold bg-slate-50" />
+                                <input type="number" value={profile.bookletStart} onChange={e => setProfile({ ...profile, bookletStart: Number(e.target.value) })} className="w-full p-2 border-2 border-slate-200 focus:border-slate-800 outline-none font-bold bg-slate-50" disabled={profile.noBooklet} />
                             </div>
                             <div className="flex-1 opacity-50">
                                 <span className="text-[10px] text-slate-400 block mb-1">Sabit: 1 Karakter</span>
@@ -345,6 +378,7 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
                             </div>
                         </div>
                     </div>
+
                     <div className="bg-white p-6 rounded-none shadow-sm border-2 border-slate-100 hover:border-slate-300 transition-colors md:col-span-1 lg:col-span-1">
                         <label className="block text-xs font-black text-slate-900 mb-3 uppercase tracking-widest">Cevap Başlangıcı (Karakter)</label>
                         <input type="number" value={profile.answersStart} onChange={e => setProfile({ ...profile, answersStart: Number(e.target.value) })} className="w-full p-2 border-2 border-slate-200 focus:border-slate-800 outline-none font-bold bg-slate-50" />
@@ -368,10 +402,15 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
             <div className="flex justify-between items-center mb-4">
                 <h3 className="text-xl font-bold text-slate-900 tracking-tight">DAT İçeriği</h3>
                 <div className="flex items-center gap-3">
+                    {students.length > 0 && (
+                        <div className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold border border-emerald-200">
+                            Bu sınavda {students[0].answers.length} soru tespit edildi.
+                        </div>
+                    )}
                     <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Kodlama:</span>
                     <select value={encoding} onChange={e => setEncoding(e.target.value)} className="p-2 border-2 border-slate-200 bg-white rounded-none font-bold text-slate-800 focus:border-slate-800 outline-none">
-                        <option value="UTF-8">UTF-8</option>
-                        <option value="ISO-8859-9">Windows-1254 (TR)</option>
+                        <option value="utf-8">UTF-8</option>
+                        <option value="windows-1254">Windows-1254 (TR)</option>
                     </select>
                 </div>
             </div>
@@ -399,48 +438,111 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
         </div>
     );
 
-    const Step3_Preview = () => (
-        <div className="space-y-4">
-            <div className="bg-white rounded-none border-2 border-slate-200 shadow-xl overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse text-sm">
-                        <thead style={{ backgroundColor: '#1e293b' }} className="text-white">
-                            <tr>
-                                <th className="p-4 border-b border-slate-700 font-black uppercase tracking-widest text-[11px]">ID</th>
-                                <th className="p-4 border-b border-slate-700 font-black uppercase tracking-widest text-[11px]">Ad Soyad</th>
-                                <th className="p-4 border-b border-slate-700 font-black uppercase tracking-widest text-[11px]">Kit.</th>
-                                <th className="p-3 border-b border-slate-700 font-black uppercase tracking-widest text-[11px]">Soru</th>
-                                <th className="p-4 border-b border-slate-700 font-black uppercase tracking-widest text-[11px]">Cevaplar</th>
-                                <th className="p-4 border-b border-slate-700 font-black uppercase tracking-widest text-[11px]">Durum</th>
-                            </tr>
-                        </thead>
-                        <tbody className="text-slate-600">
-                            {students.map((s, i) => (
-                                <tr key={i} className="hover:bg-slate-50 border-b last:border-0 cursor-pointer">
-                                    <td className="p-3">{s.id}</td>
-                                    <td className="p-3">{s.name}</td>
-                                    <td className="p-3">{s.booklet}</td>
-                                    <td className="p-3">{s.answers.length}</td>
-                                    <td className="p-3 font-mono text-xs">{s.answers.substring(0, 10)}...</td>
-                                    <td className="p-3">
-                                        {s.status === 'OK' && <CheckCircle size={16} className="text-emerald-500" />}
-                                        {s.status === 'Warning' && <AlertTriangle size={16} className="text-amber-500" />}
-                                        {s.status === 'Error' && <XCircle size={16} className="text-rose-500" />}
-                                    </td>
-                                </tr>
-                            ))}
-                            {students.length === 0 && (
-                                <tr>
-                                    <td colSpan={6} className="p-12 text-center text-slate-400 italic">Veri bulunamadı. Lütfen DAT yükleyin.</td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
+    const Step3_Preview = () => {
+        const [searchTerm, setSearchTerm] = useState('');
+        const [statusFilter, setStatusFilter] = useState<'all' | 'OK' | 'Warning' | 'Error'>('all');
+        const [selectedStudent, setSelectedStudent] = useState<StudentRecord | null>(null);
+
+        const filteredStudents = useMemo(() => {
+            return students.filter(s => {
+                const matchesSearch = searchTerm === '' ||
+                    s.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    s.name.toLowerCase().includes(searchTerm.toLowerCase());
+                const matchesStatus = statusFilter === 'all' || s.status === statusFilter;
+                return matchesSearch && matchesStatus;
+            });
+        }, [students, searchTerm, statusFilter]);
+
+        const errorCount = students.filter(s => s.status === 'Error').length;
+        const warningCount = students.filter(s => s.status === 'Warning').length;
+
+        return (
+            <div className="space-y-4">
+                {/* Filters */}
+                <div className="flex flex-wrap gap-4 items-center bg-slate-50 p-4 border border-slate-200">
+                    <div className="flex items-center gap-2 flex-1 min-w-[200px]">
+                        <Search size={18} className="text-slate-400" />
+                        <input
+                            type="text"
+                            placeholder="ID veya isim ara..."
+                            value={searchTerm}
+                            onChange={e => setSearchTerm(e.target.value)}
+                            className="flex-1 p-2 border border-slate-200 rounded text-sm outline-none focus:border-slate-400"
+                        />
+                    </div>
+                    <div className="flex gap-2">
+                        <button onClick={() => setStatusFilter('all')} className={`px-3 py-1 text-xs font-bold rounded ${statusFilter === 'all' ? 'bg-slate-800 text-white' : 'bg-white border'}`}>
+                            Tümü ({students.length})
+                        </button>
+                        <button onClick={() => setStatusFilter('Error')} className={`px-3 py-1 text-xs font-bold rounded ${statusFilter === 'Error' ? 'bg-rose-600 text-white' : 'bg-white border text-rose-600'}`}>
+                            Hatalı ({errorCount})
+                        </button>
+                        <button onClick={() => setStatusFilter('Warning')} className={`px-3 py-1 text-xs font-bold rounded ${statusFilter === 'Warning' ? 'bg-amber-500 text-white' : 'bg-white border text-amber-600'}`}>
+                            Uyarı ({warningCount})
+                        </button>
+                    </div>
                 </div>
+
+                {/* Selected student detail */}
+                {selectedStudent && (
+                    <div className="bg-amber-50 p-4 border border-amber-200 rounded">
+                        <div className="flex justify-between items-start mb-2">
+                            <div>
+                                <span className="font-bold text-slate-800">{selectedStudent.id}</span> - <span>{selectedStudent.name}</span>
+                            </div>
+                            <button onClick={() => setSelectedStudent(null)} className="text-slate-400 hover:text-slate-600">✕</button>
+                        </div>
+                        <div className="text-xs font-mono bg-white p-2 border rounded mb-2 break-all">{selectedStudent.answers}</div>
+                        {selectedStudent.messages.length > 0 && (
+                            <ul className="text-sm text-amber-800 list-disc list-inside">
+                                {selectedStudent.messages.map((m, i) => <li key={i}>{m}</li>)}
+                            </ul>
+                        )}
+                    </div>
+                )}
+
+                <div className="bg-white rounded-none border-2 border-slate-200 shadow-xl overflow-hidden">
+                    <div className="overflow-x-auto max-h-[500px]">
+                        <table className="w-full text-left border-collapse text-sm">
+                            <thead style={{ backgroundColor: '#1e293b' }} className="text-white sticky top-0">
+                                <tr>
+                                    <th className="p-4 border-b border-slate-700 font-black uppercase tracking-widest text-[11px]">ID</th>
+                                    <th className="p-4 border-b border-slate-700 font-black uppercase tracking-widest text-[11px]">Ad Soyad</th>
+                                    <th className="p-4 border-b border-slate-700 font-black uppercase tracking-widest text-[11px]">Kit.</th>
+                                    <th className="p-3 border-b border-slate-700 font-black uppercase tracking-widest text-[11px]">Soru</th>
+                                    <th className="p-4 border-b border-slate-700 font-black uppercase tracking-widest text-[11px]">Cevaplar</th>
+                                    <th className="p-4 border-b border-slate-700 font-black uppercase tracking-widest text-[11px]">Durum</th>
+                                </tr>
+                            </thead>
+                            <tbody className="text-slate-600">
+                                {filteredStudents.map((s, i) => (
+                                    <tr key={i} onClick={() => setSelectedStudent(s)} className={`hover:bg-slate-50 border-b last:border-0 cursor-pointer ${s.status === 'Error' ? 'bg-rose-50' : s.status === 'Warning' ? 'bg-amber-50' : ''}`}>
+                                        <td className="p-3">{s.id}</td>
+                                        <td className="p-3">{s.name}</td>
+                                        <td className="p-3">{s.booklet}</td>
+                                        <td className="p-3">{s.answers.length}</td>
+                                        <td className="p-3 font-mono text-xs">{s.answers.substring(0, 10)}...</td>
+                                        <td className="p-3">
+                                            {s.status === 'OK' && <CheckCircle size={16} className="text-emerald-500" />}
+                                            {s.status === 'Warning' && <AlertTriangle size={16} className="text-amber-500" />}
+                                            {s.status === 'Error' && <XCircle size={16} className="text-rose-500" />}
+                                        </td>
+                                    </tr>
+                                ))}
+                                {filteredStudents.length === 0 && (
+                                    <tr>
+                                        <td colSpan={6} className="p-12 text-center text-slate-400 italic">Veri bulunamadı. Lütfen DAT yükleyin.</td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <p className="text-sm text-slate-500 italic">* Hata varsa, lütfen DAT dosyasını düzelterek yeniden yükleyin. Sistem üzerinden düzenleme yapılamaz.</p>
             </div>
-            <p className="text-sm text-slate-500 italic">* Hata varsa, lütfen DAT dosyasını düzelterek yeniden yükleyin. Sistem üzerinden düzenleme yapılamaz.</p>
-        </div>
-    );
+        );
+    };
+
 
     const Step4_AnswerKey = () => {
         const [activeBooklet, setActiveBooklet] = useState('A');
@@ -803,7 +905,7 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
                 <div className="bg-white rounded border shadow-sm overflow-hidden">
                     <div className="p-4 border-b bg-slate-50 flex flex-wrap justify-between items-center gap-4">
                         <h3 className="font-bold text-slate-800 uppercase tracking-widest text-sm italic">Öğrenci Detaylı Analiz Paneli</h3>
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-2">
                             <button
                                 onClick={() => {
                                     let csv = "sep=;\nID;Ad Soyad;Kitapçık;Doğru;Yanlış;Boş;İptal;Net;Puan\n";
@@ -818,11 +920,65 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
                                     link.click();
                                     toast.success("Öğrenci sonuç raporu indirildi.");
                                 }}
-                                className="flex items-center gap-2 bg-emerald-600 text-white px-6 py-2 rounded-none font-bold text-xs uppercase hover:bg-emerald-700 transition shadow-md"
+                                className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-none font-bold text-xs uppercase hover:bg-emerald-700 transition shadow-md"
                             >
-                                <Download size={16} /> Excel (CSV)
+                                <Download size={14} /> Sonuçlar (CSV)
+                            </button>
+
+                            <button
+                                onClick={() => {
+                                    if (results.length === 0) return;
+                                    const refKey = answerKeys.find(k => k.booklet === 'A');
+                                    if (!refKey) return;
+                                    const qCount = refKey.answers.length;
+
+                                    let csv = "sep=;\nID;Ad Soyad;Kitapçık;";
+                                    for (let i = 1; i <= qCount; i++) csv += `S${i};`;
+                                    csv += "\n";
+
+                                    results.forEach(r => {
+                                        csv += `${r.studentId};${r.studentName};${r.booklet};`;
+                                        for (let i = 0; i < qCount; i++) csv += `${r.answers[i] || ' '};`;
+                                        csv += "\n";
+                                    });
+
+                                    const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csv], { type: 'text/csv;charset=utf-8;' });
+                                    const url = URL.createObjectURL(blob);
+                                    const link = document.createElement("a");
+                                    link.setAttribute("href", url);
+                                    link.setAttribute("download", `Cevap_Matrisi_${new Date().toLocaleDateString('tr-TR')}.csv`);
+                                    link.click();
+                                    toast.success("Cevap matrisi indirildi.");
+                                }}
+                                className="flex items-center gap-2 bg-amber-600 text-white px-4 py-2 rounded-none font-bold text-xs uppercase hover:bg-amber-700 transition shadow-md"
+                            >
+                                <Download size={14} /> Cevap Matrisi
+                            </button>
+
+                            <button
+                                onClick={() => {
+                                    let csv = "sep=;\nID;Ad Soyad;Durum;Mesajlar\n";
+                                    students.filter(s => s.status !== 'OK').forEach(s => {
+                                        csv += `${s.id};${s.name};${s.status};${s.messages.join(' | ')}\n`;
+                                    });
+                                    if (csv.split('\n').length <= 2) {
+                                        toast.info("Hatalı kayıt bulunamadı.");
+                                        return;
+                                    }
+                                    const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csv], { type: 'text/csv;charset=utf-8;' });
+                                    const url = URL.createObjectURL(blob);
+                                    const link = document.createElement("a");
+                                    link.setAttribute("href", url);
+                                    link.setAttribute("download", `Hata_Raporu_${new Date().toLocaleDateString('tr-TR')}.csv`);
+                                    link.click();
+                                    toast.success("Hata raporu indirildi.");
+                                }}
+                                className="flex items-center gap-2 bg-rose-600 text-white px-4 py-2 rounded-none font-bold text-xs uppercase hover:bg-rose-700 transition shadow-md"
+                            >
+                                <Download size={14} /> Hata Raporu
                             </button>
                         </div>
+
                     </div>
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse text-sm">
@@ -1160,6 +1316,30 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
                                                         </button>
                                                     </div>
                                                 </div>
+                                                <div className="p-8 border-2 border-slate-100 bg-slate-50 hover:border-[#3498db] transition-colors">
+                                                    <label className="block font-black mb-6 text-xs uppercase tracking-widest text-[#3498db]">Geçersiz (*) Cevap Davranışı</label>
+                                                    <div className="flex flex-wrap gap-4">
+                                                        <button
+                                                            onClick={() => setScoring({ ...scoring, invalidMode: 'wrong' })}
+                                                            className={`px-8 py-4 font-black text-xs uppercase tracking-[0.2em] border-2 transition-all shadow-sm ${scoring.invalidMode === 'wrong'
+                                                                ? 'bg-slate-900 text-white border-slate-900 scale-105'
+                                                                : 'bg-white text-slate-600 border-slate-200 hover:border-slate-900'
+                                                                }`}
+                                                        >
+                                                            Yanlış Say (Nete Dahil)
+                                                        </button>
+                                                        <button
+                                                            onClick={() => setScoring({ ...scoring, invalidMode: 'separate' })}
+                                                            className={`px-8 py-4 font-black text-xs uppercase tracking-[0.2em] border-2 transition-all shadow-sm ${scoring.invalidMode === 'separate'
+                                                                ? 'bg-slate-900 text-white border-slate-900 scale-105'
+                                                                : 'bg-white text-slate-600 border-slate-200 hover:border-slate-900'
+                                                                }`}
+                                                        >
+                                                            Ayrı Say (Nete Dahil Etme)
+                                                        </button>
+                                                    </div>
+                                                </div>
+
                                             </div>
                                         )}
                                         {step.id === 7 && <Step8_Analysis />}
@@ -1189,6 +1369,7 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
                     </div>
                 ))}
             </div>
+
             {/* Footer / Backlink Section */}
             <div className="max-w-6xl mx-auto mt-12 pb-20">
                 <div className="bg-[#f8fafc] border-2 border-dashed border-slate-200 p-8 text-center rounded-sm">
@@ -1208,3 +1389,4 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
         </PageContainer>
     );
 }
+
