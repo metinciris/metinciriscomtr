@@ -18,6 +18,8 @@ import {
   Info,
   Activity,
   FileSpreadsheet,
+  Copy,
+  RefreshCw,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'motion/react';
@@ -64,6 +66,12 @@ interface AnswerKey {
   answers: string;
 }
 
+/**
+ * Mapping tanımı (ÖNEMLİ):
+ * order[i] = (fromBooklet'taki i+1. sorunun) A kitapçığında karşılık geldiği soru numarası (1-based).
+ *
+ * Örnek: B kitapçığında 1. soru, A kitapçığında 5. soru ise order[0] = 5.
+ */
 interface Mapping {
   fromBooklet: string;
   toBooklet: string; // usually 'A'
@@ -87,7 +95,7 @@ interface AnalysisResult {
   net: number;
   score: number;
   subjectResults: { name: string; rights: number; wrongs: number; empties: number; net: number }[];
-  answers: string; // student's answers (A'ya normalize edilmiş olabilir)
+  answers: string; // student's answers (A düzenine normalize edilmiş olabilir)
 }
 
 // --- Constants ---
@@ -119,6 +127,50 @@ interface OnlineTestAnalizProps {
   onNavigate: (page: string) => void;
 }
 
+// --- Helpers ---
+
+function cleanKeyInput(val: string) {
+  return (val || '').toUpperCase().replace(/[^A-E *#]/g, '');
+}
+
+function clamp(n: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, n));
+}
+
+function diffKeys(a: string, b: string) {
+  const A = a || '';
+  const B = b || '';
+  const maxLen = Math.max(A.length, B.length);
+  let mismatch = 0;
+  let compared = 0;
+  let firstMismatch: number | null = null;
+
+  for (let i = 0; i < maxLen; i++) {
+    const ca = A[i] ?? '';
+    const cb = B[i] ?? '';
+    if (ca === '' || cb === '') continue; // boşsa karşılaştırmayı “eksik” say
+    compared++;
+    if (ca !== cb) {
+      mismatch++;
+      if (firstMismatch === null) firstMismatch = i + 1; // 1-based
+    }
+  }
+
+  const lenMismatch = A.length !== B.length;
+  return { mismatch, compared, lenMismatch, firstMismatch };
+}
+
+function deriveBookletKeyFromA(keyA: string, map: Mapping | undefined) {
+  if (!keyA || !map || !Array.isArray(map.order) || map.order.length === 0) return '';
+  // Derived key: booklet soru sırasına göre A'nın doğru şıklarını getir.
+  const out = new Array(map.order.length).fill(' ');
+  for (let i = 0; i < map.order.length; i++) {
+    const aIdx = (map.order[i] || 0) - 1;
+    out[i] = keyA[aIdx] ?? ' ';
+  }
+  return out.join('');
+}
+
 export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
   const [currentStep, setCurrentStep] = useState<number>(1);
 
@@ -136,27 +188,24 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
   const [scoring, setScoring] = useState({
     totalScore: 100,
     penalty: true,
-    cancelMode: 'count',
+    cancelMode: 'count', // 'count' | 'correct'
     invalidMode: 'separate', // 'wrong' | 'separate'
   });
 
-  // Step3: kitapçık tabı reset olmasın (remount olunca A'ya dönmesin)
+  // Step3: tab reset olmasın
   const [activeKeyBooklet, setActiveKeyBooklet] = useState<'A' | 'B' | 'C' | 'D'>('A');
 
-  // --- Scroll fix: adım değişince header'a hizala (fazla aşağı kaçmasın) ---
+  // --- Scroll fix: adım değişince step header'a hizala (fazla aşağı kaçmasın) ---
   useEffect(() => {
     if (!currentStep) return;
     const t = window.setTimeout(() => {
       const el = document.getElementById(`ota-step-${currentStep}`);
       if (!el) return;
-      const y = el.getBoundingClientRect().top + window.pageYOffset - 90; // header offset
+      const y = el.getBoundingClientRect().top + window.pageYOffset - 90;
       window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
     }, 50);
     return () => window.clearTimeout(t);
   }, [currentStep]);
-
-  // Derived analysis
-  const results = useMemo(() => calculateResults(), [students, answerKeys, mappings, subjects, scoring]);
 
   useEffect(() => {
     localStorage.setItem('online_test_analiz_profile', JSON.stringify(profile));
@@ -164,17 +213,48 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile, datContent]);
 
+  const keyA = useMemo(() => answerKeys.find((k) => k.booklet === 'A')?.answers || '', [answerKeys]);
+
+  /**
+   * Mapping varsa:
+   * - B/C/D kitapçık anahtarlarını A + mapping’ten otomatik üret.
+   * - Kullanıcı B/C/D anahtarı yüklediyse, üretilen ile karşılaştır (doğrulama).
+   */
+  const derivedKeys = useMemo(() => {
+    const byBooklet: Record<string, string> = {};
+    if (!keyA) return byBooklet;
+
+    for (const m of mappings) {
+      const bk = (m.fromBooklet || '').toUpperCase();
+      if (!bk || bk === 'A') continue;
+      byBooklet[bk] = deriveBookletKeyFromA(keyA, m);
+    }
+    return byBooklet;
+  }, [keyA, mappings]);
+
+  const keyCompare = useMemo(() => {
+    const out: Record<string, ReturnType<typeof diffKeys> & { uploaded: string; derived: string }> = {};
+    for (const bk of ['B', 'C', 'D']) {
+      const uploaded = answerKeys.find((k) => k.booklet === bk)?.answers || '';
+      const derived = derivedKeys[bk] || '';
+      if (!derived) continue; // mapping yoksa derived da yok
+      out[bk] = { ...diffKeys(uploaded, derived), uploaded, derived };
+    }
+    return out;
+  }, [answerKeys, derivedKeys]);
+
+  // Derived analysis
+  const results = useMemo(() => calculateResults(), [students, answerKeys, mappings, subjects, scoring, keyA, derivedKeys]);
+
   const parseDat = (content: string) => {
     const lines = content
       .split(/\r?\n/)
-      .map((l) => l.replace(/\u0000/g, '')) // null char temizliği
+      .map((l) => l.replace(/\u0000/g, ''))
       .filter((line) => line.trim().length > 0);
 
     const parsed: StudentRecord[] = lines.map((line) => {
       const id = line.substring(profile.idStart - 1, profile.idStart - 1 + profile.idLen).trim();
       const name = line.substring(profile.nameStart - 1, profile.nameStart - 1 + profile.nameLen).trim();
-
-      // noBooklet => herkes A
       const booklet = profile.noBooklet
         ? 'A'
         : (line.substring(profile.bookletStart - 1, profile.bookletStart - 1 + 1).trim() || 'A');
@@ -203,7 +283,6 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
         messages.push('İsim alanı boş.');
       }
 
-      // Geçersiz karakter: A-E boşluk * #
       const invalidChars = answers.match(/[^A-E *#]/g);
       if (invalidChars) {
         status = 'Error';
@@ -222,7 +301,6 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
         messages.push('Çift işaretlenmiş (*) sorular var.');
       }
 
-      // Encoding check (replacement char)
       if (line.includes('\uFFFD')) {
         if (status !== 'Error') status = 'Warning';
         const msg = 'Kodlama yanlış olabilir (okunmayan karakterler var).';
@@ -238,23 +316,36 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
   function calculateResults(): AnalysisResult[] {
     if (students.length === 0 || answerKeys.length === 0) return [];
 
-    const keyA = answerKeys.find((k) => k.booklet === 'A')?.answers || '';
-
+    // Hatalı (Error) kayıtları analizden çıkar
     const validStudents = students.filter((s) => s.status !== 'Error');
     if (validStudents.length === 0) return [];
 
-    const getKey = (booklet: string) => answerKeys.find((k) => k.booklet === booklet)?.answers || '';
+    // Ana referans: A anahtarı (varsa)
+    const refA = keyA || answerKeys[0]?.answers || '';
+
+    const getUploadedKey = (booklet: string) =>
+      answerKeys.find((k) => k.booklet === booklet)?.answers || '';
+
+    const getMapping = (booklet: string) =>
+      mappings.find((m) => (m.fromBooklet || '').toUpperCase() === (booklet || '').toUpperCase());
 
     return validStudents.map((student) => {
-      const studentBooklet = student.booklet || 'A';
-      const map = studentBooklet !== 'A' ? mappings.find((m) => m.fromBooklet === studentBooklet) : undefined;
+      const studentBooklet = (student.booklet || 'A').toUpperCase();
+      const map = studentBooklet !== 'A' ? getMapping(studentBooklet) : undefined;
 
-      const bookletKey = getKey(studentBooklet);
-      const useMappingToA = !!(studentBooklet !== 'A' && map && keyA);
+      // 1) Mapping + A anahtarı varsa: öğrenciyi A düzenine normalize edip A anahtarıyla kıyasla
+      const canNormalizeToA = studentBooklet !== 'A' && !!map && !!refA;
 
-      const targetKey = useMappingToA ? keyA : (bookletKey || keyA);
+      // 2) Mapping yoksa ama o kitapçığın anahtarı yüklenmişse: onu kullan
+      const bookletKeyUploaded = getUploadedKey(studentBooklet);
 
-      // Anahtar yoksa: çökmesin diye boş sonuç
+      // 3) Mapping varsa ama A anahtarı yoksa: normalize edemeyiz, en azından yüklenen kitapçık anahtarı (varsa)
+      const targetKey =
+        (studentBooklet === 'A' && refA) ? refA :
+        canNormalizeToA ? refA :
+        (bookletKeyUploaded || refA);
+
+      // Anahtar yoksa: güvenli default
       if (!targetKey || targetKey.length === 0) {
         return {
           studentId: student.id,
@@ -271,13 +362,14 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
         };
       }
 
-      // Öğrenci cevaplarını (gerekirse) A düzenine normalize et
+      // Öğrenci cevapları
       let studentAnswers = student.answers;
 
-      if (useMappingToA && map) {
+      // Normalize: fromBooklet sırası -> A sırasına
+      if (canNormalizeToA && map) {
         const reordered = new Array(targetKey.length).fill(' ');
         for (let i = 0; i < map.order.length; i++) {
-          const aIdx = map.order[i] - 1;
+          const aIdx = (map.order[i] || 0) - 1;
           if (aIdx >= 0 && aIdx < reordered.length) {
             reordered[aIdx] = studentAnswers[i] || ' ';
           }
@@ -285,24 +377,20 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
         studentAnswers = reordered.join('');
       }
 
-      let rights = 0,
-        wrongs = 0,
-        empties = 0,
-        invalids = 0;
+      let rights = 0, wrongs = 0, empties = 0, invalids = 0;
 
-      // Subject istatistiği yalnızca A düzeninde anlamlı
+      // Subject sonuçları sadece A düzeni anlamlıysa:
+      // - öğrenci A ise
+      // - veya normalize edebildiysek
+      const subjectEnabled = studentBooklet === 'A' || canNormalizeToA;
       const subjectResults = subjects.map((s) => ({ name: s.name, rights: 0, wrongs: 0, empties: 0, net: 0 }));
-      const subjectEnabled = (studentBooklet === 'A') || useMappingToA;
 
       for (let i = 0; i < targetKey.length; i++) {
         const sAns = studentAnswers[i] || ' ';
         const kAns = targetKey[i];
 
-        let isRight = false,
-          isWrong = false,
-          isEmpty = false;
+        let isRight = false, isWrong = false, isEmpty = false;
 
-        // iptal soru
         if (kAns === ' ' || kAns === '#') {
           if (scoring.cancelMode === 'correct') isRight = true;
         } else if (sAns === ' ') {
@@ -338,7 +426,6 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
       const net = rights - (scoring.penalty ? wrongs / 4 : 0);
       const activeQuestions = targetKey.split('').filter((c) => c !== ' ' && c !== '#').length;
 
-      // activeQuestions=0 => NaN/Infinity olmasın
       let score = 0;
       if (activeQuestions > 0) {
         score = (net / activeQuestions) * (Number(scoring.totalScore) || 100);
@@ -410,7 +497,7 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div style={{ backgroundColor: 'white' }} className="p-6 rounded-none shadow-md border-2 border-slate-200 hover:border-[#3498db] transition-colors">
+          <div className="p-6 rounded-none shadow-md border-2 border-slate-200 hover:border-[#3498db] transition-colors bg-white">
             <label className="block text-xs font-black text-slate-800 mb-3 uppercase tracking-widest">Öğrenci No (ID)</label>
             <div className="flex gap-2 text-slate-900">
               <div className="flex-1">
@@ -534,7 +621,7 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
             onChange={(e) => {
               try {
                 setEncoding(e.target.value);
-                new TextDecoder(e.target.value); // destek test
+                new TextDecoder(e.target.value);
               } catch {
                 toast.error('Seçilen kodlama bu tarayıcıda desteklenmiyor.');
               }
@@ -675,9 +762,7 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
                   <tr
                     key={i}
                     onClick={() => setSelectedStudent(s)}
-                    className={`hover:bg-slate-50 border-b last:border-0 cursor-pointer ${
-                      s.status === 'Error' ? 'bg-rose-50' : s.status === 'Warning' ? 'bg-amber-50' : ''
-                    }`}
+                    className={`hover:bg-slate-50 border-b last:border-0 cursor-pointer ${s.status === 'Error' ? 'bg-rose-50' : s.status === 'Warning' ? 'bg-amber-50' : ''}`}
                   >
                     <td className="p-3">{s.id}</td>
                     <td className="p-3">{s.name}</td>
@@ -710,13 +795,12 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
 
   const Step3_AnswerKey = () => {
     const activeBooklet = activeKeyBooklet;
-    const setActiveBooklet = setActiveKeyBooklet;
-
-    const currentKey = answerKeys.find((k) => k.booklet === activeBooklet)?.answers || '';
     const isNoBooklet = profile.noBooklet;
 
+    const currentKey = answerKeys.find((k) => k.booklet === activeBooklet)?.answers || '';
+
     const updateKey = (booklet: string, val: string) => {
-      const cleanVal = val.toUpperCase().replace(/[^A-E *#]/g, '');
+      const cleanVal = cleanKeyInput(val);
       const otherKeys = answerKeys.filter((k) => k.booklet !== booklet);
       setAnswerKeys([...otherKeys, { booklet, answers: cleanVal }]);
     };
@@ -733,13 +817,15 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
       reader.readAsText(file);
     };
 
+    const canAutoDeriveOthers = !!keyA && Object.keys(derivedKeys).length > 0;
+
     return (
       <div className="space-y-6">
         <div className="flex flex-wrap gap-2 mb-4">
           {(isNoBooklet ? (['A'] as const) : (['A', 'B', 'C', 'D'] as const)).map((bk) => (
             <button
               key={bk}
-              onClick={() => setActiveBooklet(bk)}
+              onClick={() => setActiveKeyBooklet(bk)}
               className={`px-6 py-2 font-bold transition-all border-b-4 ${
                 activeBooklet === bk ? 'bg-slate-800 text-white border-[#1ABC9C]' : 'bg-white text-slate-500 border-transparent hover:bg-slate-50'
               }`}
@@ -778,17 +864,6 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
             value={currentKey}
           />
 
-          <div className="grid grid-cols-5 md:grid-cols-10 gap-2">
-            {currentKey.split('').map((char, idx) => (
-              <div key={idx} className="flex flex-col items-center">
-                <span className="text-[10px] text-slate-400 font-bold">{idx + 1}</span>
-                <div className={`w-8 h-8 flex items-center justify-center font-bold border rounded ${char === ' ' || char === '#' ? 'bg-amber-100 text-amber-700' : 'bg-white text-slate-700'}`}>
-                  {char}
-                </div>
-              </div>
-            ))}
-          </div>
-
           <div className="flex gap-4 text-xs font-semibold text-slate-500 pt-4 border-t">
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 bg-[#1ABC9C] rounded-full"></div>
@@ -801,6 +876,110 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
           </div>
         </div>
 
+        {/* Otomatik üretilen anahtarlar */}
+        <div className="bg-slate-50 p-6 border border-slate-200 rounded space-y-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <RefreshCw size={18} className="text-slate-500" />
+              <h4 className="font-black text-slate-800 uppercase tracking-widest text-sm">Mapping ile Otomatik Anahtar Üretimi</h4>
+            </div>
+            {!keyA && (
+              <span className="text-xs font-bold bg-amber-100 text-amber-800 px-3 py-1 rounded">
+                Önce A kitapçığı anahtarını girin
+              </span>
+            )}
+            {keyA && Object.keys(derivedKeys).length === 0 && (
+              <span className="text-xs font-bold bg-slate-200 text-slate-700 px-3 py-1 rounded">
+                Mapping yoksa otomatik anahtar üretilmez
+              </span>
+            )}
+            {canAutoDeriveOthers && (
+              <span className="text-xs font-bold bg-emerald-100 text-emerald-700 px-3 py-1 rounded">
+                Otomatik anahtarlar hazır
+              </span>
+            )}
+          </div>
+
+          <div className="text-sm text-slate-600 leading-relaxed">
+            <ul className="list-disc list-inside space-y-1">
+              <li><strong>Mapping tanımlıysa</strong> ve <strong>A anahtarı girildiyse</strong>, B/C/D anahtarları sistem tarafından otomatik üretilir.</li>
+              <li>İsterseniz B/C/D anahtarlarını ayrıca yükleyebilirsiniz: sistem otomatik üretilenle <strong>farkları kontrol eder</strong>.</li>
+              <li>Tek kitapçık (sadece A) ise mapping/otomatik anahtar kısmını <strong>tamamen atlayabilirsiniz</strong>.</li>
+            </ul>
+          </div>
+
+          {canAutoDeriveOthers && (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              {(['B', 'C', 'D'] as const)
+                .filter((bk) => !!derivedKeys[bk])
+                .map((bk) => {
+                  const derived = derivedKeys[bk] || '';
+                  const uploaded = answerKeys.find((k) => k.booklet === bk)?.answers || '';
+                  const cmp = keyCompare[bk];
+
+                  const mismatchBadge =
+                    uploaded && cmp
+                      ? cmp.mismatch === 0 && !cmp.lenMismatch
+                        ? { cls: 'bg-emerald-100 text-emerald-700', text: 'Tam Uyum' }
+                        : { cls: 'bg-rose-100 text-rose-700', text: `${cmp.mismatch} farklı` }
+                      : { cls: 'bg-slate-200 text-slate-700', text: 'Yüklenmedi (opsiyonel)' };
+
+                  return (
+                    <div key={bk} className="bg-white border border-slate-200 p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="font-black text-slate-800">{bk} Kitapçığı (Otomatik)</div>
+                        <span className={`text-[11px] font-black px-2 py-1 rounded ${mismatchBadge.cls}`}>{mismatchBadge.text}</span>
+                      </div>
+
+                      {uploaded && cmp && (cmp.mismatch > 0 || cmp.lenMismatch) && (
+                        <div className="text-xs text-rose-700 bg-rose-50 border border-rose-100 p-2 rounded">
+                          {cmp.lenMismatch && <div>• Uzunluk farklı: yüklenen {uploaded.length} / otomatik {derived.length}</div>}
+                          {cmp.mismatch > 0 && (
+                            <div>
+                              • İlk fark: Soru <strong>{cmp.firstMismatch ?? '-'}</strong>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      <textarea
+                        readOnly
+                        value={derived}
+                        className="w-full h-28 p-3 font-mono text-sm border rounded bg-slate-50 text-slate-800 tracking-[0.12em] outline-none"
+                      />
+
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(derived);
+                            toast.success(`${bk} otomatik anahtar kopyalandı.`);
+                          }}
+                          className="flex items-center gap-2 px-3 py-2 text-xs font-black uppercase bg-slate-800 text-white hover:bg-black"
+                        >
+                          <Copy size={14} /> Kopyala
+                        </button>
+                        <button
+                          onClick={() => {
+                            const otherKeys = answerKeys.filter((k) => k.booklet !== bk);
+                            setAnswerKeys([...otherKeys, { booklet: bk, answers: derived }]);
+                            toast.success(`${bk} anahtarı otomatik anahtarla dolduruldu.`);
+                          }}
+                          className="flex-1 px-3 py-2 text-xs font-black uppercase bg-emerald-600 text-white hover:bg-emerald-700"
+                        >
+                          Yüklenen Alanı Doldur
+                        </button>
+                      </div>
+
+                      <div className="text-[11px] text-slate-500">
+                        Puanlanan soru: <strong>{derived.split('').filter((c) => c !== ' ' && c !== '#').length}</strong> / Toplam: <strong>{derived.length}</strong>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          )}
+        </div>
+
         <div className="bg-blue-50 p-4 rounded border border-blue-100 text-blue-800 text-sm flex gap-3">
           <Info size={18} className="shrink-0" />
           <div>
@@ -810,6 +989,9 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
               <li>Excel'den bir sütunu kopyalayıp buraya yapıştırabilirsiniz.</li>
               <li>
                 <strong>#</strong> veya <strong>boşluk</strong> karakterleri soruyu iptal eder.
+              </li>
+              <li>
+                Mapping yapıyorsanız: <strong>B/C/D anahtarını ayrıca yazmak zorunda değilsiniz</strong> (A+mapping’den otomatik üretilir).
               </li>
             </ul>
           </div>
@@ -836,9 +1018,8 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
         return;
       }
 
-      const keyA = answerKeys.find((k) => k.booklet === 'A')?.answers || '';
       if (keyA && numbers.length !== keyA.length) {
-        toast.warning(`Uyarı: Eşleştirme uzunluğu (${numbers.length}) A anahtar uzunluğu (${keyA.length}) ile aynı değil.`);
+        toast.warning(`Uyarı: Mapping uzunluğu (${numbers.length}) A anahtarı uzunluğu (${keyA.length}) ile aynı değil.`);
       }
 
       const otherMappings = mappings.filter((m) => m.fromBooklet !== activeFrom);
@@ -849,13 +1030,30 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
 
     const booklets: Array<'B' | 'C' | 'D'> = ['B', 'C', 'D'];
 
+    const derivedHere = derivedKeys[activeFrom] || '';
+    const uploadedHere = answerKeys.find((k) => k.booklet === activeFrom)?.answers || '';
+    const cmp = derivedHere ? diffKeys(uploadedHere, derivedHere) : null;
+
     return (
       <div className="space-y-6">
-        <div className="bg-amber-50 p-4 border border-amber-200 rounded text-amber-800 text-sm flex gap-3">
-          <Info size={20} className="shrink-0" />
-          <p>
-            Eğer sınavınız <strong>tek kitapçık</strong> türü ise (sadece A) bu adımı <strong>atlayabilirsiniz</strong>. Farklı kitapçıklar varsa, her sorunun A kitapçığındaki hangi soruya denk geldiğini buraya girin.
-          </p>
+        <div className="bg-amber-50 p-5 border border-amber-200 rounded text-amber-900 text-sm space-y-2">
+          <div className="flex items-start gap-3">
+            <Info size={20} className="shrink-0 mt-0.5" />
+            <div className="space-y-2">
+              <div className="font-black uppercase tracking-widest text-xs">Bu adımı ne zaman yapmalıyım?</div>
+              <ul className="list-disc list-inside space-y-1">
+                <li><strong>Tek kitapçık</strong> (sadece A) ise: <strong>bu adımı atlayabilirsiniz</strong>.</li>
+                <li>B/C/D gibi farklı kitapçıklar varsa: <strong>doğru analiz için mapping gerekir</strong>.</li>
+              </ul>
+
+              <div className="font-black uppercase tracking-widest text-xs mt-3">Burada ne yapılıyor / ne yapılmıyor?</div>
+              <ul className="list-disc list-inside space-y-1 opacity-90">
+                <li><strong>Yapılır:</strong> B/C/D kitapçığındaki her sorunun, A kitapçığında hangi soru numarasına denk geldiği girilir.</li>
+                <li><strong>Yapılmaz:</strong> Şıkların (A-B-C-D-E) dönüşümü yapılmaz. Sadece soru sırası eşleştirilir.</li>
+                <li><strong>Sonuç:</strong> A anahtarı + mapping ile sistem B/C/D anahtarlarını otomatik üretir ve isterseniz yüklediğiniz anahtarla karşılaştırır.</li>
+              </ul>
+            </div>
+          </div>
         </div>
 
         <div className="flex gap-2">
@@ -876,6 +1074,18 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
           <h4 className="font-black text-slate-800 uppercase tracking-widest text-sm underline decoration-[#3498db] decoration-4">
             {activeFrom} → A Eşleştirmesi
           </h4>
+
+          <div className="bg-slate-50 border border-slate-200 p-4 text-sm text-slate-700">
+            <div className="font-bold mb-2">Format (çok net):</div>
+            <div className="font-mono text-xs bg-white border p-2">
+              {activeFrom} kitapçığı Soru 1 → A kitapçığı Soru ? (yazdığınız ilk sayı)<br />
+              {activeFrom} kitapçığı Soru 2 → A kitapçığı Soru ? (yazdığınız ikinci sayı)<br />
+              ...
+            </div>
+            <div className="mt-2 opacity-90">
+              Örn: <strong>“5 12 1 8 ...”</strong> demek: <strong>{activeFrom}1=A5, {activeFrom}2=A12, {activeFrom}3=A1, {activeFrom}4=A8</strong>
+            </div>
+          </div>
 
           <div className="space-y-2">
             <label className="block text-xs font-bold text-slate-500 uppercase">Toplu Eşleştirme Yapıştır</label>
@@ -900,6 +1110,56 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
                   <div className="font-extrabold text-slate-800">A {aNum}</div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Mapping doğrulama: A anahtarı varsa otomatik anahtar oluşur ve (varsa) yüklenenle kıyas göster */}
+          {!!keyA && !!derivedHere && (
+            <div className="pt-6 border-t space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <div className="font-black text-slate-800 uppercase tracking-widest text-xs">Otomatik {activeFrom} Anahtarı (A + Mapping)</div>
+                {uploadedHere && cmp && (
+                  <span className={`text-[11px] font-black px-2 py-1 rounded ${cmp.mismatch === 0 && !cmp.lenMismatch ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+                    {cmp.mismatch === 0 && !cmp.lenMismatch ? 'Yüklenenle Uyumlu' : `${cmp.mismatch} farklı`}
+                  </span>
+                )}
+              </div>
+              <textarea
+                readOnly
+                value={derivedHere}
+                className="w-full h-28 p-3 font-mono text-sm border rounded bg-slate-50 text-slate-800 tracking-[0.12em] outline-none"
+              />
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(derivedHere);
+                    toast.success(`${activeFrom} otomatik anahtar kopyalandı.`);
+                  }}
+                  className="flex items-center gap-2 px-3 py-2 text-xs font-black uppercase bg-slate-800 text-white hover:bg-black"
+                >
+                  <Copy size={14} /> Kopyala
+                </button>
+                <button
+                  onClick={() => {
+                    const otherKeys = answerKeys.filter((k) => k.booklet !== activeFrom);
+                    setAnswerKeys([...otherKeys, { booklet: activeFrom, answers: derivedHere }]);
+                    toast.success(`${activeFrom} anahtarı otomatik anahtarla dolduruldu.`);
+                  }}
+                  className="flex-1 px-3 py-2 text-xs font-black uppercase bg-emerald-600 text-white hover:bg-emerald-700"
+                >
+                  {activeFrom} Alanını Otomatik Doldur
+                </button>
+              </div>
+
+              {uploadedHere && cmp && (cmp.mismatch > 0 || cmp.lenMismatch) && (
+                <div className="text-xs text-rose-700 bg-rose-50 border border-rose-100 p-3 rounded">
+                  {cmp.lenMismatch && <div>• Uzunluk farklı: yüklenen {uploadedHere.length} / otomatik {derivedHere.length}</div>}
+                  {cmp.mismatch > 0 && <div>• İlk fark: Soru {cmp.firstMismatch ?? '-'}</div>}
+                  <div className="opacity-90 mt-1">
+                    Bu farklar genelde <strong>mapping ters girildiğinde</strong> veya <strong>mapping sırası kaydığında</strong> ortaya çıkar. (Otomatik anahtar görünüyorsa, mapping’i gözle kontrol etmek çok kolaylaşıyor.)
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -993,22 +1253,19 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
     const bottomGroup = sortedResults.slice(-topCount);
 
     const missingMappings = useMemo(() => {
-      const usedBooklets = Array.from(new Set(students.map((s) => s.booklet))).filter((b) => b !== 'A');
-      return usedBooklets.filter((b) => !mappings.some((m) => m.fromBooklet === b));
+      const usedBooklets = Array.from(new Set(students.map((s) => (s.booklet || 'A').toUpperCase()))).filter((b) => b !== 'A');
+      return usedBooklets.filter((b) => !mappings.some((m) => (m.fromBooklet || '').toUpperCase() === b));
     }, [students, mappings]);
 
     const questionStats = useMemo(() => {
-      if (results.length === 0 || answerKeys.length === 0) return [];
-      if (missingMappings.length > 0) return []; // A düzeni bozulur
-
-      const refKey = answerKeys.find((k) => k.booklet === 'A');
-      if (!refKey) return [];
+      if (results.length === 0 || !keyA) return [];
+      if (missingMappings.length > 0) return []; // A düzeninde güvenli değil
 
       const stats: any[] = [];
-      const ansLen = refKey.answers.length;
+      const ansLen = keyA.length;
 
       for (let i = 0; i < ansLen; i++) {
-        const correctAns = refKey.answers[i];
+        const correctAns = keyA[i];
         if (correctAns === ' ' || correctAns === '#') continue;
 
         const distributions: Record<string, number> = { A: 0, B: 0, C: 0, D: 0, E: 0, ' ': 0, '*': 0 };
@@ -1045,25 +1302,21 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
         else if (discIndex >= 0.2) discText = 'Zayıf (Düzeltilmeli)';
         else discText = 'Çok Zayıf (Hatalı/Ayırıcı Değil)';
 
-        const evalText = `${discText} (${diffText})`;
-
         stats.push({
           number: i + 1,
           correctAns,
           diffIndex,
           discIndex,
-          evalText,
+          evalText: `${discText} (${diffText})`,
           distributions,
         });
       }
 
       return stats;
-    }, [results, answerKeys, topGroup, bottomGroup, missingMappings]);
+    }, [results, keyA, topGroup, bottomGroup, missingMappings]);
 
-    // FIX: undefined.count çökmesi olmasın + totalScore'a göre histogram
     const scoreData = useMemo(() => {
       const maxScore = Number(scoring.totalScore) || 100;
-
       const labels = [
         `0-${Math.round(maxScore * 0.2)}`,
         `${Math.round(maxScore * 0.2)}-${Math.round(maxScore * 0.4)}`,
@@ -1071,18 +1324,14 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
         `${Math.round(maxScore * 0.6)}-${Math.round(maxScore * 0.8)}`,
         `${Math.round(maxScore * 0.8)}-${Math.round(maxScore)}`,
       ];
-
       const ranges = labels.map((name) => ({ name, count: 0 }));
-
       results.forEach((r) => {
         const s = Number(r.score);
         if (!Number.isFinite(s)) return;
         const ratio = maxScore > 0 ? s / maxScore : 0;
-        const rawIdx = Math.floor(ratio * 5);
-        const idx = Math.max(0, Math.min(4, rawIdx));
+        const idx = clamp(Math.floor(ratio * 5), 0, 4);
         ranges[idx].count++;
       });
-
       return ranges;
     }, [results, scoring.totalScore]);
 
@@ -1103,11 +1352,9 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
               <AlertTriangle size={24} /> Eksik Kitapçık Eşleştirmesi!
             </div>
             <p className="text-sm">
-              Sınavda kullanılan <strong>{missingMappings.join(', ')}</strong> kitapçıkları için henüz bir eşleştirme (mapping) tanımlamadınız.
+              Sınavda kullanılan <strong>{missingMappings.join(', ')}</strong> kitapçıkları için mapping tanımlı değil.
               <br />
-              <strong>Soru analizi ve A düzeninde raporlar</strong> için lütfen <strong>Adım 4</strong>'e giderek bu kitapçıkların A kitapçığına göre dizilimini girin.
-              <br />
-              (Not: Puan hesapları artık kitapçık anahtarı varsa mapping olmadan da çalışır.)
+              <strong>Not:</strong> Puanlama yine de çalışır (kitapçık anahtarınız varsa) ama <strong>soru analizi / A düzeninde</strong> raporlar için mapping gerekir.
             </p>
           </div>
         )}
@@ -1133,30 +1380,6 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
             <div className="text-4xl font-extrabold">{results.length > 0 ? Math.min(...results.map((r) => r.score)).toFixed(1) : 0}</div>
           </motion.div>
         </div>
-
-        {subjects.length > 0 && (
-          <div className="bg-white p-6 border shadow-sm">
-            <h4 className="font-bold text-slate-800 mb-6 uppercase tracking-wider text-sm">Ders/Konu Bazlı Başarı Oranları</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {subjects.map((sub, idx) => {
-                const subStats = results.map((r) => r.subjectResults[idx]);
-                const avgNet = subStats.reduce((acc, s) => acc + (s?.net || 0), 0) / (results.length || 1);
-                const totalQ = sub.end - sub.start + 1;
-                return (
-                  <div key={idx} className="p-4 bg-slate-50 border-l-4 border-[#3498db]">
-                    <div className="font-black text-slate-800 text-xs mb-1 uppercase tracking-tight">{sub.name}</div>
-                    <div className="text-2xl font-black text-slate-900">
-                      {avgNet.toFixed(2)} <small className="text-xs text-slate-400 font-bold">NET (Ort)</small>
-                    </div>
-                    <div className="w-full bg-white h-2 mt-2 rounded-full overflow-hidden">
-                      <div className="bg-[#3498db] h-full" style={{ width: `${(avgNet / totalQ) * 100}%` }}></div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-white p-6 border shadow-sm">
@@ -1195,6 +1418,7 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
           </div>
         </div>
 
+        {/* Soru analizi: mapping eksikse kapalı */}
         <div className="bg-white rounded border shadow-sm overflow-hidden">
           <div className="p-4 border-b bg-slate-50 flex justify-between items-center">
             <h3 className="font-bold text-slate-800 uppercase tracking-widest text-sm italic">Soru Bazlı İstatistik ve Analiz</h3>
@@ -1215,6 +1439,8 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
                 toast.success('Soru analizi raporu indirildi.');
               }}
               className="flex items-center gap-2 bg-slate-800 text-white px-4 py-2 text-xs font-bold uppercase hover:bg-black transition shadow-sm"
+              disabled={questionStats.length === 0}
+              style={questionStats.length === 0 ? { opacity: 0.5, pointerEvents: 'none' } : undefined}
             >
               <Download size={14} /> İstatistikleri İndir
             </button>
@@ -1261,15 +1487,14 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
             {questionStats.length === 0 && (
               <div className="p-12 text-center bg-slate-50 border-t">
                 <p className="text-slate-400 italic">
-                  {missingMappings.length > 0
-                    ? "Eksik kitapçık eşleştirmeleri nedeniyle soru analizi gösterilemiyor. Lütfen Adım 4'ü tamamlayın."
-                    : 'Soru analizi için veri bekleniyor.'}
+                  {missingMappings.length > 0 ? "Mapping eksik olduğu için soru analizi gösterilemiyor. (Adım 4)" : 'Soru analizi için veri bekleniyor.'}
                 </p>
               </div>
             )}
           </div>
         </div>
 
+        {/* Öğrenci sonuç tablosu */}
         <div className="bg-white rounded border shadow-sm overflow-hidden">
           <div className="p-4 border-b bg-slate-50 flex flex-wrap justify-between items-center gap-4">
             <h3 className="font-bold text-slate-800 uppercase tracking-widest text-sm italic">Öğrenci Detaylı Analiz Paneli</h3>
@@ -1293,63 +1518,6 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
                 className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-none font-bold text-xs uppercase hover:bg-emerald-700 transition shadow-md"
               >
                 <Download size={14} /> Sonuçlar (CSV)
-              </button>
-
-              <button
-                onClick={() => {
-                  if (results.length === 0) return;
-                  const refKey = answerKeys.find((k) => k.booklet === 'A');
-                  if (!refKey) return;
-                  const qCount = refKey.answers.length;
-
-                  let csv = 'sep=;\nID;Ad Soyad;Kitapçık;';
-                  for (let i = 1; i <= qCount; i++) csv += `S${i};`;
-                  csv += '\n';
-
-                  results.forEach((r) => {
-                    csv += `${r.studentId};${r.studentName};${r.booklet};`;
-                    for (let i = 0; i < qCount; i++) csv += `${r.answers[i] || ' '};`;
-                    csv += '\n';
-                  });
-
-                  const blob = new Blob([new Uint8Array([0xef, 0xbb, 0xbf]), csv], { type: 'text/csv;charset=utf-8;' });
-                  const url = URL.createObjectURL(blob);
-                  const link = document.createElement('a');
-                  link.setAttribute('href', url);
-                  link.setAttribute('download', `Cevap_Matrisi_${new Date().toLocaleDateString('tr-TR')}.csv`);
-                  link.click();
-                  toast.success('Cevap matrisi indirildi.');
-                }}
-                className="flex items-center gap-2 bg-amber-600 text-white px-4 py-2 rounded-none font-bold text-xs uppercase hover:bg-amber-700 transition shadow-md"
-              >
-                <Download size={14} /> Cevap Matrisi
-              </button>
-
-              <button
-                onClick={() => {
-                  let csv = 'sep=;\nID;Ad Soyad;Durum;Mesajlar\n';
-                  students
-                    .filter((s) => s.status !== 'OK')
-                    .forEach((s) => {
-                      csv += `${s.id};${s.name};${s.status};${s.messages.join(' | ')}\n`;
-                    });
-
-                  if (csv.split('\n').length <= 2) {
-                    toast.info('Hatalı kayıt bulunamadı.');
-                    return;
-                  }
-
-                  const blob = new Blob([new Uint8Array([0xef, 0xbb, 0xbf]), csv], { type: 'text/csv;charset=utf-8;' });
-                  const url = URL.createObjectURL(blob);
-                  const link = document.createElement('a');
-                  link.setAttribute('href', url);
-                  link.setAttribute('download', `Hata_Raporu_${new Date().toLocaleDateString('tr-TR')}.csv`);
-                  link.click();
-                  toast.success('Hata raporu indirildi.');
-                }}
-                className="flex items-center gap-2 bg-rose-600 text-white px-4 py-2 rounded-none font-bold text-xs uppercase hover:bg-rose-700 transition shadow-md"
-              >
-                <Download size={14} /> Hata Raporu
               </button>
             </div>
           </div>
