@@ -5,17 +5,20 @@ on:
     # 04:30 and 07:30 UTC is 07:30 and 10:30 Istanbul time
     - cron: '30 4 * * *'
     - cron: '30 7 * * *'
-  workflow_dispatch: # Allow manual trigger
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   update-menu:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '18'
 
@@ -24,8 +27,12 @@ jobs:
 
       - name: Commit and push changes
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add public/data/ogrenci-ogle-menu.json
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update student lunch menu: $(date +'%Y-%m-%d')" && git push)
+          if [ -n "$(git status --porcelain)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add public/data/ogrenci-ogle-menu.json
+            git commit -m "Auto-update student lunch menu: $(date -u +'%Y-%m-%d')"
+            git push
+          else
+            echo "No changes"
+          fi
