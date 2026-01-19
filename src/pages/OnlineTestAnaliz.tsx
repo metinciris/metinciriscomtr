@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { PageContainer } from '../components/PageContainer';
 import {
   Settings,
@@ -17,7 +17,7 @@ import {
   Search,
   Info,
   Activity,
-  FileSpreadsheet
+  FileSpreadsheet,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'motion/react';
@@ -31,7 +31,7 @@ import {
   ResponsiveContainer,
   PieChart,
   Pie,
-  Cell
+  Cell,
 } from 'recharts';
 
 // --- Types ---
@@ -87,7 +87,7 @@ interface AnalysisResult {
   net: number;
   score: number;
   subjectResults: { name: string; rights: number; wrongs: number; empties: number; net: number }[];
-  answers: string; // student's actual answers (normalized to A order)
+  answers: string; // student's answers (A'ya normalize edilmiş olabilir)
 }
 
 // --- Constants ---
@@ -102,7 +102,7 @@ const DEFAULT_PROFILE: Profile = {
   bookletStart: 31,
   bookletLen: 1,
   answersStart: 32,
-  noBooklet: false
+  noBooklet: false,
 };
 
 const STEPS = [
@@ -112,7 +112,7 @@ const STEPS = [
   { id: 4, title: 'Kitapçık/Mapping', icon: <MapIcon size={20} />, description: 'Kitapçık dönüşümlerini ayarlayın.' },
   { id: 5, title: 'Konu Ders sıralaması', icon: <BookOpen size={20} />, description: 'Ders ve konu kapsamlarını belirleyin.' },
   { id: 6, title: 'Puanlama Kriterleri', icon: <Calculator size={20} />, description: 'Puanlama kurallarını ayarlayın.' },
-  { id: 7, title: 'Analiz & Rapor', icon: <Download size={20} />, description: 'Sonuçları görün ve indirin.' }
+  { id: 7, title: 'Analiz & Rapor', icon: <Download size={20} />, description: 'Sonuçları görün ve indirin.' },
 ];
 
 interface OnlineTestAnalizProps {
@@ -137,11 +137,23 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
     totalScore: 100,
     penalty: true,
     cancelMode: 'count',
-    invalidMode: 'separate'
-  }); // invalidMode: 'wrong' | 'separate'
+    invalidMode: 'separate', // 'wrong' | 'separate'
+  });
 
-  // FIX: AnswerKey aktif kitapçık state'ini parent'a aldık (remount reset sorunu biter)
-  const [activeAnswerKeyBooklet, setActiveAnswerKeyBooklet] = useState<string>('A');
+  // Step3: kitapçık tabı reset olmasın (remount olunca A'ya dönmesin)
+  const [activeKeyBooklet, setActiveKeyBooklet] = useState<'A' | 'B' | 'C' | 'D'>('A');
+
+  // --- Scroll fix: adım değişince header'a hizala (fazla aşağı kaçmasın) ---
+  useEffect(() => {
+    if (!currentStep) return;
+    const t = window.setTimeout(() => {
+      const el = document.getElementById(`ota-step-${currentStep}`);
+      if (!el) return;
+      const y = el.getBoundingClientRect().top + window.pageYOffset - 90; // header offset
+      window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+    }, 50);
+    return () => window.clearTimeout(t);
+  }, [currentStep]);
 
   // Derived analysis
   const results = useMemo(() => calculateResults(), [students, answerKeys, mappings, subjects, scoring]);
@@ -149,43 +161,20 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
   useEffect(() => {
     localStorage.setItem('online_test_analiz_profile', JSON.stringify(profile));
     if (datContent) parseDat(datContent);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile, datContent]);
 
-  // FIX: NoBooklet modunda AnswerKey her zaman A olsun
-  useEffect(() => {
-    if (profile.noBooklet && activeAnswerKeyBooklet !== 'A') {
-      setActiveAnswerKeyBooklet('A');
-    }
-  }, [profile.noBooklet, activeAnswerKeyBooklet]);
-
-  // --- Scroll helpers (FIX: adım geçişinde aşırı aşağı kaymayı engelle) ---
-
-  const scrollToStepHeader = (stepId: number) => {
-    const el = document.getElementById(`step-header-${stepId}`);
-    if (!el) return;
-    const top = el.getBoundingClientRect().top + window.scrollY - 12;
-    window.scrollTo({ top, behavior: 'smooth' });
-  };
-
-  useEffect(() => {
-    if (!currentStep || currentStep < 1) return;
-    requestAnimationFrame(() => scrollToStepHeader(currentStep));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentStep]);
-
-  const openStep = (stepId: number) => setCurrentStep(stepId);
-  const toggleStep = (stepId: number) => setCurrentStep(prev => (prev === stepId ? 0 : stepId));
-
-  // --- Core logic ---
-
   const parseDat = (content: string) => {
-    const lines = content.split(/\r?\n/).filter(line => line.trim().length > 0);
+    const lines = content
+      .split(/\r?\n/)
+      .map((l) => l.replace(/\u0000/g, '')) // null char temizliği
+      .filter((line) => line.trim().length > 0);
 
-    const parsed: StudentRecord[] = lines.map(line => {
+    const parsed: StudentRecord[] = lines.map((line) => {
       const id = line.substring(profile.idStart - 1, profile.idStart - 1 + profile.idLen).trim();
       const name = line.substring(profile.nameStart - 1, profile.nameStart - 1 + profile.nameLen).trim();
 
-      // If noBooklet is checked, always use 'A'
+      // noBooklet => herkes A
       const booklet = profile.noBooklet
         ? 'A'
         : (line.substring(profile.bookletStart - 1, profile.bookletStart - 1 + 1).trim() || 'A');
@@ -214,11 +203,11 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
         messages.push('İsim alanı boş.');
       }
 
-      // Check for invalid characters (anything not A-E, space, or *)
-      const invalidChars = answers.match(/[^A-E *]/g);
+      // Geçersiz karakter: A-E boşluk * #
+      const invalidChars = answers.match(/[^A-E *#]/g);
       if (invalidChars) {
         status = 'Error';
-        const uniqueInvalids = [...new Set(invalidChars)].map(char => {
+        const uniqueInvalids = [...new Set(invalidChars)].map((char) => {
           if (char === '\t') return 'TAB';
           if (char === '\r') return 'CR';
           if (char === '\n') return 'LF';
@@ -233,7 +222,7 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
         messages.push('Çift işaretlenmiş (*) sorular var.');
       }
 
-      // Encoding check (looking for replacement character)
+      // Encoding check (replacement char)
       if (line.includes('\uFFFD')) {
         if (status !== 'Error') status = 'Warning';
         const msg = 'Kodlama yanlış olabilir (okunmayan karakterler var).';
@@ -249,32 +238,51 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
   function calculateResults(): AnalysisResult[] {
     if (students.length === 0 || answerKeys.length === 0) return [];
 
-    const refKey = answerKeys.find(k => k.booklet === 'A');
-    if (!refKey) return [];
+    const keyA = answerKeys.find((k) => k.booklet === 'A')?.answers || '';
 
-    // Hatalı (Error) kayıtları analizden çıkarıyoruz.
-    const validStudents = students.filter(s => s.status !== 'Error');
+    const validStudents = students.filter((s) => s.status !== 'Error');
+    if (validStudents.length === 0) return [];
 
-    // FIX: aktif soru sayısı 0 ise score hesaplarını güvene al
-    const targetAnswers = refKey.answers ?? '';
-    const activeQuestions = targetAnswers.split('').filter(c => c !== ' ' && c !== '#').length;
+    const getKey = (booklet: string) => answerKeys.find((k) => k.booklet === booklet)?.answers || '';
 
-    return validStudents.map(student => {
+    return validStudents.map((student) => {
+      const studentBooklet = student.booklet || 'A';
+      const map = studentBooklet !== 'A' ? mappings.find((m) => m.fromBooklet === studentBooklet) : undefined;
+
+      const bookletKey = getKey(studentBooklet);
+      const useMappingToA = !!(studentBooklet !== 'A' && map && keyA);
+
+      const targetKey = useMappingToA ? keyA : (bookletKey || keyA);
+
+      // Anahtar yoksa: çökmesin diye boş sonuç
+      if (!targetKey || targetKey.length === 0) {
+        return {
+          studentId: student.id,
+          studentName: student.name,
+          booklet: studentBooklet,
+          rights: 0,
+          wrongs: 0,
+          empties: 0,
+          invalids: 0,
+          net: 0,
+          score: 0,
+          subjectResults: subjects.map((s) => ({ name: s.name, rights: 0, wrongs: 0, empties: 0, net: 0 })),
+          answers: student.answers,
+        };
+      }
+
+      // Öğrenci cevaplarını (gerekirse) A düzenine normalize et
       let studentAnswers = student.answers;
 
-      // Mapping: if student is not A, map their answers to A's order
-      if (student.booklet !== 'A') {
-        const map = mappings.find(m => m.fromBooklet === student.booklet);
-        if (map) {
-          const reordered = new Array(targetAnswers.length).fill(' ');
-          for (let i = 0; i < map.order.length; i++) {
-            const aIdx = map.order[i] - 1;
-            if (aIdx >= 0 && aIdx < reordered.length) {
-              reordered[aIdx] = studentAnswers[i] || ' ';
-            }
+      if (useMappingToA && map) {
+        const reordered = new Array(targetKey.length).fill(' ');
+        for (let i = 0; i < map.order.length; i++) {
+          const aIdx = map.order[i] - 1;
+          if (aIdx >= 0 && aIdx < reordered.length) {
+            reordered[aIdx] = studentAnswers[i] || ' ';
           }
-          studentAnswers = reordered.join('');
         }
+        studentAnswers = reordered.join('');
       }
 
       let rights = 0,
@@ -282,24 +290,20 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
         empties = 0,
         invalids = 0;
 
-      const subResults: any[] = subjects.map(s => ({
-        name: s.name,
-        rights: 0,
-        wrongs: 0,
-        empties: 0,
-        net: 0
-      }));
+      // Subject istatistiği yalnızca A düzeninde anlamlı
+      const subjectResults = subjects.map((s) => ({ name: s.name, rights: 0, wrongs: 0, empties: 0, net: 0 }));
+      const subjectEnabled = (studentBooklet === 'A') || useMappingToA;
 
-      for (let i = 0; i < targetAnswers.length; i++) {
+      for (let i = 0; i < targetKey.length; i++) {
         const sAns = studentAnswers[i] || ' ';
-        const kAns = targetAnswers[i];
+        const kAns = targetKey[i];
 
         let isRight = false,
           isWrong = false,
           isEmpty = false;
 
+        // iptal soru
         if (kAns === ' ' || kAns === '#') {
-          // Cancelled question
           if (scoring.cancelMode === 'correct') isRight = true;
         } else if (sAns === ' ') {
           isEmpty = true;
@@ -316,41 +320,43 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
         if (isWrong) wrongs++;
         if (isEmpty) empties++;
 
-        // Subject attribution
-        const qNum = i + 1;
-        const subIdx = subjects.findIndex(s => qNum >= s.start && qNum <= s.end);
-        if (subIdx !== -1) {
-          if (isRight) subResults[subIdx].rights++;
-          if (isWrong) subResults[subIdx].wrongs++;
-          if (isEmpty) subResults[subIdx].empties++;
+        if (subjectEnabled && subjects.length > 0) {
+          const qNum = i + 1;
+          const subIdx = subjects.findIndex((s) => qNum >= s.start && qNum <= s.end);
+          if (subIdx !== -1) {
+            if (isRight) subjectResults[subIdx].rights++;
+            if (isWrong) subjectResults[subIdx].wrongs++;
+            if (isEmpty) subjectResults[subIdx].empties++;
+          }
         }
       }
 
-      subResults.forEach(sr => {
+      subjectResults.forEach((sr) => {
         sr.net = sr.rights - (scoring.penalty ? sr.wrongs / 4 : 0);
       });
 
       const net = rights - (scoring.penalty ? wrongs / 4 : 0);
+      const activeQuestions = targetKey.split('').filter((c) => c !== ' ' && c !== '#').length;
 
-      // FIX: activeQuestions 0 ise score 0
+      // activeQuestions=0 => NaN/Infinity olmasın
       let score = 0;
       if (activeQuestions > 0) {
-        score = (net / activeQuestions) * scoring.totalScore;
+        score = (net / activeQuestions) * (Number(scoring.totalScore) || 100);
+        if (!Number.isFinite(score)) score = 0;
       }
-      if (!Number.isFinite(score)) score = 0;
 
       return {
         studentId: student.id,
         studentName: student.name,
-        booklet: student.booklet,
+        booklet: studentBooklet,
         rights,
         wrongs,
         empties,
         invalids,
         net,
         score,
-        subjectResults: subResults,
-        answers: studentAnswers
+        subjectResults,
+        answers: studentAnswers,
       };
     });
   }
@@ -373,7 +379,7 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
       const file = e.target.files?.[0];
       if (!file) return;
       const reader = new FileReader();
-      reader.onload = re => {
+      reader.onload = (re) => {
         try {
           const json = JSON.parse(re.target?.result as string);
           setProfile({ ...DEFAULT_PROFILE, ...json, id: 'imported_' + Date.now() });
@@ -404,10 +410,7 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div
-            style={{ backgroundColor: 'white' }}
-            className="p-6 rounded-none shadow-md border-2 border-slate-200 hover:border-[#3498db] transition-colors"
-          >
+          <div style={{ backgroundColor: 'white' }} className="p-6 rounded-none shadow-md border-2 border-slate-200 hover:border-[#3498db] transition-colors">
             <label className="block text-xs font-black text-slate-800 mb-3 uppercase tracking-widest">Öğrenci No (ID)</label>
             <div className="flex gap-2 text-slate-900">
               <div className="flex-1">
@@ -415,7 +418,7 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
                 <input
                   type="number"
                   value={profile.idStart}
-                  onChange={e => setProfile({ ...profile, idStart: Number(e.target.value) })}
+                  onChange={(e) => setProfile({ ...profile, idStart: Number(e.target.value) })}
                   className="w-full p-2 border-2 border-slate-300 focus:border-slate-900 outline-none font-black bg-slate-50"
                 />
               </div>
@@ -424,7 +427,7 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
                 <input
                   type="number"
                   value={profile.idLen}
-                  onChange={e => setProfile({ ...profile, idLen: Number(e.target.value) })}
+                  onChange={(e) => setProfile({ ...profile, idLen: Number(e.target.value) })}
                   className="w-full p-2 border-2 border-slate-300 focus:border-slate-900 outline-none font-black bg-slate-50"
                 />
               </div>
@@ -439,7 +442,7 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
                 <input
                   type="number"
                   value={profile.nameStart}
-                  onChange={e => setProfile({ ...profile, nameStart: Number(e.target.value) })}
+                  onChange={(e) => setProfile({ ...profile, nameStart: Number(e.target.value) })}
                   className="w-full p-2 border-2 border-slate-200 focus:border-slate-800 outline-none font-bold bg-slate-50"
                 />
               </div>
@@ -448,7 +451,7 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
                 <input
                   type="number"
                   value={profile.nameLen}
-                  onChange={e => setProfile({ ...profile, nameLen: Number(e.target.value) })}
+                  onChange={(e) => setProfile({ ...profile, nameLen: Number(e.target.value) })}
                   className="w-full p-2 border-2 border-slate-200 focus:border-slate-800 outline-none font-bold bg-slate-50"
                 />
               </div>
@@ -462,7 +465,7 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
                 <input
                   type="checkbox"
                   checked={profile.noBooklet}
-                  onChange={e => setProfile({ ...profile, noBooklet: e.target.checked })}
+                  onChange={(e) => setProfile({ ...profile, noBooklet: e.target.checked })}
                   className="w-5 h-5 accent-[#3498db]"
                 />
                 <span className="text-sm font-bold text-slate-700 group-hover:text-[#3498db] transition-colors">
@@ -470,14 +473,13 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
                 </span>
               </label>
             </div>
-
             <div className={`flex gap-2 text-slate-800 ${profile.noBooklet ? 'opacity-40 pointer-events-none' : ''}`}>
               <div className="flex-1">
                 <span className="text-[10px] text-slate-400 block mb-1">Kaçıncı Karakter?</span>
                 <input
                   type="number"
                   value={profile.bookletStart}
-                  onChange={e => setProfile({ ...profile, bookletStart: Number(e.target.value) })}
+                  onChange={(e) => setProfile({ ...profile, bookletStart: Number(e.target.value) })}
                   className="w-full p-2 border-2 border-slate-200 focus:border-slate-800 outline-none font-bold bg-slate-50"
                   disabled={profile.noBooklet}
                 />
@@ -494,7 +496,7 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
             <input
               type="number"
               value={profile.answersStart}
-              onChange={e => setProfile({ ...profile, answersStart: Number(e.target.value) })}
+              onChange={(e) => setProfile({ ...profile, answersStart: Number(e.target.value) })}
               className="w-full p-2 border-2 border-slate-200 focus:border-slate-800 outline-none font-bold bg-slate-50"
             />
           </div>
@@ -507,8 +509,7 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
           <ul className="list-disc list-inside opacity-90 space-y-1">
             <li>Karakter pozisyonları 1'den başlar (Excel mantığı).</li>
             <li>
-              <strong>Kitapçık Türü:</strong> Eğer DAT dosyasında belirtilmemişse veya boşsa, tüm öğrenciler otomatik olarak{' '}
-              <strong>A kitapçığı</strong> olarak değerlendirilir.
+              <strong>Kitapçık Türü:</strong> Eğer DAT dosyasında belirtilmemişse veya boşsa, tüm öğrenciler otomatik olarak <strong>A kitapçığı</strong> olarak değerlendirilir.
             </li>
             <li>Dizaynınızı JSON dosyası olarak kaydedip daha sonra tekrar yükleyebilirsiniz.</li>
           </ul>
@@ -530,11 +531,10 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
           <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Kodlama:</span>
           <select
             value={encoding}
-            onChange={e => {
+            onChange={(e) => {
               try {
                 setEncoding(e.target.value);
-                // test support
-                new TextDecoder(e.target.value);
+                new TextDecoder(e.target.value); // destek test
               } catch {
                 toast.error('Seçilen kodlama bu tarayıcıda desteklenmiyor.');
               }
@@ -551,7 +551,7 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
         className="w-full h-80 p-6 font-mono text-sm border-2 border-slate-100 bg-slate-50 focus:bg-white focus:border-slate-800 text-slate-900 outline-none transition-all shadow-inner"
         placeholder="DAT dosyası içeriğini buraya yapıştırın veya dosyayı sürükleyin..."
         value={datContent}
-        onChange={e => setDatContent(e.target.value)}
+        onChange={(e) => setDatContent(e.target.value)}
       />
 
       <div className="flex gap-4">
@@ -560,11 +560,11 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
           <input
             type="file"
             className="hidden"
-            onChange={async e => {
+            onChange={(e) => {
               const file = e.target.files?.[0];
               if (!file) return;
               const reader = new FileReader();
-              reader.onload = re => {
+              reader.onload = (re) => {
                 const text = re.target?.result as string;
                 setDatContent(text);
               };
@@ -586,7 +586,7 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
     const [selectedStudent, setSelectedStudent] = useState<StudentRecord | null>(null);
 
     const filteredStudents = useMemo(() => {
-      return students.filter(s => {
+      return students.filter((s) => {
         const matchesSearch =
           searchTerm === '' ||
           s.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -596,8 +596,8 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
       });
     }, [students, searchTerm, statusFilter]);
 
-    const errorCount = students.filter(s => s.status === 'Error').length;
-    const warningCount = students.filter(s => s.status === 'Warning').length;
+    const errorCount = students.filter((s) => s.status === 'Error').length;
+    const warningCount = students.filter((s) => s.status === 'Warning').length;
 
     return (
       <div className="space-y-4">
@@ -608,11 +608,10 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
               type="text"
               placeholder="ID veya isim ara..."
               value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="flex-1 p-2 border border-slate-200 rounded text-sm outline-none focus:border-slate-400"
             />
           </div>
-
           <div className="flex gap-2">
             <button
               onClick={() => setStatusFilter('all')}
@@ -622,9 +621,7 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
             </button>
             <button
               onClick={() => setStatusFilter('Error')}
-              className={`px-3 py-1 text-xs font-bold rounded ${
-                statusFilter === 'Error' ? 'bg-rose-600 text-white' : 'bg-white border text-rose-600'
-              }`}
+              className={`px-3 py-1 text-xs font-bold rounded ${statusFilter === 'Error' ? 'bg-rose-600 text-white' : 'bg-white border text-rose-600'}`}
             >
               Hatalı ({errorCount})
             </button>
@@ -712,12 +709,15 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
   };
 
   const Step3_AnswerKey = () => {
-    const currentKey = answerKeys.find(k => k.booklet === activeAnswerKeyBooklet)?.answers || '';
+    const activeBooklet = activeKeyBooklet;
+    const setActiveBooklet = setActiveKeyBooklet;
+
+    const currentKey = answerKeys.find((k) => k.booklet === activeBooklet)?.answers || '';
     const isNoBooklet = profile.noBooklet;
 
     const updateKey = (booklet: string, val: string) => {
       const cleanVal = val.toUpperCase().replace(/[^A-E *#]/g, '');
-      const otherKeys = answerKeys.filter(k => k.booklet !== booklet);
+      const otherKeys = answerKeys.filter((k) => k.booklet !== booklet);
       setAnswerKeys([...otherKeys, { booklet, answers: cleanVal }]);
     };
 
@@ -725,8 +725,8 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
       const file = e.target.files?.[0];
       if (!file) return;
       const reader = new FileReader();
-      reader.onload = re => {
-        const text = (re.target?.result as string) ?? '';
+      reader.onload = (re) => {
+        const text = (re.target?.result as string) || '';
         updateKey(booklet, text.trim());
         toast.success(`${booklet} kitapçığı yüklendi.`);
       };
@@ -736,12 +736,12 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
     return (
       <div className="space-y-6">
         <div className="flex flex-wrap gap-2 mb-4">
-          {(isNoBooklet ? ['A'] : ['A', 'B', 'C', 'D']).map(bk => (
+          {(isNoBooklet ? (['A'] as const) : (['A', 'B', 'C', 'D'] as const)).map((bk) => (
             <button
               key={bk}
-              onClick={() => setActiveAnswerKeyBooklet(bk)}
+              onClick={() => setActiveBooklet(bk)}
               className={`px-6 py-2 font-bold transition-all border-b-4 ${
-                activeAnswerKeyBooklet === bk ? 'bg-slate-800 text-white border-[#1ABC9C]' : 'bg-white text-slate-500 border-transparent hover:bg-slate-50'
+                activeBooklet === bk ? 'bg-slate-800 text-white border-[#1ABC9C]' : 'bg-white text-slate-500 border-transparent hover:bg-slate-50'
               }`}
             >
               {bk} Kitapçığı
@@ -752,16 +752,18 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
         <div className="bg-white p-6 rounded border shadow-sm space-y-4">
           <div className="flex justify-between items-center">
             <h4 className="font-bold text-slate-800">
-              {activeAnswerKeyBooklet} Kitapçığı Cevapları
-              {activeAnswerKeyBooklet === 'A' && isNoBooklet && <span className="text-xs font-normal text-slate-400 ml-2">(Kitapçık türü belirtilmediyse bunu kullanın)</span>}
+              {activeBooklet} Kitapçığı Cevapları
+              {activeBooklet === 'A' && isNoBooklet && (
+                <span className="text-xs font-normal text-slate-400 ml-2">(Kitapçık türü belirtilmediyse bunu kullanın)</span>
+              )}
             </h4>
             <div className="flex gap-2">
               <label className="cursor-pointer bg-slate-100 text-slate-700 px-3 py-1 rounded text-xs font-semibold hover:bg-slate-200 border">
                 <Upload size={14} className="inline mr-1" /> Dosyadan Yükle
-                <input type="file" className="hidden" onChange={e => handleFileUpload(e, activeAnswerKeyBooklet)} />
+                <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, activeBooklet)} />
               </label>
               <button
-                onClick={() => updateKey(activeAnswerKeyBooklet, '')}
+                onClick={() => updateKey(activeBooklet, '')}
                 className="bg-rose-50 text-rose-600 px-3 py-1 rounded text-xs font-semibold hover:bg-rose-100 border border-rose-100"
               >
                 Temizle
@@ -772,7 +774,7 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
           <textarea
             className="w-full h-32 p-4 font-mono text-xl border rounded bg-slate-50 text-slate-800 tracking-[0.2em] focus:ring-2 focus:ring-[#1ABC9C] outline-none"
             placeholder="Örn: ABCDEABCDE..."
-            onChange={e => updateKey(activeAnswerKeyBooklet, e.target.value)}
+            onChange={(e) => updateKey(activeBooklet, e.target.value)}
             value={currentKey}
           />
 
@@ -780,11 +782,7 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
             {currentKey.split('').map((char, idx) => (
               <div key={idx} className="flex flex-col items-center">
                 <span className="text-[10px] text-slate-400 font-bold">{idx + 1}</span>
-                <div
-                  className={`w-8 h-8 flex items-center justify-center font-bold border rounded ${
-                    char === ' ' || char === '#' ? 'bg-amber-100 text-amber-700' : 'bg-white text-slate-700'
-                  }`}
-                >
+                <div className={`w-8 h-8 flex items-center justify-center font-bold border rounded ${char === ' ' || char === '#' ? 'bg-amber-100 text-amber-700' : 'bg-white text-slate-700'}`}>
                   {char}
                 </div>
               </div>
@@ -794,11 +792,11 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
           <div className="flex gap-4 text-xs font-semibold text-slate-500 pt-4 border-t">
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 bg-[#1ABC9C] rounded-full"></div>
-              <span>Puanlanan Soru: {currentKey.split('').filter(c => c !== ' ' && c !== '#').length}</span>
+              <span>Puanlanan Soru: {currentKey.split('').filter((c) => c !== ' ' && c !== '#').length}</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 bg-amber-400 rounded-full"></div>
-              <span>İptal/Boş: {currentKey.split('').filter(c => c === ' ' || c === '#').length}</span>
+              <span>İptal/Boş: {currentKey.split('').filter((c) => c === ' ' || c === '#').length}</span>
             </div>
           </div>
         </div>
@@ -820,23 +818,190 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
     );
   };
 
-  const Step7_Analysis = () => {
-    const sortedResults = useMemo(() => [...results].sort((a, b) => (b.score || 0) - (a.score || 0)), [results]);
+  const Step4_Mapping = () => {
+    const [bulkText, setBulkText] = useState('');
+    const [activeFrom, setActiveFrom] = useState<'B' | 'C' | 'D'>('B');
 
-    const topCount = Math.max(1, Math.ceil(results.length * 0.27));
+    const currentMapping = mappings.find((m) => m.fromBooklet === activeFrom);
+
+    const applyBulk = () => {
+      const numbers = bulkText
+        .trim()
+        .split(/[\s,\t]+/)
+        .filter((x) => x)
+        .map((x) => Number(x));
+
+      if (numbers.length === 0 || numbers.some((n) => !Number.isFinite(n) || n <= 0)) {
+        toast.error('Geçersiz veri.');
+        return;
+      }
+
+      const keyA = answerKeys.find((k) => k.booklet === 'A')?.answers || '';
+      if (keyA && numbers.length !== keyA.length) {
+        toast.warning(`Uyarı: Eşleştirme uzunluğu (${numbers.length}) A anahtar uzunluğu (${keyA.length}) ile aynı değil.`);
+      }
+
+      const otherMappings = mappings.filter((m) => m.fromBooklet !== activeFrom);
+      setMappings([...otherMappings, { fromBooklet: activeFrom, toBooklet: 'A', order: numbers }]);
+      toast.success(`${activeFrom} -> A eşleştirmesi güncellendi.`);
+      setBulkText('');
+    };
+
+    const booklets: Array<'B' | 'C' | 'D'> = ['B', 'C', 'D'];
+
+    return (
+      <div className="space-y-6">
+        <div className="bg-amber-50 p-4 border border-amber-200 rounded text-amber-800 text-sm flex gap-3">
+          <Info size={20} className="shrink-0" />
+          <p>
+            Eğer sınavınız <strong>tek kitapçık</strong> türü ise (sadece A) bu adımı <strong>atlayabilirsiniz</strong>. Farklı kitapçıklar varsa, her sorunun A kitapçığındaki hangi soruya denk geldiğini buraya girin.
+          </p>
+        </div>
+
+        <div className="flex gap-2">
+          {booklets.map((b) => (
+            <button
+              key={b}
+              onClick={() => setActiveFrom(b)}
+              className={`px-8 py-3 font-bold text-xs uppercase tracking-widest border-2 transition-all ${
+                activeFrom === b ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-500 border-slate-100 hover:border-slate-300'
+              }`}
+            >
+              {b} Kitapçığı
+            </button>
+          ))}
+        </div>
+
+        <div className="bg-white p-6 border-2 border-slate-100 shadow-sm space-y-6">
+          <h4 className="font-black text-slate-800 uppercase tracking-widest text-sm underline decoration-[#3498db] decoration-4">
+            {activeFrom} → A Eşleştirmesi
+          </h4>
+
+          <div className="space-y-2">
+            <label className="block text-xs font-bold text-slate-500 uppercase">Toplu Eşleştirme Yapıştır</label>
+            <textarea
+              className="w-full h-32 p-4 font-mono text-sm border-2 border-slate-100 bg-slate-50 focus:bg-white focus:border-slate-800 outline-none transition-all"
+              placeholder="Örn: 5, 12, 1, 8... (A kitapçığındaki soru numaralarını aralarına boşluk veya virgül koyarak yazın)"
+              value={bulkText}
+              onChange={(e) => setBulkText(e.target.value)}
+            />
+            <button onClick={applyBulk} className="bg-emerald-600 text-white px-8 py-3 text-xs font-black uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-lg">
+              Eşleştirmeyi Uygula
+            </button>
+          </div>
+
+          {currentMapping && (
+            <div className="grid grid-cols-5 md:grid-cols-10 gap-2 pt-4 border-t">
+              {currentMapping.order.map((aNum, idx) => (
+                <div key={idx} className="bg-slate-50 p-2 border border-slate-200 text-center">
+                  <div className="text-[10px] text-slate-400 font-bold mb-1">
+                    {activeFrom} {idx + 1}
+                  </div>
+                  <div className="font-extrabold text-slate-800">A {aNum}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const Step5_Subjects = () => {
+    const [newName, setNewName] = useState('');
+    const [newStart, setNewStart] = useState(1);
+    const [newEnd, setNewEnd] = useState(10);
+
+    const addSubject = () => {
+      if (!newName.trim()) {
+        toast.error('Ders/Konu adı boş olamaz.');
+        return;
+      }
+      if (newStart <= 0 || newEnd <= 0 || newEnd < newStart) {
+        toast.error('Soru aralığı geçersiz.');
+        return;
+      }
+      setSubjects([...subjects, { name: newName.trim(), start: newStart, end: newEnd }]);
+      setNewName('');
+    };
+
+    const removeSubject = (idx: number) => setSubjects(subjects.filter((_, i) => i !== idx));
+
+    return (
+      <div className="space-y-6">
+        <div className="bg-slate-50 p-6 border-2 border-slate-200 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+          <div className="md:col-span-2">
+            <label className="block text-xs font-black text-slate-500 uppercase mb-2">Ders / Konu Adı</label>
+            <input
+              type="text"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              className="w-full p-3 border-2 border-white outline-none focus:border-slate-800 font-bold"
+              placeholder="Örn: Anatomi"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-black text-slate-500 uppercase mb-2">Başlangıç Soru</label>
+            <input
+              type="number"
+              value={newStart}
+              onChange={(e) => setNewStart(Number(e.target.value))}
+              className="w-full p-3 border-2 border-white outline-none focus:border-slate-800 font-bold"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-black text-slate-500 uppercase mb-2">Bitiş Soru</label>
+            <input
+              type="number"
+              value={newEnd}
+              onChange={(e) => setNewEnd(Number(e.target.value))}
+              className="w-full p-3 border-2 border-white outline-none focus:border-slate-800 font-bold"
+            />
+          </div>
+          <button onClick={addSubject} className="md:col-span-4 bg-slate-900 text-white p-4 text-xs font-black uppercase tracking-widest hover:bg-black transition-all">
+            Listeye Ekle
+          </button>
+        </div>
+
+        <div className="space-y-2">
+          {subjects.map((s, i) => (
+            <div key={i} className="flex justify-between items-center p-4 bg-white border-2 border-slate-100 hover:border-slate-300 transition-all">
+              <div className="flex items-center gap-6">
+                <div className="bg-slate-900 text-white w-10 h-10 flex items-center justify-center font-black">{i + 1}</div>
+                <div>
+                  <div className="font-black text-slate-800 uppercase tracking-tight">{s.name}</div>
+                  <div className="text-xs text-slate-400 font-bold">A Kitapçığı Soru Aralığı: {s.start} - {s.end}</div>
+                </div>
+              </div>
+              <button onClick={() => removeSubject(i)} className="text-rose-500 hover:bg-rose-50 p-2 rounded transition-colors">
+                <XCircle size={20} />
+              </button>
+            </div>
+          ))}
+          {subjects.length === 0 && (
+            <div className="p-12 text-center text-slate-400 italic bg-white border-2 border-dashed border-slate-100">Henüz ders tanımlanmadı.</div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const Step7_Analysis = () => {
+    const sortedResults = useMemo(() => [...results].sort((a, b) => b.score - a.score), [results]);
+    const topCount = Math.ceil(results.length * 0.27) || 1;
     const topGroup = sortedResults.slice(0, topCount);
     const bottomGroup = sortedResults.slice(-topCount);
 
     const missingMappings = useMemo(() => {
-      const usedBooklets = Array.from(new Set(students.map(s => s.booklet))).filter(b => b !== 'A');
-      return usedBooklets.filter(b => !mappings.some(m => m.fromBooklet === b));
+      const usedBooklets = Array.from(new Set(students.map((s) => s.booklet))).filter((b) => b !== 'A');
+      return usedBooklets.filter((b) => !mappings.some((m) => m.fromBooklet === b));
     }, [students, mappings]);
 
     const questionStats = useMemo(() => {
       if (results.length === 0 || answerKeys.length === 0) return [];
-      if (missingMappings.length > 0) return [];
+      if (missingMappings.length > 0) return []; // A düzeni bozulur
 
-      const refKey = answerKeys.find(k => k.booklet === 'A');
+      const refKey = answerKeys.find((k) => k.booklet === 'A');
       if (!refKey) return [];
 
       const stats: any[] = [];
@@ -851,16 +1016,16 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
         let topCorrect = 0;
         let bottomCorrect = 0;
 
-        results.forEach(r => {
+        results.forEach((r) => {
           const ans = r.answers[i] || ' ';
           distributions[ans] = (distributions[ans] || 0) + 1;
           if (ans === correctAns) correctCount++;
         });
 
-        topGroup.forEach(r => {
+        topGroup.forEach((r) => {
           if (r.answers[i] === correctAns) topCorrect++;
         });
-        bottomGroup.forEach(r => {
+        bottomGroup.forEach((r) => {
           if (r.answers[i] === correctAns) bottomCorrect++;
         });
 
@@ -880,44 +1045,52 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
         else if (discIndex >= 0.2) discText = 'Zayıf (Düzeltilmeli)';
         else discText = 'Çok Zayıf (Hatalı/Ayırıcı Değil)';
 
+        const evalText = `${discText} (${diffText})`;
+
         stats.push({
           number: i + 1,
           correctAns,
           diffIndex,
           discIndex,
-          evalText: `${discText} (${diffText})`,
-          distributions
+          evalText,
+          distributions,
         });
       }
 
       return stats;
-    }, [results, answerKeys, topGroup, bottomGroup, missingMappings, topCount]);
+    }, [results, answerKeys, topGroup, bottomGroup, missingMappings]);
 
+    // FIX: undefined.count çökmesi olmasın + totalScore'a göre histogram
     const scoreData = useMemo(() => {
-      const ranges = [
-        { name: '0-20', count: 0 },
-        { name: '20-40', count: 0 },
-        { name: '40-60', count: 0 },
-        { name: '60-80', count: 0 },
-        { name: '80-100', count: 0 }
+      const maxScore = Number(scoring.totalScore) || 100;
+
+      const labels = [
+        `0-${Math.round(maxScore * 0.2)}`,
+        `${Math.round(maxScore * 0.2)}-${Math.round(maxScore * 0.4)}`,
+        `${Math.round(maxScore * 0.4)}-${Math.round(maxScore * 0.6)}`,
+        `${Math.round(maxScore * 0.6)}-${Math.round(maxScore * 0.8)}`,
+        `${Math.round(maxScore * 0.8)}-${Math.round(maxScore)}`,
       ];
 
-      // FIX: NaN/Infinity/negatif skorları güvenli işle
-      results.forEach(r => {
-        const s = Number.isFinite(r.score) ? r.score : 0;
-        const safeScore = Math.max(0, s);
-        const idx = Math.min(Math.max(Math.floor(safeScore / 20), 0), 4);
-        ranges[idx].count += 1;
+      const ranges = labels.map((name) => ({ name, count: 0 }));
+
+      results.forEach((r) => {
+        const s = Number(r.score);
+        if (!Number.isFinite(s)) return;
+        const ratio = maxScore > 0 ? s / maxScore : 0;
+        const rawIdx = Math.floor(ratio * 5);
+        const idx = Math.max(0, Math.min(4, rawIdx));
+        ranges[idx].count++;
       });
 
       return ranges;
-    }, [results]);
+    }, [results, scoring.totalScore]);
 
     const statsData = useMemo(
       () => [
         { name: 'Doğru', value: results.reduce((acc, r) => acc + r.rights, 0), color: '#10b981' },
         { name: 'Yanlış', value: results.reduce((acc, r) => acc + r.wrongs, 0), color: '#ef4444' },
-        { name: 'Boş', value: results.reduce((acc, r) => acc + r.empties, 0), color: '#94a3b8' }
+        { name: 'Boş', value: results.reduce((acc, r) => acc + r.empties, 0), color: '#94a3b8' },
       ],
       [results]
     );
@@ -930,8 +1103,11 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
               <AlertTriangle size={24} /> Eksik Kitapçık Eşleştirmesi!
             </div>
             <p className="text-sm">
-              Sınavda kullanılan <strong>{missingMappings.join(', ')}</strong> kitapçıkları için henüz bir eşleştirme (mapping) tanımlamadınız. Doğru istatistiksel analiz için lütfen{' '}
-              <strong>Adım 4</strong>'e giderek bu kitapçıkların A kitapçığına göre dizilimini girin.
+              Sınavda kullanılan <strong>{missingMappings.join(', ')}</strong> kitapçıkları için henüz bir eşleştirme (mapping) tanımlamadınız.
+              <br />
+              <strong>Soru analizi ve A düzeninde raporlar</strong> için lütfen <strong>Adım 4</strong>'e giderek bu kitapçıkların A kitapçığına göre dizilimini girin.
+              <br />
+              (Not: Puan hesapları artık kitapçık anahtarı varsa mapping olmadan da çalışır.)
             </p>
           </div>
         )}
@@ -944,17 +1120,17 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
 
           <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.1 }} className="bg-sky-500 text-white p-6 rounded-none shadow-lg border-b-4 border-sky-700">
             <div className="text-sm opacity-80 font-bold uppercase tracking-tight">Genel Ortalama</div>
-            <div className="text-4xl font-extrabold">{(results.reduce((acc, r) => acc + (Number.isFinite(r.score) ? r.score : 0), 0) / (results.length || 1)).toFixed(2)}</div>
+            <div className="text-4xl font-extrabold">{(results.reduce((acc, r) => acc + r.score, 0) / (results.length || 1)).toFixed(2)}</div>
           </motion.div>
 
           <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.2 }} className="bg-amber-500 text-white p-6 rounded-none shadow-lg border-b-4 border-amber-700">
             <div className="text-sm opacity-80 font-bold uppercase tracking-tight">En Yüksek</div>
-            <div className="text-4xl font-extrabold">{results.length > 0 ? Math.max(...results.map(r => (Number.isFinite(r.score) ? r.score : 0))).toFixed(1) : 0}</div>
+            <div className="text-4xl font-extrabold">{results.length > 0 ? Math.max(...results.map((r) => r.score)).toFixed(1) : 0}</div>
           </motion.div>
 
           <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.3 }} className="bg-rose-500 text-white p-6 rounded-none shadow-lg border-b-4 border-rose-700">
             <div className="text-sm opacity-80 font-bold uppercase tracking-tight">En Düşük</div>
-            <div className="text-4xl font-extrabold">{results.length > 0 ? Math.min(...results.map(r => (Number.isFinite(r.score) ? r.score : 0))).toFixed(1) : 0}</div>
+            <div className="text-4xl font-extrabold">{results.length > 0 ? Math.min(...results.map((r) => r.score)).toFixed(1) : 0}</div>
           </motion.div>
         </div>
 
@@ -963,7 +1139,7 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
             <h4 className="font-bold text-slate-800 mb-6 uppercase tracking-wider text-sm">Ders/Konu Bazlı Başarı Oranları</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {subjects.map((sub, idx) => {
-                const subStats = results.map(r => r.subjectResults[idx]);
+                const subStats = results.map((r) => r.subjectResults[idx]);
                 const avgNet = subStats.reduce((acc, s) => acc + (s?.net || 0), 0) / (results.length || 1);
                 const totalQ = sub.end - sub.start + 1;
                 return (
@@ -1025,7 +1201,7 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
             <button
               onClick={() => {
                 let csv = 'sep=;\nNo;Doğru;A;B;C;D;E;Gecersiz (*);Zorluk (P);Ayır. (D);Değerlendirme\n';
-                questionStats.forEach(qs => {
+                questionStats.forEach((qs) => {
                   csv += `${qs.number};${qs.correctAns};${qs.distributions.A};${qs.distributions.B};${qs.distributions.C};${qs.distributions.D};${qs.distributions.E};${
                     (qs.distributions[' '] || 0) + (qs.distributions['*'] || 0)
                   };${qs.diffIndex.toFixed(2).replace('.', ',')};${qs.discIndex.toFixed(2).replace('.', ',')};${qs.evalText}\n`;
@@ -1066,7 +1242,7 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
                   <tr key={i} className="border-b last:border-0 hover:bg-slate-50 transition-colors">
                     <td className="p-3 font-bold">{qs.number}</td>
                     <td className="p-3 text-center font-black text-emerald-600">{qs.correctAns}</td>
-                    {['A', 'B', 'C', 'D', 'E'].map(opt => (
+                    {['A', 'B', 'C', 'D', 'E'].map((opt) => (
                       <td key={opt} className={`p-3 text-center ${qs.correctAns === opt ? 'bg-emerald-50 font-black' : 'text-slate-400'}`}>
                         {qs.distributions[opt] || 0}
                       </td>
@@ -1085,7 +1261,9 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
             {questionStats.length === 0 && (
               <div className="p-12 text-center bg-slate-50 border-t">
                 <p className="text-slate-400 italic">
-                  {missingMappings.length > 0 ? "Eksik kitapçık eşleştirmeleri nedeniyle soru analizi gösterilemiyor. Lütfen Adım 4'ü tamamlayın." : 'Soru analizi için veri bekleniyor.'}
+                  {missingMappings.length > 0
+                    ? "Eksik kitapçık eşleştirmeleri nedeniyle soru analizi gösterilemiyor. Lütfen Adım 4'ü tamamlayın."
+                    : 'Soru analizi için veri bekleniyor.'}
                 </p>
               </div>
             )}
@@ -1095,13 +1273,14 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
         <div className="bg-white rounded border shadow-sm overflow-hidden">
           <div className="p-4 border-b bg-slate-50 flex flex-wrap justify-between items-center gap-4">
             <h3 className="font-bold text-slate-800 uppercase tracking-widest text-sm italic">Öğrenci Detaylı Analiz Paneli</h3>
-
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => {
                   let csv = 'sep=;\nID;Ad Soyad;Kitapçık;Doğru;Yanlış;Boş;Gecersiz (*);Net;Puan\n';
-                  results.forEach(r => {
-                    csv += `${r.studentId};${r.studentName};${r.booklet};${r.rights};${r.wrongs};${r.empties};${r.invalids};${r.net.toFixed(2).replace('.', ',')};${r.score.toFixed(2).replace('.', ',')}\n`;
+                  results.forEach((r) => {
+                    csv += `${r.studentId};${r.studentName};${r.booklet};${r.rights};${r.wrongs};${r.empties};${r.invalids};${r.net.toFixed(2).replace('.', ',')};${r.score
+                      .toFixed(2)
+                      .replace('.', ',')}\n`;
                   });
                   const blob = new Blob([new Uint8Array([0xef, 0xbb, 0xbf]), csv], { type: 'text/csv;charset=utf-8;' });
                   const url = URL.createObjectURL(blob);
@@ -1119,7 +1298,7 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
               <button
                 onClick={() => {
                   if (results.length === 0) return;
-                  const refKey = answerKeys.find(k => k.booklet === 'A');
+                  const refKey = answerKeys.find((k) => k.booklet === 'A');
                   if (!refKey) return;
                   const qCount = refKey.answers.length;
 
@@ -1127,7 +1306,7 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
                   for (let i = 1; i <= qCount; i++) csv += `S${i};`;
                   csv += '\n';
 
-                  results.forEach(r => {
+                  results.forEach((r) => {
                     csv += `${r.studentId};${r.studentName};${r.booklet};`;
                     for (let i = 0; i < qCount; i++) csv += `${r.answers[i] || ' '};`;
                     csv += '\n';
@@ -1150,8 +1329,8 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
                 onClick={() => {
                   let csv = 'sep=;\nID;Ad Soyad;Durum;Mesajlar\n';
                   students
-                    .filter(s => s.status !== 'OK')
-                    .forEach(s => {
+                    .filter((s) => s.status !== 'OK')
+                    .forEach((s) => {
                       csv += `${s.id};${s.name};${s.status};${s.messages.join(' | ')}\n`;
                     });
 
@@ -1221,147 +1400,6 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
     return true;
   };
 
-  const Step4_Mapping = () => {
-    const [bulkText, setBulkText] = useState('');
-    const [activeFrom, setActiveFrom] = useState('B');
-
-    const currentMapping = mappings.find(m => m.fromBooklet === activeFrom);
-
-    const applyBulk = () => {
-      const numbers = bulkText
-        .split(/[\s,\t]+/)
-        .filter(x => x)
-        .map(Number)
-        .filter(n => Number.isFinite(n) && n > 0);
-
-      if (numbers.length === 0) {
-        toast.error('Geçersiz veri.');
-        return;
-      }
-
-      const otherMappings = mappings.filter(m => m.fromBooklet !== activeFrom);
-      setMappings([...otherMappings, { fromBooklet: activeFrom, toBooklet: 'A', order: numbers }]);
-      toast.success(`${activeFrom} -> A eşleştirmesi güncellendi.`);
-      setBulkText('');
-    };
-
-    const booklets = ['B', 'C', 'D'];
-
-    return (
-      <div className="space-y-6">
-        <div className="bg-amber-50 p-4 border border-amber-200 rounded text-amber-800 text-sm flex gap-3">
-          <Info size={20} className="shrink-0" />
-          <p>
-            Eğer sınavınız <strong>tek kitapçık</strong> türü ise (sadece A) bu adımı <strong>atlayabilirsiniz</strong>. Farklı kitapçıklar varsa, her sorunun A kitapçığındaki hangi soruya denk
-            geldiğini buraya girin.
-          </p>
-        </div>
-
-        <div className="flex gap-2">
-          {booklets.map(b => (
-            <button
-              key={b}
-              onClick={() => setActiveFrom(b)}
-              className={`px-8 py-3 font-bold text-xs uppercase tracking-widest border-2 transition-all ${
-                activeFrom === b ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-500 border-slate-100 hover:border-slate-300'
-              }`}
-            >
-              {b} Kitapçığı
-            </button>
-          ))}
-        </div>
-
-        <div className="bg-white p-6 border-2 border-slate-100 shadow-sm space-y-6">
-          <h4 className="font-black text-slate-800 uppercase tracking-widest text-sm underline decoration-[#3498db] decoration-4">{activeFrom} → A Eşleştirmesi</h4>
-
-          <div className="space-y-2">
-            <label className="block text-xs font-bold text-slate-500 uppercase">Toplu Eşleştirme Yapıştır</label>
-            <textarea
-              className="w-full h-32 p-4 font-mono text-sm border-2 border-slate-100 bg-slate-50 focus:bg-white focus:border-slate-800 outline-none transition-all"
-              placeholder="Örn: 5, 12, 1, 8... (A kitapçığındaki soru numaralarını aralarına boşluk veya virgül koyarak yazın)"
-              value={bulkText}
-              onChange={e => setBulkText(e.target.value)}
-            />
-            <button onClick={applyBulk} className="bg-emerald-600 text-white px-8 py-3 text-xs font-black uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-lg">
-              Eşleştirmeyi Uygula
-            </button>
-          </div>
-
-          {currentMapping && (
-            <div className="grid grid-cols-5 md:grid-cols-10 gap-2 pt-4 border-t">
-              {currentMapping.order.map((aNum, idx) => (
-                <div key={idx} className="bg-slate-50 p-2 border border-slate-200 text-center">
-                  <div className="text-[10px] text-slate-400 font-bold mb-1">
-                    {activeFrom} {idx + 1}
-                  </div>
-                  <div className="font-extrabold text-slate-800">A {aNum}</div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  const Step5_Subjects = () => {
-    const [newName, setNewName] = useState('');
-    const [newStart, setNewStart] = useState(1);
-    const [newEnd, setNewEnd] = useState(10);
-
-    const addSubject = () => {
-      if (!newName) return;
-      setSubjects([...subjects, { name: newName, start: newStart, end: newEnd }]);
-      setNewName('');
-    };
-
-    const removeSubject = (idx: number) => {
-      setSubjects(subjects.filter((_, i) => i !== idx));
-    };
-
-    return (
-      <div className="space-y-6">
-        <div className="bg-slate-50 p-6 border-2 border-slate-200 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-          <div className="md:col-span-2">
-            <label className="block text-xs font-black text-slate-500 uppercase mb-2">Ders / Konu Adı</label>
-            <input type="text" value={newName} onChange={e => setNewName(e.target.value)} className="w-full p-3 border-2 border-white outline-none focus:border-slate-800 font-bold" placeholder="Örn: Anatomi" />
-          </div>
-          <div>
-            <label className="block text-xs font-black text-slate-500 uppercase mb-2">Başlangıç Soru</label>
-            <input type="number" value={newStart} onChange={e => setNewStart(Number(e.target.value))} className="w-full p-3 border-2 border-white outline-none focus:border-slate-800 font-bold" />
-          </div>
-          <div>
-            <label className="block text-xs font-black text-slate-500 uppercase mb-2">Bitiş Soru</label>
-            <input type="number" value={newEnd} onChange={e => setNewEnd(Number(e.target.value))} className="w-full p-3 border-2 border-white outline-none focus:border-slate-800 font-bold" />
-          </div>
-          <button onClick={addSubject} className="md:col-span-4 bg-slate-900 text-white p-4 text-xs font-black uppercase tracking-widest hover:bg-black transition-all">
-            Listeye Ekle
-          </button>
-        </div>
-
-        <div className="space-y-2">
-          {subjects.map((s, i) => (
-            <div key={i} className="flex justify-between items-center p-4 bg-white border-2 border-slate-100 hover:border-slate-300 transition-all">
-              <div className="flex items-center gap-6">
-                <div className="bg-slate-900 text-white w-10 h-10 flex items-center justify-center font-black">{i + 1}</div>
-                <div>
-                  <div className="font-black text-slate-800 uppercase tracking-tight">{s.name}</div>
-                  <div className="text-xs text-slate-400 font-bold">
-                    A Kitapçığı Soru Aralığı: {s.start} - {s.end}
-                  </div>
-                </div>
-              </div>
-              <button onClick={() => removeSubject(i)} className="text-rose-500 hover:bg-rose-50 p-2 rounded transition-colors">
-                <XCircle size={20} />
-              </button>
-            </div>
-          ))}
-          {subjects.length === 0 && <div className="p-12 text-center text-slate-400 italic bg-white border-2 border-dashed border-slate-100">Henüz ders tanımlanmadı.</div>}
-        </div>
-      </div>
-    );
-  };
-
   return (
     <PageContainer>
       <div style={{ backgroundColor: '#1e293b' }} className="text-white p-10 mb-8 rounded-none border-l-8 border-[#3498db] shadow-2xl overflow-hidden relative">
@@ -1386,30 +1424,24 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
       </div>
 
       <div className="max-w-6xl mx-auto space-y-3 pb-20">
-        {STEPS.map(step => (
-          <div key={step.id} className="bg-white border-2 border-slate-100 shadow-xl overflow-hidden rounded-sm transition-all duration-300 hover:border-slate-300">
+        {STEPS.map((step) => (
+          <div id={`ota-step-${step.id}`} key={step.id} className="bg-white border-2 border-slate-100 shadow-xl overflow-hidden rounded-sm transition-all duration-300 hover:border-slate-300">
             <button
-              id={`step-header-${step.id}`}
-              onClick={() => toggleStep(step.id)}
+              onClick={() => setCurrentStep(currentStep === step.id ? 0 : step.id)}
               className={`w-full flex items-center justify-between p-5 text-left transition-colors ${currentStep === step.id ? 'bg-slate-50' : 'bg-white hover:bg-slate-50'}`}
             >
               <div className="flex items-center gap-5">
                 <div
                   style={currentStep === step.id ? { backgroundColor: '#1e293b', color: 'white' } : { backgroundColor: '#f1f5f9', color: '#64748b' }}
-                  className={`p-3 rounded-none shadow-md transition-colors`}
+                  className="p-3 rounded-none shadow-md transition-colors"
                 >
-                  {isStepDone(step.id) && currentStep !== step.id ? (
-                    <CheckCircle size={24} className="text-emerald-500" />
-                  ) : (
-                    React.cloneElement(step.icon as React.ReactElement<any>, { size: 24 })
-                  )}
+                  {isStepDone(step.id) && currentStep !== step.id ? <CheckCircle size={24} className="text-emerald-500" /> : React.cloneElement(step.icon as React.ReactElement<any>, { size: 24 })}
                 </div>
                 <div>
                   <div className="text-[10px] font-black uppercase tracking-[0.2em] text-[#3498db] mb-0.5">Adım {step.id}</div>
                   <h2 className="text-xl font-bold text-slate-900 tracking-tight">{step.title}</h2>
                 </div>
               </div>
-
               <div className="flex items-center gap-3">
                 {isStepDone(step.id) && <span className="text-[10px] font-bold bg-emerald-100 text-emerald-700 px-2 py-1 rounded uppercase tracking-wider">Tamamlandı</span>}
                 <div className={`transition-transform duration-300 ${currentStep === step.id ? 'rotate-180' : ''}`}>
@@ -1439,7 +1471,7 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
                               <Eye size={24} className="text-[#3498db]" /> Veri Ayrıştırma Önizlemesi
                             </h4>
                             <button
-                              onClick={() => openStep(3)}
+                              onClick={() => setCurrentStep(3)}
                               className="bg-[#2ecc71] text-white px-8 py-3 text-xs font-black uppercase tracking-widest hover:bg-[#27ae60] transition-all shadow-lg"
                             >
                               Dizaynı Kabul Et ve Devam Et
@@ -1468,7 +1500,7 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
                               type="number"
                               className="w-full p-4 border-2 border-white focus:border-[#3498db] focus:ring-4 focus:ring-sky-100 outline-none transition-all font-black text-3xl bg-white shadow-sm"
                               value={scoring.totalScore}
-                              onChange={e => setScoring({ ...scoring, totalScore: Number(e.target.value) })}
+                              onChange={(e) => setScoring({ ...scoring, totalScore: Number(e.target.value) })}
                             />
                           </div>
 
@@ -1482,7 +1514,7 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
                                 <input
                                   type="checkbox"
                                   checked={scoring.penalty}
-                                  onChange={e => setScoring({ ...scoring, penalty: e.target.checked })}
+                                  onChange={(e) => setScoring({ ...scoring, penalty: e.target.checked })}
                                   className="w-8 h-8 accent-[#3498db]"
                                 />
                                 <span className="font-bold text-lg text-slate-800 group-hover/chk:text-[#3498db] transition-colors">4 Yanlış 1 Doğruyu Götürür</span>
@@ -1542,7 +1574,7 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
                     <div className="mt-12 flex justify-end gap-3 border-t pt-8">
                       {step.id > 1 && (
                         <button
-                          onClick={() => openStep(step.id - 1)}
+                          onClick={() => setCurrentStep(step.id - 1)}
                           className="flex items-center gap-2 px-6 py-3 font-bold text-xs uppercase tracking-widest text-slate-500 hover:text-slate-900 transition-colors"
                         >
                           <ChevronLeft size={18} /> Önceki Adım
@@ -1550,7 +1582,7 @@ export function OnlineTestAnaliz({ onNavigate }: OnlineTestAnalizProps) {
                       )}
                       {step.id < 7 && (
                         <button
-                          onClick={() => openStep(step.id + 1)}
+                          onClick={() => setCurrentStep(step.id + 1)}
                           className="flex items-center gap-3 px-10 py-4 bg-[#3498db] text-white font-black text-xs uppercase tracking-[0.2em] hover:bg-[#2980b9] shadow-lg hover:shadow-sky-200 transition-all active:scale-95"
                         >
                           Sonraki Adım <ChevronRight size={18} />
