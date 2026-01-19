@@ -49,6 +49,9 @@ async function fetchMenu() {
         // Extract items from the block
         // Removing HTML tags first to make it easier
         const cleanBlock = block.replace(/<[^>]*>/g, '\n');
+
+        const DAYS = ['PAZARTESI', 'SALI', 'ÇARŞAMBA', 'PERŞEMBE', 'CUMA', 'CUMARTESI', 'PAZAR', 'PAZARTESİ', 'CUMARTESİ'];
+
         const lines = cleanBlock.split('\n')
             .map(line => line.trim())
             .filter(line => line.length > 0 && !line.includes(todayStr) && line !== '-');
@@ -57,22 +60,30 @@ async function fetchMenu() {
         let kcal = "";
 
         for (const line of lines) {
-            // Check for kcal pattern: (1000 kcal) or 1000 kcal
-            const kcalMatch = line.match(/(\d+)\s*kcal/i);
+            const upperLine = line.toUpperCase('tr-TR');
+
+            // Check for kcal pattern: (1000 kcal) or 1000 kcal or even (- kcal)
+            const kcalMatch = line.match(/(\d*)\s*kcal/i);
             if (kcalMatch) {
-                kcal = kcalMatch[1];
+                if (kcalMatch[1]) kcal = kcalMatch[1];
                 continue;
             }
 
-            // If we have less than 4 items and it looks like a food name (not too short, not a number)
-            if (items.length < 4 && line.length > 3 && !/^\d+$/.test(line)) {
-                items.push(line.toUpperCase());
+            // Ignore day names
+            if (DAYS.includes(upperLine)) {
+                continue;
+            }
+
+            // If it looks like a food name (not too short, not a number, and not a day name part)
+            if (line.length > 2 && !/^\d+$/.test(line) && !line.includes('kcal') && !line.includes('KCAL')) {
+                items.push(upperLine);
             }
         }
 
+        // Usually 4 items
         const result = {
             date: todayStr,
-            items: items,
+            items: items.slice(0, 5), // Keep it reasonable, usually 4-5 items
             kcal: kcal || null,
             source: url,
             updatedAt: new Date().toISOString()
