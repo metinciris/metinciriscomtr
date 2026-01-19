@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { PageContainer } from '../components/PageContainer';
 import { Star } from 'lucide-react';
 import { StarExplosion } from '../components/StarExplosion';
+import { StudentLunchMenu } from '../components/StudentLunchMenu';
 
 declare global {
   interface Window {
@@ -385,24 +386,8 @@ export function HastaneYemek() {
           yansıtmayabilir.
         </div>
 
-        {/* Öğrenci yemek menüsü linki */}
-        <div className="bg-white rounded-xl p-5 shadow-md border border-gray-200 mb-6">
-          <h2 className="text-base sm:text-lg font-semibold text-gray-800 mb-2">
-            🎓 Üniversite Öğrenci Yemek Menüsü
-          </h2>
-          <p className="text-xs sm:text-sm text-gray-600 mb-3">
-            SDÜ öğrenci yemekhane menüsünü üniversitenin resmi sayfasından
-            takip edebilirsiniz.
-          </p>
-          <a
-            href="https://www.metinciris.com.tr/pages/ogrenciyemek.php"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-[#0066cc] text-white text-sm sm:text-base font-semibold hover:bg-[#0052a3] transition-colors"
-          >
-            Öğrenci yemek menüsünü aç
-          </a>
-        </div>
+        {/* Öğrenci yemek menüsü (Dinamik) */}
+        <StudentLunchMenu />
       </PageContainer>
     </div>
   );

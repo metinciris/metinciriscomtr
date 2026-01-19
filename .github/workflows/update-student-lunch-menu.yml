@@ -1,0 +1,31 @@
+name: Update Student Lunch Menu
+
+on:
+  schedule:
+    # 04:30 and 07:30 UTC is 07:30 and 10:30 Istanbul time
+    - cron: '30 4 * * *'
+    - cron: '30 7 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  update-menu:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Run fetch script
+        run: node scripts/fetch-student-lunch-menu.mjs
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/data/ogrenci-ogle-menu.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update student lunch menu: $(date +'%Y-%m-%d')" && git push)
