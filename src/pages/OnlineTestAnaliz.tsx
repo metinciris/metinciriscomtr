@@ -1641,7 +1641,7 @@ export function OnlineTestAnaliz() {
                           <Card className="border">
                             <CardHeader>
                               <CardTitle className="text-base">Yanlış götürme katsayısı</CardTitle>
-                              <CardDescription>Örn: 0.25 => 4 yanlış 1 doğru götürür</CardDescription>
+                              <CardDescription>Örn: 0.25 → 4 yanlış 1 doğru götürür</CardDescription>
                             </CardHeader>
                             <CardContent>
                               <Input
