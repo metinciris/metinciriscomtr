@@ -2,21 +2,21 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
-  Upload,
-  FileSpreadsheet,
-  FileText,
-  AlertTriangle,
-  CheckCircle2,
-  XCircle,
-  ArrowRight,
-  Sparkles,
+    Upload,
+    FileSpreadsheet,
+    FileText,
+    AlertTriangle,
+    CheckCircle2,
+    XCircle,
+    ArrowRight,
+    Sparkles,
 } from "lucide-react";
 import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
+    Card,
+    CardHeader,
+    CardTitle,
+    CardDescription,
+    CardContent,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,15 +25,15 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
+import { cn } from "@/components/ui/utils";
 import {
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
+    ResponsiveContainer,
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    Tooltip,
+    CartesianGrid,
 } from "recharts";
 
 /**
@@ -50,109 +50,109 @@ type StepStatus = "todo" | "done" | "skipped";
 type FieldKey = "id" | "name" | "booklet" | "answers";
 
 interface ProfileConfig {
-  idStart: number;
-  idLen: number;
-  nameStart: number;
-  nameLen: number;
-  bookletPos: number; // 1-based index in line (0 => yok)
-  answersStart: number;
-  answersLen: number; // soru sayısı
-  noBooklet: boolean;
+    idStart: number;
+    idLen: number;
+    nameStart: number;
+    nameLen: number;
+    bookletPos: number; // 1-based index in line (0 => yok)
+    answersStart: number;
+    answersLen: number; // soru sayısı
+    noBooklet: boolean;
 }
 
 interface Student {
-  id: string;
-  name: string;
-  booklet: Booklet;
-  answersRaw: string[]; // geldiği sıradaki cevaplar (kitapçık sırası)
+    id: string;
+    name: string;
+    booklet: Booklet;
+    answersRaw: string[]; // geldiği sıradaki cevaplar (kitapçık sırası)
 }
 
 interface MappingPack {
-  // mapping[booklet][i] = A'daki soru numarası (1..N)
-  // yani: kitapçıkta i. sıradaki soru = A'da mapping[booklet][i]. soru
-  mapping: Partial<Record<Booklet, number[]>>;
-  // tabloda A anahtar sütunu varsa, oradan okunan A harfleri (yan yana)
-  tableAKey?: string;
-  errors: string[];
-  warnings: string[];
+    // mapping[booklet][i] = A'daki soru numarası (1..N)
+    // yani: kitapçıkta i. sıradaki soru = A'da mapping[booklet][i]. soru
+    mapping: Partial<Record<Booklet, number[]>>;
+    // tabloda A anahtar sütunu varsa, oradan okunan A harfleri (yan yana)
+    tableAKey?: string;
+    errors: string[];
+    warnings: string[];
 }
 
 interface ScoringConfig {
-  blankAsWrong: boolean;
-  // yanlışın doğruları götürmesi (ör: 4 seçenek için 1/3; 5 seçenek için 1/4)
-  wrongPenalty: number; // 0 => götürme yok
-  totalScore: number; // 100 gibi
+    blankAsWrong: boolean;
+    // yanlışın doğruları götürmesi (ör: 4 seçenek için 1/3; 5 seçenek için 1/4)
+    wrongPenalty: number; // 0 => götürme yok
+    totalScore: number; // 100 gibi
 }
 
 interface SubjectBlock {
-  name: string;
-  start: number; // 1-based
-  end: number; // 1-based
+    name: string;
+    start: number; // 1-based
+    end: number; // 1-based
 }
 
 const DEFAULT_PROFILE: ProfileConfig = {
-  // DAT örneğine göre (senin eski kullanımına yakın tutmaya çalıştım)
-  idStart: 1,
-  idLen: 10,
-  nameStart: 12,
-  nameLen: 20,
-  bookletPos: 0, // 0 => kitapçık bilgisi yok
-  answersStart: 33,
-  answersLen: 95,
-  noBooklet: false,
+    // DAT örneğine göre (senin eski kullanımına yakın tutmaya çalıştım)
+    idStart: 1,
+    idLen: 10,
+    nameStart: 12,
+    nameLen: 20,
+    bookletPos: 0, // 0 => kitapçık bilgisi yok
+    answersStart: 33,
+    answersLen: 95,
+    noBooklet: false,
 };
 
 const DEFAULT_SCORING: ScoringConfig = {
-  blankAsWrong: false,
-  wrongPenalty: 0,
-  totalScore: 100,
+    blankAsWrong: false,
+    wrongPenalty: 0,
+    totalScore: 100,
 };
 
 function clampInt(n: number, min: number, max: number) {
-  if (Number.isNaN(n)) return min;
-  return Math.max(min, Math.min(max, n));
+    if (Number.isNaN(n)) return min;
+    return Math.max(min, Math.min(max, n));
 }
 
 function onlyAnswerChars(s: string) {
-  return (s || "")
-    .toUpperCase()
-    .replace(/[^ABCDE#*X\s]/g, "")
-    .replace(/\s+/g, "");
+    return (s || "")
+        .toUpperCase()
+        .replace(/[^ABCDE#*X\s]/g, "")
+        .replace(/\s+/g, "");
 }
 
 // DAT içinden cevaplar; boş/okunmayan işaretleri normalize edelim:
 function normalizeAnswerChar(ch: string) {
-  const c = (ch || "").toUpperCase();
-  if (c === "*" || c === "#" || c === "X") return " "; // boş say
-  if (["A", "B", "C", "D", "E"].includes(c)) return c;
-  return " ";
+    const c = (ch || "").toUpperCase();
+    if (c === "*" || c === "#" || c === "X") return " "; // boş say
+    if (["A", "B", "C", "D", "E"].includes(c)) return c;
+    return " ";
 }
 
 function splitFixed(line: string, start1Based: number, len: number) {
-  const s = clampInt(start1Based, 1, Math.max(1, line.length));
-  const l = clampInt(len, 0, Math.max(0, line.length));
-  return line.slice(s - 1, s - 1 + l);
+    const s = clampInt(start1Based, 1, Math.max(1, line.length));
+    const l = clampInt(len, 0, Math.max(0, line.length));
+    return line.slice(s - 1, s - 1 + l);
 }
 
 function parseBookletChar(ch: string): Booklet {
-  const c = (ch || "").toUpperCase();
-  if (c === "B") return "B";
-  if (c === "C") return "C";
-  if (c === "D") return "D";
-  return "A";
+    const c = (ch || "").toUpperCase();
+    if (c === "B") return "B";
+    if (c === "C") return "C";
+    if (c === "D") return "D";
+    return "A";
 }
 
 function validatePermutation(arr: number[], n: number) {
-  const seen = new Set<number>();
-  const missing: number[] = [];
-  const dup: number[] = [];
-  for (const v of arr) {
-    if (!Number.isFinite(v) || v < 1 || v > n) return { ok: false, missing: [], dup: [], outOfRange: true };
-    if (seen.has(v)) dup.push(v);
-    seen.add(v);
-  }
-  for (let i = 1; i <= n; i++) if (!seen.has(i)) missing.push(i);
-  return { ok: missing.length === 0 && dup.length === 0, missing, dup, outOfRange: false };
+    const seen = new Set<number>();
+    const missing: number[] = [];
+    const dup: number[] = [];
+    for (const v of arr) {
+        if (!Number.isFinite(v) || v < 1 || v > n) return { ok: false, missing: [], dup: [], outOfRange: true };
+        if (seen.has(v)) dup.push(v);
+        seen.add(v);
+    }
+    for (let i = 1; i <= n; i++) if (!seen.has(i)) missing.push(i);
+    return { ok: missing.length === 0 && dup.length === 0, missing, dup, outOfRange: false };
 }
 
 /**
@@ -169,1725 +169,1725 @@ function validatePermutation(arr: number[], n: number) {
  * (Bu, senin verdiğin tablo + anahtarlarla birebir uyumlu olan yön.)
  */
 function parseMappingTable(text: string): MappingPack {
-  const raw = (text || "").trim();
-  const errors: string[] = [];
-  const warnings: string[] = [];
-
-  if (!raw) {
-    return { mapping: {}, errors: ["Mapping alanı boş."], warnings };
-  }
-
-  const lines = raw
-    .split(/\r?\n/)
-    .map((l) => l.trim())
-    .filter(Boolean);
-
-  // delimiter tespiti: tab > ; > , > whitespace
-  const delim =
-    lines.some((l) => l.includes("\t"))
-      ? "\t"
-      : lines.some((l) => l.includes(";"))
-        ? ";"
-        : lines.some((l) => l.includes(","))
-          ? ","
-          : null;
-
-  const mappingB: number[] = [];
-  const mappingC: number[] = [];
-  const mappingD: number[] = [];
-  const aLetters: string[] = [];
-
-  for (const line of lines) {
-    // header satırı ise geç
-    const low = line.toLowerCase();
-    if (low.includes("anahtar") && low.includes("kitapçık")) continue;
-    if (low.startsWith("a ") || low.startsWith("a\t")) continue;
-
-    const parts = delim ? line.split(delim).map((x) => x.trim()) : line.split(/\s+/);
-
-    // beklenen en az 5 sütun: Aharf, Bnum, Cnum, Dnum, soruNo
-    if (parts.length < 4) continue;
-
-    // bazı kopyalamalarda soru no sütunu sona gelmeyebilir; biz ilk 4 sütunu esas alalım
-    const a = parts[0];
-    const b = parts[1];
-    const c = parts[2];
-    const d = parts[3];
-
-    const aCh = (a || "").toUpperCase();
-    if (!["A", "B", "C", "D", "E"].includes(aCh)) {
-      // Bazı kullanıcılar A harfi sütununu kopyalamayabilir; o zaman da sadece sayıları alalım.
-      // Bu durumda parts[0..2] sayıdır.
-      const tryNums = parts.slice(0, 3).map((x) => Number(x));
-      if (tryNums.every((x) => Number.isFinite(x))) {
-        mappingB.push(tryNums[0]);
-        mappingC.push(tryNums[1]);
-        mappingD.push(tryNums[2]);
-        continue;
-      }
-      // satır anlamsızsa geç
-      continue;
-    }
-
-    const bn = Number(b);
-    const cn = Number(c);
-    const dn = Number(d);
-
-    if (!Number.isFinite(bn) || !Number.isFinite(cn) || !Number.isFinite(dn)) continue;
-
-    aLetters.push(aCh);
-    mappingB.push(bn);
-    mappingC.push(cn);
-    mappingD.push(dn);
-  }
-
-  const n = Math.max(mappingB.length, mappingC.length, mappingD.length, aLetters.length);
-
-  if (n < 5) {
-    errors.push("Mapping tablosu okunamadı. Excel'den tüm tabloyu (A/B/C/D sütunları) kopyalayıp yapıştırın.");
-    return { mapping: {}, tableAKey: aLetters.join(""), errors, warnings };
-  }
-
-  // Uzunluklar eşit değilse kırp/pad
-  const fixLen = (arr: number[], target: number) => {
-    const out = arr.slice(0, target);
-    while (out.length < target) out.push(NaN);
-    return out;
-  };
-
-  const outB = fixLen(mappingB, n);
-  const outC = fixLen(mappingC, n);
-  const outD = fixLen(mappingD, n);
-  const outA = aLetters.join("").slice(0, n);
-
-  // basit kontroller (NaN vs)
-  if (outB.some((x) => !Number.isFinite(x))) warnings.push("B mapping içinde boş/eksik hücre var gibi görünüyor.");
-  if (outC.some((x) => !Number.isFinite(x))) warnings.push("C mapping içinde boş/eksik hücre var gibi görünüyor.");
-  if (outD.some((x) => !Number.isFinite(x))) warnings.push("D mapping içinde boş/eksik hücre var gibi görünüyor.");
-
-  return {
-    mapping: { B: outB, C: outC, D: outD },
-    tableAKey: outA,
-    errors,
-    warnings,
-  };
-}
-
-function deriveBookletKeyFromA(aKey: string, toA: number[]) {
-  const A = aKey || "";
-  return toA
-    .map((aNo) => {
-      const idx = Number(aNo) - 1;
-      if (!Number.isFinite(idx) || idx < 0 || idx >= A.length) return " ";
-      return A[idx] || " ";
-    })
-    .join("");
-}
-
-function answersToAOrder(answersInBookletOrder: string[], toA: number[], n: number) {
-  const out = new Array(n).fill(" ");
-  for (let i = 0; i < Math.min(answersInBookletOrder.length, toA.length); i++) {
-    const aNo = toA[i];
-    const aIdx = Number(aNo) - 1;
-    if (!Number.isFinite(aIdx) || aIdx < 0 || aIdx >= n) continue;
-    out[aIdx] = answersInBookletOrder[i] ?? " ";
-  }
-  return out;
-}
-
-function scoreOne(
-  studentAnswersAOrder: string[],
-  aKey: string[],
-  scoring: ScoringConfig
-) {
-  let correct = 0;
-  let wrong = 0;
-  let blank = 0;
-
-  for (let i = 0; i < aKey.length; i++) {
-    const s = normalizeAnswerChar(studentAnswersAOrder[i] || " ");
-    const k = normalizeAnswerChar(aKey[i] || " ");
-    if (s === " ") {
-      blank++;
-      if (scoring.blankAsWrong) wrong++;
-    } else if (s === k) {
-      correct++;
-    } else {
-      wrong++;
-    }
-  }
-
-  const net = correct - wrong * scoring.wrongPenalty;
-  const totalQ = aKey.length || 1;
-  const score = (net / totalQ) * scoring.totalScore;
-
-  return { correct, wrong, blank, net, score };
-}
-
-function overlap(aStart: number, aLen: number, bStart: number, bLen: number) {
-  const a0 = aStart;
-  const a1 = aStart + Math.max(0, aLen) - 1;
-  const b0 = bStart;
-  const b1 = bStart + Math.max(0, bLen) - 1;
-  if (aLen <= 0 || bLen <= 0) return false;
-  return !(a1 < b0 || b1 < a0);
-}
-
-function formatPct(n: number) {
-  if (!Number.isFinite(n)) return "0%";
-  return `${n.toFixed(2)}%`.replace(".", ",");
-}
-
-function safeMean(xs: number[]) {
-  const v = xs.filter((x) => Number.isFinite(x));
-  if (!v.length) return 0;
-  return v.reduce((a, b) => a + b, 0) / v.length;
-}
-
-function round2(n: number) {
-  return Math.round(n * 100) / 100;
-}
-
-function clamp01(n: number) {
-  if (!Number.isFinite(n)) return 0;
-  return Math.max(0, Math.min(1, n));
-}
-
-function difficultyIndex(pCorrect: number) {
-  // pCorrect: 0..1 (doğru oranı)
-  return clamp01(pCorrect);
-}
-
-function discriminationIndex(scores: number[], correctFlags: boolean[]) {
-  // Üst %27 - Alt %27
-  const n = scores.length;
-  if (n < 10) return 0;
-
-  const idx = scores
-    .map((s, i) => ({ s, i }))
-    .sort((a, b) => b.s - a.s)
-    .map((x) => x.i);
-
-  const groupSize = Math.max(1, Math.round(n * 0.27));
-  const top = idx.slice(0, groupSize);
-  const bot = idx.slice(n - groupSize);
-
-  const topP = safeMean(top.map((i) => (correctFlags[i] ? 1 : 0)));
-  const botP = safeMean(bot.map((i) => (correctFlags[i] ? 1 : 0)));
-
-  return round2(topP - botP);
-}
-
-function commentFor(p: number, disc: number) {
-  // p: difficulty (doğru oranı)
-  // disc: discrimination
-  const zorluk = p >= 0.85 ? "Çok kolay" : p >= 0.65 ? "Kolay" : p >= 0.35 ? "Orta" : "Zor";
-  let ayir = "";
-  if (disc >= 0.4) ayir = "Ayırıcılığı çok iyi.";
-  else if (disc >= 0.2) ayir = "Ayırıcılığı oldukça iyi.";
-  else if (disc >= 0.1) ayir = "Ayırıcılığı çok zayıf.";
-  else ayir = "Ayırıcılığı çok zayıf.";
-
-  let extra = "";
-  if (zorluk === "Çok kolay" && disc < 0.1) extra = " Eğer etkili bir öğretim varsa tercih edilir.";
-  if (zorluk === "Zor" && disc < 0.1) extra = " Zor ve ayırt edici özelliği olmayan bu soruyu kullanmayın.";
-  if (disc < 0) extra = " Ayırıcılığı negatif: anahtar/mapping hatası veya soru problemi olabilir.";
-
-  return `${zorluk}. ${ayir}${extra}`;
-}
-
-function StepPill({
-  label,
-  status,
-  onClick,
-}: {
-  label: string;
-  status: StepStatus;
-  onClick?: () => void;
-}) {
-  const styles =
-    status === "done"
-      ? "bg-emerald-100 text-emerald-900 border-emerald-200"
-      : status === "skipped"
-        ? "bg-slate-100 text-slate-700 border-slate-200"
-        : "bg-amber-100 text-amber-900 border-amber-200";
-  const icon =
-    status === "done" ? (
-      <CheckCircle2 className="h-4 w-4" />
-    ) : status === "skipped" ? (
-      <XCircle className="h-4 w-4" />
-    ) : (
-      <AlertTriangle className="h-4 w-4" />
-    );
-
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm hover:opacity-90 transition",
-        styles
-      )}
-    >
-      {icon}
-      <span>{label}</span>
-    </button>
-  );
-}
-
-function HintRow({ title, desc }: { title: string; desc: string }) {
-  return (
-    <div className="flex gap-3">
-      <div className="mt-1 h-2 w-2 rounded-full bg-slate-400" />
-      <div>
-        <div className="font-medium">{title}</div>
-        <div className="text-sm text-muted-foreground">{desc}</div>
-      </div>
-    </div>
-  );
-}
-
-function MappingMiniAnimation() {
-  return (
-    <div className="mt-4 rounded-xl border bg-white p-4">
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <motion.div
-          className="rounded-lg border px-3 py-2 text-sm"
-          initial={{ opacity: 0.6 }}
-          animate={{ opacity: [0.6, 1, 0.6] }}
-          transition={{ duration: 2, repeat: Infinity }}
-        >
-          <div className="font-medium">A anahtar</div>
-          <div className="font-mono text-muted-foreground">E A C C A ...</div>
-        </motion.div>
-
-        <ArrowRight className="h-5 w-5 text-muted-foreground" />
-
-        <motion.div
-          className="rounded-lg border px-3 py-2 text-sm"
-          initial={{ y: 0 }}
-          animate={{ y: [0, -4, 0] }}
-          transition={{ duration: 1.6, repeat: Infinity }}
-        >
-          <div className="font-medium">Mapping</div>
-          <div className="font-mono text-muted-foreground">B satır: 12, 13, 14...</div>
-        </motion.div>
-
-        <ArrowRight className="h-5 w-5 text-muted-foreground" />
-
-        <motion.div
-          className="rounded-lg border px-3 py-2 text-sm"
-          initial={{ scale: 1 }}
-          animate={{ scale: [1, 1.03, 1] }}
-          transition={{ duration: 1.6, repeat: Infinity }}
-        >
-          <div className="font-medium">B/C/D anahtarları</div>
-          <div className="font-mono text-muted-foreground">C A B D A ...</div>
-        </motion.div>
-      </div>
-
-      <div className="mt-3 text-sm text-muted-foreground">
-        Mantık: <span className="font-mono">BKey[i] = AKey[ mappingB[i] ]</span> (tablodaki B sütunu A soru numarasını gösterir)
-      </div>
-    </div>
-  );
-}
-
-export function OnlineTestAnaliz() {
-  // --- state ---
-  const [datContent, setDatContent] = useState<string>("");
-  const [profile, setProfile] = useState<ProfileConfig>(() => {
-    const saved = localStorage.getItem("ota_profile_v3");
-    if (!saved) return DEFAULT_PROFILE;
-    try {
-      return { ...DEFAULT_PROFILE, ...(JSON.parse(saved) as Partial<ProfileConfig>) };
-    } catch {
-      return DEFAULT_PROFILE;
-    }
-  });
-
-  const [students, setStudents] = useState<Student[]>([]);
-  const [firstLine, setFirstLine] = useState<string>("");
-
-  const [aKeyText, setAKeyText] = useState<string>(() => localStorage.getItem("ota_akey_v3") || "");
-  const [bKeyText, setBKeyText] = useState<string>(() => localStorage.getItem("ota_bkey_v3") || "");
-  const [cKeyText, setCKeyText] = useState<string>(() => localStorage.getItem("ota_ckey_v3") || "");
-  const [dKeyText, setDKeyText] = useState<string>(() => localStorage.getItem("ota_dkey_v3") || "");
-
-  const [mappingText, setMappingText] = useState<string>(() => localStorage.getItem("ota_mapping_v3") || "");
-  const [subjects, setSubjects] = useState<SubjectBlock[]>(() => {
-    const saved = localStorage.getItem("ota_subjects_v3");
-    if (!saved) return [];
-    try {
-      return JSON.parse(saved) as SubjectBlock[];
-    } catch {
-      return [];
-    }
-  });
-
-  const [scoring, setScoring] = useState<ScoringConfig>(() => {
-    const saved = localStorage.getItem("ota_scoring_v3");
-    if (!saved) return DEFAULT_SCORING;
-    try {
-      return { ...DEFAULT_SCORING, ...(JSON.parse(saved) as Partial<ScoringConfig>) };
-    } catch {
-      return DEFAULT_SCORING;
-    }
-  });
-
-  const [currentStep, setCurrentStep] = useState<number>(1);
-  const headerRefs = useRef<Record<number, HTMLDivElement | null>>({});
-
-  // --- persist ---
-  useEffect(() => {
-    localStorage.setItem("ota_profile_v3", JSON.stringify(profile));
-  }, [profile]);
-
-  useEffect(() => {
-    localStorage.setItem("ota_akey_v3", aKeyText);
-    localStorage.setItem("ota_bkey_v3", bKeyText);
-    localStorage.setItem("ota_ckey_v3", cKeyText);
-    localStorage.setItem("ota_dkey_v3", dKeyText);
-  }, [aKeyText, bKeyText, cKeyText, dKeyText]);
-
-  useEffect(() => {
-    localStorage.setItem("ota_mapping_v3", mappingText);
-  }, [mappingText]);
-
-  useEffect(() => {
-    localStorage.setItem("ota_subjects_v3", JSON.stringify(subjects));
-  }, [subjects]);
-
-  useEffect(() => {
-    localStorage.setItem("ota_scoring_v3", JSON.stringify(scoring));
-  }, [scoring]);
-
-  // --- parse DAT ---
-  useEffect(() => {
-    const content = (datContent || "").trim();
-    if (!content) {
-      setStudents([]);
-      setFirstLine("");
-      return;
-    }
-
-    const lines = content
-      .split(/\r?\n/)
-      .map((l) => l.replace(/\r/g, ""))
-      .filter((l) => l.trim().length > 0);
-
-    setFirstLine(lines[0] || "");
-
-    const parsed: Student[] = [];
-
-    for (const line of lines) {
-      const id = splitFixed(line, profile.idStart, profile.idLen).trim();
-      const name = splitFixed(line, profile.nameStart, profile.nameLen).trim();
-
-      const booklet =
-        profile.noBooklet || profile.bookletPos <= 0
-          ? "A"
-          : parseBookletChar(line.charAt(profile.bookletPos - 1));
-
-      const answersRawStr = splitFixed(line, profile.answersStart, profile.answersLen);
-      const answersRaw = answersRawStr.split("").map(normalizeAnswerChar);
-
-      if (!id && !name) continue;
-
-      parsed.push({
-        id: id || "(id yok)",
-        name: name || "(isim yok)",
-        booklet,
-        answersRaw,
-      });
-    }
-
-    setStudents(parsed);
-  }, [datContent, profile]);
-
-  // --- normalized keys ---
-  const aKey = useMemo(() => onlyAnswerChars(aKeyText), [aKeyText]);
-  const bKey = useMemo(() => onlyAnswerChars(bKeyText), [bKeyText]);
-  const cKey = useMemo(() => onlyAnswerChars(cKeyText), [cKeyText]);
-  const dKey = useMemo(() => onlyAnswerChars(dKeyText), [dKeyText]);
-
-  // --- mapping parsed ---
-  const mappingPack = useMemo(() => {
-    if (!mappingText.trim()) return { mapping: {}, errors: [], warnings: [] } as MappingPack;
-    return parseMappingTable(mappingText);
-  }, [mappingText]);
-
-  const questionCount = useMemo(() => {
-    // soru sayısını en güvenli şekilde A anahtardan alalım
-    if (aKey.length > 0) return aKey.length;
-    // yoksa profile.answersLen
-    return profile.answersLen || 0;
-  }, [aKey.length, profile.answersLen]);
-
-  // --- derived booklet keys from A + mapping ---
-  const derivedKeys = useMemo(() => {
-    const out: Partial<Record<Booklet, string>> = {};
+    const raw = (text || "").trim();
     const errors: string[] = [];
     const warnings: string[] = [];
 
-    if (!aKey || aKey.length < 5) {
-      return { out, errors, warnings };
+    if (!raw) {
+        return { mapping: {}, errors: ["Mapping alanı boş."], warnings };
     }
 
-    const mB = mappingPack.mapping.B;
-    const mC = mappingPack.mapping.C;
-    const mD = mappingPack.mapping.D;
+    const lines = raw
+        .split(/\r?\n/)
+        .map((l) => l.trim())
+        .filter(Boolean);
 
-    const n = aKey.length;
+    // delimiter tespiti: tab > ; > , > whitespace
+    const delim =
+        lines.some((l) => l.includes("\t"))
+            ? "\t"
+            : lines.some((l) => l.includes(";"))
+                ? ";"
+                : lines.some((l) => l.includes(","))
+                    ? ","
+                    : null;
 
-    if (mB && mB.length >= n) out.B = deriveBookletKeyFromA(aKey, mB.slice(0, n));
-    if (mC && mC.length >= n) out.C = deriveBookletKeyFromA(aKey, mC.slice(0, n));
-    if (mD && mD.length >= n) out.D = deriveBookletKeyFromA(aKey, mD.slice(0, n));
+    const mappingB: number[] = [];
+    const mappingC: number[] = [];
+    const mappingD: number[] = [];
+    const aLetters: string[] = [];
 
-    // permütasyon kontrolü
-    if (mB && mB.length >= n) {
-      const v = validatePermutation(mB.slice(0, n), n);
-      if (!v.ok) warnings.push("B mapping 1..N permütasyonu değil (eksik/tekrar/out-of-range olabilir).");
-    }
-    if (mC && mC.length >= n) {
-      const v = validatePermutation(mC.slice(0, n), n);
-      if (!v.ok) warnings.push("C mapping 1..N permütasyonu değil (eksik/tekrar/out-of-range olabilir).");
-    }
-    if (mD && mD.length >= n) {
-      const v = validatePermutation(mD.slice(0, n), n);
-      if (!v.ok) warnings.push("D mapping 1..N permütasyonu değil (eksik/tekrar/out-of-range olabilir).");
-    }
+    for (const line of lines) {
+        // header satırı ise geç
+        const low = line.toLowerCase();
+        if (low.includes("anahtar") && low.includes("kitapçık")) continue;
+        if (low.startsWith("a ") || low.startsWith("a\t")) continue;
 
-    // tablo A anahtar kontrolü
-    if (mappingPack.tableAKey && mappingPack.tableAKey.length >= 5) {
-      const tableA = mappingPack.tableAKey.slice(0, n);
-      if (tableA !== aKey.slice(0, n)) {
-        errors.push("Mapping tablosundaki A anahtar harfleri ile girilen A anahtar uyuşmuyor. Tablo başka sınava ait olabilir.");
-      }
-    }
+        const parts = delim ? line.split(delim).map((x) => x.trim()) : line.split(/\s+/);
 
-    return { out, errors, warnings };
-  }, [aKey, mappingPack.mapping, mappingPack.tableAKey]);
+        // beklenen en az 5 sütun: Aharf, Bnum, Cnum, Dnum, soruNo
+        if (parts.length < 4) continue;
 
-  // --- detect if mapping needed ---
-  const bookletsUsed = useMemo(() => {
-    const s = new Set<Booklet>();
-    for (const st of students) s.add(st.booklet);
-    return Array.from(s);
-  }, [students]);
+        // bazı kopyalamalarda soru no sütunu sona gelmeyebilir; biz ilk 4 sütunu esas alalım
+        const a = parts[0];
+        const b = parts[1];
+        const c = parts[2];
+        const d = parts[3];
 
-  const mappingNeeded = useMemo(() => {
-    // kitapçık yoksa mapping gereksiz
-    if (profile.noBooklet || profile.bookletPos <= 0) return false;
-    // sadece A varsa mapping gereksiz
-    const used = new Set(bookletsUsed);
-    used.delete("A");
-    return used.size > 0;
-  }, [profile.noBooklet, profile.bookletPos, bookletsUsed]);
-
-  // --- results calculation ---
-  const results = useMemo(() => {
-    const n = questionCount;
-    if (!students.length || !aKey || aKey.length < 5 || n < 5) {
-      return {
-        scored: [] as Array<
-          Student & { correct: number; wrong: number; blank: number; net: number; score: number; answersA: string[]; excludedReason?: string }
-        >,
-        excluded: [] as Array<{ student: Student; reason: string }>,
-      };
-    }
-
-    const aKeyArr = aKey.slice(0, n).split("");
-
-    const scored: Array<
-      Student & { correct: number; wrong: number; blank: number; net: number; score: number; answersA: string[]; excludedReason?: string }
-    > = [];
-    const excluded: Array<{ student: Student; reason: string }> = [];
-
-    for (const st of students) {
-      // öğrencinin cevapları A düzenine çevrilecek
-      let answersA: string[] = [];
-
-      if (st.booklet === "A" || !mappingNeeded) {
-        answersA = (st.answersRaw || []).slice(0, n);
-      } else {
-        const toA = mappingPack.mapping[st.booklet];
-        if (!toA || toA.length < n) {
-          excluded.push({ student: st, reason: `${st.booklet} mapping eksik (öğrenci analiz dışı)` });
-          continue;
-        }
-        answersA = answersToAOrder(st.answersRaw || [], toA.slice(0, n), n);
-      }
-
-      const s = scoreOne(answersA, aKeyArr, scoring);
-
-      scored.push({
-        ...st,
-        answersA,
-        correct: s.correct,
-        wrong: s.wrong,
-        blank: s.blank,
-        net: round2(s.net),
-        score: round2(s.score),
-      });
-    }
-
-    return { scored, excluded };
-  }, [students, aKey, questionCount, scoring, mappingNeeded, mappingPack.mapping]);
-
-  // --- Step7Analysis: madde analizi ---
-  const analysis = useMemo(() => {
-    const n = questionCount;
-    const scored = results.scored;
-    if (!n || !aKey || aKey.length < n || scored.length === 0) {
-      return { questionRows: [], scoreHist: [] as Array<{ range: string; count: number }> };
-    }
-
-    const aKeyArr = aKey.slice(0, n).split("");
-
-    // histogram
-    const bins = [
-      { min: 0, max: 20, label: "0-20" },
-      { min: 20, max: 40, label: "20-40" },
-      { min: 40, max: 60, label: "40-60" },
-      { min: 60, max: 70, label: "60-70" },
-      { min: 70, max: 80, label: "70-80" },
-      { min: 80, max: 90, label: "80-90" },
-      { min: 90, max: 100.0001, label: "90-100" },
-    ];
-
-    const scoreHist = bins.map((b) => ({
-      range: b.label,
-      count: scored.filter((x) => x.score >= b.min && x.score < b.max).length,
-    }));
-
-    // madde istatistikleri
-    const scores = scored.map((x) => x.score);
-
-    const questionRows = Array.from({ length: n }).map((_, qi) => {
-      const correctAnswer = aKeyArr[qi];
-
-      const dist: Record<string, number> = { A: 0, B: 0, C: 0, D: 0, E: 0, blank: 0 };
-      const correctFlags: boolean[] = [];
-
-      for (const st of scored) {
-        const ans = normalizeAnswerChar(st.answersA[qi] || " ");
-        if (ans === " ") dist.blank++;
-        else dist[ans] = (dist[ans] || 0) + 1;
-
-        correctFlags.push(ans === correctAnswer);
-      }
-
-      const total = scored.length || 1;
-      const p = dist[correctAnswer] / total; // doğru oranı
-      const diff = difficultyIndex(p);
-      const disc = discriminationIndex(scores, correctFlags);
-
-      return {
-        soru: qi + 1,
-        A: dist.A,
-        B: dist.B,
-        C: dist.C,
-        D: dist.D,
-        E: dist.E,
-        Bos: dist.blank,
-        dogru: correctAnswer,
-        dogruPct: p,
-        zorluk: diff,
-        ayiricilik: disc,
-        yorum: commentFor(diff, disc),
-      };
-    });
-
-    return { questionRows, scoreHist };
-  }, [results.scored, questionCount, aKey]);
-
-  // --- overlaps in Design step ---
-  const designOverlaps = useMemo(() => {
-    const p = profile;
-    const problems: string[] = [];
-
-    const fields: Array<{ key: FieldKey; start: number; len: number; label: string }> = [
-      { key: "id", start: p.idStart, len: p.idLen, label: "No" },
-      { key: "name", start: p.nameStart, len: p.nameLen, label: "İsim" },
-      { key: "answers", start: p.answersStart, len: p.answersLen, label: "Cevaplar" },
-    ];
-
-    if (!p.noBooklet && p.bookletPos > 0) {
-      // booklet tek char alan
-      fields.push({ key: "booklet", start: p.bookletPos, len: 1, label: "Kitapçık" });
-    }
-
-    for (let i = 0; i < fields.length; i++) {
-      for (let j = i + 1; j < fields.length; j++) {
-        const a = fields[i];
-        const b = fields[j];
-        if (overlap(a.start, a.len, b.start, b.len)) {
-          problems.push(`"${a.label}" ile "${b.label}" alanları çakışıyor.`);
-        }
-      }
-    }
-
-    return problems;
-  }, [profile]);
-
-  // --- Step logic ---
-  const steps = useMemo(
-    () => [
-      { id: 1, title: "Dosya Yükleme", desc: "DAT/CSV içeriğini yükleyin." },
-      { id: 2, title: "Dizayn Yönetimi", desc: "Alanların karakter aralıklarını ayarlayın." },
-      { id: 3, title: "Cevap Anahtarı", desc: "A anahtarını girin (zorunlu). İsterseniz B/C/D de yapıştırın." },
-      { id: 4, title: "Mapping (Opsiyonel)", desc: "Birden fazla kitapçık varsa mapping tablosunu yapıştırın." },
-      { id: 5, title: "Ders / Bölümleme (Opsiyonel)", desc: "Soru aralıklarını derslere ayırın." },
-      { id: 6, title: "Puanlama (Opsiyonel)", desc: "Yanlış götürme / toplam puan ayarı." },
-      { id: 7, title: "Sonuçlar & Analiz", desc: "Öğrenci sonuçları ve madde analizi." },
-    ],
-    []
-  );
-
-  function getStepStatus(id: number): StepStatus {
-    const n = questionCount;
-
-    if (id === 1) return datContent.trim() ? "done" : "todo";
-
-    if (id === 2) {
-      // Dosya yoksa bu adım atlanabilir, ama "done" demeyelim.
-      if (!datContent.trim()) return "todo";
-      // profil bir şekilde düzenlenmişse done; yoksa todo (çok katı olmayalım)
-      const defaultish = JSON.stringify(profile) === JSON.stringify(DEFAULT_PROFILE);
-      return defaultish ? "todo" : "done";
-    }
-
-    if (id === 3) {
-      return aKey.length >= 5 ? "done" : "todo";
-    }
-
-    if (id === 4) {
-      if (!mappingNeeded) return "skipped";
-      if (!mappingText.trim()) return "todo";
-      if (derivedKeys.errors.length) return "todo";
-      // B/C/D mapping uzunluğu ve permütasyon kontrolü
-      const need = new Set(bookletsUsed);
-      need.delete("A");
-      let ok = true;
-      for (const b of Array.from(need)) {
-        const m = mappingPack.mapping[b];
-        if (!m || m.length < n) ok = false;
-        else {
-          const v = validatePermutation(m.slice(0, n), n);
-          if (!v.ok) ok = false;
-        }
-      }
-      return ok ? "done" : "todo";
-    }
-
-    if (id === 5) {
-      // hiç ders eklenmediyse "todo" ama opsiyonel
-      return subjects.length ? "done" : "skipped";
-    }
-
-    if (id === 6) {
-      // scoring her zaman var ama kullanıcı değiştirmedi ise "skipped" gibi gösterebiliriz
-      const isDefault = JSON.stringify(scoring) === JSON.stringify(DEFAULT_SCORING);
-      return isDefault ? "skipped" : "done";
-    }
-
-    if (id === 7) {
-      if (!students.length) return "todo";
-      if (aKey.length < 5) return "todo";
-      // mapping gerekiyorsa ve eksikse todo
-      if (mappingNeeded && getStepStatus(4) !== "done") return "todo";
-      return "done";
-    }
-
-    return "todo";
-  }
-
-  const stepSummary = useMemo(() => {
-    const s = steps.map((x) => getStepStatus(x.id));
-    const done = s.filter((x) => x === "done").length;
-    const skipped = s.filter((x) => x === "skipped").length;
-    return { done, skipped, total: steps.length };
-  }, [steps, datContent, profile, aKey, mappingNeeded, mappingText, subjects, scoring, students, derivedKeys.errors.length, bookletsUsed, questionCount]);
-
-  function openStep(id: number) {
-    setCurrentStep(id);
-    // kontrollü scroll
-    requestAnimationFrame(() => {
-      const el = headerRefs.current[id];
-      if (!el) return;
-      const y = el.getBoundingClientRect().top + window.scrollY - 90;
-      window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
-    });
-  }
-
-  // --- file upload ---
-  async function handleFile(file: File) {
-    const text = await file.text();
-    setDatContent(text);
-    openStep(2);
-  }
-
-  // --- helpers for preview in design step ---
-  const designPreview = useMemo(() => {
-    const line = firstLine || "";
-    if (!line) return null;
-
-    const p = profile;
-    const id = splitFixed(line, p.idStart, p.idLen);
-    const name = splitFixed(line, p.nameStart, p.nameLen);
-    const booklet = p.noBooklet || p.bookletPos <= 0 ? "" : line.charAt(p.bookletPos - 1);
-    const answers = splitFixed(line, p.answersStart, p.answersLen);
-
-    return { id, name, booklet, answers, line };
-  }, [firstLine, profile]);
-
-  // --- compare derived keys with uploaded B/C/D keys (optional) ---
-  function keyDiffCount(a: string, b: string) {
-    const n = Math.min(a.length, b.length);
-    let diff = 0;
-    for (let i = 0; i < n; i++) if ((a[i] || " ") !== (b[i] || " ")) diff++;
-    diff += Math.abs(a.length - b.length);
-    return diff;
-  }
-
-  // --- export CSV ---
-  function downloadCsv(filename: string, rows: string[][]) {
-    const csv = rows
-      .map((r) =>
-        r
-          .map((cell) => {
-            const s = String(cell ?? "");
-            if (s.includes(",") || s.includes('"') || s.includes("\n")) {
-              return `"${s.replace(/"/g, '""')}"`;
+        const aCh = (a || "").toUpperCase();
+        if (!["A", "B", "C", "D", "E"].includes(aCh)) {
+            // Bazı kullanıcılar A harfi sütununu kopyalamayabilir; o zaman da sadece sayıları alalım.
+            // Bu durumda parts[0..2] sayıdır.
+            const tryNums = parts.slice(0, 3).map((x) => Number(x));
+            if (tryNums.every((x) => Number.isFinite(x))) {
+                mappingB.push(tryNums[0]);
+                mappingC.push(tryNums[1]);
+                mappingD.push(tryNums[2]);
+                continue;
             }
-            return s;
-          })
-          .join(",")
-      )
-      .join("\n");
+            // satır anlamsızsa geç
+            continue;
+        }
 
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-  }
+        const bn = Number(b);
+        const cn = Number(c);
+        const dn = Number(d);
 
-  // --- UI ---
-  return (
-    <div className="mx-auto max-w-6xl p-4 md:p-6 space-y-6">
-      {/* Sticky progress bar */}
-      <div className="sticky top-0 z-20 -mx-4 md:-mx-6 px-4 md:px-6 py-3 bg-white/80 backdrop-blur border-b">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-muted-foreground" />
-            <div className="text-sm">
-              <span className="font-medium">
-                Tamamlandı: {stepSummary.done}
-              </span>{" "}
-              • Atlandı: {stepSummary.skipped} • Toplam: {stepSummary.total}
+        if (!Number.isFinite(bn) || !Number.isFinite(cn) || !Number.isFinite(dn)) continue;
+
+        aLetters.push(aCh);
+        mappingB.push(bn);
+        mappingC.push(cn);
+        mappingD.push(dn);
+    }
+
+    const n = Math.max(mappingB.length, mappingC.length, mappingD.length, aLetters.length);
+
+    if (n < 5) {
+        errors.push("Mapping tablosu okunamadı. Excel'den tüm tabloyu (A/B/C/D sütunları) kopyalayıp yapıştırın.");
+        return { mapping: {}, tableAKey: aLetters.join(""), errors, warnings };
+    }
+
+    // Uzunluklar eşit değilse kırp/pad
+    const fixLen = (arr: number[], target: number) => {
+        const out = arr.slice(0, target);
+        while (out.length < target) out.push(NaN);
+        return out;
+    };
+
+    const outB = fixLen(mappingB, n);
+    const outC = fixLen(mappingC, n);
+    const outD = fixLen(mappingD, n);
+    const outA = aLetters.join("").slice(0, n);
+
+    // basit kontroller (NaN vs)
+    if (outB.some((x) => !Number.isFinite(x))) warnings.push("B mapping içinde boş/eksik hücre var gibi görünüyor.");
+    if (outC.some((x) => !Number.isFinite(x))) warnings.push("C mapping içinde boş/eksik hücre var gibi görünüyor.");
+    if (outD.some((x) => !Number.isFinite(x))) warnings.push("D mapping içinde boş/eksik hücre var gibi görünüyor.");
+
+    return {
+        mapping: { B: outB, C: outC, D: outD },
+        tableAKey: outA,
+        errors,
+        warnings,
+    };
+}
+
+function deriveBookletKeyFromA(aKey: string, toA: number[]) {
+    const A = aKey || "";
+    return toA
+        .map((aNo) => {
+            const idx = Number(aNo) - 1;
+            if (!Number.isFinite(idx) || idx < 0 || idx >= A.length) return " ";
+            return A[idx] || " ";
+        })
+        .join("");
+}
+
+function answersToAOrder(answersInBookletOrder: string[], toA: number[], n: number) {
+    const out = new Array(n).fill(" ");
+    for (let i = 0; i < Math.min(answersInBookletOrder.length, toA.length); i++) {
+        const aNo = toA[i];
+        const aIdx = Number(aNo) - 1;
+        if (!Number.isFinite(aIdx) || aIdx < 0 || aIdx >= n) continue;
+        out[aIdx] = answersInBookletOrder[i] ?? " ";
+    }
+    return out;
+}
+
+function scoreOne(
+    studentAnswersAOrder: string[],
+    aKey: string[],
+    scoring: ScoringConfig
+) {
+    let correct = 0;
+    let wrong = 0;
+    let blank = 0;
+
+    for (let i = 0; i < aKey.length; i++) {
+        const s = normalizeAnswerChar(studentAnswersAOrder[i] || " ");
+        const k = normalizeAnswerChar(aKey[i] || " ");
+        if (s === " ") {
+            blank++;
+            if (scoring.blankAsWrong) wrong++;
+        } else if (s === k) {
+            correct++;
+        } else {
+            wrong++;
+        }
+    }
+
+    const net = correct - wrong * scoring.wrongPenalty;
+    const totalQ = aKey.length || 1;
+    const score = (net / totalQ) * scoring.totalScore;
+
+    return { correct, wrong, blank, net, score };
+}
+
+function overlap(aStart: number, aLen: number, bStart: number, bLen: number) {
+    const a0 = aStart;
+    const a1 = aStart + Math.max(0, aLen) - 1;
+    const b0 = bStart;
+    const b1 = bStart + Math.max(0, bLen) - 1;
+    if (aLen <= 0 || bLen <= 0) return false;
+    return !(a1 < b0 || b1 < a0);
+}
+
+function formatPct(n: number) {
+    if (!Number.isFinite(n)) return "0%";
+    return `${n.toFixed(2)}%`.replace(".", ",");
+}
+
+function safeMean(xs: number[]) {
+    const v = xs.filter((x) => Number.isFinite(x));
+    if (!v.length) return 0;
+    return v.reduce((a, b) => a + b, 0) / v.length;
+}
+
+function round2(n: number) {
+    return Math.round(n * 100) / 100;
+}
+
+function clamp01(n: number) {
+    if (!Number.isFinite(n)) return 0;
+    return Math.max(0, Math.min(1, n));
+}
+
+function difficultyIndex(pCorrect: number) {
+    // pCorrect: 0..1 (doğru oranı)
+    return clamp01(pCorrect);
+}
+
+function discriminationIndex(scores: number[], correctFlags: boolean[]) {
+    // Üst %27 - Alt %27
+    const n = scores.length;
+    if (n < 10) return 0;
+
+    const idx = scores
+        .map((s, i) => ({ s, i }))
+        .sort((a, b) => b.s - a.s)
+        .map((x) => x.i);
+
+    const groupSize = Math.max(1, Math.round(n * 0.27));
+    const top = idx.slice(0, groupSize);
+    const bot = idx.slice(n - groupSize);
+
+    const topP = safeMean(top.map((i) => (correctFlags[i] ? 1 : 0)));
+    const botP = safeMean(bot.map((i) => (correctFlags[i] ? 1 : 0)));
+
+    return round2(topP - botP);
+}
+
+function commentFor(p: number, disc: number) {
+    // p: difficulty (doğru oranı)
+    // disc: discrimination
+    const zorluk = p >= 0.85 ? "Çok kolay" : p >= 0.65 ? "Kolay" : p >= 0.35 ? "Orta" : "Zor";
+    let ayir = "";
+    if (disc >= 0.4) ayir = "Ayırıcılığı çok iyi.";
+    else if (disc >= 0.2) ayir = "Ayırıcılığı oldukça iyi.";
+    else if (disc >= 0.1) ayir = "Ayırıcılığı çok zayıf.";
+    else ayir = "Ayırıcılığı çok zayıf.";
+
+    let extra = "";
+    if (zorluk === "Çok kolay" && disc < 0.1) extra = " Eğer etkili bir öğretim varsa tercih edilir.";
+    if (zorluk === "Zor" && disc < 0.1) extra = " Zor ve ayırt edici özelliği olmayan bu soruyu kullanmayın.";
+    if (disc < 0) extra = " Ayırıcılığı negatif: anahtar/mapping hatası veya soru problemi olabilir.";
+
+    return `${zorluk}. ${ayir}${extra}`;
+}
+
+function StepPill({
+    label,
+    status,
+    onClick,
+}: {
+    label: string;
+    status: StepStatus;
+    onClick?: () => void;
+}) {
+    const styles =
+        status === "done"
+            ? "bg-emerald-100 text-emerald-900 border-emerald-200"
+            : status === "skipped"
+                ? "bg-slate-100 text-slate-700 border-slate-200"
+                : "bg-amber-100 text-amber-900 border-amber-200";
+    const icon =
+        status === "done" ? (
+            <CheckCircle2 className="h-4 w-4" />
+        ) : status === "skipped" ? (
+            <XCircle className="h-4 w-4" />
+        ) : (
+            <AlertTriangle className="h-4 w-4" />
+        );
+
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            className={cn(
+                "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm hover:opacity-90 transition",
+                styles
+            )}
+        >
+            {icon}
+            <span>{label}</span>
+        </button>
+    );
+}
+
+function HintRow({ title, desc }: { title: string; desc: string }) {
+    return (
+        <div className="flex gap-3">
+            <div className="mt-1 h-2 w-2 rounded-full bg-slate-400" />
+            <div>
+                <div className="font-medium">{title}</div>
+                <div className="text-sm text-muted-foreground">{desc}</div>
             </div>
-          </div>
-
-          <div className="flex gap-2 flex-wrap">
-            {steps.map((s) => (
-              <StepPill
-                key={s.id}
-                label={`${s.id}`}
-                status={getStepStatus(s.id)}
-                onClick={() => openStep(s.id)}
-              />
-            ))}
-          </div>
         </div>
-      </div>
+    );
+}
 
-      <div className="space-y-4">
-        {steps.map((step) => {
-          const status = getStepStatus(step.id);
-          const isOpen = currentStep === step.id;
+function MappingMiniAnimation() {
+    return (
+        <div className="mt-4 rounded-xl border bg-white p-4">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+                <motion.div
+                    className="rounded-lg border px-3 py-2 text-sm"
+                    initial={{ opacity: 0.6 }}
+                    animate={{ opacity: [0.6, 1, 0.6] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                >
+                    <div className="font-medium">A anahtar</div>
+                    <div className="font-mono text-muted-foreground">E A C C A ...</div>
+                </motion.div>
 
-          return (
-            <Card key={step.id} className="overflow-hidden">
-              <div
-                ref={(el) => {
-                  headerRefs.current[step.id] = el;
-                }}
-                className="px-6 py-4 flex items-start justify-between gap-3 cursor-pointer select-none"
-                onClick={() => setCurrentStep(isOpen ? 0 : step.id)}
-              >
-                <div>
-                  <div className="flex items-center gap-2">
-                    <div className="text-lg font-semibold">{step.id}. {step.title}</div>
-                    {status === "done" && <Badge className="bg-emerald-600">Tamamlandı</Badge>}
-                    {status === "skipped" && <Badge variant="secondary">Atlandı</Badge>}
-                    {status === "todo" && <Badge className="bg-amber-600">Eksik</Badge>}
-                  </div>
-                  <div className="text-sm text-muted-foreground">{step.desc}</div>
+                <ArrowRight className="h-5 w-5 text-muted-foreground" />
+
+                <motion.div
+                    className="rounded-lg border px-3 py-2 text-sm"
+                    initial={{ y: 0 }}
+                    animate={{ y: [0, -4, 0] }}
+                    transition={{ duration: 1.6, repeat: Infinity }}
+                >
+                    <div className="font-medium">Mapping</div>
+                    <div className="font-mono text-muted-foreground">B satır: 12, 13, 14...</div>
+                </motion.div>
+
+                <ArrowRight className="h-5 w-5 text-muted-foreground" />
+
+                <motion.div
+                    className="rounded-lg border px-3 py-2 text-sm"
+                    initial={{ scale: 1 }}
+                    animate={{ scale: [1, 1.03, 1] }}
+                    transition={{ duration: 1.6, repeat: Infinity }}
+                >
+                    <div className="font-medium">B/C/D anahtarları</div>
+                    <div className="font-mono text-muted-foreground">C A B D A ...</div>
+                </motion.div>
+            </div>
+
+            <div className="mt-3 text-sm text-muted-foreground">
+                Mantık: <span className="font-mono">BKey[i] = AKey[ mappingB[i] ]</span> (tablodaki B sütunu A soru numarasını gösterir)
+            </div>
+        </div>
+    );
+}
+
+export function OnlineTestAnaliz() {
+    // --- state ---
+    const [datContent, setDatContent] = useState<string>("");
+    const [profile, setProfile] = useState<ProfileConfig>(() => {
+        const saved = localStorage.getItem("ota_profile_v3");
+        if (!saved) return DEFAULT_PROFILE;
+        try {
+            return { ...DEFAULT_PROFILE, ...(JSON.parse(saved) as Partial<ProfileConfig>) };
+        } catch {
+            return DEFAULT_PROFILE;
+        }
+    });
+
+    const [students, setStudents] = useState<Student[]>([]);
+    const [firstLine, setFirstLine] = useState<string>("");
+
+    const [aKeyText, setAKeyText] = useState<string>(() => localStorage.getItem("ota_akey_v3") || "");
+    const [bKeyText, setBKeyText] = useState<string>(() => localStorage.getItem("ota_bkey_v3") || "");
+    const [cKeyText, setCKeyText] = useState<string>(() => localStorage.getItem("ota_ckey_v3") || "");
+    const [dKeyText, setDKeyText] = useState<string>(() => localStorage.getItem("ota_dkey_v3") || "");
+
+    const [mappingText, setMappingText] = useState<string>(() => localStorage.getItem("ota_mapping_v3") || "");
+    const [subjects, setSubjects] = useState<SubjectBlock[]>(() => {
+        const saved = localStorage.getItem("ota_subjects_v3");
+        if (!saved) return [];
+        try {
+            return JSON.parse(saved) as SubjectBlock[];
+        } catch {
+            return [];
+        }
+    });
+
+    const [scoring, setScoring] = useState<ScoringConfig>(() => {
+        const saved = localStorage.getItem("ota_scoring_v3");
+        if (!saved) return DEFAULT_SCORING;
+        try {
+            return { ...DEFAULT_SCORING, ...(JSON.parse(saved) as Partial<ScoringConfig>) };
+        } catch {
+            return DEFAULT_SCORING;
+        }
+    });
+
+    const [currentStep, setCurrentStep] = useState<number>(1);
+    const headerRefs = useRef<Record<number, HTMLDivElement | null>>({});
+
+    // --- persist ---
+    useEffect(() => {
+        localStorage.setItem("ota_profile_v3", JSON.stringify(profile));
+    }, [profile]);
+
+    useEffect(() => {
+        localStorage.setItem("ota_akey_v3", aKeyText);
+        localStorage.setItem("ota_bkey_v3", bKeyText);
+        localStorage.setItem("ota_ckey_v3", cKeyText);
+        localStorage.setItem("ota_dkey_v3", dKeyText);
+    }, [aKeyText, bKeyText, cKeyText, dKeyText]);
+
+    useEffect(() => {
+        localStorage.setItem("ota_mapping_v3", mappingText);
+    }, [mappingText]);
+
+    useEffect(() => {
+        localStorage.setItem("ota_subjects_v3", JSON.stringify(subjects));
+    }, [subjects]);
+
+    useEffect(() => {
+        localStorage.setItem("ota_scoring_v3", JSON.stringify(scoring));
+    }, [scoring]);
+
+    // --- parse DAT ---
+    useEffect(() => {
+        const content = (datContent || "").trim();
+        if (!content) {
+            setStudents([]);
+            setFirstLine("");
+            return;
+        }
+
+        const lines = content
+            .split(/\r?\n/)
+            .map((l) => l.replace(/\r/g, ""))
+            .filter((l) => l.trim().length > 0);
+
+        setFirstLine(lines[0] || "");
+
+        const parsed: Student[] = [];
+
+        for (const line of lines) {
+            const id = splitFixed(line, profile.idStart, profile.idLen).trim();
+            const name = splitFixed(line, profile.nameStart, profile.nameLen).trim();
+
+            const booklet =
+                profile.noBooklet || profile.bookletPos <= 0
+                    ? "A"
+                    : parseBookletChar(line.charAt(profile.bookletPos - 1));
+
+            const answersRawStr = splitFixed(line, profile.answersStart, profile.answersLen);
+            const answersRaw = answersRawStr.split("").map(normalizeAnswerChar);
+
+            if (!id && !name) continue;
+
+            parsed.push({
+                id: id || "(id yok)",
+                name: name || "(isim yok)",
+                booklet,
+                answersRaw,
+            });
+        }
+
+        setStudents(parsed);
+    }, [datContent, profile]);
+
+    // --- normalized keys ---
+    const aKey = useMemo(() => onlyAnswerChars(aKeyText), [aKeyText]);
+    const bKey = useMemo(() => onlyAnswerChars(bKeyText), [bKeyText]);
+    const cKey = useMemo(() => onlyAnswerChars(cKeyText), [cKeyText]);
+    const dKey = useMemo(() => onlyAnswerChars(dKeyText), [dKeyText]);
+
+    // --- mapping parsed ---
+    const mappingPack = useMemo(() => {
+        if (!mappingText.trim()) return { mapping: {}, errors: [], warnings: [] } as MappingPack;
+        return parseMappingTable(mappingText);
+    }, [mappingText]);
+
+    const questionCount = useMemo(() => {
+        // soru sayısını en güvenli şekilde A anahtardan alalım
+        if (aKey.length > 0) return aKey.length;
+        // yoksa profile.answersLen
+        return profile.answersLen || 0;
+    }, [aKey.length, profile.answersLen]);
+
+    // --- derived booklet keys from A + mapping ---
+    const derivedKeys = useMemo(() => {
+        const out: Partial<Record<Booklet, string>> = {};
+        const errors: string[] = [];
+        const warnings: string[] = [];
+
+        if (!aKey || aKey.length < 5) {
+            return { out, errors, warnings };
+        }
+
+        const mB = mappingPack.mapping.B;
+        const mC = mappingPack.mapping.C;
+        const mD = mappingPack.mapping.D;
+
+        const n = aKey.length;
+
+        if (mB && mB.length >= n) out.B = deriveBookletKeyFromA(aKey, mB.slice(0, n));
+        if (mC && mC.length >= n) out.C = deriveBookletKeyFromA(aKey, mC.slice(0, n));
+        if (mD && mD.length >= n) out.D = deriveBookletKeyFromA(aKey, mD.slice(0, n));
+
+        // permütasyon kontrolü
+        if (mB && mB.length >= n) {
+            const v = validatePermutation(mB.slice(0, n), n);
+            if (!v.ok) warnings.push("B mapping 1..N permütasyonu değil (eksik/tekrar/out-of-range olabilir).");
+        }
+        if (mC && mC.length >= n) {
+            const v = validatePermutation(mC.slice(0, n), n);
+            if (!v.ok) warnings.push("C mapping 1..N permütasyonu değil (eksik/tekrar/out-of-range olabilir).");
+        }
+        if (mD && mD.length >= n) {
+            const v = validatePermutation(mD.slice(0, n), n);
+            if (!v.ok) warnings.push("D mapping 1..N permütasyonu değil (eksik/tekrar/out-of-range olabilir).");
+        }
+
+        // tablo A anahtar kontrolü
+        if (mappingPack.tableAKey && mappingPack.tableAKey.length >= 5) {
+            const tableA = mappingPack.tableAKey.slice(0, n);
+            if (tableA !== aKey.slice(0, n)) {
+                errors.push("Mapping tablosundaki A anahtar harfleri ile girilen A anahtar uyuşmuyor. Tablo başka sınava ait olabilir.");
+            }
+        }
+
+        return { out, errors, warnings };
+    }, [aKey, mappingPack.mapping, mappingPack.tableAKey]);
+
+    // --- detect if mapping needed ---
+    const bookletsUsed = useMemo(() => {
+        const s = new Set<Booklet>();
+        for (const st of students) s.add(st.booklet);
+        return Array.from(s);
+    }, [students]);
+
+    const mappingNeeded = useMemo(() => {
+        // kitapçık yoksa mapping gereksiz
+        if (profile.noBooklet || profile.bookletPos <= 0) return false;
+        // sadece A varsa mapping gereksiz
+        const used = new Set(bookletsUsed);
+        used.delete("A");
+        return used.size > 0;
+    }, [profile.noBooklet, profile.bookletPos, bookletsUsed]);
+
+    // --- results calculation ---
+    const results = useMemo(() => {
+        const n = questionCount;
+        if (!students.length || !aKey || aKey.length < 5 || n < 5) {
+            return {
+                scored: [] as Array<
+                    Student & { correct: number; wrong: number; blank: number; net: number; score: number; answersA: string[]; excludedReason?: string }
+                >,
+                excluded: [] as Array<{ student: Student; reason: string }>,
+            };
+        }
+
+        const aKeyArr = aKey.slice(0, n).split("");
+
+        const scored: Array<
+            Student & { correct: number; wrong: number; blank: number; net: number; score: number; answersA: string[]; excludedReason?: string }
+        > = [];
+        const excluded: Array<{ student: Student; reason: string }> = [];
+
+        for (const st of students) {
+            // öğrencinin cevapları A düzenine çevrilecek
+            let answersA: string[] = [];
+
+            if (st.booklet === "A" || !mappingNeeded) {
+                answersA = (st.answersRaw || []).slice(0, n);
+            } else {
+                const toA = mappingPack.mapping[st.booklet];
+                if (!toA || toA.length < n) {
+                    excluded.push({ student: st, reason: `${st.booklet} mapping eksik (öğrenci analiz dışı)` });
+                    continue;
+                }
+                answersA = answersToAOrder(st.answersRaw || [], toA.slice(0, n), n);
+            }
+
+            const s = scoreOne(answersA, aKeyArr, scoring);
+
+            scored.push({
+                ...st,
+                answersA,
+                correct: s.correct,
+                wrong: s.wrong,
+                blank: s.blank,
+                net: round2(s.net),
+                score: round2(s.score),
+            });
+        }
+
+        return { scored, excluded };
+    }, [students, aKey, questionCount, scoring, mappingNeeded, mappingPack.mapping]);
+
+    // --- Step7Analysis: madde analizi ---
+    const analysis = useMemo(() => {
+        const n = questionCount;
+        const scored = results.scored;
+        if (!n || !aKey || aKey.length < n || scored.length === 0) {
+            return { questionRows: [], scoreHist: [] as Array<{ range: string; count: number }> };
+        }
+
+        const aKeyArr = aKey.slice(0, n).split("");
+
+        // histogram
+        const bins = [
+            { min: 0, max: 20, label: "0-20" },
+            { min: 20, max: 40, label: "20-40" },
+            { min: 40, max: 60, label: "40-60" },
+            { min: 60, max: 70, label: "60-70" },
+            { min: 70, max: 80, label: "70-80" },
+            { min: 80, max: 90, label: "80-90" },
+            { min: 90, max: 100.0001, label: "90-100" },
+        ];
+
+        const scoreHist = bins.map((b) => ({
+            range: b.label,
+            count: scored.filter((x) => x.score >= b.min && x.score < b.max).length,
+        }));
+
+        // madde istatistikleri
+        const scores = scored.map((x) => x.score);
+
+        const questionRows = Array.from({ length: n }).map((_, qi) => {
+            const correctAnswer = aKeyArr[qi];
+
+            const dist: Record<string, number> = { A: 0, B: 0, C: 0, D: 0, E: 0, blank: 0 };
+            const correctFlags: boolean[] = [];
+
+            for (const st of scored) {
+                const ans = normalizeAnswerChar(st.answersA[qi] || " ");
+                if (ans === " ") dist.blank++;
+                else dist[ans] = (dist[ans] || 0) + 1;
+
+                correctFlags.push(ans === correctAnswer);
+            }
+
+            const total = scored.length || 1;
+            const p = dist[correctAnswer] / total; // doğru oranı
+            const diff = difficultyIndex(p);
+            const disc = discriminationIndex(scores, correctFlags);
+
+            return {
+                soru: qi + 1,
+                A: dist.A,
+                B: dist.B,
+                C: dist.C,
+                D: dist.D,
+                E: dist.E,
+                Bos: dist.blank,
+                dogru: correctAnswer,
+                dogruPct: p,
+                zorluk: diff,
+                ayiricilik: disc,
+                yorum: commentFor(diff, disc),
+            };
+        });
+
+        return { questionRows, scoreHist };
+    }, [results.scored, questionCount, aKey]);
+
+    // --- overlaps in Design step ---
+    const designOverlaps = useMemo(() => {
+        const p = profile;
+        const problems: string[] = [];
+
+        const fields: Array<{ key: FieldKey; start: number; len: number; label: string }> = [
+            { key: "id", start: p.idStart, len: p.idLen, label: "No" },
+            { key: "name", start: p.nameStart, len: p.nameLen, label: "İsim" },
+            { key: "answers", start: p.answersStart, len: p.answersLen, label: "Cevaplar" },
+        ];
+
+        if (!p.noBooklet && p.bookletPos > 0) {
+            // booklet tek char alan
+            fields.push({ key: "booklet", start: p.bookletPos, len: 1, label: "Kitapçık" });
+        }
+
+        for (let i = 0; i < fields.length; i++) {
+            for (let j = i + 1; j < fields.length; j++) {
+                const a = fields[i];
+                const b = fields[j];
+                if (overlap(a.start, a.len, b.start, b.len)) {
+                    problems.push(`"${a.label}" ile "${b.label}" alanları çakışıyor.`);
+                }
+            }
+        }
+
+        return problems;
+    }, [profile]);
+
+    // --- Step logic ---
+    const steps = useMemo(
+        () => [
+            { id: 1, title: "Dosya Yükleme", desc: "DAT/CSV içeriğini yükleyin." },
+            { id: 2, title: "Dizayn Yönetimi", desc: "Alanların karakter aralıklarını ayarlayın." },
+            { id: 3, title: "Cevap Anahtarı", desc: "A anahtarını girin (zorunlu). İsterseniz B/C/D de yapıştırın." },
+            { id: 4, title: "Mapping (Opsiyonel)", desc: "Birden fazla kitapçık varsa mapping tablosunu yapıştırın." },
+            { id: 5, title: "Ders / Bölümleme (Opsiyonel)", desc: "Soru aralıklarını derslere ayırın." },
+            { id: 6, title: "Puanlama (Opsiyonel)", desc: "Yanlış götürme / toplam puan ayarı." },
+            { id: 7, title: "Sonuçlar & Analiz", desc: "Öğrenci sonuçları ve madde analizi." },
+        ],
+        []
+    );
+
+    function getStepStatus(id: number): StepStatus {
+        const n = questionCount;
+
+        if (id === 1) return datContent.trim() ? "done" : "todo";
+
+        if (id === 2) {
+            // Dosya yoksa bu adım atlanabilir, ama "done" demeyelim.
+            if (!datContent.trim()) return "todo";
+            // profil bir şekilde düzenlenmişse done; yoksa todo (çok katı olmayalım)
+            const defaultish = JSON.stringify(profile) === JSON.stringify(DEFAULT_PROFILE);
+            return defaultish ? "todo" : "done";
+        }
+
+        if (id === 3) {
+            return aKey.length >= 5 ? "done" : "todo";
+        }
+
+        if (id === 4) {
+            if (!mappingNeeded) return "skipped";
+            if (!mappingText.trim()) return "todo";
+            if (derivedKeys.errors.length) return "todo";
+            // B/C/D mapping uzunluğu ve permütasyon kontrolü
+            const need = new Set(bookletsUsed);
+            need.delete("A");
+            let ok = true;
+            for (const b of Array.from(need)) {
+                const m = mappingPack.mapping[b];
+                if (!m || m.length < n) ok = false;
+                else {
+                    const v = validatePermutation(m.slice(0, n), n);
+                    if (!v.ok) ok = false;
+                }
+            }
+            return ok ? "done" : "todo";
+        }
+
+        if (id === 5) {
+            // hiç ders eklenmediyse "todo" ama opsiyonel
+            return subjects.length ? "done" : "skipped";
+        }
+
+        if (id === 6) {
+            // scoring her zaman var ama kullanıcı değiştirmedi ise "skipped" gibi gösterebiliriz
+            const isDefault = JSON.stringify(scoring) === JSON.stringify(DEFAULT_SCORING);
+            return isDefault ? "skipped" : "done";
+        }
+
+        if (id === 7) {
+            if (!students.length) return "todo";
+            if (aKey.length < 5) return "todo";
+            // mapping gerekiyorsa ve eksikse todo
+            if (mappingNeeded && getStepStatus(4) !== "done") return "todo";
+            return "done";
+        }
+
+        return "todo";
+    }
+
+    const stepSummary = useMemo(() => {
+        const s = steps.map((x) => getStepStatus(x.id));
+        const done = s.filter((x) => x === "done").length;
+        const skipped = s.filter((x) => x === "skipped").length;
+        return { done, skipped, total: steps.length };
+    }, [steps, datContent, profile, aKey, mappingNeeded, mappingText, subjects, scoring, students, derivedKeys.errors.length, bookletsUsed, questionCount]);
+
+    function openStep(id: number) {
+        setCurrentStep(id);
+        // kontrollü scroll
+        requestAnimationFrame(() => {
+            const el = headerRefs.current[id];
+            if (!el) return;
+            const y = el.getBoundingClientRect().top + window.scrollY - 90;
+            window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+        });
+    }
+
+    // --- file upload ---
+    async function handleFile(file: File) {
+        const text = await file.text();
+        setDatContent(text);
+        openStep(2);
+    }
+
+    // --- helpers for preview in design step ---
+    const designPreview = useMemo(() => {
+        const line = firstLine || "";
+        if (!line) return null;
+
+        const p = profile;
+        const id = splitFixed(line, p.idStart, p.idLen);
+        const name = splitFixed(line, p.nameStart, p.nameLen);
+        const booklet = p.noBooklet || p.bookletPos <= 0 ? "" : line.charAt(p.bookletPos - 1);
+        const answers = splitFixed(line, p.answersStart, p.answersLen);
+
+        return { id, name, booklet, answers, line };
+    }, [firstLine, profile]);
+
+    // --- compare derived keys with uploaded B/C/D keys (optional) ---
+    function keyDiffCount(a: string, b: string) {
+        const n = Math.min(a.length, b.length);
+        let diff = 0;
+        for (let i = 0; i < n; i++) if ((a[i] || " ") !== (b[i] || " ")) diff++;
+        diff += Math.abs(a.length - b.length);
+        return diff;
+    }
+
+    // --- export CSV ---
+    function downloadCsv(filename: string, rows: string[][]) {
+        const csv = rows
+            .map((r) =>
+                r
+                    .map((cell) => {
+                        const s = String(cell ?? "");
+                        if (s.includes(",") || s.includes('"') || s.includes("\n")) {
+                            return `"${s.replace(/"/g, '""')}"`;
+                        }
+                        return s;
+                    })
+                    .join(",")
+            )
+            .join("\n");
+
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+    }
+
+    // --- UI ---
+    return (
+        <div className="mx-auto max-w-6xl p-4 md:p-6 space-y-6">
+            {/* Sticky progress bar */}
+            <div className="sticky top-0 z-20 -mx-4 md:-mx-6 px-4 md:px-6 py-3 bg-white/80 backdrop-blur border-b">
+                <div className="flex items-center justify-between gap-4 flex-wrap">
+                    <div className="flex items-center gap-2">
+                        <Sparkles className="h-4 w-4 text-muted-foreground" />
+                        <div className="text-sm">
+                            <span className="font-medium">
+                                Tamamlandı: {stepSummary.done}
+                            </span>{" "}
+                            • Atlandı: {stepSummary.skipped} • Toplam: {stepSummary.total}
+                        </div>
+                    </div>
+
+                    <div className="flex gap-2 flex-wrap">
+                        {steps.map((s) => (
+                            <StepPill
+                                key={s.id}
+                                label={`${s.id}`}
+                                status={getStepStatus(s.id)}
+                                onClick={() => openStep(s.id)}
+                            />
+                        ))}
+                    </div>
                 </div>
-                <Button variant="ghost" size="sm" onClick={() => setCurrentStep(isOpen ? 0 : step.id)}>
-                  {isOpen ? "Kapat" : "Aç"}
-                </Button>
-              </div>
+            </div>
 
-              <AnimatePresence initial={false}>
-                {isOpen && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="px-6 pb-6"
-                  >
-                    <Separator className="mb-6" />
+            <div className="space-y-4">
+                {steps.map((step) => {
+                    const status = getStepStatus(step.id);
+                    const isOpen = currentStep === step.id;
 
-                    {/* Step 1 */}
-                    {step.id === 1 && (
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-3 flex-wrap">
-                          <label className="inline-flex items-center gap-2 rounded-md border px-3 py-2 cursor-pointer">
-                            <Upload className="h-4 w-4" />
-                            <span className="text-sm font-medium">DAT/CSV seç</span>
-                            <input
-                              type="file"
-                              accept=".dat,.csv,.txt"
-                              className="hidden"
-                              onChange={(e) => {
-                                const f = e.target.files?.[0];
-                                if (f) handleFile(f);
-                              }}
-                            />
-                          </label>
-                          <Button
-                            variant="secondary"
-                            onClick={() => {
-                              setDatContent("");
-                              setStudents([]);
-                              setFirstLine("");
-                            }}
-                          >
-                            Temizle
-                          </Button>
-                        </div>
-
-                        <Textarea
-                          value={datContent}
-                          onChange={(e) => setDatContent(e.target.value)}
-                          placeholder="İsterseniz dosya içeriğini buraya yapıştırabilirsiniz..."
-                          className="min-h-[180px] font-mono text-xs"
-                        />
-
-                        {students.length > 0 && (
-                          <div className="text-sm text-muted-foreground">
-                            Okunan satır: <span className="font-medium">{students.length}</span> •
-                            Kitapçıklar:{" "}
-                            <span className="font-medium">{bookletsUsed.join(", ")}</span>
-                          </div>
-                        )}
-
-                        <div className="flex gap-2">
-                          <Button onClick={() => openStep(2)} disabled={!datContent.trim()}>
-                            Devam
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Step 2 */}
-                    {step.id === 2 && (
-                      <div className="space-y-6">
-                        <div className="flex items-center justify-between gap-4 flex-wrap">
-                          <div>
-                            <div className="font-medium">Karakter Yerleşimi</div>
-                            <div className="text-sm text-muted-foreground">
-                              Alanları ayarlayın. Çakışma olursa uyarı verir.
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-2">
-                            <Switch
-                              checked={profile.noBooklet}
-                              onCheckedChange={(v) =>
-                                setProfile((p) => ({ ...p, noBooklet: v, bookletPos: v ? 0 : p.bookletPos }))
-                              }
-                            />
-                            <Label>Kitapçık bilgisi yok</Label>
-                          </div>
-                        </div>
-
-                        {designOverlaps.length > 0 && (
-                          <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900">
-                            <div className="flex items-center gap-2 font-medium">
-                              <AlertTriangle className="h-4 w-4" /> Alan çakışması
-                            </div>
-                            <ul className="mt-2 list-disc pl-5 text-sm">
-                              {designOverlaps.map((x, i) => (
-                                <li key={i}>{x}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {/* No */}
-                          <Card className="border">
-                            <CardHeader>
-                              <CardTitle className="text-base">No</CardTitle>
-                              <CardDescription>Başlangıç (1-based) ve uzunluk</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-3">
-                              <div className="grid grid-cols-2 gap-3">
+                    return (
+                        <Card key={step.id} className="overflow-hidden">
+                            <div
+                                ref={(el) => {
+                                    headerRefs.current[step.id] = el;
+                                }}
+                                className="px-6 py-4 flex items-start justify-between gap-3 cursor-pointer select-none"
+                                onClick={() => setCurrentStep(isOpen ? 0 : step.id)}
+                            >
                                 <div>
-                                  <Label>Başlangıç</Label>
-                                  <Input
-                                    type="number"
-                                    value={profile.idStart}
-                                    onChange={(e) =>
-                                      setProfile((p) => ({ ...p, idStart: clampInt(Number(e.target.value), 1, 9999) }))
-                                    }
-                                  />
-                                </div>
-                                <div>
-                                  <Label>Uzunluk</Label>
-                                  <Input
-                                    type="number"
-                                    value={profile.idLen}
-                                    onChange={(e) =>
-                                      setProfile((p) => ({ ...p, idLen: clampInt(Number(e.target.value), 0, 9999) }))
-                                    }
-                                  />
-                                </div>
-                              </div>
-
-                              <div className="rounded-md border bg-slate-50 p-3">
-                                <div className="text-xs text-muted-foreground">İlk satır örneği</div>
-                                <div className="font-mono text-sm text-emerald-700">
-                                  {designPreview?.id || "—"}
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-
-                          {/* İsim */}
-                          <Card className="border">
-                            <CardHeader>
-                              <CardTitle className="text-base">İsim</CardTitle>
-                              <CardDescription>Başlangıç (1-based) ve uzunluk</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-3">
-                              <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                  <Label>Başlangıç</Label>
-                                  <Input
-                                    type="number"
-                                    value={profile.nameStart}
-                                    onChange={(e) =>
-                                      setProfile((p) => ({ ...p, nameStart: clampInt(Number(e.target.value), 1, 9999) }))
-                                    }
-                                  />
-                                </div>
-                                <div>
-                                  <Label>Uzunluk</Label>
-                                  <Input
-                                    type="number"
-                                    value={profile.nameLen}
-                                    onChange={(e) =>
-                                      setProfile((p) => ({ ...p, nameLen: clampInt(Number(e.target.value), 0, 9999) }))
-                                    }
-                                  />
-                                </div>
-                              </div>
-
-                              <div className="rounded-md border bg-slate-50 p-3">
-                                <div className="text-xs text-muted-foreground">İlk satır örneği</div>
-                                <div className="font-mono text-sm text-emerald-700">
-                                  {designPreview?.name || "—"}
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-
-                          {/* Kitapçık */}
-                          {!profile.noBooklet && (
-                            <Card className="border">
-                              <CardHeader>
-                                <CardTitle className="text-base">Kitapçık</CardTitle>
-                                <CardDescription>Tek karakter pozisyonu</CardDescription>
-                              </CardHeader>
-                              <CardContent className="space-y-3">
-                                <div>
-                                  <Label>Pozisyon</Label>
-                                  <Input
-                                    type="number"
-                                    value={profile.bookletPos}
-                                    onChange={(e) =>
-                                      setProfile((p) => ({ ...p, bookletPos: clampInt(Number(e.target.value), 0, 9999) }))
-                                    }
-                                  />
-                                </div>
-
-                                <div className="rounded-md border bg-slate-50 p-3">
-                                  <div className="text-xs text-muted-foreground">İlk satır örneği</div>
-                                  <div className="font-mono text-sm text-emerald-700">
-                                    {designPreview?.booklet || "—"}
-                                  </div>
-                                </div>
-                              </CardContent>
-                            </Card>
-                          )}
-
-                          {/* Cevaplar */}
-                          <Card className="border">
-                            <CardHeader>
-                              <CardTitle className="text-base">Cevaplar</CardTitle>
-                              <CardDescription>Başlangıç (1-based) ve soru sayısı</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-3">
-                              <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                  <Label>Başlangıç</Label>
-                                  <Input
-                                    type="number"
-                                    value={profile.answersStart}
-                                    onChange={(e) =>
-                                      setProfile((p) => ({
-                                        ...p,
-                                        answersStart: clampInt(Number(e.target.value), 1, 9999),
-                                      }))
-                                    }
-                                  />
-                                </div>
-                                <div>
-                                  <Label>Soru sayısı</Label>
-                                  <Input
-                                    type="number"
-                                    value={profile.answersLen}
-                                    onChange={(e) =>
-                                      setProfile((p) => ({
-                                        ...p,
-                                        answersLen: clampInt(Number(e.target.value), 0, 9999),
-                                      }))
-                                    }
-                                  />
-                                </div>
-                              </div>
-
-                              <div className="rounded-md border bg-slate-50 p-3">
-                                <div className="text-xs text-muted-foreground">İlk satır örneği</div>
-                                <div className="font-mono text-xs text-emerald-700 break-all">
-                                  {designPreview?.answers || "—"}
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        </div>
-
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <Button onClick={() => openStep(3)} disabled={!datContent.trim()}>
-                            Devam
-                          </Button>
-                          <Button
-                            variant="secondary"
-                            onClick={() => setProfile(DEFAULT_PROFILE)}
-                          >
-                            Varsayılanlara dön
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Step 3 */}
-                    {step.id === 3 && (
-                      <div className="space-y-5">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <Card className="border">
-                            <CardHeader>
-                              <CardTitle className="text-base">A Anahtarı (Zorunlu)</CardTitle>
-                              <CardDescription>
-                                Yan yana (optik program uyumlu). Sadece A-B-C-D-E (boşlar: * # X olabilir).
-                              </CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-3">
-                              <Textarea
-                                value={aKeyText}
-                                onChange={(e) => setAKeyText(e.target.value)}
-                                className="min-h-[140px] font-mono text-xs"
-                                placeholder="Örn: EACCAB..."
-                              />
-                              <div className="text-sm text-muted-foreground">
-                                Uzunluk: <span className="font-medium">{aKey.length}</span>
-                                {questionCount ? (
-                                  <>
-                                    {" "}• Beklenen: <span className="font-medium">{questionCount}</span>
-                                  </>
-                                ) : null}
-                              </div>
-                            </CardContent>
-                          </Card>
-
-                          <Card className="border">
-                            <CardHeader>
-                              <CardTitle className="text-base">B/C/D Anahtarları (Opsiyonel)</CardTitle>
-                              <CardDescription>
-                                İsterseniz yapıştırın. Mapping varsa otomatik üretilen anahtarla karşılaştırır.
-                              </CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-3">
-                              <div className="grid grid-cols-1 gap-3">
-                                <div>
-                                  <Label>B</Label>
-                                  <Textarea
-                                    value={bKeyText}
-                                    onChange={(e) => setBKeyText(e.target.value)}
-                                    className="min-h-[70px] font-mono text-xs"
-                                  />
-                                </div>
-                                <div>
-                                  <Label>C</Label>
-                                  <Textarea
-                                    value={cKeyText}
-                                    onChange={(e) => setCKeyText(e.target.value)}
-                                    className="min-h-[70px] font-mono text-xs"
-                                  />
-                                </div>
-                                <div>
-                                  <Label>D</Label>
-                                  <Textarea
-                                    value={dKeyText}
-                                    onChange={(e) => setDKeyText(e.target.value)}
-                                    className="min-h-[70px] font-mono text-xs"
-                                  />
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        </div>
-
-                        <div className="flex gap-2">
-                          <Button onClick={() => openStep(4)} disabled={aKey.length < 5}>
-                            Devam
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Step 4 */}
-                    {step.id === 4 && (
-                      <div className="space-y-5">
-                        {!mappingNeeded && (
-                          <div className="rounded-xl border bg-slate-50 p-4">
-                            <div className="font-medium">Mapping bu sınav için gerekmiyor.</div>
-                            <div className="text-sm text-muted-foreground mt-1">
-                              Ya kitapçık bilgisi yok, ya da tüm öğrenciler A kitapçık.
-                              Bu adımı atlayabilirsiniz.
-                            </div>
-                          </div>
-                        )}
-
-                        {mappingNeeded && (
-                          <>
-                            <div className="rounded-xl border p-4">
-                              <div className="flex items-start justify-between gap-3 flex-wrap">
-                                <div>
-                                  <div className="font-medium">Mapping Tablosu</div>
-                                  <div className="text-sm text-muted-foreground">
-                                    Excel'den <span className="font-medium">A anahtar / B sıra / C sıra / D sıra / Soru No</span> tabloyu komple kopyalayıp yapıştırın.
-                                    <br />
-                                    Buradaki mantık: <span className="font-mono">BKey[i] = AKey[ mappingB[i] ]</span>
-                                  </div>
-                                </div>
-                                <Badge variant="secondary">En kritik adım</Badge>
-                              </div>
-
-                              <MappingMiniAnimation />
-
-                              <div className="mt-4">
-                                <Textarea
-                                  value={mappingText}
-                                  onChange={(e) => setMappingText(e.target.value)}
-                                  className="min-h-[180px] font-mono text-xs"
-                                  placeholder="Excel tablosunu buraya yapıştırın..."
-                                />
-                              </div>
-
-                              <div className="mt-4 space-y-3">
-                                {(mappingPack.errors.length > 0 || derivedKeys.errors.length > 0) && (
-                                  <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-rose-900">
-                                    <div className="flex items-center gap-2 font-medium">
-                                      <AlertTriangle className="h-4 w-4" /> Hata
+                                    <div className="flex items-center gap-2">
+                                        <div className="text-lg font-semibold">{step.id}. {step.title}</div>
+                                        {status === "done" && <Badge className="bg-emerald-600">Tamamlandı</Badge>}
+                                        {status === "skipped" && <Badge variant="secondary">Atlandı</Badge>}
+                                        {status === "todo" && <Badge className="bg-amber-600">Eksik</Badge>}
                                     </div>
-                                    <ul className="mt-2 list-disc pl-5 text-sm">
-                                      {mappingPack.errors.map((x, i) => (
-                                        <li key={`merr-${i}`}>{x}</li>
-                                      ))}
-                                      {derivedKeys.errors.map((x, i) => (
-                                        <li key={`derr-${i}`}>{x}</li>
-                                      ))}
-                                    </ul>
-                                  </div>
-                                )}
-
-                                {derivedKeys.warnings.length > 0 && (
-                                  <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900">
-                                    <div className="flex items-center gap-2 font-medium">
-                                      <AlertTriangle className="h-4 w-4" /> Uyarı
-                                    </div>
-                                    <ul className="mt-2 list-disc pl-5 text-sm">
-                                      {derivedKeys.warnings.map((x, i) => (
-                                        <li key={i}>{x}</li>
-                                      ))}
-                                    </ul>
-                                  </div>
-                                )}
-
-                                {/* Otomatik anahtar üretimi + karşılaştırma */}
-                                {aKey.length >= 5 && mappingText.trim() && (
-                                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                                    {(["B", "C", "D"] as Booklet[]).map((bk) => {
-                                      const derived = derivedKeys.out[bk] || "";
-                                      const uploaded =
-                                        bk === "B" ? bKey : bk === "C" ? cKey : dKey;
-
-                                      const diff = uploaded ? keyDiffCount(derived, uploaded) : 0;
-
-                                      return (
-                                        <Card key={bk} className="border">
-                                          <CardHeader>
-                                            <CardTitle className="text-base">{bk} Anahtarı (Otomatik)</CardTitle>
-                                            <CardDescription>
-                                              A anahtar + mapping ile oluşturuldu.
-                                              {uploaded ? (
-                                                <>
-                                                  {" "}• Yüklenen anahtarla fark:{" "}
-                                                  <span className={cn("font-medium", diff ? "text-rose-600" : "text-emerald-600")}>
-                                                    {diff}
-                                                  </span>
-                                                </>
-                                              ) : (
-                                                <> • (Yüklenen anahtar yoksa sadece otomatik kullanılır)</>
-                                              )}
-                                            </CardDescription>
-                                          </CardHeader>
-                                          <CardContent>
-                                            <div className="rounded-md border bg-slate-50 p-3 font-mono text-xs break-all">
-                                              {derived || "—"}
-                                            </div>
-                                          </CardContent>
-                                        </Card>
-                                      );
-                                    })}
-                                  </div>
-                                )}
-
-                                <div className="rounded-xl border bg-white p-4">
-                                  <div className="font-medium">Bu adımda neler yapılır / yapılmaz?</div>
-                                  <div className="mt-3 space-y-3">
-                                    <HintRow
-                                      title="Yapılır"
-                                      desc="A anahtar girilir, mapping tablosu yapıştırılır, sistem B/C/D anahtarlarını otomatik üretir."
-                                    />
-                                    <HintRow
-                                      title="Yapılır"
-                                      desc='Tablodaki "A anahtar" sütunu ile girilen A anahtar otomatik kontrol edilir; uyuşmazsa uyarı verir.'
-                                    />
-                                    <HintRow
-                                      title="Yapılmaz"
-                                      desc="A anahtar mapping ekranında tekrar istenmez (kafa karışıklığı olmasın)."
-                                    />
-                                  </div>
+                                    <div className="text-sm text-muted-foreground">{step.desc}</div>
                                 </div>
-                              </div>
+                                <Button variant="ghost" size="sm" onClick={() => setCurrentStep(isOpen ? 0 : step.id)}>
+                                    {isOpen ? "Kapat" : "Aç"}
+                                </Button>
                             </div>
 
-                            <div className="flex gap-2">
-                              <Button
-                                onClick={() => openStep(7)}
-                                disabled={getStepStatus(4) !== "done"}
-                              >
-                                Sonuçlara git
-                              </Button>
-                              <Button variant="secondary" onClick={() => openStep(5)}>
-                                (Opsiyonel) Ders bölümleme
-                              </Button>
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Step 5 */}
-                    {step.id === 5 && (
-                      <div className="space-y-5">
-                        <div className="rounded-xl border bg-slate-50 p-4">
-                          <div className="font-medium">Bu adımı atlayabilirsiniz.</div>
-                          <div className="text-sm text-muted-foreground mt-1">
-                            Ders bazlı analiz istiyorsanız soru aralıkları ekleyin.
-                          </div>
-                        </div>
-
-                        <div className="flex gap-2 flex-wrap">
-                          <Button
-                            onClick={() =>
-                              setSubjects((s) => [
-                                ...s,
-                                { name: `Ders ${s.length + 1}`, start: 1, end: questionCount || 1 },
-                              ])
-                            }
-                            variant="secondary"
-                          >
-                            + Ders ekle
-                          </Button>
-
-                          <Button onClick={() => openStep(6)} variant="secondary">
-                            Puanlamaya geç
-                          </Button>
-
-                          <Button onClick={() => openStep(7)}>
-                            Sonuçlara geç
-                          </Button>
-                        </div>
-
-                        {subjects.length > 0 && (
-                          <div className="space-y-3">
-                            {subjects.map((sb, idx) => (
-                              <Card key={idx} className="border">
-                                <CardContent className="pt-6 space-y-3">
-                                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                    <div>
-                                      <Label>Ders adı</Label>
-                                      <Input
-                                        value={sb.name}
-                                        onChange={(e) => {
-                                          const v = e.target.value;
-                                          setSubjects((arr) =>
-                                            arr.map((x, i) => (i === idx ? { ...x, name: v } : x))
-                                          );
-                                        }}
-                                      />
-                                    </div>
-                                    <div>
-                                      <Label>Başlangıç</Label>
-                                      <Input
-                                        type="number"
-                                        value={sb.start}
-                                        onChange={(e) => {
-                                          const v = clampInt(Number(e.target.value), 1, questionCount || 9999);
-                                          setSubjects((arr) =>
-                                            arr.map((x, i) => (i === idx ? { ...x, start: v } : x))
-                                          );
-                                        }}
-                                      />
-                                    </div>
-                                    <div>
-                                      <Label>Bitiş</Label>
-                                      <Input
-                                        type="number"
-                                        value={sb.end}
-                                        onChange={(e) => {
-                                          const v = clampInt(Number(e.target.value), 1, questionCount || 9999);
-                                          setSubjects((arr) =>
-                                            arr.map((x, i) => (i === idx ? { ...x, end: v } : x))
-                                          );
-                                        }}
-                                      />
-                                    </div>
-                                  </div>
-
-                                  <div className="flex justify-end">
-                                    <Button
-                                      variant="destructive"
-                                      onClick={() => setSubjects((arr) => arr.filter((_, i) => i !== idx))}
+                            <AnimatePresence initial={false}>
+                                {isOpen && (
+                                    <motion.div
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ height: "auto", opacity: 1 }}
+                                        exit={{ height: 0, opacity: 0 }}
+                                        transition={{ duration: 0.2 }}
+                                        className="px-6 pb-6"
                                     >
-                                      Sil
-                                    </Button>
-                                  </div>
-                                </CardContent>
-                              </Card>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    )}
+                                        <Separator className="mb-6" />
 
-                    {/* Step 6 */}
-                    {step.id === 6 && (
-                      <div className="space-y-5">
-                        <div className="rounded-xl border bg-slate-50 p-4">
-                          <div className="font-medium">Bu adımı atlayabilirsiniz.</div>
-                          <div className="text-sm text-muted-foreground mt-1">
-                            Puanlama varsayılanı: net = doğru (yanlış götürme yok), toplam puan = 100.
-                          </div>
-                        </div>
+                                        {/* Step 1 */}
+                                        {step.id === 1 && (
+                                            <div className="space-y-4">
+                                                <div className="flex items-center gap-3 flex-wrap">
+                                                    <label className="inline-flex items-center gap-2 rounded-md border px-3 py-2 cursor-pointer">
+                                                        <Upload className="h-4 w-4" />
+                                                        <span className="text-sm font-medium">DAT/CSV seç</span>
+                                                        <input
+                                                            type="file"
+                                                            accept=".dat,.csv,.txt"
+                                                            className="hidden"
+                                                            onChange={(e) => {
+                                                                const f = e.target.files?.[0];
+                                                                if (f) handleFile(f);
+                                                            }}
+                                                        />
+                                                    </label>
+                                                    <Button
+                                                        variant="secondary"
+                                                        onClick={() => {
+                                                            setDatContent("");
+                                                            setStudents([]);
+                                                            setFirstLine("");
+                                                        }}
+                                                    >
+                                                        Temizle
+                                                    </Button>
+                                                </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <Card className="border">
-                            <CardHeader>
-                              <CardTitle className="text-base">Boşlar yanlış sayılır</CardTitle>
-                            </CardHeader>
-                            <CardContent className="flex items-center justify-between">
-                              <Label>Blank as wrong</Label>
-                              <Switch
-                                checked={scoring.blankAsWrong}
-                                onCheckedChange={(v) => setScoring((s) => ({ ...s, blankAsWrong: v }))}
-                              />
-                            </CardContent>
-                          </Card>
+                                                <Textarea
+                                                    value={datContent}
+                                                    onChange={(e) => setDatContent(e.target.value)}
+                                                    placeholder="İsterseniz dosya içeriğini buraya yapıştırabilirsiniz..."
+                                                    className="min-h-[180px] font-mono text-xs"
+                                                />
 
-                          <Card className="border">
-                            <CardHeader>
-                              <CardTitle className="text-base">Yanlış götürme katsayısı</CardTitle>
-                              <CardDescription>Örn: 0.25 → 4 yanlış 1 doğru götürür</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                              <Input
-                                type="number"
-                                step="0.01"
-                                value={scoring.wrongPenalty}
-                                onChange={(e) =>
-                                  setScoring((s) => ({ ...s, wrongPenalty: Number(e.target.value) || 0 }))
-                                }
-                              />
-                            </CardContent>
-                          </Card>
+                                                {students.length > 0 && (
+                                                    <div className="text-sm text-muted-foreground">
+                                                        Okunan satır: <span className="font-medium">{students.length}</span> •
+                                                        Kitapçıklar:{" "}
+                                                        <span className="font-medium">{bookletsUsed.join(", ")}</span>
+                                                    </div>
+                                                )}
 
-                          <Card className="border">
-                            <CardHeader>
-                              <CardTitle className="text-base">Toplam puan</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                              <Input
-                                type="number"
-                                value={scoring.totalScore}
-                                onChange={(e) =>
-                                  setScoring((s) => ({ ...s, totalScore: Number(e.target.value) || 100 }))
-                                }
-                              />
-                            </CardContent>
-                          </Card>
-                        </div>
+                                                <div className="flex gap-2">
+                                                    <Button onClick={() => openStep(2)} disabled={!datContent.trim()}>
+                                                        Devam
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        )}
 
-                        <div className="flex gap-2">
-                          <Button onClick={() => openStep(7)}>Sonuçlara geç</Button>
-                        </div>
-                      </div>
-                    )}
+                                        {/* Step 2 */}
+                                        {step.id === 2 && (
+                                            <div className="space-y-6">
+                                                <div className="flex items-center justify-between gap-4 flex-wrap">
+                                                    <div>
+                                                        <div className="font-medium">Karakter Yerleşimi</div>
+                                                        <div className="text-sm text-muted-foreground">
+                                                            Alanları ayarlayın. Çakışma olursa uyarı verir.
+                                                        </div>
+                                                    </div>
 
-                    {/* Step 7 */}
-                    {step.id === 7 && (
-                      <div className="space-y-6">
-                        {getStepStatus(7) !== "done" && (
-                          <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900">
-                            <div className="flex items-center gap-2 font-medium">
-                              <AlertTriangle className="h-4 w-4" /> Analiz için eksikler var
-                            </div>
-                            <div className="mt-2 text-sm">
-                              - Dosya ve A anahtar zorunlu. <br />
-                              - Birden fazla kitapçık varsa mapping gerekir.
-                            </div>
-                          </div>
-                        )}
+                                                    <div className="flex items-center gap-2">
+                                                        <Switch
+                                                            checked={profile.noBooklet}
+                                                            onCheckedChange={(v) =>
+                                                                setProfile((p) => ({ ...p, noBooklet: v, bookletPos: v ? 0 : p.bookletPos }))
+                                                            }
+                                                        />
+                                                        <Label>Kitapçık bilgisi yok</Label>
+                                                    </div>
+                                                </div>
 
-                        {results.excluded.length > 0 && (
-                          <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                            <div className="font-medium">Analiz dışı bırakılan öğrenciler</div>
-                            <div className="text-sm text-muted-foreground mt-1">
-                              Mapping eksik olduğu için bazı kitapçıklar dışarıda kalmış olabilir.
-                            </div>
-                            <ul className="mt-2 list-disc pl-5 text-sm">
-                              {results.excluded.slice(0, 8).map((x, i) => (
-                                <li key={i}>
-                                  {x.student.name} ({x.student.id}) — {x.reason}
-                                </li>
-                              ))}
-                              {results.excluded.length > 8 && (
-                                <li>... (+{results.excluded.length - 8})</li>
-                              )}
-                            </ul>
-                          </div>
-                        )}
+                                                {designOverlaps.length > 0 && (
+                                                    <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900">
+                                                        <div className="flex items-center gap-2 font-medium">
+                                                            <AlertTriangle className="h-4 w-4" /> Alan çakışması
+                                                        </div>
+                                                        <ul className="mt-2 list-disc pl-5 text-sm">
+                                                            {designOverlaps.map((x, i) => (
+                                                                <li key={i}>{x}</li>
+                                                            ))}
+                                                        </ul>
+                                                    </div>
+                                                )}
 
-                        {/* Sonuç tablosu */}
-                        <Card className="border">
-                          <CardHeader>
-                            <CardTitle className="text-base">Öğrenci Sonuçları</CardTitle>
-                            <CardDescription>
-                              Puan = (Net / Soru sayısı) × {scoring.totalScore}
-                            </CardDescription>
-                          </CardHeader>
-                          <CardContent className="space-y-3">
-                            <div className="flex gap-2 flex-wrap">
-                              <Button
-                                variant="secondary"
-                                onClick={() => {
-                                  const rows: string[][] = [
-                                    ["isim", "no", "kitapçık", "dogru", "yanlis", "bos", "net", "puan"],
-                                    ...results.scored.map((r) => [
-                                      r.name,
-                                      r.id,
-                                      r.booklet,
-                                      String(r.correct),
-                                      String(r.wrong),
-                                      String(r.blank),
-                                      String(r.net),
-                                      String(r.score),
-                                    ]),
-                                  ];
-                                  downloadCsv("Ogrenci_Sonuclari.csv", rows);
-                                }}
-                              >
-                                <FileSpreadsheet className="h-4 w-4 mr-2" />
-                                CSV indir
-                              </Button>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    {/* No */}
+                                                    <Card className="border">
+                                                        <CardHeader>
+                                                            <CardTitle className="text-base">No</CardTitle>
+                                                            <CardDescription>Başlangıç (1-based) ve uzunluk</CardDescription>
+                                                        </CardHeader>
+                                                        <CardContent className="space-y-3">
+                                                            <div className="grid grid-cols-2 gap-3">
+                                                                <div>
+                                                                    <Label>Başlangıç</Label>
+                                                                    <Input
+                                                                        type="number"
+                                                                        value={profile.idStart}
+                                                                        onChange={(e) =>
+                                                                            setProfile((p) => ({ ...p, idStart: clampInt(Number(e.target.value), 1, 9999) }))
+                                                                        }
+                                                                    />
+                                                                </div>
+                                                                <div>
+                                                                    <Label>Uzunluk</Label>
+                                                                    <Input
+                                                                        type="number"
+                                                                        value={profile.idLen}
+                                                                        onChange={(e) =>
+                                                                            setProfile((p) => ({ ...p, idLen: clampInt(Number(e.target.value), 0, 9999) }))
+                                                                        }
+                                                                    />
+                                                                </div>
+                                                            </div>
 
-                              <Button
-                                variant="secondary"
-                                onClick={() => {
-                                  const rows: string[][] = [
-                                    ["soru", "A", "B", "C", "D", "E", "bos", "dogru", "dogru_yuzde", "zorluk", "ayiricilik", "yorum"],
-                                    ...analysis.questionRows.map((q: any) => [
-                                      String(q.soru),
-                                      String(q.A),
-                                      String(q.B),
-                                      String(q.C),
-                                      String(q.D),
-                                      String(q.E),
-                                      String(q.Bos),
-                                      q.dogru,
-                                      formatPct(q.dogruPct * 100),
-                                      String(round2(q.zorluk)),
-                                      String(q.ayiricilik),
-                                      q.yorum,
-                                    ]),
-                                  ];
-                                  downloadCsv("Soru_Analizi.csv", rows);
-                                }}
-                              >
-                                <FileText className="h-4 w-4 mr-2" />
-                                Soru analizi CSV
-                              </Button>
-                            </div>
+                                                            <div className="rounded-md border bg-slate-50 p-3">
+                                                                <div className="text-xs text-muted-foreground">İlk satır örneği</div>
+                                                                <div className="font-mono text-sm text-emerald-700">
+                                                                    {designPreview?.id || "—"}
+                                                                </div>
+                                                            </div>
+                                                        </CardContent>
+                                                    </Card>
 
-                            <div className="overflow-auto rounded-lg border">
-                              <table className="w-full text-sm">
-                                <thead className="bg-slate-50">
-                                  <tr>
-                                    <th className="text-left p-2">İsim</th>
-                                    <th className="text-left p-2">No</th>
-                                    <th className="text-left p-2">Kitapçık</th>
-                                    <th className="text-right p-2">Doğru</th>
-                                    <th className="text-right p-2">Yanlış</th>
-                                    <th className="text-right p-2">Boş</th>
-                                    <th className="text-right p-2">Net</th>
-                                    <th className="text-right p-2">Puan</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {results.scored
-                                    .slice()
-                                    .sort((a, b) => b.score - a.score)
-                                    .map((r) => (
-                                      <tr key={r.id} className="border-t">
-                                        <td className="p-2 whitespace-nowrap">{r.name}</td>
-                                        <td className="p-2 font-mono">{r.id}</td>
-                                        <td className="p-2">{r.booklet}</td>
-                                        <td className="p-2 text-right">{r.correct}</td>
-                                        <td className="p-2 text-right">{r.wrong}</td>
-                                        <td className="p-2 text-right">{r.blank}</td>
-                                        <td className="p-2 text-right">{r.net}</td>
-                                        <td className="p-2 text-right font-medium">{r.score}</td>
-                                      </tr>
-                                    ))}
-                                </tbody>
-                              </table>
-                            </div>
-                          </CardContent>
+                                                    {/* İsim */}
+                                                    <Card className="border">
+                                                        <CardHeader>
+                                                            <CardTitle className="text-base">İsim</CardTitle>
+                                                            <CardDescription>Başlangıç (1-based) ve uzunluk</CardDescription>
+                                                        </CardHeader>
+                                                        <CardContent className="space-y-3">
+                                                            <div className="grid grid-cols-2 gap-3">
+                                                                <div>
+                                                                    <Label>Başlangıç</Label>
+                                                                    <Input
+                                                                        type="number"
+                                                                        value={profile.nameStart}
+                                                                        onChange={(e) =>
+                                                                            setProfile((p) => ({ ...p, nameStart: clampInt(Number(e.target.value), 1, 9999) }))
+                                                                        }
+                                                                    />
+                                                                </div>
+                                                                <div>
+                                                                    <Label>Uzunluk</Label>
+                                                                    <Input
+                                                                        type="number"
+                                                                        value={profile.nameLen}
+                                                                        onChange={(e) =>
+                                                                            setProfile((p) => ({ ...p, nameLen: clampInt(Number(e.target.value), 0, 9999) }))
+                                                                        }
+                                                                    />
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="rounded-md border bg-slate-50 p-3">
+                                                                <div className="text-xs text-muted-foreground">İlk satır örneği</div>
+                                                                <div className="font-mono text-sm text-emerald-700">
+                                                                    {designPreview?.name || "—"}
+                                                                </div>
+                                                            </div>
+                                                        </CardContent>
+                                                    </Card>
+
+                                                    {/* Kitapçık */}
+                                                    {!profile.noBooklet && (
+                                                        <Card className="border">
+                                                            <CardHeader>
+                                                                <CardTitle className="text-base">Kitapçık</CardTitle>
+                                                                <CardDescription>Tek karakter pozisyonu</CardDescription>
+                                                            </CardHeader>
+                                                            <CardContent className="space-y-3">
+                                                                <div>
+                                                                    <Label>Pozisyon</Label>
+                                                                    <Input
+                                                                        type="number"
+                                                                        value={profile.bookletPos}
+                                                                        onChange={(e) =>
+                                                                            setProfile((p) => ({ ...p, bookletPos: clampInt(Number(e.target.value), 0, 9999) }))
+                                                                        }
+                                                                    />
+                                                                </div>
+
+                                                                <div className="rounded-md border bg-slate-50 p-3">
+                                                                    <div className="text-xs text-muted-foreground">İlk satır örneği</div>
+                                                                    <div className="font-mono text-sm text-emerald-700">
+                                                                        {designPreview?.booklet || "—"}
+                                                                    </div>
+                                                                </div>
+                                                            </CardContent>
+                                                        </Card>
+                                                    )}
+
+                                                    {/* Cevaplar */}
+                                                    <Card className="border">
+                                                        <CardHeader>
+                                                            <CardTitle className="text-base">Cevaplar</CardTitle>
+                                                            <CardDescription>Başlangıç (1-based) ve soru sayısı</CardDescription>
+                                                        </CardHeader>
+                                                        <CardContent className="space-y-3">
+                                                            <div className="grid grid-cols-2 gap-3">
+                                                                <div>
+                                                                    <Label>Başlangıç</Label>
+                                                                    <Input
+                                                                        type="number"
+                                                                        value={profile.answersStart}
+                                                                        onChange={(e) =>
+                                                                            setProfile((p) => ({
+                                                                                ...p,
+                                                                                answersStart: clampInt(Number(e.target.value), 1, 9999),
+                                                                            }))
+                                                                        }
+                                                                    />
+                                                                </div>
+                                                                <div>
+                                                                    <Label>Soru sayısı</Label>
+                                                                    <Input
+                                                                        type="number"
+                                                                        value={profile.answersLen}
+                                                                        onChange={(e) =>
+                                                                            setProfile((p) => ({
+                                                                                ...p,
+                                                                                answersLen: clampInt(Number(e.target.value), 0, 9999),
+                                                                            }))
+                                                                        }
+                                                                    />
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="rounded-md border bg-slate-50 p-3">
+                                                                <div className="text-xs text-muted-foreground">İlk satır örneği</div>
+                                                                <div className="font-mono text-xs text-emerald-700 break-all">
+                                                                    {designPreview?.answers || "—"}
+                                                                </div>
+                                                            </div>
+                                                        </CardContent>
+                                                    </Card>
+                                                </div>
+
+                                                <div className="flex items-center gap-2 flex-wrap">
+                                                    <Button onClick={() => openStep(3)} disabled={!datContent.trim()}>
+                                                        Devam
+                                                    </Button>
+                                                    <Button
+                                                        variant="secondary"
+                                                        onClick={() => setProfile(DEFAULT_PROFILE)}
+                                                    >
+                                                        Varsayılanlara dön
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Step 3 */}
+                                        {step.id === 3 && (
+                                            <div className="space-y-5">
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <Card className="border">
+                                                        <CardHeader>
+                                                            <CardTitle className="text-base">A Anahtarı (Zorunlu)</CardTitle>
+                                                            <CardDescription>
+                                                                Yan yana (optik program uyumlu). Sadece A-B-C-D-E (boşlar: * # X olabilir).
+                                                            </CardDescription>
+                                                        </CardHeader>
+                                                        <CardContent className="space-y-3">
+                                                            <Textarea
+                                                                value={aKeyText}
+                                                                onChange={(e) => setAKeyText(e.target.value)}
+                                                                className="min-h-[140px] font-mono text-xs"
+                                                                placeholder="Örn: EACCAB..."
+                                                            />
+                                                            <div className="text-sm text-muted-foreground">
+                                                                Uzunluk: <span className="font-medium">{aKey.length}</span>
+                                                                {questionCount ? (
+                                                                    <>
+                                                                        {" "}• Beklenen: <span className="font-medium">{questionCount}</span>
+                                                                    </>
+                                                                ) : null}
+                                                            </div>
+                                                        </CardContent>
+                                                    </Card>
+
+                                                    <Card className="border">
+                                                        <CardHeader>
+                                                            <CardTitle className="text-base">B/C/D Anahtarları (Opsiyonel)</CardTitle>
+                                                            <CardDescription>
+                                                                İsterseniz yapıştırın. Mapping varsa otomatik üretilen anahtarla karşılaştırır.
+                                                            </CardDescription>
+                                                        </CardHeader>
+                                                        <CardContent className="space-y-3">
+                                                            <div className="grid grid-cols-1 gap-3">
+                                                                <div>
+                                                                    <Label>B</Label>
+                                                                    <Textarea
+                                                                        value={bKeyText}
+                                                                        onChange={(e) => setBKeyText(e.target.value)}
+                                                                        className="min-h-[70px] font-mono text-xs"
+                                                                    />
+                                                                </div>
+                                                                <div>
+                                                                    <Label>C</Label>
+                                                                    <Textarea
+                                                                        value={cKeyText}
+                                                                        onChange={(e) => setCKeyText(e.target.value)}
+                                                                        className="min-h-[70px] font-mono text-xs"
+                                                                    />
+                                                                </div>
+                                                                <div>
+                                                                    <Label>D</Label>
+                                                                    <Textarea
+                                                                        value={dKeyText}
+                                                                        onChange={(e) => setDKeyText(e.target.value)}
+                                                                        className="min-h-[70px] font-mono text-xs"
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        </CardContent>
+                                                    </Card>
+                                                </div>
+
+                                                <div className="flex gap-2">
+                                                    <Button onClick={() => openStep(4)} disabled={aKey.length < 5}>
+                                                        Devam
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Step 4 */}
+                                        {step.id === 4 && (
+                                            <div className="space-y-5">
+                                                {!mappingNeeded && (
+                                                    <div className="rounded-xl border bg-slate-50 p-4">
+                                                        <div className="font-medium">Mapping bu sınav için gerekmiyor.</div>
+                                                        <div className="text-sm text-muted-foreground mt-1">
+                                                            Ya kitapçık bilgisi yok, ya da tüm öğrenciler A kitapçık.
+                                                            Bu adımı atlayabilirsiniz.
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {mappingNeeded && (
+                                                    <>
+                                                        <div className="rounded-xl border p-4">
+                                                            <div className="flex items-start justify-between gap-3 flex-wrap">
+                                                                <div>
+                                                                    <div className="font-medium">Mapping Tablosu</div>
+                                                                    <div className="text-sm text-muted-foreground">
+                                                                        Excel'den <span className="font-medium">A anahtar / B sıra / C sıra / D sıra / Soru No</span> tabloyu komple kopyalayıp yapıştırın.
+                                                                        <br />
+                                                                        Buradaki mantık: <span className="font-mono">BKey[i] = AKey[ mappingB[i] ]</span>
+                                                                    </div>
+                                                                </div>
+                                                                <Badge variant="secondary">En kritik adım</Badge>
+                                                            </div>
+
+                                                            <MappingMiniAnimation />
+
+                                                            <div className="mt-4">
+                                                                <Textarea
+                                                                    value={mappingText}
+                                                                    onChange={(e) => setMappingText(e.target.value)}
+                                                                    className="min-h-[180px] font-mono text-xs"
+                                                                    placeholder="Excel tablosunu buraya yapıştırın..."
+                                                                />
+                                                            </div>
+
+                                                            <div className="mt-4 space-y-3">
+                                                                {(mappingPack.errors.length > 0 || derivedKeys.errors.length > 0) && (
+                                                                    <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-rose-900">
+                                                                        <div className="flex items-center gap-2 font-medium">
+                                                                            <AlertTriangle className="h-4 w-4" /> Hata
+                                                                        </div>
+                                                                        <ul className="mt-2 list-disc pl-5 text-sm">
+                                                                            {mappingPack.errors.map((x, i) => (
+                                                                                <li key={`merr-${i}`}>{x}</li>
+                                                                            ))}
+                                                                            {derivedKeys.errors.map((x, i) => (
+                                                                                <li key={`derr-${i}`}>{x}</li>
+                                                                            ))}
+                                                                        </ul>
+                                                                    </div>
+                                                                )}
+
+                                                                {derivedKeys.warnings.length > 0 && (
+                                                                    <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900">
+                                                                        <div className="flex items-center gap-2 font-medium">
+                                                                            <AlertTriangle className="h-4 w-4" /> Uyarı
+                                                                        </div>
+                                                                        <ul className="mt-2 list-disc pl-5 text-sm">
+                                                                            {derivedKeys.warnings.map((x, i) => (
+                                                                                <li key={i}>{x}</li>
+                                                                            ))}
+                                                                        </ul>
+                                                                    </div>
+                                                                )}
+
+                                                                {/* Otomatik anahtar üretimi + karşılaştırma */}
+                                                                {aKey.length >= 5 && mappingText.trim() && (
+                                                                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                                                                        {(["B", "C", "D"] as Booklet[]).map((bk) => {
+                                                                            const derived = derivedKeys.out[bk] || "";
+                                                                            const uploaded =
+                                                                                bk === "B" ? bKey : bk === "C" ? cKey : dKey;
+
+                                                                            const diff = uploaded ? keyDiffCount(derived, uploaded) : 0;
+
+                                                                            return (
+                                                                                <Card key={bk} className="border">
+                                                                                    <CardHeader>
+                                                                                        <CardTitle className="text-base">{bk} Anahtarı (Otomatik)</CardTitle>
+                                                                                        <CardDescription>
+                                                                                            A anahtar + mapping ile oluşturuldu.
+                                                                                            {uploaded ? (
+                                                                                                <>
+                                                                                                    {" "}• Yüklenen anahtarla fark:{" "}
+                                                                                                    <span className={cn("font-medium", diff ? "text-rose-600" : "text-emerald-600")}>
+                                                                                                        {diff}
+                                                                                                    </span>
+                                                                                                </>
+                                                                                            ) : (
+                                                                                                <> • (Yüklenen anahtar yoksa sadece otomatik kullanılır)</>
+                                                                                            )}
+                                                                                        </CardDescription>
+                                                                                    </CardHeader>
+                                                                                    <CardContent>
+                                                                                        <div className="rounded-md border bg-slate-50 p-3 font-mono text-xs break-all">
+                                                                                            {derived || "—"}
+                                                                                        </div>
+                                                                                    </CardContent>
+                                                                                </Card>
+                                                                            );
+                                                                        })}
+                                                                    </div>
+                                                                )}
+
+                                                                <div className="rounded-xl border bg-white p-4">
+                                                                    <div className="font-medium">Bu adımda neler yapılır / yapılmaz?</div>
+                                                                    <div className="mt-3 space-y-3">
+                                                                        <HintRow
+                                                                            title="Yapılır"
+                                                                            desc="A anahtar girilir, mapping tablosu yapıştırılır, sistem B/C/D anahtarlarını otomatik üretir."
+                                                                        />
+                                                                        <HintRow
+                                                                            title="Yapılır"
+                                                                            desc='Tablodaki "A anahtar" sütunu ile girilen A anahtar otomatik kontrol edilir; uyuşmazsa uyarı verir.'
+                                                                        />
+                                                                        <HintRow
+                                                                            title="Yapılmaz"
+                                                                            desc="A anahtar mapping ekranında tekrar istenmez (kafa karışıklığı olmasın)."
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="flex gap-2">
+                                                            <Button
+                                                                onClick={() => openStep(7)}
+                                                                disabled={getStepStatus(4) !== "done"}
+                                                            >
+                                                                Sonuçlara git
+                                                            </Button>
+                                                            <Button variant="secondary" onClick={() => openStep(5)}>
+                                                                (Opsiyonel) Ders bölümleme
+                                                            </Button>
+                                                        </div>
+                                                    </>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {/* Step 5 */}
+                                        {step.id === 5 && (
+                                            <div className="space-y-5">
+                                                <div className="rounded-xl border bg-slate-50 p-4">
+                                                    <div className="font-medium">Bu adımı atlayabilirsiniz.</div>
+                                                    <div className="text-sm text-muted-foreground mt-1">
+                                                        Ders bazlı analiz istiyorsanız soru aralıkları ekleyin.
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex gap-2 flex-wrap">
+                                                    <Button
+                                                        onClick={() =>
+                                                            setSubjects((s) => [
+                                                                ...s,
+                                                                { name: `Ders ${s.length + 1}`, start: 1, end: questionCount || 1 },
+                                                            ])
+                                                        }
+                                                        variant="secondary"
+                                                    >
+                                                        + Ders ekle
+                                                    </Button>
+
+                                                    <Button onClick={() => openStep(6)} variant="secondary">
+                                                        Puanlamaya geç
+                                                    </Button>
+
+                                                    <Button onClick={() => openStep(7)}>
+                                                        Sonuçlara geç
+                                                    </Button>
+                                                </div>
+
+                                                {subjects.length > 0 && (
+                                                    <div className="space-y-3">
+                                                        {subjects.map((sb, idx) => (
+                                                            <Card key={idx} className="border">
+                                                                <CardContent className="pt-6 space-y-3">
+                                                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                                                        <div>
+                                                                            <Label>Ders adı</Label>
+                                                                            <Input
+                                                                                value={sb.name}
+                                                                                onChange={(e) => {
+                                                                                    const v = e.target.value;
+                                                                                    setSubjects((arr) =>
+                                                                                        arr.map((x, i) => (i === idx ? { ...x, name: v } : x))
+                                                                                    );
+                                                                                }}
+                                                                            />
+                                                                        </div>
+                                                                        <div>
+                                                                            <Label>Başlangıç</Label>
+                                                                            <Input
+                                                                                type="number"
+                                                                                value={sb.start}
+                                                                                onChange={(e) => {
+                                                                                    const v = clampInt(Number(e.target.value), 1, questionCount || 9999);
+                                                                                    setSubjects((arr) =>
+                                                                                        arr.map((x, i) => (i === idx ? { ...x, start: v } : x))
+                                                                                    );
+                                                                                }}
+                                                                            />
+                                                                        </div>
+                                                                        <div>
+                                                                            <Label>Bitiş</Label>
+                                                                            <Input
+                                                                                type="number"
+                                                                                value={sb.end}
+                                                                                onChange={(e) => {
+                                                                                    const v = clampInt(Number(e.target.value), 1, questionCount || 9999);
+                                                                                    setSubjects((arr) =>
+                                                                                        arr.map((x, i) => (i === idx ? { ...x, end: v } : x))
+                                                                                    );
+                                                                                }}
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+
+                                                                    <div className="flex justify-end">
+                                                                        <Button
+                                                                            variant="destructive"
+                                                                            onClick={() => setSubjects((arr) => arr.filter((_, i) => i !== idx))}
+                                                                        >
+                                                                            Sil
+                                                                        </Button>
+                                                                    </div>
+                                                                </CardContent>
+                                                            </Card>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {/* Step 6 */}
+                                        {step.id === 6 && (
+                                            <div className="space-y-5">
+                                                <div className="rounded-xl border bg-slate-50 p-4">
+                                                    <div className="font-medium">Bu adımı atlayabilirsiniz.</div>
+                                                    <div className="text-sm text-muted-foreground mt-1">
+                                                        Puanlama varsayılanı: net = doğru (yanlış götürme yok), toplam puan = 100.
+                                                    </div>
+                                                </div>
+
+                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                    <Card className="border">
+                                                        <CardHeader>
+                                                            <CardTitle className="text-base">Boşlar yanlış sayılır</CardTitle>
+                                                        </CardHeader>
+                                                        <CardContent className="flex items-center justify-between">
+                                                            <Label>Blank as wrong</Label>
+                                                            <Switch
+                                                                checked={scoring.blankAsWrong}
+                                                                onCheckedChange={(v) => setScoring((s) => ({ ...s, blankAsWrong: v }))}
+                                                            />
+                                                        </CardContent>
+                                                    </Card>
+
+                                                    <Card className="border">
+                                                        <CardHeader>
+                                                            <CardTitle className="text-base">Yanlış götürme katsayısı</CardTitle>
+                                                            <CardDescription>Örn: 0.25 → 4 yanlış 1 doğru götürür</CardDescription>
+                                                        </CardHeader>
+                                                        <CardContent>
+                                                            <Input
+                                                                type="number"
+                                                                step="0.01"
+                                                                value={scoring.wrongPenalty}
+                                                                onChange={(e) =>
+                                                                    setScoring((s) => ({ ...s, wrongPenalty: Number(e.target.value) || 0 }))
+                                                                }
+                                                            />
+                                                        </CardContent>
+                                                    </Card>
+
+                                                    <Card className="border">
+                                                        <CardHeader>
+                                                            <CardTitle className="text-base">Toplam puan</CardTitle>
+                                                        </CardHeader>
+                                                        <CardContent>
+                                                            <Input
+                                                                type="number"
+                                                                value={scoring.totalScore}
+                                                                onChange={(e) =>
+                                                                    setScoring((s) => ({ ...s, totalScore: Number(e.target.value) || 100 }))
+                                                                }
+                                                            />
+                                                        </CardContent>
+                                                    </Card>
+                                                </div>
+
+                                                <div className="flex gap-2">
+                                                    <Button onClick={() => openStep(7)}>Sonuçlara geç</Button>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Step 7 */}
+                                        {step.id === 7 && (
+                                            <div className="space-y-6">
+                                                {getStepStatus(7) !== "done" && (
+                                                    <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900">
+                                                        <div className="flex items-center gap-2 font-medium">
+                                                            <AlertTriangle className="h-4 w-4" /> Analiz için eksikler var
+                                                        </div>
+                                                        <div className="mt-2 text-sm">
+                                                            - Dosya ve A anahtar zorunlu. <br />
+                                                            - Birden fazla kitapçık varsa mapping gerekir.
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {results.excluded.length > 0 && (
+                                                    <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                                                        <div className="font-medium">Analiz dışı bırakılan öğrenciler</div>
+                                                        <div className="text-sm text-muted-foreground mt-1">
+                                                            Mapping eksik olduğu için bazı kitapçıklar dışarıda kalmış olabilir.
+                                                        </div>
+                                                        <ul className="mt-2 list-disc pl-5 text-sm">
+                                                            {results.excluded.slice(0, 8).map((x, i) => (
+                                                                <li key={i}>
+                                                                    {x.student.name} ({x.student.id}) — {x.reason}
+                                                                </li>
+                                                            ))}
+                                                            {results.excluded.length > 8 && (
+                                                                <li>... (+{results.excluded.length - 8})</li>
+                                                            )}
+                                                        </ul>
+                                                    </div>
+                                                )}
+
+                                                {/* Sonuç tablosu */}
+                                                <Card className="border">
+                                                    <CardHeader>
+                                                        <CardTitle className="text-base">Öğrenci Sonuçları</CardTitle>
+                                                        <CardDescription>
+                                                            Puan = (Net / Soru sayısı) × {scoring.totalScore}
+                                                        </CardDescription>
+                                                    </CardHeader>
+                                                    <CardContent className="space-y-3">
+                                                        <div className="flex gap-2 flex-wrap">
+                                                            <Button
+                                                                variant="secondary"
+                                                                onClick={() => {
+                                                                    const rows: string[][] = [
+                                                                        ["isim", "no", "kitapçık", "dogru", "yanlis", "bos", "net", "puan"],
+                                                                        ...results.scored.map((r) => [
+                                                                            r.name,
+                                                                            r.id,
+                                                                            r.booklet,
+                                                                            String(r.correct),
+                                                                            String(r.wrong),
+                                                                            String(r.blank),
+                                                                            String(r.net),
+                                                                            String(r.score),
+                                                                        ]),
+                                                                    ];
+                                                                    downloadCsv("Ogrenci_Sonuclari.csv", rows);
+                                                                }}
+                                                            >
+                                                                <FileSpreadsheet className="h-4 w-4 mr-2" />
+                                                                CSV indir
+                                                            </Button>
+
+                                                            <Button
+                                                                variant="secondary"
+                                                                onClick={() => {
+                                                                    const rows: string[][] = [
+                                                                        ["soru", "A", "B", "C", "D", "E", "bos", "dogru", "dogru_yuzde", "zorluk", "ayiricilik", "yorum"],
+                                                                        ...analysis.questionRows.map((q: any) => [
+                                                                            String(q.soru),
+                                                                            String(q.A),
+                                                                            String(q.B),
+                                                                            String(q.C),
+                                                                            String(q.D),
+                                                                            String(q.E),
+                                                                            String(q.Bos),
+                                                                            q.dogru,
+                                                                            formatPct(q.dogruPct * 100),
+                                                                            String(round2(q.zorluk)),
+                                                                            String(q.ayiricilik),
+                                                                            q.yorum,
+                                                                        ]),
+                                                                    ];
+                                                                    downloadCsv("Soru_Analizi.csv", rows);
+                                                                }}
+                                                            >
+                                                                <FileText className="h-4 w-4 mr-2" />
+                                                                Soru analizi CSV
+                                                            </Button>
+                                                        </div>
+
+                                                        <div className="overflow-auto rounded-lg border">
+                                                            <table className="w-full text-sm">
+                                                                <thead className="bg-slate-50">
+                                                                    <tr>
+                                                                        <th className="text-left p-2">İsim</th>
+                                                                        <th className="text-left p-2">No</th>
+                                                                        <th className="text-left p-2">Kitapçık</th>
+                                                                        <th className="text-right p-2">Doğru</th>
+                                                                        <th className="text-right p-2">Yanlış</th>
+                                                                        <th className="text-right p-2">Boş</th>
+                                                                        <th className="text-right p-2">Net</th>
+                                                                        <th className="text-right p-2">Puan</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    {results.scored
+                                                                        .slice()
+                                                                        .sort((a, b) => b.score - a.score)
+                                                                        .map((r) => (
+                                                                            <tr key={r.id} className="border-t">
+                                                                                <td className="p-2 whitespace-nowrap">{r.name}</td>
+                                                                                <td className="p-2 font-mono">{r.id}</td>
+                                                                                <td className="p-2">{r.booklet}</td>
+                                                                                <td className="p-2 text-right">{r.correct}</td>
+                                                                                <td className="p-2 text-right">{r.wrong}</td>
+                                                                                <td className="p-2 text-right">{r.blank}</td>
+                                                                                <td className="p-2 text-right">{r.net}</td>
+                                                                                <td className="p-2 text-right font-medium">{r.score}</td>
+                                                                            </tr>
+                                                                        ))}
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </CardContent>
+                                                </Card>
+
+                                                {/* Histogram */}
+                                                <Card className="border">
+                                                    <CardHeader>
+                                                        <CardTitle className="text-base">Puan Dağılımı</CardTitle>
+                                                    </CardHeader>
+                                                    <CardContent style={{ height: 260 }}>
+                                                        <ResponsiveContainer width="100%" height="100%">
+                                                            <BarChart data={analysis.scoreHist}>
+                                                                <CartesianGrid strokeDasharray="3 3" />
+                                                                <XAxis dataKey="range" />
+                                                                <YAxis allowDecimals={false} />
+                                                                <Tooltip />
+                                                                <Bar dataKey="count" />
+                                                            </BarChart>
+                                                        </ResponsiveContainer>
+                                                    </CardContent>
+                                                </Card>
+
+                                                {/* Madde analizi */}
+                                                <Card className="border">
+                                                    <CardHeader>
+                                                        <CardTitle className="text-base">Madde Analizi</CardTitle>
+                                                        <CardDescription>
+                                                            Zorluk = doğru oranı • Ayırıcılık = üst %27 - alt %27
+                                                        </CardDescription>
+                                                    </CardHeader>
+                                                    <CardContent>
+                                                        <div className="overflow-auto rounded-lg border">
+                                                            <table className="w-full text-sm">
+                                                                <thead className="bg-slate-50">
+                                                                    <tr>
+                                                                        <th className="p-2 text-left">Soru</th>
+                                                                        <th className="p-2 text-right">A</th>
+                                                                        <th className="p-2 text-right">B</th>
+                                                                        <th className="p-2 text-right">C</th>
+                                                                        <th className="p-2 text-right">D</th>
+                                                                        <th className="p-2 text-right">E</th>
+                                                                        <th className="p-2 text-right">Boş</th>
+                                                                        <th className="p-2 text-left">Doğru</th>
+                                                                        <th className="p-2 text-right">Doğru %</th>
+                                                                        <th className="p-2 text-right">Zorluk</th>
+                                                                        <th className="p-2 text-right">Ayırıcılık</th>
+                                                                        <th className="p-2 text-left">Yorum</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    {analysis.questionRows.map((q: any) => (
+                                                                        <tr key={q.soru} className="border-t">
+                                                                            <td className="p-2">{q.soru}</td>
+                                                                            <td className="p-2 text-right">{q.A}</td>
+                                                                            <td className="p-2 text-right">{q.B}</td>
+                                                                            <td className="p-2 text-right">{q.C}</td>
+                                                                            <td className="p-2 text-right">{q.D}</td>
+                                                                            <td className="p-2 text-right">{q.E}</td>
+                                                                            <td className="p-2 text-right">{q.Bos}</td>
+                                                                            <td className="p-2">{q.dogru}</td>
+                                                                            <td className="p-2 text-right">{formatPct(q.dogruPct * 100)}</td>
+                                                                            <td className="p-2 text-right">{round2(q.zorluk)}</td>
+                                                                            <td className={cn("p-2 text-right", q.ayiricilik < 0 ? "text-rose-600 font-medium" : "")}>
+                                                                                {q.ayiricilik}
+                                                                            </td>
+                                                                            <td className="p-2">{q.yorum}</td>
+                                                                        </tr>
+                                                                    ))}
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </CardContent>
+                                                </Card>
+                                            </div>
+                                        )}
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </Card>
-
-                        {/* Histogram */}
-                        <Card className="border">
-                          <CardHeader>
-                            <CardTitle className="text-base">Puan Dağılımı</CardTitle>
-                          </CardHeader>
-                          <CardContent style={{ height: 260 }}>
-                            <ResponsiveContainer width="100%" height="100%">
-                              <BarChart data={analysis.scoreHist}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="range" />
-                                <YAxis allowDecimals={false} />
-                                <Tooltip />
-                                <Bar dataKey="count" />
-                              </BarChart>
-                            </ResponsiveContainer>
-                          </CardContent>
-                        </Card>
-
-                        {/* Madde analizi */}
-                        <Card className="border">
-                          <CardHeader>
-                            <CardTitle className="text-base">Madde Analizi</CardTitle>
-                            <CardDescription>
-                              Zorluk = doğru oranı • Ayırıcılık = üst %27 - alt %27
-                            </CardDescription>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="overflow-auto rounded-lg border">
-                              <table className="w-full text-sm">
-                                <thead className="bg-slate-50">
-                                  <tr>
-                                    <th className="p-2 text-left">Soru</th>
-                                    <th className="p-2 text-right">A</th>
-                                    <th className="p-2 text-right">B</th>
-                                    <th className="p-2 text-right">C</th>
-                                    <th className="p-2 text-right">D</th>
-                                    <th className="p-2 text-right">E</th>
-                                    <th className="p-2 text-right">Boş</th>
-                                    <th className="p-2 text-left">Doğru</th>
-                                    <th className="p-2 text-right">Doğru %</th>
-                                    <th className="p-2 text-right">Zorluk</th>
-                                    <th className="p-2 text-right">Ayırıcılık</th>
-                                    <th className="p-2 text-left">Yorum</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {analysis.questionRows.map((q: any) => (
-                                    <tr key={q.soru} className="border-t">
-                                      <td className="p-2">{q.soru}</td>
-                                      <td className="p-2 text-right">{q.A}</td>
-                                      <td className="p-2 text-right">{q.B}</td>
-                                      <td className="p-2 text-right">{q.C}</td>
-                                      <td className="p-2 text-right">{q.D}</td>
-                                      <td className="p-2 text-right">{q.E}</td>
-                                      <td className="p-2 text-right">{q.Bos}</td>
-                                      <td className="p-2">{q.dogru}</td>
-                                      <td className="p-2 text-right">{formatPct(q.dogruPct * 100)}</td>
-                                      <td className="p-2 text-right">{round2(q.zorluk)}</td>
-                                      <td className={cn("p-2 text-right", q.ayiricilik < 0 ? "text-rose-600 font-medium" : "")}>
-                                        {q.ayiricilik}
-                                      </td>
-                                      <td className="p-2">{q.yorum}</td>
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </div>
-                    )}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </Card>
-          );
-        })}
-      </div>
-    </div>
-  );
+                    );
+                })}
+            </div>
+        </div>
+    );
 }
 
 // ✅ default export: React.lazy(...) için kritik
