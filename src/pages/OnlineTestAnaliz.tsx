@@ -267,35 +267,7 @@ function round2(n: number) {
     return Math.round(n * 100) / 100;
 }
 
-function clamp01(n: number) {
-    if (!Number.isFinite(n)) return 0;
-    return Math.max(0, Math.min(1, n));
-}
 
-function difficultyIndex(pCorrect: number) {
-    // pCorrect: 0..1 (doğru oranı)
-    return clamp01(pCorrect);
-}
-
-function discriminationIndex(scores: number[], correctFlags: boolean[]) {
-    // Üst %27 - Alt %27
-    const n = scores.length;
-    if (n < 10) return 0;
-
-    const idx = scores
-        .map((s, i) => ({ s, i }))
-        .sort((a, b) => b.s - a.s)
-        .map((x) => x.i);
-
-    const groupSize = Math.max(1, Math.round(n * 0.27));
-    const top = idx.slice(0, groupSize);
-    const bot = idx.slice(n - groupSize);
-
-    const topP = safeMean(top.map((i) => (correctFlags[i] ? 1 : 0)));
-    const botP = safeMean(bot.map((i) => (correctFlags[i] ? 1 : 0)));
-
-    return round2(topP - botP);
-}
 
 function commentFor(p: number, disc: number) {
     // p: difficulty (doğru oranı)
@@ -807,27 +779,53 @@ export function OnlineTestAnaliz() {
             count: scored.filter((x) => x.score >= b.min && x.score < b.max).length,
         }));
 
-        // madde istatistikleri
-        const scores = scored.map((x) => x.score);
+        // madde istatistikleri için üst/alt %27 grupları belirle
+        const scoreIndices = scored
+            .map((s, i) => ({ s: s.score, i }))
+            .sort((a, b) => b.s - a.s); // puan azalan
+
+        const totalStudents = scored.length;
+        // Eğer öğrenci sayısı az ise (örn < 10) bu yöntem sapıtabilir ama yine de %27 mantığı:
+        const groupSize = Math.max(1, Math.round(totalStudents * 0.27));
+
+        const topIndices = new Set(scoreIndices.slice(0, groupSize).map(x => x.i));
+        // Alt grup sondan groupSize kadar
+        const botIndices = new Set(scoreIndices.slice(totalStudents - groupSize).map(x => x.i));
 
         const questionRows = Array.from({ length: n }).map((_, qi) => {
             const correctAnswer = aKeyArr[qi];
 
             const dist: Record<string, number> = { A: 0, B: 0, C: 0, D: 0, E: 0, blank: 0 };
-            const correctFlags: boolean[] = [];
 
-            for (const st of scored) {
+            let correctTop = 0;
+            let correctBot = 0;
+
+            scored.forEach((st, i) => {
                 const ans = normalizeAnswerChar(st.answersA[qi] || " ");
+
+                // Dağılım sayımı
                 if (ans === " ") dist.blank++;
                 else dist[ans] = (dist[ans] || 0) + 1;
 
-                correctFlags.push(ans === correctAnswer);
-            }
+                const isCorrect = ans === correctAnswer;
+
+                // Üst/Alt grup doğru sayıları
+                if (topIndices.has(i) && isCorrect) correctTop++;
+                if (botIndices.has(i) && isCorrect) correctBot++;
+            });
 
             const total = scored.length || 1;
-            const p = dist[correctAnswer] / total; // doğru oranı
-            const diff = difficultyIndex(p);
-            const disc = discriminationIndex(scores, correctFlags);
+            const p = dist[correctAnswer] / total; // Genel doğru oranı ( klasik p)
+
+            // Kullanıcı isteği Zorluk: ((üst + alt) / (2 * grupSayisi)) * 100
+            // Not: grupSayisi dediğimiz groupSize (tek grubun mevcudu). İkisinin toplamı 2*groupSize.
+            const diffFormula = ((correctTop + correctBot) / (2 * groupSize)) * 100; // 0..100 ölçeğinde
+            // Ancak UI genelde 0..1 bekliyor olabilir mi? Hayır, formülde *100 var. 
+            // round2 ile gösterirken 0.55 yerine 55.00 yazacak. Puan gibi.
+
+            // Ayırıcılık: (üst - alt) / grupSayisi
+            // -1..+1 arası çıkar.
+            const discFormula = (correctTop - correctBot) / groupSize;
 
             return {
                 soru: qi + 1,
@@ -838,10 +836,11 @@ export function OnlineTestAnaliz() {
                 E: dist.E,
                 Bos: dist.blank,
                 dogru: correctAnswer,
-                dogruPct: p,
-                zorluk: diff,
-                ayiricilik: disc,
-                yorum: commentFor(diff, disc),
+                dogruPct: p, // Bu "Doğru %" sütunu için, genel başarı
+                ayiricilik: round2(discFormula),
+                // Kullanıcı isteğine göre zorluk 0..100 arası olmalı
+                zorluk: round2(diffFormula),
+                yorum: commentFor(diffFormula / 100, discFormula),
             };
         });
 
@@ -1651,7 +1650,7 @@ export function OnlineTestAnaliz() {
                                                                             <Input
                                                                                 type="number"
                                                                                 value={sb.end}
-                                                                                onChange={(e) => {
+                                                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                                                                                     const v = clampInt(Number(e.target.value), 1, questionCount || 9999);
                                                                                     setSubjects((arr) =>
                                                                                         arr.map((x, i) => (i === idx ? { ...x, end: v } : x))
