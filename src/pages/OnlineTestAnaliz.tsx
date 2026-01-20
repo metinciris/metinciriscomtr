@@ -94,13 +94,12 @@ interface SubjectBlock {
 }
 
 const DEFAULT_PROFILE: ProfileConfig = {
-    // Kullanıcının verdiği yeni spec (Image 0 DAT örneğine göre)
-    idStart: 10,  // Karakter Yerleşimi (Kullanıcı 10 dedi, aslında resimde 21 gibi ama ona bırakalım)
+    idStart: 21,
     idLen: 10,
-    nameStart: 1, // İsim Başlangıç 1
+    nameStart: 1,
     nameLen: 20,
     bookletPos: 31,
-    answersStart: 32, // Kullanıcı 32 dedi (Resimde 32 boş, 33 başlıyor olabilir ama biz 32 kuralım)
+    answersStart: 32,
     answersLen: 95,
     noBooklet: false,
 };
@@ -119,8 +118,8 @@ function clampInt(n: number, min: number, max: number) {
 function onlyAnswerChars(s: string) {
     return (s || "")
         .toUpperCase()
-        .replace(/[^ABCDE#*X\s]/g, "")
-        .replace(/\s+/g, "");
+        .replace(/\s+/g, "") // Dikey girişi (satır sonlarını) yanyana getirmek için tüm whitespace'leri sil
+        .replace(/[^ABCDE#*X]/g, ""); // Sadece geçerli karakterleri tut
 }
 
 // DAT içinden cevaplar; boş/okunmayan işaretleri normalize edelim:
@@ -171,106 +170,23 @@ function validatePermutation(arr: number[], n: number) {
  *
  * (Bu, senin verdiğin tablo + anahtarlarla birebir uyumlu olan yön.)
  */
-function parseMappingTable(text: string): MappingPack {
-    const raw = (text || "").trim();
+function parseMappingList(text: string): number[] {
+    return (text || "")
+        .split(/[\s,;]+/)
+        .map(x => parseInt(x))
+        .filter(x => !isNaN(x));
+}
+
+function parseMappingTable(bText: string, cText: string, dText: string): MappingPack {
     const errors: string[] = [];
     const warnings: string[] = [];
 
-    if (!raw) {
-        return { mapping: {}, errors: ["Mapping alanı boş."], warnings };
-    }
-
-    const lines = raw
-        .split(/\r?\n/)
-        .map((l) => l.trim())
-        .filter(Boolean);
-
-    // delimiter tespiti: tab > ; > , > whitespace
-    const delim =
-        lines.some((l) => l.includes("\t"))
-            ? "\t"
-            : lines.some((l) => l.includes(";"))
-                ? ";"
-                : lines.some((l) => l.includes(","))
-                    ? ","
-                    : null;
-
-    const mappingB: number[] = [];
-    const mappingC: number[] = [];
-    const mappingD: number[] = [];
-    const aLetters: string[] = [];
-
-    for (const line of lines) {
-        // header satırı ise geç
-        const low = line.toLowerCase();
-        if (low.includes("anahtar") && low.includes("kitapçık")) continue;
-        if (low.startsWith("a ") || low.startsWith("a\t")) continue;
-
-        const parts = delim ? line.split(delim).map((x) => x.trim()) : line.split(/\s+/);
-
-        // beklenen en az 5 sütun: Aharf, Bnum, Cnum, Dnum, soruNo
-        if (parts.length < 4) continue;
-
-        // bazı kopyalamalarda soru no sütunu sona gelmeyebilir; biz ilk 4 sütunu esas alalım
-        const a = parts[0];
-        const b = parts[1];
-        const c = parts[2];
-        const d = parts[3];
-
-        const aCh = (a || "").toUpperCase();
-        if (!["A", "B", "C", "D", "E"].includes(aCh)) {
-            // Bazı kullanıcılar A harfi sütununu kopyalamayabilir; o zaman da sadece sayıları alalım.
-            // Bu durumda parts[0..2] sayıdır.
-            const tryNums = parts.slice(0, 3).map((x) => Number(x));
-            if (tryNums.every((x) => Number.isFinite(x))) {
-                mappingB.push(tryNums[0]);
-                mappingC.push(tryNums[1]);
-                mappingD.push(tryNums[2]);
-                continue;
-            }
-            // satır anlamsızsa geç
-            continue;
-        }
-
-        const bn = Number(b);
-        const cn = Number(c);
-        const dn = Number(d);
-
-        if (!Number.isFinite(bn) || !Number.isFinite(cn) || !Number.isFinite(dn)) continue;
-
-        aLetters.push(aCh);
-        mappingB.push(bn);
-        mappingC.push(cn);
-        mappingD.push(dn);
-    }
-
-    const n = Math.max(mappingB.length, mappingC.length, mappingD.length, aLetters.length);
-
-    if (n < 5) {
-        errors.push("Mapping tablosu okunamadı. Excel'den tüm tabloyu (A/B/C/D sütunları) kopyalayıp yapıştırın.");
-        return { mapping: {}, tableAKey: aLetters.join(""), errors, warnings };
-    }
-
-    // Uzunluklar eşit değilse kırp/pad
-    const fixLen = (arr: number[], target: number) => {
-        const out = arr.slice(0, target);
-        while (out.length < target) out.push(NaN);
-        return out;
-    };
-
-    const outB = fixLen(mappingB, n);
-    const outC = fixLen(mappingC, n);
-    const outD = fixLen(mappingD, n);
-    const outA = aLetters.join("").slice(0, n);
-
-    // basit kontroller (NaN vs)
-    if (outB.some((x) => !Number.isFinite(x))) warnings.push("B mapping içinde boş/eksik hücre var gibi görünüyor.");
-    if (outC.some((x) => !Number.isFinite(x))) warnings.push("C mapping içinde boş/eksik hücre var gibi görünüyor.");
-    if (outD.some((x) => !Number.isFinite(x))) warnings.push("D mapping içinde boş/eksik hücre var gibi görünüyor.");
+    const mapB = parseMappingList(bText);
+    const mapC = parseMappingList(cText);
+    const mapD = parseMappingList(dText);
 
     return {
-        mapping: { B: outB, C: outC, D: outD },
-        tableAKey: outA,
+        mapping: { B: mapB, C: mapC, D: mapD },
         errors,
         warnings,
     };
@@ -496,6 +412,68 @@ function MappingMiniAnimation() {
     );
 }
 
+function KeyComparisonTable({
+    aKey,
+    mapping,
+    derived,
+    manual,
+}: {
+    aKey: string,
+    mapping: Partial<Record<Booklet, number[]>>,
+    derived: Partial<Record<Booklet, string>>,
+    manual: Partial<Record<Booklet, string>>,
+}) {
+    const n = aKey.length;
+    if (n === 0) return null;
+
+    return (
+        <div className="mt-4 overflow-x-auto rounded-xl border bg-white">
+            <table className="w-full text-xs text-left border-collapse">
+                <thead>
+                    <tr className="bg-slate-50 border-b">
+                        <th className="p-2 border-r font-medium w-12">Soru</th>
+                        <th className="p-2 border-r font-medium text-emerald-700 bg-emerald-50/50">A Key</th>
+                        {["B", "C", "D"].map((b) => (
+                            <React.Fragment key={b}>
+                                <th className="p-2 border-r font-medium bg-slate-50/50">{b} Sıra</th>
+                                <th className="p-2 font-medium bg-amber-50/30">{b} Key</th>
+                            </React.Fragment>
+                        ))}
+                    </tr>
+                </thead>
+                <tbody>
+                    {Array.from({ length: n }).map((_, i) => {
+                        const qNo = i + 1;
+                        return (
+                            <tr key={i} className="border-b hover:bg-slate-50/30">
+                                <td className="p-2 border-r text-muted-foreground">{qNo}</td>
+                                <td className="p-2 border-r font-mono font-bold text-emerald-700 bg-emerald-50/20">{aKey[i] || "-"}</td>
+                                {(["B", "C", "D"] as Booklet[]).map((b) => {
+                                    // A'daki qNo, B kitapçığının kaçıncı sorusu?
+                                    // mapping[b][k] = A'daki soru no.
+                                    // k'yı bul:
+                                    const bookletIdx = mapping[b]?.indexOf(qNo) ?? -1;
+                                    const bookletKey = derived[b]?.[bookletIdx] || manual[b]?.[bookletIdx] || "-";
+                                    return (
+                                        <React.Fragment key={b}>
+                                            <td className="p-2 border-r text-muted-foreground">
+                                                {bookletIdx === -1 ? "-" : bookletIdx + 1}
+                                            </td>
+                                            <td className="p-2 font-mono text-amber-900 bg-amber-50/10">
+                                                {bookletKey}
+                                            </td>
+                                        </React.Fragment>
+                                    );
+                                })}
+                            </tr>
+                        );
+                    })}
+                </tbody>
+            </table>
+        </div>
+    );
+}
+
 export function OnlineTestAnaliz() {
     // --- state ---
     const [datContent, setDatContent] = useState<string>("");
@@ -517,7 +495,9 @@ export function OnlineTestAnaliz() {
     const [cKeyText, setCKeyText] = useState<string>(() => localStorage.getItem("ota_ckey_v3") || "");
     const [dKeyText, setDKeyText] = useState<string>(() => localStorage.getItem("ota_dkey_v3") || "");
 
-    const [mappingText, setMappingText] = useState<string>(() => localStorage.getItem("ota_mapping_v3") || "");
+    const [bMappingText, setBMappingText] = useState<string>(() => localStorage.getItem("ota_bmapping_v3") || "");
+    const [cMappingText, setCMappingText] = useState<string>(() => localStorage.getItem("ota_cmapping_v3") || "");
+    const [dMappingText, setDMappingText] = useState<string>(() => localStorage.getItem("ota_dmapping_v3") || "");
     const [subjects, setSubjects] = useState<SubjectBlock[]>(() => {
         const saved = localStorage.getItem("ota_subjects_v3");
         if (!saved) return [];
@@ -548,7 +528,9 @@ export function OnlineTestAnaliz() {
         setBKeyText("");
         setCKeyText("");
         setDKeyText("");
-        setMappingText("");
+        setBMappingText("");
+        setCMappingText("");
+        setDMappingText("");
         setSubjects([]);
         setScoring({
             wrongPenalty: 0,
@@ -590,8 +572,10 @@ export function OnlineTestAnaliz() {
     }, [aKeyText, bKeyText, cKeyText, dKeyText]);
 
     useEffect(() => {
-        localStorage.setItem("ota_mapping_v3", mappingText);
-    }, [mappingText]);
+        localStorage.setItem("ota_bmapping_v3", bMappingText);
+        localStorage.setItem("ota_cmapping_v3", cMappingText);
+        localStorage.setItem("ota_dmapping_v3", dMappingText);
+    }, [bMappingText, cMappingText, dMappingText]);
 
     useEffect(() => {
         localStorage.setItem("ota_subjects_v3", JSON.stringify(subjects));
@@ -652,9 +636,8 @@ export function OnlineTestAnaliz() {
 
     // --- mapping parsed ---
     const mappingPack = useMemo(() => {
-        if (!mappingText.trim()) return { mapping: {}, errors: [], warnings: [] } as MappingPack;
-        return parseMappingTable(mappingText);
-    }, [mappingText]);
+        return parseMappingTable(bMappingText, cMappingText, dMappingText);
+    }, [bMappingText, cMappingText, dMappingText]);
 
     const questionCount = useMemo(() => {
         // soru sayısını en güvenli şekilde A anahtardan alalım
@@ -927,7 +910,7 @@ export function OnlineTestAnaliz() {
 
         if (id === 4) {
             if (!mappingNeeded) return "skipped";
-            if (!mappingText.trim()) return "todo";
+            if (!bMappingText.trim() && !cMappingText.trim() && !dMappingText.trim()) return "todo";
             if (derivedKeys.errors.length) return "todo";
             // B/C/D mapping uzunluğu ve permütasyon kontrolü
             const need = new Set(bookletsUsed);
@@ -971,7 +954,7 @@ export function OnlineTestAnaliz() {
         const done = s.filter((x) => x === "done").length;
         const skipped = s.filter((x) => x === "skipped").length;
         return { done, skipped, total: steps.length };
-    }, [steps, datContent, profile, aKey, mappingNeeded, mappingText, subjects, scoring, students, derivedKeys.errors.length, bookletsUsed, questionCount]);
+    }, [steps, datContent, profile, aKey, mappingNeeded, bMappingText, cMappingText, dMappingText, subjects, scoring, students, derivedKeys.errors.length, bookletsUsed, questionCount]);
 
     function openStep(id: number) {
         setCurrentStep(id);
@@ -1129,7 +1112,7 @@ export function OnlineTestAnaliz() {
                                                             type="file"
                                                             accept=".dat,.csv,.txt"
                                                             className="hidden"
-                                                            onChange={(e) => {
+                                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                                                                 const f = e.target.files?.[0];
                                                                 if (f) handleFile(f);
                                                             }}
@@ -1297,7 +1280,7 @@ export function OnlineTestAnaliz() {
                                                                     <Input
                                                                         type="number"
                                                                         value={profile.bookletPos}
-                                                                        onChange={(e) =>
+                                                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                                                                             setProfile((p) => ({ ...p, bookletPos: clampInt(Number(e.target.value), 0, 9999) }))
                                                                         }
                                                                     />
@@ -1326,7 +1309,7 @@ export function OnlineTestAnaliz() {
                                                                     <Input
                                                                         type="number"
                                                                         value={profile.answersStart}
-                                                                        onChange={(e) =>
+                                                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                                                                             setProfile((p) => ({
                                                                                 ...p,
                                                                                 answersStart: clampInt(Number(e.target.value), 1, 9999),
@@ -1339,7 +1322,7 @@ export function OnlineTestAnaliz() {
                                                                     <Input
                                                                         type="number"
                                                                         value={profile.answersLen}
-                                                                        onChange={(e) =>
+                                                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                                                                             setProfile((p) => ({
                                                                                 ...p,
                                                                                 answersLen: clampInt(Number(e.target.value), 0, 9999),
@@ -1396,7 +1379,7 @@ export function OnlineTestAnaliz() {
                                                         <CardContent className="space-y-3">
                                                             <Textarea
                                                                 value={aKeyText}
-                                                                onChange={(e) => setAKeyText(e.target.value)}
+                                                                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setAKeyText(e.target.value)}
                                                                 className="min-h-[140px] font-mono text-xs"
                                                                 placeholder="Örn: EACCAB..."
                                                             />
@@ -1413,41 +1396,35 @@ export function OnlineTestAnaliz() {
 
                                                     <Card className="border">
                                                         <CardHeader>
-                                                            <CardTitle className="text-base">B/C/D Anahtarları (Opsiyonel)</CardTitle>
+                                                            <CardTitle className="text-base">B/C/D Anahtarları (İsteğe Bağlı)</CardTitle>
                                                             <CardDescription>
-                                                                İsterseniz yapıştırın. Mapping varsa otomatik üretilen anahtarla karşılaştırır.
+                                                                Manuel anahtarlar. Mapping varsa karşılaştırma için kullanılır.
                                                             </CardDescription>
                                                         </CardHeader>
                                                         <CardContent className="space-y-3">
                                                             <div className="grid grid-cols-1 gap-3">
-                                                                <div>
-                                                                    <Label>B</Label>
-                                                                    <Textarea
-                                                                        value={bKeyText}
-                                                                        onChange={(e) => setBKeyText(e.target.value)}
-                                                                        className="min-h-[70px] font-mono text-xs"
-                                                                    />
-                                                                </div>
-                                                                <div>
-                                                                    <Label>C</Label>
-                                                                    <Textarea
-                                                                        value={cKeyText}
-                                                                        onChange={(e) => setCKeyText(e.target.value)}
-                                                                        className="min-h-[70px] font-mono text-xs"
-                                                                    />
-                                                                </div>
-                                                                <div>
-                                                                    <Label>D</Label>
-                                                                    <Textarea
-                                                                        value={dKeyText}
-                                                                        onChange={(e) => setDKeyText(e.target.value)}
-                                                                        className="min-h-[70px] font-mono text-xs"
-                                                                    />
-                                                                </div>
+                                                                {["B", "C", "D"].map((bk) => (
+                                                                    <div key={bk}>
+                                                                        <Label className="text-xs font-semibold mb-1 block">{bk} Anahtarı</Label>
+                                                                        <Textarea
+                                                                            value={bk === "B" ? bKeyText : bk === "C" ? cKeyText : dKeyText}
+                                                                            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => (bk === "B" ? setBKeyText(e.target.value) : bk === "C" ? setCKeyText(e.target.value) : setDKeyText(e.target.value))}
+                                                                            className="min-h-[70px] font-mono text-xs"
+                                                                            placeholder={`${bk} anahtarını buraya yapıştırın...`}
+                                                                        />
+                                                                    </div>
+                                                                ))}
                                                             </div>
                                                         </CardContent>
                                                     </Card>
                                                 </div>
+
+                                                <KeyComparisonTable
+                                                    aKey={aKey}
+                                                    mapping={mappingPack.mapping}
+                                                    derived={derivedKeys.out}
+                                                    manual={{ B: bKey, C: cKey, D: dKey }}
+                                                />
 
                                                 <div className="flex gap-2">
                                                     <Button onClick={() => openStep(4)} disabled={aKey.length < 5}>
@@ -1487,13 +1464,18 @@ export function OnlineTestAnaliz() {
 
                                                             <MappingMiniAnimation />
 
-                                                            <div className="mt-4">
-                                                                <Textarea
-                                                                    value={mappingText}
-                                                                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setMappingText(e.target.value)}
-                                                                    className="min-h-[180px] font-mono text-xs"
-                                                                    placeholder="Excel tablosunu buraya yapıştırın..."
-                                                                />
+                                                            <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                                {["B", "C", "D"].map((b) => (
+                                                                    <div key={b}>
+                                                                        <Label className="text-xs font-semibold mb-1 block">{b} Kitapçığı Mapping</Label>
+                                                                        <Textarea
+                                                                            value={b === "B" ? bMappingText : b === "C" ? cMappingText : dMappingText}
+                                                                            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => (b === "B" ? setBMappingText(e.target.value) : b === "C" ? setCMappingText(e.target.value) : setDMappingText(e.target.value))}
+                                                                            className="min-h-[140px] font-mono text-xs"
+                                                                            placeholder={`${b} için sayıları girin...`}
+                                                                        />
+                                                                    </div>
+                                                                ))}
                                                             </div>
 
                                                             <div className="mt-4 space-y-3">
@@ -1527,7 +1509,7 @@ export function OnlineTestAnaliz() {
                                                                 )}
 
                                                                 {/* Otomatik anahtar üretimi + karşılaştırma */}
-                                                                {aKey.length >= 5 && mappingText.trim() && (
+                                                                {aKey.length >= 5 && (bMappingText.trim() || cMappingText.trim() || dMappingText.trim()) && (
                                                                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                                                                         {(["B", "C", "D"] as Booklet[]).map((bk) => {
                                                                             const derived = derivedKeys.out[bk] || "";
@@ -1714,7 +1696,7 @@ export function OnlineTestAnaliz() {
                                                             <Label>Blank as wrong</Label>
                                                             <Switch
                                                                 checked={scoring.blankAsWrong}
-                                                                onCheckedChange={(v) => setScoring((s) => ({ ...s, blankAsWrong: v }))}
+                                                                onCheckedChange={(v: boolean) => setScoring((s) => ({ ...s, blankAsWrong: v }))}
                                                             />
                                                         </CardContent>
                                                     </Card>
@@ -1729,7 +1711,7 @@ export function OnlineTestAnaliz() {
                                                                 type="number"
                                                                 step="0.01"
                                                                 value={scoring.wrongPenalty}
-                                                                onChange={(e) =>
+                                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                                                                     setScoring((s) => ({ ...s, wrongPenalty: Number(e.target.value) || 0 }))
                                                                 }
                                                             />
@@ -1744,7 +1726,7 @@ export function OnlineTestAnaliz() {
                                                             <Input
                                                                 type="number"
                                                                 value={scoring.totalScore}
-                                                                onChange={(e) =>
+                                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                                                                     setScoring((s) => ({ ...s, totalScore: Number(e.target.value) || 100 }))
                                                                 }
                                                             />
