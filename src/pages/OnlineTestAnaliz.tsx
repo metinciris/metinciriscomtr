@@ -91,13 +91,13 @@ interface SubjectBlock {
 }
 
 const DEFAULT_PROFILE: ProfileConfig = {
-    // DAT örneğine göre (senin eski kullanımına yakın tutmaya çalıştım)
-    idStart: 1,
+    // Kullanıcının verdiği yeni spec (Image 0 DAT örneğine göre)
+    idStart: 10,  // Karakter Yerleşimi (Kullanıcı 10 dedi, aslında resimde 21 gibi ama ona bırakalım)
     idLen: 10,
-    nameStart: 12,
+    nameStart: 1, // İsim Başlangıç 1
     nameLen: 20,
-    bookletPos: 0, // 0 => kitapçık bilgisi yok
-    answersStart: 33,
+    bookletPos: 31,
+    answersStart: 32, // Kullanıcı 32 dedi (Resimde 32 boş, 33 başlıyor olabilir ama biz 32 kuralım)
     answersLen: 95,
     noBooklet: false,
 };
@@ -660,9 +660,11 @@ export function OnlineTestAnaliz() {
 
         // tablo A anahtar kontrolü
         if (mappingPack.tableAKey && mappingPack.tableAKey.length >= 5) {
-            const tableA = mappingPack.tableAKey.slice(0, n);
-            if (tableA !== aKey.slice(0, n)) {
-                errors.push("Mapping tablosundaki A anahtar harfleri ile girilen A anahtar uyuşmuyor. Tablo başka sınava ait olabilir.");
+            const len = Math.min(n, mappingPack.tableAKey.length);
+            const tableA = mappingPack.tableAKey.slice(0, len);
+            const refA = aKey.slice(0, len);
+            if (tableA !== refA) {
+                errors.push("Mapping tablosundaki A anahtar harfleri ile girilen A anahtar uyuşmuyor. Tablo başka sınava ait kısımlar içeriyor olabilir.");
             }
         }
 
@@ -712,11 +714,12 @@ export function OnlineTestAnaliz() {
                 answersA = (st.answersRaw || []).slice(0, n);
             } else {
                 const toA = mappingPack.mapping[st.booklet];
-                if (!toA || toA.length < n) {
-                    excluded.push({ student: st, reason: `${st.booklet} mapping eksik (öğrenci analiz dışı)` });
+                // mapping tablo uzunluğu n'den az olsa bile devam et (kalanlar boş sayılır)
+                if (!toA || toA.length === 0) {
+                    excluded.push({ student: st, reason: `${st.booklet} mapping tablosu bulunamadı.` });
                     continue;
                 }
-                answersA = answersToAOrder(st.answersRaw || [], toA.slice(0, n), n);
+                answersA = answersToAOrder(st.answersRaw || [], toA, n);
             }
 
             const s = scoreOne(answersA, aKeyArr, scoring);
@@ -1077,7 +1080,7 @@ export function OnlineTestAnaliz() {
 
                                                 <Textarea
                                                     value={datContent}
-                                                    onChange={(e) => setDatContent(e.target.value)}
+                                                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDatContent(e.target.value)}
                                                     placeholder="İsterseniz dosya içeriğini buraya yapıştırabilirsiniz..."
                                                     className="min-h-[180px] font-mono text-xs"
                                                 />
@@ -1112,7 +1115,7 @@ export function OnlineTestAnaliz() {
                                                     <div className="flex items-center gap-2">
                                                         <Switch
                                                             checked={profile.noBooklet}
-                                                            onCheckedChange={(v) =>
+                                                            onCheckedChange={(v: boolean) =>
                                                                 setProfile((p) => ({ ...p, noBooklet: v, bookletPos: v ? 0 : p.bookletPos }))
                                                             }
                                                         />
@@ -1147,7 +1150,7 @@ export function OnlineTestAnaliz() {
                                                                     <Input
                                                                         type="number"
                                                                         value={profile.idStart}
-                                                                        onChange={(e) =>
+                                                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                                                                             setProfile((p) => ({ ...p, idStart: clampInt(Number(e.target.value), 1, 9999) }))
                                                                         }
                                                                     />
@@ -1157,7 +1160,7 @@ export function OnlineTestAnaliz() {
                                                                     <Input
                                                                         type="number"
                                                                         value={profile.idLen}
-                                                                        onChange={(e) =>
+                                                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                                                                             setProfile((p) => ({ ...p, idLen: clampInt(Number(e.target.value), 0, 9999) }))
                                                                         }
                                                                     />
@@ -1186,7 +1189,7 @@ export function OnlineTestAnaliz() {
                                                                     <Input
                                                                         type="number"
                                                                         value={profile.nameStart}
-                                                                        onChange={(e) =>
+                                                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                                                                             setProfile((p) => ({ ...p, nameStart: clampInt(Number(e.target.value), 1, 9999) }))
                                                                         }
                                                                     />
@@ -1196,7 +1199,7 @@ export function OnlineTestAnaliz() {
                                                                     <Input
                                                                         type="number"
                                                                         value={profile.nameLen}
-                                                                        onChange={(e) =>
+                                                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                                                                             setProfile((p) => ({ ...p, nameLen: clampInt(Number(e.target.value), 0, 9999) }))
                                                                         }
                                                                     />
