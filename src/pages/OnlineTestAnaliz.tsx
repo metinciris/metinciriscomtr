@@ -388,12 +388,15 @@ function KeyComparisonTable({
             <table className="w-full text-xs text-left border-collapse">
                 <thead>
                     <tr className="bg-slate-50 border-b">
-                        <th className="p-2 border-r font-medium w-12">Soru</th>
+                        <th className="p-2 border-r font-medium w-12 sticky left-0 bg-slate-50 z-10">Soru</th>
                         <th className="p-2 border-r font-medium text-emerald-700 bg-emerald-50/50">A Key</th>
                         {["B", "C", "D"].map((b) => (
                             <React.Fragment key={b}>
-                                <th className="p-2 border-r font-medium bg-slate-50/50">{b} Sıra</th>
-                                <th className="p-2 font-medium bg-amber-50/30">{b} Key</th>
+                                <th className="p-2 border-r font-medium bg-slate-50/50 border-l-2 border-l-slate-200">{b} Sıra</th>
+                                <th className="p-2 border-r font-medium bg-amber-50/30 text-amber-800">{b} Otomatik</th>
+                                {(manual.B || manual.C || manual.D) && (
+                                    <th className="p-2 font-medium bg-blue-50/30 text-blue-800">{b} Manuel</th>
+                                )}
                             </React.Fragment>
                         ))}
                     </tr>
@@ -403,22 +406,44 @@ function KeyComparisonTable({
                         const qNo = i + 1;
                         return (
                             <tr key={i} className="border-b hover:bg-slate-50/30">
-                                <td className="p-2 border-r text-muted-foreground">{qNo}</td>
+                                <td className="p-2 border-r text-muted-foreground sticky left-0 bg-white z-10">{qNo}</td>
                                 <td className="p-2 border-r font-mono font-bold text-emerald-700 bg-emerald-50/20">{aKey[i] || "-"}</td>
                                 {(["B", "C", "D"] as Booklet[]).map((b) => {
                                     // A'daki qNo, B kitapçığının kaçıncı sorusu?
-                                    // mapping[b][k] = A'daki soru no.
-                                    // k'yı bul:
                                     const bookletIdx = mapping[b]?.indexOf(qNo) ?? -1;
-                                    const bookletKey = derived[b]?.[bookletIdx] || manual[b]?.[bookletIdx] || "-";
+                                    const derivedKey = derived[b]?.[bookletIdx];
+                                    const manualKey = manual[b]?.[bookletIdx];
+
+                                    const showManual = (manual.B || manual.C || manual.D);
+
+                                    // Mismatch highlight check
+                                    // Sadece her ikisi de varsa ve farklıysa uyar
+                                    const mismatch = derivedKey && manualKey && derivedKey !== manualKey && derivedKey !== " " && manualKey !== " ";
+
+                                    // Derived boşsa tire koy
+                                    const dVal = derivedKey || "-";
+                                    // Manuel boşsa tire
+                                    const mVal = manualKey || "-";
+
                                     return (
                                         <React.Fragment key={b}>
-                                            <td className="p-2 border-r text-muted-foreground">
+                                            <td className="p-2 border-r text-muted-foreground border-l-2 border-l-slate-100">
                                                 {bookletIdx === -1 ? "-" : bookletIdx + 1}
                                             </td>
-                                            <td className="p-2 font-mono text-amber-900 bg-amber-50/10">
-                                                {bookletKey}
+                                            <td className={cn(
+                                                "p-2 border-r font-mono",
+                                                mismatch ? "bg-red-50 text-red-600 font-bold" : "text-amber-900 bg-amber-50/10"
+                                            )}>
+                                                {dVal}
                                             </td>
+                                            {showManual && (
+                                                <td className={cn(
+                                                    "p-2 font-mono",
+                                                    mismatch ? "bg-red-50 text-red-600 font-bold" : "text-blue-900 bg-blue-50/10"
+                                                )}>
+                                                    {mVal}
+                                                </td>
+                                            )}
                                         </React.Fragment>
                                     );
                                 })}
