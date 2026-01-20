@@ -908,9 +908,8 @@ export function OnlineTestAnaliz() {
         if (id === 2) {
             // Dosya yoksa bu adım atlanabilir, ama "done" demeyelim.
             if (!datContent.trim()) return "todo";
-            // profil bir şekilde düzenlenmişse done; yoksa todo (çok katı olmayalım)
-            const defaultish = JSON.stringify(profile) === JSON.stringify(DEFAULT_PROFILE);
-            return defaultish ? "todo" : "done";
+            // Çakışma yoksa "done" sayabiliriz.
+            return designOverlaps.length === 0 ? "done" : "todo";
         }
 
         if (id === 3) {
