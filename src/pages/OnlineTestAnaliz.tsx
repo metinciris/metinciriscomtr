@@ -9,7 +9,10 @@ import {
     CheckCircle2,
     XCircle,
     ArrowRight,
+    Download,
+    Save,
     Sparkles,
+    Trash2,
 } from "lucide-react";
 import {
     Card,
@@ -538,6 +541,42 @@ export function OnlineTestAnaliz() {
     const [currentStep, setCurrentStep] = useState<number>(1);
     const headerRefs = useRef<Record<number, HTMLDivElement | null>>({});
 
+    const resetExam = () => {
+        if (!window.confirm("Tüm veri ve ayarlar sıfırlanacak. Emin misiniz?")) return;
+        setDatContent("");
+        setAKeyText("");
+        setBKeyText("");
+        setCKeyText("");
+        setDKeyText("");
+        setMappingText("");
+        setSubjects([]);
+        setScoring({
+            wrongPenalty: 0,
+            totalScore: 100,
+            blankAsWrong: false,
+        });
+        setProfile(DEFAULT_PROFILE);
+        setCurrentStep(1);
+    };
+
+    const saveDesign = () => {
+        localStorage.setItem("ota_pinned_design", JSON.stringify(profile));
+        alert("Karakter yerleşimi tarayıcıya kaydedildi.");
+    };
+
+    const loadDesign = () => {
+        const saved = localStorage.getItem("ota_pinned_design");
+        if (saved) {
+            try {
+                setProfile(JSON.parse(saved));
+            } catch (e) {
+                console.error("Design load error", e);
+            }
+        } else {
+            alert("Kaydedilmiş dizayn bulunamadı.");
+        }
+    };
+
     // --- persist ---
     useEffect(() => {
         localStorage.setItem("ota_profile_v3", JSON.stringify(profile));
@@ -714,12 +753,33 @@ export function OnlineTestAnaliz() {
                 answersA = (st.answersRaw || []).slice(0, n);
             } else {
                 const toA = mappingPack.mapping[st.booklet];
-                // mapping tablo uzunluğu n'den az olsa bile devam et (kalanlar boş sayılır)
-                if (!toA || toA.length === 0) {
-                    excluded.push({ student: st, reason: `${st.booklet} mapping tablosu bulunamadı.` });
-                    continue;
+                if (toA && toA.length > 0) {
+                    // Case 1: Mapping table is available
+                    answersA = answersToAOrder(st.answersRaw || [], toA, n);
+                } else {
+                    // Case 2: Mapping missing, check for manual key fallback
+                    const manualKey = st.booklet === "B" ? bKey : st.booklet === "C" ? cKey : st.booklet === "D" ? dKey : "";
+                    if (manualKey && manualKey.length >= 5) {
+                        // Directly score against the manual key
+                        const studAnswers = (st.answersRaw || []).slice(0, n);
+                        const manualKeyArr = manualKey.slice(0, n).split("");
+                        const s = scoreOne(studAnswers, manualKeyArr, scoring);
+                        scored.push({
+                            ...st,
+                            answersA: studAnswers, // Not actually A-order, but used for scoring display
+                            correct: s.correct,
+                            wrong: s.wrong,
+                            blank: s.blank,
+                            net: round2(s.net),
+                            score: round2(s.score),
+                            excludedReason: "Mapping yok, manuel anahtara göre hesaplandı."
+                        });
+                        continue;
+                    } else {
+                        excluded.push({ student: st, reason: `${st.booklet} mapping tablosu veya manuel anahtar bulunamadı.` });
+                        continue;
+                    }
                 }
-                answersA = answersToAOrder(st.answersRaw || [], toA, n);
             }
 
             const s = scoreOne(answersA, aKeyArr, scoring);
@@ -995,6 +1055,15 @@ export function OnlineTestAnaliz() {
                             </span>{" "}
                             • Atlandı: {stepSummary.skipped} • Toplam: {stepSummary.total}
                         </div>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+                            onClick={resetExam}
+                        >
+                            <Trash2 className="h-3.5 w-3.5 mr-1" />
+                            Sınavı Sıfırla
+                        </Button>
                     </div>
 
                     <div className="flex gap-2 flex-wrap">
@@ -1298,7 +1367,16 @@ export function OnlineTestAnaliz() {
                                                         variant="secondary"
                                                         onClick={() => setProfile(DEFAULT_PROFILE)}
                                                     >
-                                                        Varsayılanlara dön
+                                                        Sıfırla
+                                                    </Button>
+                                                    <div className="flex-1" />
+                                                    <Button variant="outline" onClick={saveDesign} title="Bu yerleşimi tarayıcıya kaydet">
+                                                        <Save className="h-4 w-4 mr-2" />
+                                                        Dizaynı Kaydet
+                                                    </Button>
+                                                    <Button variant="outline" onClick={loadDesign} title="Daha önce kaydedilen yerleşimi yükle">
+                                                        <Download className="h-4 w-4 mr-2" />
+                                                        Dizaynı Yükle
                                                     </Button>
                                                 </div>
                                             </div>
@@ -1412,7 +1490,7 @@ export function OnlineTestAnaliz() {
                                                             <div className="mt-4">
                                                                 <Textarea
                                                                     value={mappingText}
-                                                                    onChange={(e) => setMappingText(e.target.value)}
+                                                                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setMappingText(e.target.value)}
                                                                     className="min-h-[180px] font-mono text-xs"
                                                                     placeholder="Excel tablosunu buraya yapıştırın..."
                                                                 />
@@ -1565,7 +1643,7 @@ export function OnlineTestAnaliz() {
                                                                             <Label>Ders adı</Label>
                                                                             <Input
                                                                                 value={sb.name}
-                                                                                onChange={(e) => {
+                                                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                                                                                     const v = e.target.value;
                                                                                     setSubjects((arr) =>
                                                                                         arr.map((x, i) => (i === idx ? { ...x, name: v } : x))
