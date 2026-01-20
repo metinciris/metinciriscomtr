@@ -342,39 +342,24 @@ function MappingMiniAnimation() {
     return (
         <div className="mt-4 rounded-xl border bg-white p-4">
             <div className="flex items-center justify-between gap-3 flex-wrap">
-                <motion.div
-                    className="rounded-lg border px-3 py-2 text-sm"
-                    initial={{ opacity: 0.6 }}
-                    animate={{ opacity: [0.6, 1, 0.6] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                >
+                <div className="rounded-lg border px-3 py-2 text-sm">
                     <div className="font-medium">A anahtar</div>
                     <div className="font-mono text-muted-foreground">E A C C A ...</div>
-                </motion.div>
+                </div>
 
                 <ArrowRight className="h-5 w-5 text-muted-foreground" />
 
-                <motion.div
-                    className="rounded-lg border px-3 py-2 text-sm"
-                    initial={{ y: 0 }}
-                    animate={{ y: [0, -4, 0] }}
-                    transition={{ duration: 1.6, repeat: Infinity }}
-                >
+                <div className="rounded-lg border px-3 py-2 text-sm">
                     <div className="font-medium">Mapping</div>
                     <div className="font-mono text-muted-foreground">B satır: 12, 13, 14...</div>
-                </motion.div>
+                </div>
 
                 <ArrowRight className="h-5 w-5 text-muted-foreground" />
 
-                <motion.div
-                    className="rounded-lg border px-3 py-2 text-sm"
-                    initial={{ scale: 1 }}
-                    animate={{ scale: [1, 1.03, 1] }}
-                    transition={{ duration: 1.6, repeat: Infinity }}
-                >
+                <div className="rounded-lg border px-3 py-2 text-sm">
                     <div className="font-medium">B/C/D anahtarları</div>
                     <div className="font-mono text-muted-foreground">C A B D A ...</div>
-                </motion.div>
+                </div>
             </div>
 
             <div className="mt-3 text-sm text-muted-foreground">
@@ -957,13 +942,14 @@ export function OnlineTestAnaliz() {
 
     function openStep(id: number) {
         setCurrentStep(id);
-        // kontrollü scroll
-        requestAnimationFrame(() => {
+        // kontrollü scroll - animasyonun bitmesini (300ms) bekle
+        setTimeout(() => {
             const el = headerRefs.current[id];
             if (!el) return;
+            // Sticky header payı + biraz boşluk (90px)
             const y = el.getBoundingClientRect().top + window.scrollY - 90;
             window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
-        });
+        }, 300);
     }
 
     // --- file upload ---
