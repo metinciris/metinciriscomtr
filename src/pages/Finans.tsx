@@ -90,9 +90,7 @@ export function Finans() {
                     <RobustTradingViewWidget symbol="TVC:USOIL" title="Ham Petrol (Brent)" />
                     <RobustTradingViewWidget symbol="BITSTAMP:BTCUSD" title="Bitcoin / USD" />
                 </div>
-                <p className="mt-4 text-sm text-slate-500 italic">
-                    * Tahvil faizleri, piyasanın gelecek enflasyon ve risk beklentisini yansıtan "proxy" bir göstergedir.
-                </p>
+
             </div>
 
             {/* Bilgilendirme Paneli */}
@@ -100,7 +98,7 @@ export function Finans() {
                 <div className="flex items-start gap-4 text-slate-600 leading-relaxed text-sm">
                     <Info className="text-indigo-600 shrink-0 mt-1" size={20} />
                     <p>
-                        Bu sayfada sunulan <strong>Resmi Makro Veriler</strong> (Faiz, Enflasyon, İşsizlik) T.C. Merkez Bankası ve TÜİK verileri olup, duyuru takvimine göre periyodik olarak güncellenmektedir. <strong>Canlı Piyasa Verileri</strong> (Döviz, Altın, Tahvil) ise TradingView altyapısı ile global piyasalardan anlık olarak çekilmektedir. Buradaki bilgiler yalnızca bilgilendirme amaçlıdır, yatırım tavsiyesi değildir ve doğruluğu garanti edilmez.
+                        Bu sayfada sunulan <strong>Canlı Piyasa Verileri</strong> (Döviz, Altın, Emtia, Kripto) TradingView altyapısı ile global piyasalardan anlık olarak çekilmektedir. Buradaki bilgiler yalnızca bilgilendirme amaçlıdır, yatırım tavsiyesi değildir ve doğruluğu garanti edilmez.
                     </p>
                 </div>
             </div>
