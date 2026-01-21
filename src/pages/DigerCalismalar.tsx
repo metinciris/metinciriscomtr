@@ -1,7 +1,8 @@
 import React from 'react';
 import { PageContainer } from '../components/PageContainer';
 import { MetroTile } from '../components/MetroTile';
-import { FileBarChart, Activity, FileText, AlertCircle, Microscope, Box, BookOpen, Calculator, TrendingUp } from 'lucide-react';
+import { FileBarChart, Activity, FileText, AlertCircle, Microscope, Box, BookOpen, Calculator, TrendingUp, Trophy } from 'lucide-react';
+
 
 interface DigerCalismalarProps {
     onNavigate?: (page: string) => void;
@@ -150,6 +151,15 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
                     style={{ backgroundColor: '#1e293b' }}
                     size="medium"
                     onClick={() => handleNavigate('online-test-analiz')}
+                />
+                <MetroTile
+                    title="Euro Maçlar"
+                    subtitle="Türk takımları fikstürü"
+                    icon={<Trophy size={40} />}
+                    color=""
+                    style={{ backgroundColor: '#e67e22' }}
+                    size="medium"
+                    onClick={() => handleNavigate('euro-maclar')}
                 />
 
             </div>

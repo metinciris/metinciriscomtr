@@ -1,0 +1,68 @@
+[
+    {
+        "id": "1",
+        "competition": "EuroLeague",
+        "round": "Round 20",
+        "startTimeISO": "2024-01-09T20:30:00+03:00",
+        "homeTeam": "Fenerbahçe Beko",
+        "awayTeam": "Partizan",
+        "homeScore": 91,
+        "awayScore": 76,
+        "status": "finished",
+        "venue": "Ülker Sports Arena"
+    },
+    {
+        "id": "2",
+        "competition": "EuroLeague",
+        "round": "Round 20",
+        "startTimeISO": "2024-01-09T22:15:00+03:00",
+        "homeTeam": "Panathinaikos",
+        "awayTeam": "Anadolu Efes",
+        "homeScore": 83,
+        "awayScore": 76,
+        "status": "finished",
+        "venue": "OAKA Altion"
+    },
+    {
+        "id": "3",
+        "competition": "EuroCup",
+        "round": "Round 14",
+        "startTimeISO": "2024-01-10T20:00:00+03:00",
+        "homeTeam": "Türk Telekom",
+        "awayTeam": "Aris Midea",
+        "homeScore": 85,
+        "awayScore": 95,
+        "status": "finished",
+        "venue": "Ankara Arena"
+    },
+    {
+        "id": "4",
+        "competition": "EuroLeague",
+        "round": "Round 23",
+        "startTimeISO": "2026-01-25T20:45:00+03:00",
+        "homeTeam": "Fenerbahçe Beko",
+        "awayTeam": "Virtus Segafredo Bologna",
+        "status": "scheduled",
+        "venue": "Ülker Sports Arena"
+    },
+    {
+        "id": "5",
+        "competition": "EuroLeague",
+        "round": "Round 23",
+        "startTimeISO": "2026-01-26T20:30:00+03:00",
+        "homeTeam": "Anadolu Efes",
+        "awayTeam": "AS Monaco",
+        "status": "scheduled",
+        "venue": "Sinan Erdem Dome"
+    },
+    {
+        "id": "6",
+        "competition": "EuroCup",
+        "round": "Round 16",
+        "startTimeISO": "2026-01-30T20:00:00+03:00",
+        "homeTeam": "Beşiktaş Fibabanka",
+        "awayTeam": "Hapoel Tel Aviv",
+        "status": "scheduled",
+        "venue": "BJK Emlakjet Complex"
+    }
+]
