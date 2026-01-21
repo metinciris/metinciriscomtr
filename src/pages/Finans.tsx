@@ -1,38 +1,14 @@
 import React, { useEffect, useRef } from 'react';
 import { PageContainer } from '../components/PageContainer';
-import { TrendingUp, Landmark, Info, PieChart, Percent, Home, Coins, ArrowUpRight, Activity } from 'lucide-react';
+import { TrendingUp, Info, ArrowUpRight } from 'lucide-react';
 
 
 // --- Canlı Veri Notu ---
 // Veriler TradingView piyasa kaynakları ve Resmi Kurumlar (TCMB, TÜİK) üzerinden alınmaktadır.
 // Piyasa bazlı göstergeler (Döviz, Altın, Tahvil) canlıdır; Makro veriler (Enflasyon, Faiz) periyodik güncellenir.
 
-// --- Macro Indicator Card (For Official Static Data) ---
-const MacroIndicatorCard = ({ title, value, unit, date, icon: Icon, colorClass }: { title: string; value: string; unit: string; date: string; icon: any; colorClass: string }) => (
-    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between hover:shadow-md transition-shadow relative overflow-hidden group">
-        <div className={`absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 rounded-full opacity-5 group-hover:opacity-10 transition-opacity ${colorClass.replace('text-', 'bg-')}`} />
-        <div>
-            <div className="flex items-center justify-between mb-4">
-                <div className={`p-3 rounded-xl ${colorClass.replace('text-', 'bg-').replace('-600', '-50')} ${colorClass}`}>
-                    <Icon size={24} />
-                </div>
-                <span className="text-xs font-medium text-slate-400 bg-slate-50 px-2 py-1 rounded-lg">{date}</span>
-            </div>
-            <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-1">{title}</h3>
-            <div className="flex items-baseline gap-1">
-                <span className="text-3xl font-black text-slate-800">{value}</span>
-                <span className="text-lg font-bold text-slate-400">{unit}</span>
-            </div>
-        </div>
-        <div className="mt-4 pt-4 border-t border-slate-50 flex items-center gap-2 text-xs font-medium text-slate-400">
-            <Info size={14} />
-            Resmi Kurum Verisi (TCMB/TÜİK)
-        </div>
-    </div>
-);
-
 // --- Robust TradingView Widget (with Link Masking) ---
-const RobustTradingViewWidget = ({ symbol, title, height = 220 }: { symbol: string; title: string; height?: number }) => {
+const RobustTradingViewWidget = ({ symbol, title, height = 280 }: { symbol: string; title: string; height?: number }) => {
     const container = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -98,67 +74,7 @@ export function Finans() {
                 </p>
             </div>
 
-            {/* Bölüm: Resmi Makro Göstergeler */}
-            <div className="mb-12">
-                <h2 className="text-2xl font-black text-slate-800 mb-6 flex items-center gap-3">
-                    <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-200">
-                        <Landmark size={20} color="white" />
-                    </div>
-                    Resmi Makro Göstergeler
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <MacroIndicatorCard
-                        title="Politika Faizi (TCMB)"
-                        value="38.00"
-                        unit="%"
-                        date="Aralık 2025"
-                        icon={Percent}
-                        colorClass="text-blue-600"
-                    />
-                    <MacroIndicatorCard
-                        title="Yıllık Enflasyon (TÜFE)"
-                        value="31.07"
-                        unit="%"
-                        date="Kasım 2025"
-                        icon={Activity}
-                        colorClass="text-rose-600"
-                    />
-                    <MacroIndicatorCard
-                        title="10Y Tahvil Faizi"
-                        value="28.45"
-                        unit="%"
-                        date="Aralık 2025"
-                        icon={TrendingUp}
-                        colorClass="text-indigo-600"
-                    />
-                    <MacroIndicatorCard
-                        title="İşsizlik Oranı"
-                        value="9.30"
-                        unit="%"
-                        date="Ekim 2025"
-                        icon={PieChart}
-                        colorClass="text-amber-600"
-                    />
-                    <MacroIndicatorCard
-                        title="GSYH Büyüme Oranı"
-                        value="3.70"
-                        unit="%"
-                        date="2025 - Q3"
-                        icon={TrendingUp}
-                        colorClass="text-emerald-600"
-                    />
-                    <MacroIndicatorCard
-                        title="TCMB Brüt Rezervleri"
-                        value="192.3"
-                        unit="Mlr $"
-                        date="Aralık 2025"
-                        icon={Coins}
-                        colorClass="text-cyan-600"
-                    />
-                </div>
-            </div>
-
-            {/* Bölüm: Piyasa Bazlı Öncü Göstergeler */}
+            {/* Bölüm: Piyasa Bazlı Öncü Göstergeler (Canlı) */}
             <div className="mb-12">
                 <h2 className="text-2xl font-black text-slate-800 mb-6 flex items-center gap-3">
                     <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200">
@@ -167,30 +83,16 @@ export function Finans() {
                     Piyasa Bazlı Öncü Göstergeler (Canlı)
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <RobustTradingViewWidget symbol="FX_IDC:USDTRY" title="USD / TRY Kuru" height={280} />
-                    <RobustTradingViewWidget symbol="FX_IDC:XAUTRYG" title="Gram Altın (TL)" height={280} />
+                    <RobustTradingViewWidget symbol="FX_IDC:USDTRY" title="USD / TRY Kuru" />
+                    <RobustTradingViewWidget symbol="FX_IDC:XAUTRYG" title="Gram Altın (TL)" />
+                    <RobustTradingViewWidget symbol="FX_IDC:EURTRY" title="Euro / TL" />
+                    <RobustTradingViewWidget symbol="TVC:GOLD" title="Ons Altın (USD)" />
+                    <RobustTradingViewWidget symbol="TVC:USOIL" title="Ham Petrol (Brent)" />
+                    <RobustTradingViewWidget symbol="BITSTAMP:BTCUSD" title="Bitcoin / USD" />
                 </div>
                 <p className="mt-4 text-sm text-slate-500 italic">
                     * Tahvil faizleri, piyasanın gelecek enflasyon ve risk beklentisini yansıtan "proxy" bir göstergedir.
                 </p>
-            </div>
-
-            {/* Diğer Kurlar & Emtia */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-12">
-                <div>
-                    <h2 className="text-2xl font-black text-slate-800 mb-6 flex items-center gap-3">Euro & Kripto</h2>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                        <RobustTradingViewWidget symbol="FX_IDC:EURTRY" title="Euro / TL" />
-                        <RobustTradingViewWidget symbol="BITSTAMP:BTCUSD" title="Bitcoin / USD" />
-                    </div>
-                </div>
-                <div>
-                    <h2 className="text-2xl font-black text-slate-800 mb-6 flex items-center gap-3">Emtia & Ons</h2>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                        <RobustTradingViewWidget symbol="TVC:GOLD" title="Ons Altın (USD)" />
-                        <RobustTradingViewWidget symbol="TVC:USOIL" title="Ham Petrol (Brent)" />
-                    </div>
-                </div>
             </div>
 
             {/* Bilgilendirme Paneli */}
