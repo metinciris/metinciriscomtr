@@ -11,7 +11,7 @@ interface MatchCardProps {
 const MatchCard: React.FC<MatchCardProps> = ({ match, special }) => {
     // Format date: "25 Oca Pzt 20:45"
     const dateObj = new Date(match.startTimeISO);
-    const dateStr = dateObj.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', weekday: 'short' });
+    const dateStr = dateObj.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric', weekday: 'short' });
     const timeStr = dateObj.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
 
     // Check if Turkish team wins (green) or loses (red) or other
@@ -43,14 +43,10 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, special }) => {
         }
     }
 
-    const isEuroLeague = match.competition === 'EuroLeague' || match.competition === 'Champions League';
-    const isSuperLig = match.competition === 'Super Lig';
-    const isEurope = match.competition === 'Europa League' || match.competition === 'Conference League';
+    const isEuroLeague = match.competition === 'EuroLeague';
 
     let badgeColor = "bg-blue-100 text-blue-700";
-    if (isEuroLeague) badgeColor = "bg-purple-100 text-purple-700";
-    if (isEurope) badgeColor = "bg-orange-100 text-orange-700";
-    if (isSuperLig) badgeColor = "bg-red-100 text-red-700";
+    if (isEuroLeague) badgeColor = "bg-orange-100 text-orange-700";
 
     return (
         <div className={`bg-white rounded-xl shadow-sm border ${special ? 'border-yellow-400 shadow-md ring-1 ring-yellow-100' : 'border-slate-200'} p-4 hover:shadow-md transition-shadow relative overflow-hidden`}>
@@ -89,7 +85,7 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, special }) => {
                     </div>
 
                     {/* Away */}
-                    <div className={`flex-1 flex flex-col items-center text-center gap-2 ${match.status === 'finished' && match.homeScore && match.awayScore && match.awayScore > match.homeScore ? 'font-bold text-slate-900' : 'text-slate-700'}`}>
+                    <div className={`flex-1 flex flex-col items-center text-center gap-2 ${match.status === 'finished' && match.homeScore && match.awayScore && match.awayScore > match.awayScore ? 'font-bold text-slate-900' : 'text-slate-700'}`}>
                         <span className="text-lg leading-tight">{match.awayTeam}</span>
                     </div>
                 </div>
@@ -112,13 +108,13 @@ export function EuroMaclar() {
     const [error, setError] = useState<string | null>(null);
 
     // Filters
-    const [leagueFilter, setLeagueFilter] = useState<'All' | 'EuroLeague' | 'EuroCup' | 'Super Lig'>('All');
+    const [leagueFilter, setLeagueFilter] = useState<'All' | 'EuroLeague' | 'EuroCup'>('All');
     const [teamFilter, setTeamFilter] = useState<string>('All');
     const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
         setLoading(true);
-        fetch('/data/fixtures.json')
+        fetch(`/data/fixtures.json?v=${new Date().getTime()}`)
             .then(res => {
                 if (!res.ok) throw new Error('Veri yüklenemedi');
                 return res.json();
@@ -161,41 +157,39 @@ export function EuroMaclar() {
         d1.getDate() === d2.getDate();
 
     // Classification Logic
-    // Super Lig: ONLY in "Today", never in upcoming/past (unless filtered explicitly? user said "bugün varsa gözükebilir en fazla")
-    // Let's hide Super Lig from Upcoming/Past sections entirely.
+    // Super Lig removed, only EuroLeague/Cup
+
+    // We don't have separate Today section unless needed, but existing logic groups them.
+    // For EuroLeague, usually we just show Upcoming and Past.
+    // Let's keep the arrays but maybe not highlight Today specially unless it matches? 
+    // Actually, user liked "Bugün" (Today) concept, so let's keep it if data exists.
 
     const todaysMatches = filteredMatches.filter(m => isSameDay(new Date(m.startTimeISO), now));
 
     const upcoming = filteredMatches
-        .filter(m => {
-            if (m.competition === 'Super Lig') return false; // Hide Super Lig from upcoming
-            return new Date(m.startTimeISO) > now && !isSameDay(new Date(m.startTimeISO), now);
-        })
+        .filter(m => new Date(m.startTimeISO) > now && !isSameDay(new Date(m.startTimeISO), now))
         .sort((a, b) => new Date(a.startTimeISO).getTime() - new Date(b.startTimeISO).getTime());
 
     const past = filteredMatches
-        .filter(m => {
-            if (m.competition === 'Super Lig') return false; // Hide Super Lig from past
-            return new Date(m.startTimeISO) <= now && !isSameDay(new Date(m.startTimeISO), now);
-        })
+        .filter(m => new Date(m.startTimeISO) <= now && !isSameDay(new Date(m.startTimeISO), now))
         .sort((a, b) => new Date(b.startTimeISO).getTime() - new Date(a.startTimeISO).getTime());
 
     return (
         <PageContainer>
             {/* Header Section */}
-            <div className="bg-gradient-to-r from-blue-900 to-indigo-900 text-white p-8 md:p-12 mb-8 rounded-xl shadow-lg relative overflow-hidden">
+            <div className="bg-gradient-to-r from-orange-700 to-orange-900 text-white p-8 md:p-12 mb-8 rounded-xl shadow-lg relative overflow-hidden">
                 <div className="relative z-10">
                     <div className="flex items-center gap-3 mb-4">
                         <Trophy size={32} className="text-yellow-400" />
                         <h1 className="text-3xl md:text-4xl font-bold">Avrupa Maç Merkezi</h1>
                     </div>
                     <p className="text-white/90 max-w-2xl text-lg">
-                        UEFA Şampiyonlar Ligi, Avrupa Ligi ve Konferans Ligi maçları. (Süper Lig maçları sadece maç günü gösterilir.)
+                        EuroLeague ve EuroCup maçları ve canlı skorlar.
                     </p>
                 </div>
                 {/* Decorative elements */}
                 <div className="absolute -right-12 -top-12 w-48 h-48 bg-white/10 rounded-full blur-2xl"></div>
-                <div className="absolute left-1/2 bottom-0 w-64 h-64 bg-blue-600/20 rounded-full blur-3xl"></div>
+                <div className="absolute left-1/2 bottom-0 w-64 h-64 bg-orange-600/20 rounded-full blur-3xl"></div>
             </div>
 
             {/* Filters Bar */}
@@ -204,16 +198,13 @@ export function EuroMaclar() {
                 <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 no-scrollbar">
                     {[
                         { id: 'All', label: 'Tümü' },
-                        { id: 'Champions League', label: 'Şampiyonlar Ligi' },
-                        { id: 'Europa League', label: 'Avrupa Ligi' },
-                        { id: 'Conference League', label: 'Konferans Ligi' },
-                        // Super Lig filter removed to discourage viewing it, or we can keep it but it will only show today's matches? 
-                        // User said "domestic matches we don't look at much". Let's hide the filter or keep as 'All' includes it.
+                        { id: 'EuroLeague', label: 'EuroLeague' },
+                        { id: 'EuroCup', label: 'EuroCup' },
                     ].map(f => (
                         <button
                             key={f.id}
                             onClick={() => setLeagueFilter(f.id as any)}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${leagueFilter === f.id ? 'bg-blue-800 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${leagueFilter === f.id ? 'bg-orange-800 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
                         >
                             {f.label}
                         </button>
@@ -224,7 +215,7 @@ export function EuroMaclar() {
                     <select
                         value={teamFilter}
                         onChange={(e) => setTeamFilter(e.target.value)}
-                        className="px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
                     >
                         <option value="All">Türk Takımları</option>
                         {TURKISH_TEAMS.map(t => (
@@ -239,7 +230,7 @@ export function EuroMaclar() {
                             placeholder="Takım ara..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-9 pr-4 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full pl-9 pr-4 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
                         />
                     </div>
                 </div>
@@ -281,7 +272,7 @@ export function EuroMaclar() {
                     {/* Upcoming Matches */}
                     <section>
                         <div className="flex items-center gap-2 mb-6">
-                            <h2 className="text-2xl font-bold text-slate-800">Gelecek Avrupa Maçları</h2>
+                            <h2 className="text-2xl font-bold text-slate-800">Gelecek Maçlar</h2>
                             <span className="bg-slate-100 text-slate-600 text-xs px-2 py-1 rounded-full font-medium">{upcoming.length}</span>
                         </div>
 
@@ -292,7 +283,7 @@ export function EuroMaclar() {
                                 ))}
                             </div>
                         ) : (
-                            <p className="text-slate-500 italic">Planlanmış Avrupa maçı bulunamadı.</p>
+                            <p className="text-slate-500 italic">Planlanmış maç bulunamadı.</p>
                         )}
                     </section>
 
