@@ -1,6 +1,7 @@
 export interface Match {
     id: string;
-    competition: 'EuroLeague' | 'EuroCup';
+    competition: string; // e.g. 'EuroLeague', 'EuroCup', 'Super Lig'
+    type?: string; // 'EuroLeague', 'EuroCup', 'Super Lig', 'National'
     round: string; // e.g., "Regular Season Round 1"
     startTimeISO: string; // ISO 8601 format
     homeTeam: string;
@@ -21,11 +22,18 @@ export const TURKISH_TEAMS = [
     "Anadolu Efes",
     "Türk Telekom",
     "Beşiktaş Fibabanka",
-    "Bahçeşehir Koleji"
+    "Bahçeşehir Koleji",
+    "Fenerbahçe", // Super Lig variation
+    "Galatasaray",
+    "Beşiktaş",
+    "Trabzonspor"
 ];
 
-// Helper to check if a match involves a Turkish team
+// Helper to check if a match involves a Turkish team (mainly for Euro context)
 export const isTurkishTeamMatch = (match: Match): boolean => {
+    // If it's Super Lig or National team, it's inherently relevant
+    if (match.competition === 'Super Lig' || match.type === 'National') return true;
+
     return TURKISH_TEAMS.some(team =>
         match.homeTeam.includes(team) || match.awayTeam.includes(team)
     );
