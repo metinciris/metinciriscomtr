@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { PageContainer } from '../components/PageContainer';
 import { Match, TURKISH_TEAMS } from '../types/euroMatches';
-import { Calendar, MapPin, Trophy, Search, AlertCircle, RefreshCw, Star, Flag } from 'lucide-react';
+import { Calendar, MapPin, Trophy, Search, AlertCircle, RefreshCw, Star } from 'lucide-react';
 
 interface MatchCardProps {
     match: Match;
@@ -17,10 +17,20 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, special }) => {
     // Check if Turkish team wins (green) or loses (red) or other
     let scoreColorClass = "text-slate-700";
     if (match.status === 'finished' && match.homeScore !== undefined && match.awayScore !== undefined) {
-        // For Super Lig, we don't necessarily highlight "our" team since both are Turkish usually.
-        // But let's keep the logic for Euro matches or if we want to highlight specific big teams.
+
+        // Slightly different logic for Super Lig to avoid coloring everything red/green if both are Turkish
         const isHomeTurkish = TURKISH_TEAMS.some(t => match.homeTeam.includes(t));
         const isAwayTurkish = TURKISH_TEAMS.some(t => match.awayTeam.includes(t));
+        // If it's a Euro match, we care about Turkish teams winning/losing
+        // If it's Super Lig, maybe just highlight the winner or keep it neutral unless it's a derby? 
+        // For simplicity, let's keep the logic but maybe refine later.
+
+        // Only apply color logic for non-Super Lig competitive context where "us vs them" matters more?
+        // Actually user wants to track "Euro Maclar" mainly, so let's keep the logic general.
+        // If both are Turkish (Super Lig), it might look weird if one is green and one is red based on who they are?
+        // No, let's just color based on score if we consider them "our" teams?
+        // Actually, for Super Lig, just display the score normally without green/red bias unless we track a specific user team.
+        // Let's rely on competition check.
 
         if (match.competition !== 'Super Lig') {
             if (isHomeTurkish) {
@@ -33,14 +43,14 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, special }) => {
         }
     }
 
-    const isEuroLeague = match.competition === 'EuroLeague';
+    const isEuroLeague = match.competition === 'EuroLeague' || match.competition === 'Champions League';
     const isSuperLig = match.competition === 'Super Lig';
-    const isNational = match.type === 'National';
+    const isEurope = match.competition === 'Europa League' || match.competition === 'Conference League';
 
     let badgeColor = "bg-blue-100 text-blue-700";
-    if (isEuroLeague) badgeColor = "bg-orange-100 text-orange-700";
+    if (isEuroLeague) badgeColor = "bg-purple-100 text-purple-700";
+    if (isEurope) badgeColor = "bg-orange-100 text-orange-700";
     if (isSuperLig) badgeColor = "bg-red-100 text-red-700";
-    if (isNational) badgeColor = "bg-red-600 text-white";
 
     return (
         <div className={`bg-white rounded-xl shadow-sm border ${special ? 'border-yellow-400 shadow-md ring-1 ring-yellow-100' : 'border-slate-200'} p-4 hover:shadow-md transition-shadow relative overflow-hidden`}>
@@ -102,7 +112,7 @@ export function EuroMaclar() {
     const [error, setError] = useState<string | null>(null);
 
     // Filters
-    const [leagueFilter, setLeagueFilter] = useState<'All' | 'EuroLeague' | 'EuroCup' | 'Super Lig' | 'National'>('All');
+    const [leagueFilter, setLeagueFilter] = useState<'All' | 'EuroLeague' | 'EuroCup' | 'Super Lig'>('All');
     const [teamFilter, setTeamFilter] = useState<string>('All');
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -127,13 +137,7 @@ export function EuroMaclar() {
     // Filter Logic
     const filteredMatches = fixtures.filter(match => {
         // 1. League Filter
-        if (leagueFilter !== 'All') {
-            if (leagueFilter === 'National') {
-                if (match.type !== 'National') return false;
-            } else if (match.competition !== leagueFilter) {
-                return false;
-            }
-        }
+        if (leagueFilter !== 'All' && match.competition !== leagueFilter) return false;
 
         // 2. Team Filter
         if (teamFilter !== 'All') {
@@ -156,33 +160,42 @@ export function EuroMaclar() {
         d1.getMonth() === d2.getMonth() &&
         d1.getDate() === d2.getDate();
 
-    // Split Categories
+    // Classification Logic
+    // Super Lig: ONLY in "Today", never in upcoming/past (unless filtered explicitly? user said "bugün varsa gözükebilir en fazla")
+    // Let's hide Super Lig from Upcoming/Past sections entirely.
+
     const todaysMatches = filteredMatches.filter(m => isSameDay(new Date(m.startTimeISO), now));
 
     const upcoming = filteredMatches
-        .filter(m => new Date(m.startTimeISO) > now && !isSameDay(new Date(m.startTimeISO), now))
+        .filter(m => {
+            if (m.competition === 'Super Lig') return false; // Hide Super Lig from upcoming
+            return new Date(m.startTimeISO) > now && !isSameDay(new Date(m.startTimeISO), now);
+        })
         .sort((a, b) => new Date(a.startTimeISO).getTime() - new Date(b.startTimeISO).getTime());
 
     const past = filteredMatches
-        .filter(m => new Date(m.startTimeISO) <= now && !isSameDay(new Date(m.startTimeISO), now))
+        .filter(m => {
+            if (m.competition === 'Super Lig') return false; // Hide Super Lig from past
+            return new Date(m.startTimeISO) <= now && !isSameDay(new Date(m.startTimeISO), now);
+        })
         .sort((a, b) => new Date(b.startTimeISO).getTime() - new Date(a.startTimeISO).getTime());
 
     return (
         <PageContainer>
             {/* Header Section */}
-            <div className="bg-gradient-to-r from-red-700 to-red-900 text-white p-8 md:p-12 mb-8 rounded-xl shadow-lg relative overflow-hidden">
+            <div className="bg-gradient-to-r from-blue-900 to-indigo-900 text-white p-8 md:p-12 mb-8 rounded-xl shadow-lg relative overflow-hidden">
                 <div className="relative z-10">
                     <div className="flex items-center gap-3 mb-4">
                         <Trophy size={32} className="text-yellow-400" />
-                        <h1 className="text-3xl md:text-4xl font-bold">Maç Merkezi</h1>
+                        <h1 className="text-3xl md:text-4xl font-bold">Avrupa Maç Merkezi</h1>
                     </div>
                     <p className="text-white/90 max-w-2xl text-lg">
-                        Süper Lig, Milli Takım, EuroLeague ve EuroCup maçları ve canlı skorlar.
+                        UEFA Şampiyonlar Ligi, Avrupa Ligi ve Konferans Ligi maçları. (Süper Lig maçları sadece maç günü gösterilir.)
                     </p>
                 </div>
                 {/* Decorative elements */}
                 <div className="absolute -right-12 -top-12 w-48 h-48 bg-white/10 rounded-full blur-2xl"></div>
-                <div className="absolute left-1/2 bottom-0 w-64 h-64 bg-red-600/20 rounded-full blur-3xl"></div>
+                <div className="absolute left-1/2 bottom-0 w-64 h-64 bg-blue-600/20 rounded-full blur-3xl"></div>
             </div>
 
             {/* Filters Bar */}
@@ -191,15 +204,16 @@ export function EuroMaclar() {
                 <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 no-scrollbar">
                     {[
                         { id: 'All', label: 'Tümü' },
-                        { id: 'Super Lig', label: 'Süper Lig' },
-                        { id: 'National', label: 'Milli Takım' },
-                        { id: 'EuroLeague', label: 'EuroLeague' },
-                        { id: 'EuroCup', label: 'EuroCup' },
+                        { id: 'Champions League', label: 'Şampiyonlar Ligi' },
+                        { id: 'Europa League', label: 'Avrupa Ligi' },
+                        { id: 'Conference League', label: 'Konferans Ligi' },
+                        // Super Lig filter removed to discourage viewing it, or we can keep it but it will only show today's matches? 
+                        // User said "domestic matches we don't look at much". Let's hide the filter or keep as 'All' includes it.
                     ].map(f => (
                         <button
                             key={f.id}
                             onClick={() => setLeagueFilter(f.id as any)}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${leagueFilter === f.id ? 'bg-red-800 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${leagueFilter === f.id ? 'bg-blue-800 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
                         >
                             {f.label}
                         </button>
@@ -210,9 +224,9 @@ export function EuroMaclar() {
                     <select
                         value={teamFilter}
                         onChange={(e) => setTeamFilter(e.target.value)}
-                        className="px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                        className="px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                        <option value="All">Tüm Takımlar</option>
+                        <option value="All">Türk Takımları</option>
                         {TURKISH_TEAMS.map(t => (
                             <option key={t} value={t}>{t}</option>
                         ))}
@@ -225,7 +239,7 @@ export function EuroMaclar() {
                             placeholder="Takım ara..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-9 pr-4 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                            className="w-full pl-9 pr-4 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                     </div>
                 </div>
@@ -234,7 +248,7 @@ export function EuroMaclar() {
             {loading && (
                 <div className="text-center py-12 text-slate-500 flex flex-col items-center gap-2">
                     <RefreshCw className="animate-spin" />
-                    <span>Maç verileri yükleniyor...</span>
+                    <span>Veriler yükleniyor...</span>
                 </div>
             )}
 
@@ -267,7 +281,7 @@ export function EuroMaclar() {
                     {/* Upcoming Matches */}
                     <section>
                         <div className="flex items-center gap-2 mb-6">
-                            <h2 className="text-2xl font-bold text-slate-800">Gelecek Maçlar</h2>
+                            <h2 className="text-2xl font-bold text-slate-800">Gelecek Avrupa Maçları</h2>
                             <span className="bg-slate-100 text-slate-600 text-xs px-2 py-1 rounded-full font-medium">{upcoming.length}</span>
                         </div>
 
@@ -278,7 +292,7 @@ export function EuroMaclar() {
                                 ))}
                             </div>
                         ) : (
-                            <p className="text-slate-500 italic">Planlanmış maç bulunamadı.</p>
+                            <p className="text-slate-500 italic">Planlanmış Avrupa maçı bulunamadı.</p>
                         )}
                     </section>
 

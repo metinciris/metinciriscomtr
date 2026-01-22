@@ -9,24 +9,24 @@ const __dirname = path.dirname(__filename);
 // Configuration
 const SOURCES = [
     {
-        url: 'https://fixturedownload.com/feed/json/euroleague-2024',
-        competition: 'EuroLeague',
-        type: 'EuroLeague'
-    },
-    {
-        url: 'https://fixturedownload.com/feed/json/eurocup-2024',
-        competition: 'EuroCup',
-        type: 'EuroCup'
-    },
-    {
-        url: 'https://fixturedownload.com/feed/json/super-lig-2024',
+        url: 'https://fixturedownload.com/feed/json/super-lig-2025',
         competition: 'Super Lig',
         type: 'Super Lig'
     },
     {
-        url: 'https://fixturedownload.com/feed/json/uefa-nations-league-2024',
-        competition: 'UEFA Nations League',
-        type: 'National'
+        url: 'https://fixturedownload.com/feed/json/champions-league-2024',
+        competition: 'Champions League',
+        type: 'Europe'
+    },
+    {
+        url: 'https://fixturedownload.com/feed/json/europa-league-2024',
+        competition: 'Europa League',
+        type: 'Europe'
+    },
+    {
+        url: 'https://fixturedownload.com/feed/json/conference-league-2024',
+        competition: 'Conference League',
+        type: 'Europe'
     }
 ];
 
