@@ -1,13 +1,12 @@
 {
-  "date": "21.01.2026",
+  "date": "22.01.2026",
   "items": [
-    "&#199;ARŞAMBA",
-    "EZOGELİN ÇORBASI",
-    "PİLAV ÜSTÜ ET DÖNER",
-    "MEVSİM SALATASI",
-    "KASE AYRAN"
+    "KREMALI TAVUK ÇORBASI",
+    "ZEYTİNYAĞLI BEZELYE",
+    "KIYMALI KAŞARLI KOL BÖREĞİ",
+    "ELMA KOMPOSTOSU"
   ],
-  "kcal": "1000",
+  "kcal": "1150",
   "source": "https://w3.sdu.edu.tr/aylik-yemek-listesi?dosya=yemekler_ogle&tur=2",
-  "updatedAt": "2026-01-21T07:47:15.081Z"
+  "updatedAt": "2026-01-22T05:03:16.662Z"
 }
