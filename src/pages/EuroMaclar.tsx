@@ -25,6 +25,7 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, highlight }) => {
     const dateStr = dateObj.toLocaleDateString('tr-TR', {
         day: 'numeric',
         month: 'short',
+        year: 'numeric',
         weekday: 'short'
     });
     const timeStr = dateObj.toLocaleTimeString('tr-TR', {

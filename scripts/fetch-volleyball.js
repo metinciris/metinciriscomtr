@@ -91,14 +91,30 @@ async function fetchFromAPI(endpoint) {
         throw new Error(`API error: ${response.status} ${response.statusText}`);
     }
 
-    return response.json();
+    const data = await response.json();
+    if (data.errors && Object.keys(data.errors).length > 0) {
+        if (data.errors.plan) {
+            console.warn(`API Restriction: ${data.errors.plan}`);
+        } else {
+            console.error('API errors:', data.errors);
+        }
+        return null;
+    }
+
+    return data;
 }
 
 async function getLeagueMatches(league) {
     try {
-        // Use season 2024 for free tier
-        const data = await fetchFromAPI(`/games?league=${league.id}&season=2024`);
-        if (!data.response) return [];
+        console.log(`Attempting ${league.name} season 2025...`);
+        let data = await fetchFromAPI(`/games?league=${league.id}&season=2025`);
+
+        if (!data || !data.response || data.response.length === 0) {
+            console.log(`No 2025 data for ${league.name}, trying 2024 as fallback...`);
+            data = await fetchFromAPI(`/games?league=${league.id}&season=2024`);
+        }
+
+        if (!data || !data.response) return [];
 
         const turkishMatches = data.response.filter(game =>
             isTurkishTeam(game.teams.home.name) || isTurkishTeam(game.teams.away.name)
@@ -108,7 +124,7 @@ async function getLeagueMatches(league) {
             id: `volleyball-${league.id}-${game.id}`,
             sport: 'volleyball',
             competition: league.name,
-            season: '2024/25',
+            season: game.league.season.toString(),
             homeTeam: game.teams.home.name,
             awayTeam: game.teams.away.name,
             startTimeUTC: game.date,

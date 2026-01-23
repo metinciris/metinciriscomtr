@@ -43,8 +43,8 @@ async function testApiAll(sport, leagueId, season) {
 }
 
 async function main() {
-    await testApiAll('basketball', 120, '2024');
-    await testApiAll('volleyball', 80, '2024');
+    await testApiAll('basketball', 120, '2025');
+    await testApiAll('volleyball', 248, '2025'); // Use correct CEV CL ID 248
 }
 
 main();

@@ -1,8 +1,8 @@
 /**
  * Fetch Football Data - Turkish Teams in UEFA Competitions
  * Sources: 
- * - football-data.org (Champions League - Current Season)
- * - api-sports.io (Europa League & Conference League - Season 2024)
+ * - football-data.org (Champions League - 2025/26 Season)
+ * - fixturedownload.com (Europa League & Conference League - 2025/26 Season)
  */
 
 import fs from 'fs';
@@ -13,11 +13,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // API Configuration
-const API_TOKEN_FOOTBALL_DATA = process.env.FOOTBALL_DATA_TOKEN;
-const API_KEY_APISPORTS = process.env.APIFOOTBALL_KEY;
-
+const API_TOKEN = process.env.FOOTBALL_DATA_TOKEN;
 const FOOTBALL_DATA_BASE_URL = 'https://api.football-data.org/v4';
-const APISPORTS_FOOTBALL_BASE_URL = 'https://v3.football.api-sports.io';
 
 // Turkish teams (normalized names for matching)
 const TURKISH_TEAMS = [
@@ -52,7 +49,7 @@ function isTurkishTeam(teamName) {
 
 // Helper: Convert UTC to Istanbul time
 function toIstanbulTime(utcString) {
-    const date = new Date(utcString);
+    const date = new Date(utcString.replace(' ', 'T'));
     return date.toLocaleString('sv-SE', {
         timeZone: 'Europe/Istanbul',
         year: 'numeric',
@@ -71,7 +68,7 @@ async function fetchFootballData(endpoint) {
 
     const response = await fetch(url, {
         headers: {
-            'X-Auth-Token': API_TOKEN_FOOTBALL_DATA
+            'X-Auth-Token': API_TOKEN
         }
     });
 
@@ -82,31 +79,21 @@ async function fetchFootballData(endpoint) {
     return response.json();
 }
 
-// Fetch from api-sports.io (Football)
-async function fetchApiSportsFootball(endpoint) {
-    const url = `${APISPORTS_FOOTBALL_BASE_URL}${endpoint}`;
-    console.log(`Fetching from api-sports.io (football): ${url}`);
-
+// Fetch from fixturedownload.com
+async function fetchFixtureDownloadData(url) {
+    console.log(`Fetching from fixturedownload.com: ${url}`);
     const response = await fetch(url, {
         headers: {
-            'x-rapidapi-key': API_KEY_APISPORTS,
-            'x-rapidapi-host': 'v3.football.api-sports.io'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
         }
     });
-
     if (!response.ok) {
-        throw new Error(`api-sports.io error: ${response.status} ${response.statusText}`);
+        throw new Error(`fixturedownload error: ${response.status} ${response.statusText}`);
     }
-
-    const data = await response.json();
-    if (data.errors && Object.keys(data.errors).length > 0) {
-        throw new Error(`api-sports.io API error: ${JSON.stringify(data.errors)}`);
-    }
-
-    return data;
+    return response.json();
 }
 
-// Get Champions League (remains on football-data.org)
+// Get Champions League (Current 2025/26 Season)
 async function getChampionsLeagueMatches() {
     try {
         const data = await fetchFootballData('/competitions/CL/matches');
@@ -120,7 +107,7 @@ async function getChampionsLeagueMatches() {
             id: `football-CL-${match.id}`,
             sport: 'football',
             competition: 'UEFA Champions League',
-            season: '2024/25',
+            season: '2025/26',
             homeTeam: match.homeTeam.name,
             awayTeam: match.awayTeam.name,
             startTimeUTC: match.utcDate,
@@ -137,61 +124,64 @@ async function getChampionsLeagueMatches() {
     }
 }
 
-// Get Europa League & Conference League from api-sports.io
-async function getApiSportsFootballMatches(leagueId, competitionName) {
+// Get Europa League & Conference League (from fixturedownload.com - 2025/26 Season)
+async function getFixtureDownloadMatches(url, competitionName) {
     try {
-        // Use season 2024 (covers 2024/25)
-        const data = await fetchApiSportsFootball(`/fixtures?league=${leagueId}&season=2024`);
-        if (!data.response || !Array.isArray(data.response)) return [];
+        const data = await fetchFixtureDownloadData(url);
+        if (!Array.isArray(data)) return [];
 
-        const turkishMatches = data.response.filter(item =>
-            isTurkishTeam(item.teams.home.name) || isTurkishTeam(item.teams.away.name)
+        const turkishMatches = data.filter(match =>
+            isTurkishTeam(match.HomeTeam) || isTurkishTeam(match.AwayTeam)
         );
 
-        return turkishMatches.map(item => ({
-            id: `football-${competitionName.replace(/\s+/g, '')}-${item.fixture.id}`,
+        return turkishMatches.map((match, idx) => ({
+            id: `football-${competitionName.replace(/\s+/g, '')}-${idx}`,
             sport: 'football',
             competition: competitionName,
-            season: '2024/25',
-            homeTeam: item.teams.home.name,
-            awayTeam: item.teams.away.name,
-            startTimeUTC: item.fixture.date,
-            startTimeLocal: toIstanbulTime(item.fixture.date),
-            status: item.fixture.status.short === 'FT' ? 'finished' : 'scheduled',
-            scoreHome: item.goals.home ?? null,
-            scoreAway: item.goals.away ?? null,
-            source: 'api-sports',
+            season: '2025/26',
+            homeTeam: match.HomeTeam,
+            awayTeam: match.AwayTeam,
+            startTimeUTC: match.DateUtc,
+            startTimeLocal: toIstanbulTime(match.DateUtc),
+            status: (match.HomeTeamScore !== null && match.AwayTeamScore !== null) ? 'finished' : 'scheduled',
+            scoreHome: match.HomeTeamScore,
+            scoreAway: match.AwayTeamScore,
+            source: 'fixturedownload',
             lastFetchedAt: new Date().toISOString()
         }));
     } catch (error) {
-        console.error(`Error fetching ${competitionName} from api-sports.io:`, error.message);
+        console.error(`Error fetching ${competitionName} from fixturedownload.com:`, error.message);
         return [];
     }
 }
 
 // Main function
 async function main() {
-    console.log('Starting football data fetch...');
+    console.log('Starting football data fetch (2025/26 season)...');
 
     let allMatches = [];
 
     // 1. CL from football-data
-    if (API_TOKEN_FOOTBALL_DATA) {
+    if (API_TOKEN) {
         const clMatches = await getChampionsLeagueMatches();
         allMatches = [...allMatches, ...clMatches];
-    }
-
-    // 2. EL from api-sports
-    if (API_KEY_APISPORTS) {
-        const elMatches = await getApiSportsFootballMatches(3, 'UEFA Europa League');
-        allMatches = [...allMatches, ...elMatches];
-
-        // 3. ECL from api-sports
-        const eclMatches = await getApiSportsFootballMatches(848, 'UEFA Conference League');
-        allMatches = [...allMatches, ...eclMatches];
     } else {
-        console.warn('APIFOOTBALL_KEY not set, skipping EL/ECL from api-sports.io');
+        console.warn('FOOTBALL_DATA_TOKEN not set, skipping CL from football-data.org');
     }
+
+    // 2. EL from fixturedownload (2025 represents 2025/26)
+    const elMatches = await getFixtureDownloadMatches(
+        'https://fixturedownload.com/feed/json/europa-league-2025',
+        'UEFA Europa League'
+    );
+    allMatches = [...allMatches, ...elMatches];
+
+    // 3. ECL from fixturedownload (2025 represents 2025/26)
+    const eclMatches = await getFixtureDownloadMatches(
+        'https://fixturedownload.com/feed/json/conference-league-2025',
+        'UEFA Conference League'
+    );
+    allMatches = [...allMatches, ...eclMatches];
 
     // Filter by date window (past 14 days + next 14 days)
     const now = new Date();
@@ -201,12 +191,12 @@ async function main() {
     windowEnd.setDate(windowEnd.getDate() + 14);
 
     const filteredMatches = allMatches.filter(match => {
-        const d = new Date(match.startTimeUTC);
+        const d = new Date(match.startTimeUTC.replace(' ', 'T'));
         return d >= windowStart && d <= windowEnd;
     });
 
     // Sort by date
-    filteredMatches.sort((a, b) => new Date(a.startTimeUTC) - new Date(b.startTimeUTC));
+    filteredMatches.sort((a, b) => new Date(a.startTimeUTC.replace(' ', 'T')) - new Date(b.startTimeUTC.replace(' ', 'T')));
 
     console.log(`Total football matches after filtering: ${filteredMatches.length}`);
 

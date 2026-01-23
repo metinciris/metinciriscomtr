@@ -18,16 +18,17 @@ async function checkUrl(url, label) {
         console.log(`Type: ${Array.isArray(data) ? 'Array' : typeof data}`);
         console.log(`Length: ${Array.isArray(data) ? data.length : 'N/A'}`);
         if (Array.isArray(data) && data.length > 0) {
-            console.log('First Item Sample:');
-            console.log(JSON.stringify(data[0], null, 2));
+            console.log('First Item Sample Date:', data[0].DateUtc || data[0].date);
 
             // Find a Turkish team for debugging names
-            const turkish = data.find(m =>
-                m.HomeTeam?.toLowerCase().includes('fener') ||
-                m.AwayTeam?.toLowerCase().includes('fener') ||
-                m.HomeTeam?.toLowerCase().includes('efes') ||
-                m.AwayTeam?.toLowerCase().includes('efes')
-            );
+            const turkish = data.find(m => {
+                const home = m.HomeTeam || (m.homeTeam && m.homeTeam.name) || '';
+                const away = m.AwayTeam || (m.awayTeam && m.awayTeam.name) || '';
+                const hstr = typeof home === 'string' ? home.toLowerCase() : '';
+                const astr = typeof away === 'string' ? away.toLowerCase() : '';
+                return hstr.includes('galatasaray') || astr.includes('galatasaray') ||
+                    hstr.includes('fener') || astr.includes('fener');
+            });
             if (turkish) {
                 console.log('Found a Turkish item:');
                 console.log(JSON.stringify(turkish, null, 2));
@@ -41,10 +42,10 @@ async function checkUrl(url, label) {
 }
 
 const urls = [
-    { label: 'EuroLeague', url: 'https://fixturedownload.com/feed/json/turkish-airlines-euroleague-2024' },
-    { label: 'EuroCup', url: 'https://fixturedownload.com/feed/json/eurocup-2024' },
-    { label: 'Champions League Basketball', url: 'https://fixturedownload.com/feed/json/champions-league-basketball-2024' },
-    { label: 'Europa League FC', url: 'https://fixturedownload.com/feed/json/uefa-europa-league-2024' }
+    { label: 'Europa League 2025', url: 'https://fixturedownload.com/feed/json/europa-league-2025' },
+    { label: 'Conference League 2025', url: 'https://fixturedownload.com/feed/json/conference-league-2025' },
+    { label: 'Champions League 2025', url: 'https://fixturedownload.com/feed/json/champions-league-2025' },
+    { label: 'Super Lig 2025 (testing)', url: 'https://fixturedownload.com/feed/json/super-lig-2025' }
 ];
 
 async function main() {
