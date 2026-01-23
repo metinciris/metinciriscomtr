@@ -1,18 +1,20 @@
 {
-    "lastUpdated": "2026-01-23T06:00:00Z",
-    "football": {
-        "status": "pending",
-        "matchCount": 0,
-        "updatedAt": "2026-01-23T06:00:00Z"
-    },
-    "basketball": {
-        "status": "pending",
-        "matchCount": 0,
-        "updatedAt": "2026-01-23T06:00:00Z"
-    },
-    "volleyball": {
-        "status": "pending",
-        "matchCount": 0,
-        "updatedAt": "2026-01-23T06:00:00Z"
-    }
+  "lastUpdated": "2026-01-23T08:51:50Z",
+  "football": {
+    "status": "success",
+    "matchCount": 2,
+    "updatedAt": "2026-01-23T08:51:50Z"
+  },
+  "basketball": {
+    "status": "success",
+    "matchCount": 0
+0,
+    "updatedAt": "2026-01-23T08:51:50Z"
+  },
+  "volleyball": {
+    "status": "success",
+    "matchCount": 0
+0,
+    "updatedAt": "2026-01-23T08:51:50Z"
+  }
 }
