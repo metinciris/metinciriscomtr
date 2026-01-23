@@ -1,10 +1,12 @@
 /**
  * Fetch Volleyball Data - Turkish Teams in European Competitions
- * Source: API-Football (api-football.com) - Volleyball Endpoint
+ * Source: api-sports.io (Volleyball)
  * 
  * Competitions:
- * - CEV Champions League
- * - CEV Cup
+ * - Champions League (248)
+ * - Champions League Women (251)
+ * - CEV Cup (255)
+ * - CEV Cup Women (256)
  */
 
 import fs from 'fs';
@@ -18,7 +20,7 @@ const __dirname = path.dirname(__filename);
 const API_KEY = process.env.APIFOOTBALL_KEY;
 const BASE_URL = 'https://v1.volleyball.api-sports.io';
 
-// Turkish volleyball teams (normalized names for matching)
+// Turkish volleyball teams
 const TURKISH_TEAMS = [
     'vakifbank', 'vakıfbank', 'vakifbank istanbul',
     'eczacibasi', 'eczacıbaşı', 'eczacibasi istanbul',
@@ -31,16 +33,19 @@ const TURKISH_TEAMS = [
     'ibk', 'ibk ankara'
 ];
 
-// European leagues to check (IDs from API-Sports volleyball)
+// Leagues to check
 const LEAGUES = [
-    { id: 80, name: 'CEV Champions League' },
-    { id: 81, name: 'CEV Cup' }
+    { id: 248, name: 'Champions League' },
+    { id: 251, name: 'Champions League Women' },
+    { id: 255, name: 'CEV Cup' },
+    { id: 256, name: 'CEV Cup Women' }
 ];
 
 const OUTPUT_FILE = path.join(__dirname, '../public/data/volleyball.json');
 
-// Helper: Normalize team name for comparison
+// Helper: Normalize
 function normalizeTeamName(name) {
+    if (!name) return '';
     return name
         .toLowerCase()
         .replace(/[ğ]/g, 'g')
@@ -53,13 +58,11 @@ function normalizeTeamName(name) {
         .trim();
 }
 
-// Helper: Check if team is Turkish
 function isTurkishTeam(teamName) {
     const normalized = normalizeTeamName(teamName);
     return TURKISH_TEAMS.some(t => normalized.includes(t));
 }
 
-// Helper: Convert UTC to Istanbul time
 function toIstanbulTime(utcString) {
     const date = new Date(utcString);
     return date.toLocaleString('sv-SE', {
@@ -73,7 +76,6 @@ function toIstanbulTime(utcString) {
     }).replace(' ', 'T') + '+03:00';
 }
 
-// Fetch from API
 async function fetchFromAPI(endpoint) {
     const url = `${BASE_URL}${endpoint}`;
     console.log(`Fetching: ${url}`);
@@ -89,130 +91,68 @@ async function fetchFromAPI(endpoint) {
         throw new Error(`API error: ${response.status} ${response.statusText}`);
     }
 
-    const data = await response.json();
-
-    // Check for API errors
-    if (data.errors && Object.keys(data.errors).length > 0) {
-        console.error('API returned errors:', data.errors);
-        return null;
-    }
-
-    return data;
+    return response.json();
 }
 
-// Get matches for a league
 async function getLeagueMatches(league) {
     try {
-        // Get current season
-        const currentYear = new Date().getFullYear();
-        const season = `${currentYear - 1}-${currentYear}`;
+        // Use season 2024 for free tier
+        const data = await fetchFromAPI(`/games?league=${league.id}&season=2024`);
+        if (!data.response) return [];
 
-        // Get matches from dateFrom to dateTo (past 14 days + next 14 days)
-        const now = new Date();
-        const dateFrom = new Date(now);
-        dateFrom.setDate(dateFrom.getDate() - 14);
-        const dateTo = new Date(now);
-        dateTo.setDate(dateTo.getDate() + 14);
-
-        const dateFromStr = dateFrom.toISOString().split('T')[0];
-
-        const data = await fetchFromAPI(
-            `/games?league=${league.id}&season=${season}&date=${dateFromStr}`
+        const turkishMatches = data.response.filter(game =>
+            isTurkishTeam(game.teams.home.name) || isTurkishTeam(game.teams.away.name)
         );
-
-        if (!data || !data.response) {
-            console.log(`No data for ${league.name}`);
-            return [];
-        }
-
-        // Also fetch more dates
-        let allGames = [...data.response];
-
-        // Fetch remaining dates
-        const currentDate = new Date(dateFrom);
-        currentDate.setDate(currentDate.getDate() + 1);
-
-        while (currentDate <= dateTo) {
-            await new Promise(resolve => setTimeout(resolve, 500)); // Rate limiting
-
-            const dateStr = currentDate.toISOString().split('T')[0];
-            const dayData = await fetchFromAPI(
-                `/games?league=${league.id}&season=${season}&date=${dateStr}`
-            );
-
-            if (dayData && dayData.response) {
-                allGames = allGames.concat(dayData.response);
-            }
-
-            currentDate.setDate(currentDate.getDate() + 1);
-        }
-
-        // Filter for Turkish teams
-        const turkishMatches = allGames.filter(game =>
-            isTurkishTeam(game.teams?.home?.name || '') ||
-            isTurkishTeam(game.teams?.away?.name || '')
-        );
-
-        console.log(`Found ${turkishMatches.length} Turkish team matches in ${league.name}`);
 
         return turkishMatches.map(game => ({
             id: `volleyball-${league.id}-${game.id}`,
             sport: 'volleyball',
             competition: league.name,
-            season: season,
-            homeTeam: game.teams?.home?.name || 'Unknown',
-            awayTeam: game.teams?.away?.name || 'Unknown',
+            season: '2024/25',
+            homeTeam: game.teams.home.name,
+            awayTeam: game.teams.away.name,
             startTimeUTC: game.date,
             startTimeLocal: toIstanbulTime(game.date),
-            status: game.status?.long === 'Match Finished' ? 'finished' : 'scheduled',
-            scoreHome: game.scores?.home ?? null,
-            scoreAway: game.scores?.away ?? null,
-            source: 'api-football',
+            status: (game.status && game.status.short === 'FT') ? 'finished' : 'scheduled',
+            scoreHome: game.scores ? game.scores.home : null,
+            scoreAway: game.scores ? game.scores.away : null,
+            source: 'api-sports',
             lastFetchedAt: new Date().toISOString()
         }));
-
     } catch (error) {
         console.error(`Error fetching ${league.name}:`, error.message);
         return [];
     }
 }
 
-// Main function
 async function main() {
     if (!API_KEY) {
-        console.error('ERROR: APIFOOTBALL_KEY environment variable not set');
+        console.error('ERROR: APIFOOTBALL_KEY not set');
         process.exit(1);
     }
 
-    console.log('Starting volleyball data fetch...');
-    console.log(`API Key: ${API_KEY.substring(0, 8)}...`);
-
     let allMatches = [];
-
     for (const league of LEAGUES) {
-        // Add delay between requests to avoid rate limiting
-        if (allMatches.length > 0) {
-            await new Promise(resolve => setTimeout(resolve, 2000));
-        }
-
         const matches = await getLeagueMatches(league);
-        allMatches = allMatches.concat(matches);
+        allMatches = [...allMatches, ...matches];
     }
 
-    // Remove duplicates by ID
-    const uniqueMatches = [...new Map(allMatches.map(m => [m.id, m])).values()];
+    const now = new Date();
+    const windowStart = new Date(now);
+    windowStart.setDate(windowStart.getDate() - 14);
+    const windowEnd = new Date(now);
+    windowEnd.setDate(windowEnd.getDate() + 14);
 
-    // Sort by date
-    uniqueMatches.sort((a, b) => new Date(a.startTimeUTC) - new Date(b.startTimeUTC));
+    const filteredMatches = allMatches.filter(match => {
+        const d = new Date(match.startTimeUTC);
+        return d >= windowStart && d <= windowEnd;
+    });
 
-    console.log(`Total volleyball matches: ${uniqueMatches.length}`);
+    filteredMatches.sort((a, b) => new Date(a.startTimeUTC) - new Date(b.startTimeUTC));
 
-    // Write output
+    console.log(`Total volleyball matches: ${filteredMatches.length}`);
     fs.mkdirSync(path.dirname(OUTPUT_FILE), { recursive: true });
-    fs.writeFileSync(OUTPUT_FILE, JSON.stringify(uniqueMatches, null, 2));
-    console.log(`Written to: ${OUTPUT_FILE}`);
-
-    return { success: true, count: uniqueMatches.length };
+    fs.writeFileSync(OUTPUT_FILE, JSON.stringify(filteredMatches, null, 2));
 }
 
 main().catch(error => {
