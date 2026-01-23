@@ -145,28 +145,36 @@ export function EuroMaclar() {
                 ]);
 
                 // Process football
-                if (footballRes.status === 'fulfilled' && footballRes.value.ok) {
-                    const data = await footballRes.value.json();
-                    setFootballMatches(Array.isArray(data) ? data : []);
-                }
+                try {
+                    if (footballRes.status === 'fulfilled' && footballRes.value.ok) {
+                        const data = await footballRes.value.json();
+                        setFootballMatches(Array.isArray(data) ? data : []);
+                    }
+                } catch (e) { console.error('Error parsing football.json', e); }
 
                 // Process basketball
-                if (basketballRes.status === 'fulfilled' && basketballRes.value.ok) {
-                    const data = await basketballRes.value.json();
-                    setBasketballMatches(Array.isArray(data) ? data : []);
-                }
+                try {
+                    if (basketballRes.status === 'fulfilled' && basketballRes.value.ok) {
+                        const data = await basketballRes.value.json();
+                        setBasketballMatches(Array.isArray(data) ? data : []);
+                    }
+                } catch (e) { console.error('Error parsing basketball.json', e); }
 
                 // Process volleyball
-                if (volleyballRes.status === 'fulfilled' && volleyballRes.value.ok) {
-                    const data = await volleyballRes.value.json();
-                    setVolleyballMatches(Array.isArray(data) ? data : []);
-                }
+                try {
+                    if (volleyballRes.status === 'fulfilled' && volleyballRes.value.ok) {
+                        const data = await volleyballRes.value.json();
+                        setVolleyballMatches(Array.isArray(data) ? data : []);
+                    }
+                } catch (e) { console.error('Error parsing volleyball.json', e); }
 
                 // Process last updated
-                if (lastUpdatedRes.status === 'fulfilled' && lastUpdatedRes.value.ok) {
-                    const data = await lastUpdatedRes.value.json();
-                    setLastUpdated(data);
-                }
+                try {
+                    if (lastUpdatedRes.status === 'fulfilled' && lastUpdatedRes.value.ok) {
+                        const data = await lastUpdatedRes.value.json();
+                        setLastUpdated(data);
+                    }
+                } catch (e) { console.error('Error parsing last_updated.json', e); }
 
             } catch (err) {
                 console.error('Error fetching data:', err);
@@ -276,8 +284,8 @@ export function EuroMaclar() {
                             key={f.id}
                             onClick={() => setSportFilter(f.id as 'all' | SportType)}
                             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap flex items-center gap-2 ${sportFilter === f.id
-                                    ? 'bg-slate-800 text-white'
-                                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                ? 'bg-slate-800 text-white'
+                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                                 }`}
                         >
                             <span>{f.emoji}</span>

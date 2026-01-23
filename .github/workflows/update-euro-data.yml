@@ -63,38 +63,12 @@ jobs:
       # UPDATE LAST_UPDATED.JSON (Using Node for reliability)
       # ============================================
       - name: Create last_updated.json
+        env:
+          FOOTBALL_OUTCOME: ${{ steps.football.outcome }}
+          BASKETBALL_OUTCOME: ${{ steps.basketball.outcome }}
+          VOLLEYBALL_OUTCOME: ${{ steps.volleyball.outcome }}
         run: |
-          node -e '
-            const fs = require("fs");
-            const getCount = (path) => {
-              try {
-                if (!fs.existsSync(path)) return 0;
-                const data = JSON.parse(fs.readFileSync(path, "utf8"));
-                return Array.isArray(data) ? data.length : 0;
-              } catch (e) { return 0; }
-            };
-            
-            const timestamp = new Date().toISOString();
-            const lastUpdated = {
-              lastUpdated: timestamp,
-              football: {
-                status: "${{ steps.football.outcome }}" === "success" ? "success" : "error",
-                matchCount: getCount("public/data/football.json"),
-                updatedAt: timestamp
-              },
-              basketball: {
-                status: "${{ steps.basketball.outcome }}" === "success" ? "success" : "error",
-                matchCount: getCount("public/data/basketball.json"),
-                updatedAt: timestamp
-              },
-              volleyball: {
-                status: "${{ steps.volleyball.outcome }}" === "success" ? "success" : "error",
-                matchCount: getCount("public/data/volleyball.json"),
-                updatedAt: timestamp
-              }
-            };
-            fs.writeFileSync("public/data/last_updated.json", JSON.stringify(lastUpdated, null, 2));
-          '
+          node scripts/generate-last-updated.js
 
       # ============================================
       # COMMIT & PUSH
