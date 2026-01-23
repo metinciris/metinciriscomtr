@@ -1,0 +1,18 @@
+{
+    "lastUpdated": "2026-01-23T06:00:00Z",
+    "football": {
+        "status": "pending",
+        "matchCount": 0,
+        "updatedAt": "2026-01-23T06:00:00Z"
+    },
+    "basketball": {
+        "status": "pending",
+        "matchCount": 0,
+        "updatedAt": "2026-01-23T06:00:00Z"
+    },
+    "volleyball": {
+        "status": "pending",
+        "matchCount": 0,
+        "updatedAt": "2026-01-23T06:00:00Z"
+    }
+}
