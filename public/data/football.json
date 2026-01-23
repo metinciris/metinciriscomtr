@@ -12,7 +12,7 @@
     "scoreHome": 1,
     "scoreAway": 1,
     "source": "football-data",
-    "lastFetchedAt": "2026-01-23T10:46:47.950Z"
+    "lastFetchedAt": "2026-01-23T12:59:08.443Z"
   },
   {
     "id": "football-UEFAEuropaLeague-6",
@@ -23,11 +23,11 @@
     "awayTeam": "Aston Villa",
     "startTimeUTC": "2026-01-22 17:45:00Z",
     "startTimeLocal": "2026-01-22T20:45:00+03:00",
-    "status": "scheduled",
-    "scoreHome": null,
-    "scoreAway": null,
+    "status": "finished",
+    "scoreHome": 0,
+    "scoreAway": 1,
     "source": "fixturedownload",
-    "lastFetchedAt": "2026-01-23T10:46:49.123Z"
+    "lastFetchedAt": "2026-01-23T12:59:09.501Z"
   },
   {
     "id": "football-CL-551967",
@@ -42,7 +42,7 @@
     "scoreHome": null,
     "scoreAway": null,
     "source": "football-data",
-    "lastFetchedAt": "2026-01-23T10:46:47.950Z"
+    "lastFetchedAt": "2026-01-23T12:59:08.443Z"
   },
   {
     "id": "football-UEFAEuropaLeague-7",
@@ -57,6 +57,6 @@
     "scoreHome": null,
     "scoreAway": null,
     "source": "fixturedownload",
-    "lastFetchedAt": "2026-01-23T10:46:49.123Z"
+    "lastFetchedAt": "2026-01-23T12:59:09.501Z"
   }
 ]
