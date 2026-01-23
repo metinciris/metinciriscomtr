@@ -40,25 +40,56 @@ interface TheSportsDBEvent {
 }
 
 // ============================================
-// CONSTANTS
+// CONSTANTS & FILTER LISTS
 // ============================================
 const API_BASE = 'https://www.thesportsdb.com/api/v1/json/123';
 
-const BASKETBALL_LEAGUES = ['4546', '4547', '4548', '5607'];
-const VOLLEYBALL_LEAGUES = ['5616', '5615', '5614'];
+// Major European Competitions
+const BASKETBALL_LEAGUES = ['4546', '4547', '4548', '4363']; // EuroLeague, EuroCup, BCL, FIBA Europe Cup
+const VOLLEYBALL_LEAGUES = ['5616', '5615', '5614', '4912']; // CEV CL, CEV Cup, CEV Challenge, EuroVolley Women
 
-const CACHE_KEY = 'euro_matches_cache';
+// Turkish Team Keywords for Precise Filtering
+const TURKISH_MEN_BASKETBALL = [
+    'fenerbahce', 'anadolu efes', 'besiktas', 'turk telekom', 'galatasaray',
+    'karsiyaka', 'bahcesehir', 'bursaspor', 'tofas', 'darussafaka', 'petkim',
+    'manisa', 'merkezefendi', 'yalovaspor', 'turkiye'
+];
+
+const TURKISH_WOMEN_VOLLEYBALL = [
+    'vakifbank', 'eczacibasi', 'fenerbahce', 'galatasaray', 'besiktas',
+    'thy', 'turk hava yollari', 'kuzeyboru', 'nilufer', 'aydin bb',
+    'aras kargo', 'sariyer', 'zeren', 'bahcelievler', 'kecioen', 'turkiye'
+];
+
+const CACHE_KEY = 'euro_matches_cache_v2'; // Bumped version for new filtering
 const CACHE_DURATION_MS = 10 * 60 * 1000; // 10 minutes
 
 // ============================================
 // HELPERS
 // ============================================
+function normalizeName(name: string): string {
+    return name.toLowerCase()
+        .replace(/ı/g, 'i')
+        .replace(/ğ/g, 'g')
+        .replace(/ü/g, 'u')
+        .replace(/ş/g, 's')
+        .replace(/ö/g, 'o')
+        .replace(/ç/g, 'c')
+        .trim();
+}
+
+function isTurkishTeam(teamName: string, sport: SportType): boolean {
+    const normalized = normalizeName(teamName);
+    const keywords = sport === 'basketball' ? TURKISH_MEN_BASKETBALL : TURKISH_WOMEN_VOLLEYBALL;
+    return keywords.some(k => normalized.includes(k));
+}
+
 function getSportEmoji(sport: SportType): string {
     return sport === 'basketball' ? '🏀' : '🏐';
 }
 
 function getSportDisplayName(sport: SportType): string {
-    return sport === 'basketball' ? 'Basketbol' : 'Voleybol';
+    return sport === 'basketball' ? 'Basketbol (Erkek)' : 'Voleybol (Kadın)';
 }
 
 function mapStatus(event: TheSportsDBEvent): EuroMatch['status'] {
@@ -174,7 +205,7 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, highlight }) => {
                 {/* Date & Time */}
                 <div className="flex items-center gap-2 text-sm text-slate-500">
                     <Calendar size={16} />
-                    <span className={highlight ? "font-semibold text-slate-700" : ""}>
+                    <span className={highlight ? "font-semibold text-slate-700 font-mono" : "font-mono"}>
                         {dateStr} • {timeStr}
                     </span>
                     {getStatusBadge()}
@@ -184,24 +215,30 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, highlight }) => {
                 <div className="flex items-center justify-between mt-2">
                     {/* Home Team */}
                     <div className="flex-1 flex flex-col items-center text-center gap-1">
-                        {match.homeTeamBadge && (
-                            <img src={match.homeTeamBadge} alt="" className="w-10 h-10 object-contain" />
-                        )}
-                        <span className="text-sm font-medium leading-tight">{match.homeTeam}</span>
+                        <div className="w-12 h-12 flex items-center justify-center bg-slate-50 rounded-full p-2">
+                            {match.homeTeamBadge ? (
+                                <img src={match.homeTeamBadge} alt="" className="w-10 h-10 object-contain" />
+                            ) : (
+                                <Trophy size={20} className="text-slate-300" />
+                            )}
+                        </div>
+                        <span className={`text-xs font-bold leading-tight uppercase ${isTurkishTeam(match.homeTeam, match.sport) ? 'text-slate-900 underline decoration-yellow-400 decoration-2 underline-offset-4' : 'text-slate-500'}`}>
+                            {match.homeTeam}
+                        </span>
                     </div>
 
                     {/* Score / Time */}
                     <div className="flex flex-col items-center justify-center min-w-[80px] px-2">
                         {match.status === 'finished' || match.status === 'live' ? (
-                            <div className={`text-xl font-bold tracking-tight ${match.status === 'live' ? 'text-red-600' : 'text-slate-700'}`}>
-                                {match.scoreHome ?? '-'} - {match.scoreAway ?? '-'}
+                            <div className={`text-2xl font-black tracking-tighter ${match.status === 'live' ? 'text-red-600' : 'text-slate-800'}`}>
+                                {match.scoreHome ?? '-'} : {match.scoreAway ?? '-'}
                             </div>
                         ) : match.status === 'postponed' ? (
-                            <div className="text-sm font-semibold px-3 py-1 rounded-full bg-yellow-100 text-yellow-700">
+                            <div className="text-xs font-bold px-3 py-1 rounded-full bg-yellow-100 text-yellow-700 uppercase">
                                 Ertelendi
                             </div>
                         ) : (
-                            <div className={`text-sm font-semibold px-3 py-1 rounded-full ${highlight ? 'bg-yellow-100 text-yellow-700' : 'bg-slate-100 text-slate-500'}`}>
+                            <div className={`text-sm font-bold px-3 py-1 rounded-full ${highlight ? 'bg-yellow-100 text-yellow-700' : 'bg-slate-100 text-slate-500'}`}>
                                 {timeStr}
                             </div>
                         )}
@@ -209,10 +246,16 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, highlight }) => {
 
                     {/* Away Team */}
                     <div className="flex-1 flex flex-col items-center text-center gap-1">
-                        {match.awayTeamBadge && (
-                            <img src={match.awayTeamBadge} alt="" className="w-10 h-10 object-contain" />
-                        )}
-                        <span className="text-sm font-medium leading-tight">{match.awayTeam}</span>
+                        <div className="w-12 h-12 flex items-center justify-center bg-slate-50 rounded-full p-2">
+                            {match.awayTeamBadge ? (
+                                <img src={match.awayTeamBadge} alt="" className="w-10 h-10 object-contain" />
+                            ) : (
+                                <Trophy size={20} className="text-slate-300" />
+                            )}
+                        </div>
+                        <span className={`text-xs font-bold leading-tight uppercase ${isTurkishTeam(match.awayTeam, match.sport) ? 'text-slate-900 underline decoration-yellow-400 decoration-2 underline-offset-4' : 'text-slate-500'}`}>
+                            {match.awayTeam}
+                        </span>
                     </div>
                 </div>
             </div>
@@ -247,63 +290,42 @@ export function EuroMaclar() {
         try {
             const allMatches: EuroMatch[] = [];
 
-            // Fetch basketball leagues
-            for (const leagueId of BASKETBALL_LEAGUES) {
-                try {
-                    const [nextRes, pastRes] = await Promise.all([
-                        fetch(`${API_BASE}/eventsnextleague.php?id=${leagueId}`),
-                        fetch(`${API_BASE}/eventspastleague.php?id=${leagueId}`)
-                    ]);
+            // Helper for fetching league data
+            const fetchLeague = async (id: string, sport: SportType) => {
+                const [nextRes, pastRes] = await Promise.all([
+                    fetch(`${API_BASE}/eventsnextleague.php?id=${id}`),
+                    fetch(`${API_BASE}/eventspastleague.php?id=${id}`)
+                ]);
 
-                    if (nextRes.ok) {
-                        const nextData = await nextRes.json();
-                        if (nextData.events && Array.isArray(nextData.events)) {
-                            allMatches.push(...nextData.events.map((e: TheSportsDBEvent) => normalizeEvent(e, 'basketball')));
-                        }
+                const processEvents = (data: any) => {
+                    if (data.events && Array.isArray(data.events)) {
+                        const filtered = data.events
+                            .map((e: TheSportsDBEvent) => normalizeEvent(e, sport))
+                            // Robust filter: Only Turkish Men's Basketball or Turkish Women's Volleyball
+                            .filter((m: EuroMatch) => isTurkishTeam(m.homeTeam, sport) || isTurkishTeam(m.awayTeam, sport));
+                        allMatches.push(...filtered);
                     }
+                };
 
-                    if (pastRes.ok) {
-                        const pastData = await pastRes.json();
-                        if (pastData.events && Array.isArray(pastData.events)) {
-                            allMatches.push(...pastData.events.map((e: TheSportsDBEvent) => normalizeEvent(e, 'basketball')));
-                        }
-                    }
-                } catch (e) {
-                    console.error(`Error fetching basketball league ${leagueId}:`, e);
-                }
-            }
+                if (nextRes.ok) processEvents(await nextRes.json());
+                if (pastRes.ok) processEvents(await pastRes.json());
+            };
 
-            // Fetch volleyball leagues
-            for (const leagueId of VOLLEYBALL_LEAGUES) {
-                try {
-                    const [nextRes, pastRes] = await Promise.all([
-                        fetch(`${API_BASE}/eventsnextleague.php?id=${leagueId}`),
-                        fetch(`${API_BASE}/eventspastleague.php?id=${leagueId}`)
-                    ]);
-
-                    if (nextRes.ok) {
-                        const nextData = await nextRes.json();
-                        if (nextData.events && Array.isArray(nextData.events)) {
-                            allMatches.push(...nextData.events.map((e: TheSportsDBEvent) => normalizeEvent(e, 'volleyball')));
-                        }
-                    }
-
-                    if (pastRes.ok) {
-                        const pastData = await pastRes.json();
-                        if (pastData.events && Array.isArray(pastData.events)) {
-                            allMatches.push(...pastData.events.map((e: TheSportsDBEvent) => normalizeEvent(e, 'volleyball')));
-                        }
-                    }
-                } catch (e) {
-                    console.error(`Error fetching volleyball league ${leagueId}:`, e);
-                }
-            }
+            // Fetch Basketball & Volleyball in parallel
+            await Promise.all([
+                ...BASKETBALL_LEAGUES.map(id => fetchLeague(id, 'basketball')),
+                ...VOLLEYBALL_LEAGUES.map(id => fetchLeague(id, 'volleyball'))
+            ]);
 
             if (allMatches.length === 0) {
-                setError('Maç verisi bulunamadı. API\'ye erişilemiyor olabilir.');
+                setError('Şu an için Türk takımlarının Avrupa maçı bulunamadı.');
             } else {
-                // Deduplicate by id
+                // Deduplicate by event id
                 const uniqueMatches = Array.from(new Map(allMatches.map(m => [m.id, m])).values());
+
+                // Sort by date: Finished first (desc), then Upcoming (asc)
+                uniqueMatches.sort((a, b) => new Date(a.matchDate).getTime() - new Date(b.matchDate).getTime());
+
                 setMatches(uniqueMatches);
                 saveToCache(uniqueMatches);
                 setLastFetched(new Date());
@@ -328,99 +350,109 @@ export function EuroMaclar() {
 
     // Categorize matches
     const now = new Date();
-    // Use Istanbul time for current day boundary
     const formatter = new Intl.DateTimeFormat('tr-TR', { timeZone: 'Europe/Istanbul', year: 'numeric', month: 'numeric', day: 'numeric' });
-    const [{ value: d }, , { value: m }, , { value: y }] = formatter.formatToParts(now);
-    const todayStart = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+    const parts = formatter.formatToParts(now);
+    const d = parts.find(p => p.type === 'day')?.value;
+    const m = parts.find(p => p.type === 'month')?.value;
+    const y = parts.find(p => p.type === 'year')?.value;
+
+    // Boundary in Istanbul time
+    const todayStart = new Date(parseInt(y || '0'), parseInt(m || '0') - 1, parseInt(d || '0'));
     const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
 
     const todaysMatches = useMemo(() =>
         filteredMatches.filter(m => {
             const matchDate = new Date(m.matchDate);
             return matchDate >= todayStart && matchDate < todayEnd;
-        }).sort((a, b) => new Date(a.matchDate).getTime() - new Date(b.matchDate).getTime()),
-        [filteredMatches, todayStart, todayEnd]);
+        }), [filteredMatches, todayStart, todayEnd]);
 
     const upcomingMatches = useMemo(() =>
         filteredMatches
             .filter(m => new Date(m.matchDate) >= todayEnd && m.status === 'scheduled')
-            .sort((a, b) => new Date(a.matchDate).getTime() - new Date(b.matchDate).getTime())
-            .slice(0, 15),
+            .slice(0, 20),
         [filteredMatches, todayEnd]);
 
     const recentMatches = useMemo(() =>
         filteredMatches
-            .filter(m => new Date(m.matchDate) < todayStart && m.status === 'finished')
+            .filter(m => new Date(m.matchDate) < todayStart)
             .sort((a, b) => new Date(b.matchDate).getTime() - new Date(a.matchDate).getTime())
-            .slice(0, 15),
+            .slice(0, 20),
         [filteredMatches, todayStart]);
 
     const hasTodayMatches = todaysMatches.length > 0;
 
-    // Count by sport
-    const basketballCount = matches.filter(m => m.sport === 'basketball').length;
-    const volleyballCount = matches.filter(m => m.sport === 'volleyball').length;
-
     return (
         <PageContainer>
             {/* Header Banner */}
-            <div className={`${hasTodayMatches ? 'bg-gradient-to-r from-orange-600 to-orange-800' : 'bg-gradient-to-r from-slate-600 to-slate-800'} text-white p-8 md:p-12 mb-8 rounded-xl shadow-lg relative overflow-hidden`}>
+            <div className={`${hasTodayMatches ? 'bg-gradient-to-br from-indigo-700 via-blue-800 to-indigo-950' : 'bg-gradient-to-br from-slate-700 via-slate-800 to-slate-950'} text-white p-8 md:p-12 mb-8 rounded-2xl shadow-xl relative overflow-hidden`}>
                 <div className="relative z-10">
-                    <div className="flex items-center gap-3 mb-4">
-                        <Trophy size={32} className="text-yellow-400" />
-                        <h1 className="text-3xl md:text-4xl font-bold">Avrupa Kupaları</h1>
+                    <div className="flex items-center gap-4 mb-6">
+                        <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-md">
+                            <Trophy size={40} className="text-yellow-400 drop-shadow-lg" />
+                        </div>
+                        <div>
+                            <h1 className="text-3xl md:text-5xl font-black tracking-tight uppercase italic underline decoration-yellow-400 decoration-4 underline-offset-8">
+                                Avrupa Kupaları
+                            </h1>
+                            <p className="text-blue-100 font-medium mt-2 tracking-wide uppercase text-sm">
+                                Türk Takımlarının Avrupa Serüveni
+                            </p>
+                        </div>
                     </div>
 
-                    {/* Today's Match Status */}
-                    <div className="flex items-center gap-3 mt-4">
+                    {/* Today's Status Card */}
+                    <div className="inline-flex items-center gap-4 bg-white/10 backdrop-blur-xl border border-white/20 px-6 py-4 rounded-2xl mt-4">
                         {hasTodayMatches ? (
                             <>
-                                <CheckCircle size={28} className="text-yellow-300" />
-                                <span className="text-2xl font-semibold">
-                                    Bugün {todaysMatches.length} maç var! 🏀🏐
+                                <div className="w-4 h-4 rounded-full bg-yellow-400 animate-ping"></div>
+                                <span className="text-xl md:text-2xl font-black tracking-tight uppercase">
+                                    Bugün <span className="text-yellow-400">{todaysMatches.length}</span> kritik maç var!
                                 </span>
                             </>
                         ) : (
                             <>
-                                <XCircle size={28} className="text-slate-300" />
-                                <span className="text-xl text-white/80">
-                                    Bugün maç yok
+                                <Clock size={24} className="text-white/60" />
+                                <span className="text-lg font-bold text-white/80 uppercase">
+                                    Bugün maçımız yok
                                 </span>
                             </>
                         )}
                     </div>
 
-                    <p className="text-white/70 mt-4 text-sm">
-                        Basketbol (EuroLeague, EuroCup) ve Voleybol (CEV Şampiyonlar Ligi) maçları
-                    </p>
+                    <div className="mt-8 flex gap-4 text-xs font-bold text-white/50 uppercase tracking-widest">
+                        <span>#BasketbolErkek</span>
+                        <span>#VoleybolKadin</span>
+                        <span>#AvrupaFatihi</span>
+                    </div>
                 </div>
 
-                {/* Decorative elements */}
-                <div className="absolute -right-12 -top-12 w-48 h-48 bg-white/10 rounded-full blur-2xl"></div>
-                <div className="absolute left-1/2 bottom-0 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
+                {/* Decorative Pattern */}
+                <div className="absolute top-0 right-0 w-full h-full opacity-10 pointer-events-none overflow-hidden">
+                    <div className="absolute top-[-20%] right-[-10%] w-[60%] h-[150%] rotate-45 bg-gradient-to-b from-white to-transparent"></div>
+                </div>
             </div>
 
             {/* Sport Filter Tabs */}
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-8 sticky top-4 z-20">
-                <div className="flex items-center justify-between gap-2 flex-wrap">
-                    <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar">
+            <div className="bg-white/80 backdrop-blur-md p-2 rounded-2xl shadow-lg border border-slate-200 mb-10 sticky top-6 z-30">
+                <div className="flex items-center justify-between gap-4 flex-wrap">
+                    <div className="flex items-center gap-2">
                         {[
                             { id: 'all', label: 'Tümü', emoji: '🏆', count: matches.length },
-                            { id: 'basketball', label: 'Basketbol', emoji: '🏀', count: basketballCount },
-                            { id: 'volleyball', label: 'Voleybol', emoji: '🏐', count: volleyballCount },
+                            { id: 'basketball', label: 'Basketbol', emoji: '🏀', count: matches.filter(m => m.sport === 'basketball').length },
+                            { id: 'volleyball', label: 'Voleybol', emoji: '🏐', count: matches.filter(m => m.sport === 'volleyball').length },
                         ].map(f => (
                             <button
                                 key={f.id}
                                 onClick={() => setSportFilter(f.id as 'all' | SportType)}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap flex items-center gap-2 ${sportFilter === f.id
-                                    ? 'bg-slate-800 text-white'
-                                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                className={`px-6 py-3 rounded-xl text-xs font-black transition-all uppercase tracking-tighter flex items-center gap-3 border-2 ${sportFilter === f.id
+                                    ? 'bg-slate-900 text-white border-slate-900 shadow-lg scale-105'
+                                    : 'bg-white text-slate-500 border-slate-100 hover:border-slate-300'
                                     }`}
                             >
-                                <span>{f.emoji}</span>
+                                <span className="text-lg">{f.emoji}</span>
                                 <span>{f.label}</span>
                                 {f.count > 0 && (
-                                    <span className={`text-xs px-1.5 py-0.5 rounded-full ${sportFilter === f.id ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'}`}>
+                                    <span className={`px-2 py-0.5 rounded-lg text-[10px] ${sportFilter === f.id ? 'bg-yellow-400 text-slate-900' : 'bg-slate-100 text-slate-500'}`}>
                                         {f.count}
                                     </span>
                                 )}
@@ -432,51 +464,45 @@ export function EuroMaclar() {
                     <button
                         onClick={() => fetchMatches(true)}
                         disabled={loading}
-                        className="px-3 py-2 rounded-lg text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors flex items-center gap-2"
+                        className="p-3 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-900 hover:text-white transition-all border border-transparent hover:border-slate-900"
+                        title="Verileri Yenile"
                     >
-                        <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-                        <span className="hidden sm:inline">Yenile</span>
+                        <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
                     </button>
                 </div>
             </div>
 
-            {/* Loading State */}
-            {loading && (
-                <div className="text-center py-12 text-slate-500 flex flex-col items-center gap-2">
-                    <RefreshCw className="animate-spin" />
-                    <span>Veriler yükleniyor...</span>
+            {/* Loading / Error States */}
+            {loading ? (
+                <div className="flex flex-col items-center justify-center py-32 gap-4">
+                    <div className="w-16 h-16 border-4 border-slate-200 border-t-yellow-400 rounded-full animate-spin"></div>
+                    <span className="font-black text-slate-400 uppercase tracking-widest text-sm">Veriler Sahadan Geliyor...</span>
                 </div>
-            )}
-
-            {/* Error State */}
-            {error && !loading && (
-                <div className="text-center py-12 text-red-500 flex flex-col items-center gap-4">
-                    <AlertCircle size={48} />
-                    <span className="text-lg">{error}</span>
+            ) : error ? (
+                <div className="bg-red-50 border-2 border-red-100 rounded-3xl p-12 text-center flex flex-col items-center gap-6">
+                    <AlertCircle size={64} className="text-red-400" />
+                    <div className="max-w-md">
+                        <h3 className="text-xl font-black text-red-900 uppercase">Veri Alınamadı</h3>
+                        <p className="text-red-600 font-medium mt-2">{error}</p>
+                    </div>
                     <button
                         onClick={() => fetchMatches(true)}
-                        className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                        className="px-8 py-3 bg-red-600 text-white font-black rounded-xl hover:bg-red-700 transition-all uppercase tracking-tighter"
                     >
                         Tekrar Dene
                     </button>
                 </div>
-            )}
+            ) : (
+                <div className="space-y-16">
 
-            {/* Content */}
-            {!loading && !error && (
-                <div className="space-y-12">
-
-                    {/* Today's Matches */}
+                    {/* Today's Section */}
                     {todaysMatches.length > 0 && (
-                        <section className="bg-gradient-to-b from-yellow-50 to-white p-6 rounded-2xl border border-yellow-200 shadow-sm">
-                            <div className="flex items-center gap-2 mb-6">
-                                <Clock className="text-yellow-500" />
-                                <h2 className="text-2xl font-bold text-slate-900">Bugünkü Maçlar</h2>
-                                <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full font-bold">
-                                    {todaysMatches.length} maç
-                                </span>
+                        <section className="relative">
+                            <div className="flex items-center gap-4 mb-8">
+                                <div className="bg-yellow-400 w-2 h-8 rounded-full"></div>
+                                <h2 className="text-3xl font-black text-slate-900 uppercase italic tracking-tighter">BU GÜNÜN KRİTİK MAÇLARI</h2>
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {todaysMatches.map(match => (
                                     <MatchCard key={match.id} match={match} highlight />
                                 ))}
@@ -484,69 +510,65 @@ export function EuroMaclar() {
                         </section>
                     )}
 
-                    {/* Upcoming Matches */}
+                    {/* Upcoming Section */}
                     <section>
-                        <div className="flex items-center gap-2 mb-6">
-                            <h2 className="text-2xl font-bold text-slate-800">Yaklaşan Maçlar</h2>
-                            <span className="bg-slate-100 text-slate-600 text-xs px-2 py-1 rounded-full font-medium">
-                                {upcomingMatches.length}
-                            </span>
+                        <div className="flex items-center gap-4 mb-8">
+                            <div className="bg-slate-300 w-2 h-8 rounded-full"></div>
+                            <h2 className="text-3xl font-black text-slate-900 uppercase italic tracking-tighter">SIRADAKİ RANDEVULAR</h2>
                         </div>
-
                         {upcomingMatches.length > 0 ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {upcomingMatches.map(match => (
                                     <MatchCard key={match.id} match={match} />
                                 ))}
                             </div>
                         ) : (
-                            <div className="bg-slate-50 rounded-xl p-8 text-center text-slate-500">
-                                <p>Yaklaşan maç bulunamadı.</p>
-                                {sportFilter !== 'all' && (
-                                    <p className="text-sm mt-2">
-                                        {getSportEmoji(sportFilter)} {getSportDisplayName(sportFilter)} için planlanmış maç yok.
-                                    </p>
-                                )}
+                            <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl p-16 text-center">
+                                <p className="text-slate-400 font-bold uppercase tracking-widest">Planlanmış yakın maç bulunamadı.</p>
                             </div>
                         )}
                     </section>
 
-                    {/* Recent Results */}
+                    {/* Recent Results Section */}
                     <section>
-                        <div className="flex items-center gap-2 mb-6">
-                            <h2 className="text-2xl font-bold text-slate-800">Son Sonuçlar</h2>
-                            <span className="bg-slate-100 text-slate-600 text-xs px-2 py-1 rounded-full font-medium">
-                                {recentMatches.length}
-                            </span>
+                        <div className="flex items-center gap-4 mb-8">
+                            <div className="bg-slate-200 w-2 h-8 rounded-full"></div>
+                            <h2 className="text-3xl font-black text-slate-900 uppercase italic tracking-tighter">SON ARENA SONUÇLARI</h2>
                         </div>
-
                         {recentMatches.length > 0 ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 opacity-80 hover:opacity-100 transition-opacity">
                                 {recentMatches.map(match => (
                                     <MatchCard key={match.id} match={match} />
                                 ))}
                             </div>
                         ) : (
-                            <div className="bg-slate-50 rounded-xl p-8 text-center text-slate-500">
-                                <p>Son maç sonucu bulunamadı.</p>
-                                {sportFilter !== 'all' && (
-                                    <p className="text-sm mt-2">
-                                        {getSportEmoji(sportFilter)} {getSportDisplayName(sportFilter)} için tamamlanmış maç yok.
-                                    </p>
-                                )}
+                            <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl p-16 text-center">
+                                <p className="text-slate-400 font-bold uppercase tracking-widest">Son maç sonucu bulunamadı.</p>
                             </div>
                         )}
                     </section>
 
-                    {/* Last Updated Footer */}
+                    {/* Footer Info */}
                     {lastFetched && (
-                        <div className="mt-8 pt-6 border-t border-slate-200 text-center text-sm text-slate-400">
-                            <p>
-                                Son güncelleme (İstanbul): {lastFetched.toLocaleString('tr-TR', { timeZone: 'Europe/Istanbul' })}
-                            </p>
-                            <p className="text-xs mt-1">
-                                Veriler 10 dakika önbelleğe alınır • Kaynak: TheSportsDB
-                            </p>
+                        <div className="mt-20 pt-10 border-t border-slate-200">
+                            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                                <div className="text-center md:text-left">
+                                    <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
+                                        SON GÜNCELLEME (İSTANBUL): {lastFetched.toLocaleString('tr-TR', { timeZone: 'Europe/Istanbul' })}
+                                    </p>
+                                    <p className="text-[10px] text-slate-300 font-bold uppercase mt-1">
+                                        VERİ KAYNAĞI: THE SPORTS DB • © 2026 METINCIRIS.COM.TR
+                                    </p>
+                                </div>
+                                <div className="flex gap-4">
+                                    <div className="px-4 py-2 bg-slate-100 rounded-lg text-[10px] font-black text-slate-500 uppercase">
+                                        {matches.length} AKTİF KAYIT
+                                    </div>
+                                    <div className="px-4 py-2 bg-yellow-50 rounded-lg text-[10px] font-black text-yellow-700 uppercase">
+                                        GERÇEK ZAMANLI VERİ
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     )}
                 </div>
