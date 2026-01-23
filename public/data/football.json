@@ -3,7 +3,7 @@
     "id": "football-CL-552010",
     "sport": "football",
     "competition": "UEFA Champions League",
-    "season": null,
+    "season": "2024/25",
     "homeTeam": "Galatasaray SK",
     "awayTeam": "Club Atlético de Madrid",
     "startTimeUTC": "2026-01-21T17:45:00Z",
@@ -12,13 +12,13 @@
     "scoreHome": 1,
     "scoreAway": 1,
     "source": "football-data",
-    "lastFetchedAt": "2026-01-23T08:51:47.574Z"
+    "lastFetchedAt": "2026-01-23T09:00:01.120Z"
   },
   {
     "id": "football-CL-551967",
     "sport": "football",
     "competition": "UEFA Champions League",
-    "season": null,
+    "season": "2024/25",
     "homeTeam": "Manchester City FC",
     "awayTeam": "Galatasaray SK",
     "startTimeUTC": "2026-01-28T20:00:00Z",
@@ -27,6 +27,6 @@
     "scoreHome": null,
     "scoreAway": null,
     "source": "football-data",
-    "lastFetchedAt": "2026-01-23T08:51:47.574Z"
+    "lastFetchedAt": "2026-01-23T09:00:01.120Z"
   }
 ]
