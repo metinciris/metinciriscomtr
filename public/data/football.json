@@ -3,7 +3,7 @@
     "id": "football-CL-552010",
     "sport": "football",
     "competition": "UEFA Champions League",
-    "season": "2024/25",
+    "season": "2025/26",
     "homeTeam": "Galatasaray SK",
     "awayTeam": "Club Atlético de Madrid",
     "startTimeUTC": "2026-01-21T17:45:00Z",
@@ -12,13 +12,28 @@
     "scoreHome": 1,
     "scoreAway": 1,
     "source": "football-data",
-    "lastFetchedAt": "2026-01-23T09:13:33.740Z"
+    "lastFetchedAt": "2026-01-23T10:28:53.076Z"
+  },
+  {
+    "id": "football-UEFAEuropaLeague-6",
+    "sport": "football",
+    "competition": "UEFA Europa League",
+    "season": "2025/26",
+    "homeTeam": "Fenerbahçe",
+    "awayTeam": "Aston Villa",
+    "startTimeUTC": "2026-01-22 17:45:00Z",
+    "startTimeLocal": "2026-01-22T20:45:00+03:00",
+    "status": "scheduled",
+    "scoreHome": null,
+    "scoreAway": null,
+    "source": "fixturedownload",
+    "lastFetchedAt": "2026-01-23T10:28:54.055Z"
   },
   {
     "id": "football-CL-551967",
     "sport": "football",
     "competition": "UEFA Champions League",
-    "season": "2024/25",
+    "season": "2025/26",
     "homeTeam": "Manchester City FC",
     "awayTeam": "Galatasaray SK",
     "startTimeUTC": "2026-01-28T20:00:00Z",
@@ -27,6 +42,21 @@
     "scoreHome": null,
     "scoreAway": null,
     "source": "football-data",
-    "lastFetchedAt": "2026-01-23T09:13:33.740Z"
+    "lastFetchedAt": "2026-01-23T10:28:53.076Z"
+  },
+  {
+    "id": "football-UEFAEuropaLeague-7",
+    "sport": "football",
+    "competition": "UEFA Europa League",
+    "season": "2025/26",
+    "homeTeam": "FCSB",
+    "awayTeam": "Fenerbahçe",
+    "startTimeUTC": "2026-01-29 20:00:00Z",
+    "startTimeLocal": "2026-01-29T23:00:00+03:00",
+    "status": "scheduled",
+    "scoreHome": null,
+    "scoreAway": null,
+    "source": "fixturedownload",
+    "lastFetchedAt": "2026-01-23T10:28:54.055Z"
   }
 ]
