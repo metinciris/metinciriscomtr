@@ -1,8 +1,13 @@
 /**
  * Generate last_updated.json for the Euro Matches dashboard
+ * ES Module version
  */
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const getCount = (filePath) => {
     try {
@@ -46,7 +51,7 @@ const lastUpdated = {
     }
 };
 
-const outputPath = 'public/data/last_updated.json';
+const outputPath = path.join(__dirname, '../public/data/last_updated.json');
 fs.mkdirSync(path.dirname(outputPath), { recursive: true });
 fs.writeFileSync(outputPath, JSON.stringify(lastUpdated, null, 2));
 
