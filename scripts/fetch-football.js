@@ -1,11 +1,8 @@
 /**
  * Fetch Football Data - Turkish Teams in UEFA Competitions
- * Source: football-data.org
- * 
- * Competitions:
- * - UEFA Champions League (CL)
- * - UEFA Europa League (EL)
- * - UEFA Europa Conference League (ECL)
+ * Sources: 
+ * - football-data.org (Champions League)
+ * - fixturedownload.com (Europa League & Conference League)
  */
 
 import fs from 'fs';
@@ -17,7 +14,7 @@ const __dirname = path.dirname(__filename);
 
 // API Configuration
 const API_TOKEN = process.env.FOOTBALL_DATA_TOKEN;
-const BASE_URL = 'https://api.football-data.org/v4';
+const FOOTBALL_DATA_BASE_URL = 'https://api.football-data.org/v4';
 
 // Turkish teams (normalized names for matching)
 const TURKISH_TEAMS = [
@@ -27,17 +24,11 @@ const TURKISH_TEAMS = [
     'kayserispor', 'alanyaspor', 'pendikspor', 'kasimpasa', 'kasımpaşa'
 ];
 
-// UEFA Competition codes in football-data.org
-const COMPETITIONS = [
-    { code: 'CL', name: 'UEFA Champions League' },
-    { code: 'EL', name: 'UEFA Europa League' },
-    { code: 'ECL', name: 'UEFA Europa Conference League' }
-];
-
 const OUTPUT_FILE = path.join(__dirname, '../public/data/football.json');
 
 // Helper: Normalize team name for comparison
 function normalizeTeamName(name) {
+    if (!name) return '';
     return name
         .toLowerCase()
         .replace(/[ğ]/g, 'g')
@@ -70,10 +61,10 @@ function toIstanbulTime(utcString) {
     }).replace(' ', 'T') + '+03:00';
 }
 
-// Fetch from API
-async function fetchFromAPI(endpoint) {
-    const url = `${BASE_URL}${endpoint}`;
-    console.log(`Fetching: ${url}`);
+// Fetch from football-data.org
+async function fetchFootballData(endpoint) {
+    const url = `${FOOTBALL_DATA_BASE_URL}${endpoint}`;
+    console.log(`Fetching from football-data.org: ${url}`);
 
     const response = await fetch(url, {
         headers: {
@@ -82,46 +73,37 @@ async function fetchFromAPI(endpoint) {
     });
 
     if (!response.ok) {
-        throw new Error(`API error: ${response.status} ${response.statusText}`);
+        throw new Error(`football-data.org error: ${response.status} ${response.statusText}`);
     }
 
     return response.json();
 }
 
-// Get matches for a competition
-async function getCompetitionMatches(competition) {
+// Fetch from fixturedownload.com
+async function fetchFixtureDownloadData(url) {
+    console.log(`Fetching from fixturedownload.com: ${url}`);
+    const response = await fetch(url);
+    if (!response.ok) {
+        throw new Error(`fixturedownload error: ${response.status} ${response.statusText}`);
+    }
+    return response.json();
+}
+
+// Get Champions League (remains on football-data.org as it's free)
+async function getChampionsLeagueMatches() {
     try {
-        // Get matches from dateFrom to dateTo (past 14 days + next 14 days)
-        const now = new Date();
-        const dateFrom = new Date(now);
-        dateFrom.setDate(dateFrom.getDate() - 14);
-        const dateTo = new Date(now);
-        dateTo.setDate(dateTo.getDate() + 14);
+        const data = await fetchFootballData('/competitions/CL/matches');
+        if (!data.matches) return [];
 
-        const dateFromStr = dateFrom.toISOString().split('T')[0];
-        const dateToStr = dateTo.toISOString().split('T')[0];
-
-        const data = await fetchFromAPI(
-            `/competitions/${competition.code}/matches?dateFrom=${dateFromStr}&dateTo=${dateToStr}`
-        );
-
-        if (!data.matches) {
-            console.log(`No matches found for ${competition.name}`);
-            return [];
-        }
-
-        // Filter for Turkish teams
         const turkishMatches = data.matches.filter(match =>
             isTurkishTeam(match.homeTeam.name) || isTurkishTeam(match.awayTeam.name)
         );
 
-        console.log(`Found ${turkishMatches.length} Turkish team matches in ${competition.name}`);
-
         return turkishMatches.map(match => ({
-            id: `football-${competition.code}-${match.id}`,
+            id: `football-CL-${match.id}`,
             sport: 'football',
-            competition: competition.name,
-            season: data.competition?.currentSeason?.startDate?.substring(0, 4) || null,
+            competition: 'UEFA Champions League',
+            season: '2024/25',
             homeTeam: match.homeTeam.name,
             awayTeam: match.awayTeam.name,
             startTimeUTC: match.utcDate,
@@ -132,46 +114,92 @@ async function getCompetitionMatches(competition) {
             source: 'football-data',
             lastFetchedAt: new Date().toISOString()
         }));
-
     } catch (error) {
-        console.error(`Error fetching ${competition.name}:`, error.message);
+        console.error('Error fetching CL from football-data.org:', error.message);
+        return [];
+    }
+}
+
+// Get Europa League & Conference League (from fixturedownload.com)
+async function getFixtureDownloadMatches(url, competitionName) {
+    try {
+        const data = await fetchFixtureDownloadData(url);
+        if (!Array.isArray(data)) return [];
+
+        const turkishMatches = data.filter(match =>
+            isTurkishTeam(match.HomeTeam) || isTurkishTeam(match.AwayTeam)
+        );
+
+        return turkishMatches.map((match, idx) => ({
+            id: `football-${competitionName.replace(/\s+/g, '')}-${idx}`,
+            sport: 'football',
+            competition: competitionName,
+            season: '2024/25',
+            homeTeam: match.HomeTeam,
+            awayTeam: match.AwayTeam,
+            startTimeUTC: match.DateUtc,
+            startTimeLocal: toIstanbulTime(match.DateUtc),
+            status: (match.HomeTeamScore !== null && match.AwayTeamScore !== null) ? 'finished' : 'scheduled',
+            scoreHome: match.HomeTeamScore,
+            scoreAway: match.AwayTeamScore,
+            source: 'fixturedownload',
+            lastFetchedAt: new Date().toISOString()
+        }));
+    } catch (error) {
+        console.error(`Error fetching ${competitionName} from fixturedownload.com:`, error.message);
         return [];
     }
 }
 
 // Main function
 async function main() {
-    if (!API_TOKEN) {
-        console.error('ERROR: FOOTBALL_DATA_TOKEN environment variable not set');
-        process.exit(1);
-    }
-
     console.log('Starting football data fetch...');
-    console.log(`API Token: ${API_TOKEN.substring(0, 8)}...`);
 
     let allMatches = [];
 
-    for (const competition of COMPETITIONS) {
-        // Add delay between requests to avoid rate limiting
-        if (allMatches.length > 0) {
-            await new Promise(resolve => setTimeout(resolve, 1000));
-        }
-
-        const matches = await getCompetitionMatches(competition);
-        allMatches = allMatches.concat(matches);
+    // 1. CL from football-data
+    if (API_TOKEN) {
+        const clMatches = await getChampionsLeagueMatches();
+        allMatches = [...allMatches, ...clMatches];
+    } else {
+        console.warn('FOOTBALL_DATA_TOKEN not set, skipping CL from football-data.org');
     }
 
-    // Sort by date
-    allMatches.sort((a, b) => new Date(a.startTimeUTC) - new Date(b.startTimeUTC));
+    // 2. EL from fixturedownload
+    const elMatches = await getFixtureDownloadMatches(
+        'https://fixturedownload.com/feed/json/uefa-europa-league-2024',
+        'UEFA Europa League'
+    );
+    allMatches = [...allMatches, ...elMatches];
 
-    console.log(`Total football matches: ${allMatches.length}`);
+    // 3. ECL from fixturedownload
+    const eclMatches = await getFixtureDownloadMatches(
+        'https://fixturedownload.com/feed/json/uefa-conference-league-2024',
+        'UEFA Conference League'
+    );
+    allMatches = [...allMatches, ...eclMatches];
+
+    // Filter by date window (optional, but good for cleanliness)
+    const now = new Date();
+    const windowStart = new Date(now);
+    windowStart.setDate(windowStart.getDate() - 14);
+    const windowEnd = new Date(now);
+    windowEnd.setDate(windowEnd.getDate() + 14);
+
+    const filteredMatches = allMatches.filter(match => {
+        const d = new Date(match.startTimeUTC);
+        return d >= windowStart && d <= windowEnd;
+    });
+
+    // Sort by date
+    filteredMatches.sort((a, b) => new Date(a.startTimeUTC) - new Date(b.startTimeUTC));
+
+    console.log(`Total football matches after filtering: ${filteredMatches.length}`);
 
     // Write output
     fs.mkdirSync(path.dirname(OUTPUT_FILE), { recursive: true });
-    fs.writeFileSync(OUTPUT_FILE, JSON.stringify(allMatches, null, 2));
+    fs.writeFileSync(OUTPUT_FILE, JSON.stringify(filteredMatches, null, 2));
     console.log(`Written to: ${OUTPUT_FILE}`);
-
-    return { success: true, count: allMatches.length };
 }
 
 main().catch(error => {

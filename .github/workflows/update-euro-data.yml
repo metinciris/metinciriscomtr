@@ -23,7 +23,7 @@ jobs:
           node-version: '20'
 
       # ============================================
-      # FOOTBALL - football-data.org
+      # FOOTBALL - football-data.org + fixturedownload
       # ============================================
       - name: Fetch Football Data
         id: football
@@ -35,30 +35,16 @@ jobs:
           node scripts/fetch-football.js
           echo "status=success" >> $GITHUB_OUTPUT
 
-      - name: Check Football Result
-        if: steps.football.outcome == 'failure'
-        run: |
-          echo "Football fetch failed, keeping existing data"
-          echo '{"sport":"football","status":"error","error":"API fetch failed","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' > /tmp/football_error.json
-
       # ============================================
-      # BASKETBALL - api-football.com
+      # BASKETBALL - fixturedownload
       # ============================================
       - name: Fetch Basketball Data
         id: basketball
         continue-on-error: true
-        env:
-          APIFOOTBALL_KEY: ${{ secrets.APIFOOTBALL_KEY }}
         run: |
           echo "Fetching basketball data..."
           node scripts/fetch-basketball.js
           echo "status=success" >> $GITHUB_OUTPUT
-
-      - name: Check Basketball Result
-        if: steps.basketball.outcome == 'failure'
-        run: |
-          echo "Basketball fetch failed, keeping existing data"
-          echo '{"sport":"basketball","status":"error","error":"API fetch failed","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' > /tmp/basketball_error.json
 
       # ============================================
       # VOLLEYBALL - api-football.com
@@ -73,60 +59,42 @@ jobs:
           node scripts/fetch-volleyball.js
           echo "status=success" >> $GITHUB_OUTPUT
 
-      - name: Check Volleyball Result
-        if: steps.volleyball.outcome == 'failure'
-        run: |
-          echo "Volleyball fetch failed, keeping existing data"
-          echo '{"sport":"volleyball","status":"error","error":"API fetch failed","timestamp":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' > /tmp/volleyball_error.json
-
       # ============================================
-      # UPDATE LAST_UPDATED.JSON
+      # UPDATE LAST_UPDATED.JSON (Using Node for reliability)
       # ============================================
       - name: Create last_updated.json
         run: |
-          TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-          
-          # Count matches in each file
-          FOOTBALL_COUNT=0
-          BASKETBALL_COUNT=0
-          VOLLEYBALL_COUNT=0
-          
-          if [ -f "public/data/football.json" ]; then
-            FOOTBALL_COUNT=$(cat public/data/football.json | grep -c '"id":' || echo 0)
-          fi
-          
-          if [ -f "public/data/basketball.json" ]; then
-            BASKETBALL_COUNT=$(cat public/data/basketball.json | grep -c '"id":' || echo 0)
-          fi
-          
-          if [ -f "public/data/volleyball.json" ]; then
-            VOLLEYBALL_COUNT=$(cat public/data/volleyball.json | grep -c '"id":' || echo 0)
-          fi
-          
-          # Build JSON
-          cat > public/data/last_updated.json << EOF
-          {
-            "lastUpdated": "$TIMESTAMP",
-            "football": {
-              "status": "${{ steps.football.outcome == 'success' && 'success' || 'error' }}",
-              "matchCount": $FOOTBALL_COUNT,
-              "updatedAt": "$TIMESTAMP"
-            },
-            "basketball": {
-              "status": "${{ steps.basketball.outcome == 'success' && 'success' || 'error' }}",
-              "matchCount": $BASKETBALL_COUNT,
-              "updatedAt": "$TIMESTAMP"
-            },
-            "volleyball": {
-              "status": "${{ steps.volleyball.outcome == 'success' && 'success' || 'error' }}",
-              "matchCount": $VOLLEYBALL_COUNT,
-              "updatedAt": "$TIMESTAMP"
-            }
-          }
-          EOF
-          
-          echo "Created last_updated.json:"
-          cat public/data/last_updated.json
+          node -e '
+            const fs = require("fs");
+            const getCount = (path) => {
+              try {
+                if (!fs.existsSync(path)) return 0;
+                const data = JSON.parse(fs.readFileSync(path, "utf8"));
+                return Array.isArray(data) ? data.length : 0;
+              } catch (e) { return 0; }
+            };
+            
+            const timestamp = new Date().toISOString();
+            const lastUpdated = {
+              lastUpdated: timestamp,
+              football: {
+                status: "${{ steps.football.outcome }}" === "success" ? "success" : "error",
+                matchCount: getCount("public/data/football.json"),
+                updatedAt: timestamp
+              },
+              basketball: {
+                status: "${{ steps.basketball.outcome }}" === "success" ? "success" : "error",
+                matchCount: getCount("public/data/basketball.json"),
+                updatedAt: timestamp
+              },
+              volleyball: {
+                status: "${{ steps.volleyball.outcome }}" === "success" ? "success" : "error",
+                matchCount: getCount("public/data/volleyball.json"),
+                updatedAt: timestamp
+              }
+            };
+            fs.writeFileSync("public/data/last_updated.json", JSON.stringify(lastUpdated, null, 2));
+          '
 
       # ============================================
       # COMMIT & PUSH

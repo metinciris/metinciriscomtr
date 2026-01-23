@@ -1,10 +1,6 @@
 /**
  * Fetch Basketball Data - Turkish Teams in European Competitions
- * Source: API-Football (api-football.com) - Basketball Endpoint
- * 
- * Competitions:
- * - EuroLeague
- * - EuroCup
+ * Source: fixturedownload.com (EuroLeague & EuroCup)
  */
 
 import fs from 'fs';
@@ -13,10 +9,6 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-// API Configuration
-const API_KEY = process.env.APIFOOTBALL_KEY;
-const BASE_URL = 'https://v1.basketball.api-sports.io';
 
 // Turkish basketball teams (normalized names for matching)
 const TURKISH_TEAMS = [
@@ -31,16 +23,11 @@ const TURKISH_TEAMS = [
     'tofas', 'tofaş', 'tofas bursa'
 ];
 
-// European leagues to check
-const LEAGUES = [
-    { id: 120, name: 'EuroLeague' },
-    { id: 121, name: 'EuroCup' }
-];
-
 const OUTPUT_FILE = path.join(__dirname, '../public/data/basketball.json');
 
 // Helper: Normalize team name for comparison
 function normalizeTeamName(name) {
+    if (!name) return '';
     return name
         .toLowerCase()
         .replace(/[ğ]/g, 'g')
@@ -73,147 +60,88 @@ function toIstanbulTime(utcString) {
     }).replace(' ', 'T') + '+03:00';
 }
 
-// Fetch from API
-async function fetchFromAPI(endpoint) {
-    const url = `${BASE_URL}${endpoint}`;
-    console.log(`Fetching: ${url}`);
-
-    const response = await fetch(url, {
-        headers: {
-            'x-rapidapi-key': API_KEY,
-            'x-rapidapi-host': 'v1.basketball.api-sports.io'
-        }
-    });
-
+// Fetch from fixturedownload.com
+async function fetchFixtureDownloadData(url) {
+    console.log(`Fetching from fixturedownload.com: ${url}`);
+    const response = await fetch(url);
     if (!response.ok) {
-        throw new Error(`API error: ${response.status} ${response.statusText}`);
+        throw new Error(`fixturedownload error: ${response.status} ${response.statusText}`);
     }
-
-    const data = await response.json();
-
-    // Check for API errors
-    if (data.errors && Object.keys(data.errors).length > 0) {
-        console.error('API returned errors:', data.errors);
-        return null;
-    }
-
-    return data;
+    return response.json();
 }
 
 // Get matches for a league
-async function getLeagueMatches(league) {
+async function getLeagueMatches(url, competitionName) {
     try {
-        // Get current season
-        const currentYear = new Date().getFullYear();
-        const season = `${currentYear - 1}-${currentYear}`;
+        const data = await fetchFixtureDownloadData(url);
+        if (!Array.isArray(data)) return [];
 
-        // Get matches from dateFrom to dateTo (past 14 days + next 14 days)
-        const now = new Date();
-        const dateFrom = new Date(now);
-        dateFrom.setDate(dateFrom.getDate() - 14);
-        const dateTo = new Date(now);
-        dateTo.setDate(dateTo.getDate() + 14);
-
-        const dateFromStr = dateFrom.toISOString().split('T')[0];
-        const dateToStr = dateTo.toISOString().split('T')[0];
-
-        const data = await fetchFromAPI(
-            `/games?league=${league.id}&season=${season}&date=${dateFromStr}`
+        const turkishMatches = data.filter(match =>
+            isTurkishTeam(match.HomeTeam) || isTurkishTeam(match.AwayTeam)
         );
 
-        if (!data || !data.response) {
-            console.log(`No data for ${league.name}`);
-            return [];
-        }
-
-        // Also fetch more dates
-        let allGames = [...data.response];
-
-        // Fetch remaining dates (simple approach - fetch each day separately for reliability)
-        const currentDate = new Date(dateFrom);
-        currentDate.setDate(currentDate.getDate() + 1);
-
-        while (currentDate <= dateTo) {
-            await new Promise(resolve => setTimeout(resolve, 500)); // Rate limiting
-
-            const dateStr = currentDate.toISOString().split('T')[0];
-            const dayData = await fetchFromAPI(
-                `/games?league=${league.id}&season=${season}&date=${dateStr}`
-            );
-
-            if (dayData && dayData.response) {
-                allGames = allGames.concat(dayData.response);
-            }
-
-            currentDate.setDate(currentDate.getDate() + 1);
-        }
-
-        // Filter for Turkish teams
-        const turkishMatches = allGames.filter(game =>
-            isTurkishTeam(game.teams?.home?.name || '') ||
-            isTurkishTeam(game.teams?.away?.name || '')
-        );
-
-        console.log(`Found ${turkishMatches.length} Turkish team matches in ${league.name}`);
-
-        return turkishMatches.map(game => ({
-            id: `basketball-${league.id}-${game.id}`,
+        return turkishMatches.map((match, idx) => ({
+            id: `basketball-${competitionName.replace(/\s+/g, '')}-${idx}`,
             sport: 'basketball',
-            competition: league.name,
-            season: season,
-            homeTeam: game.teams?.home?.name || 'Unknown',
-            awayTeam: game.teams?.away?.name || 'Unknown',
-            startTimeUTC: game.date,
-            startTimeLocal: toIstanbulTime(game.date),
-            status: game.status?.long === 'Game Finished' ? 'finished' : 'scheduled',
-            scoreHome: game.scores?.home?.total ?? null,
-            scoreAway: game.scores?.away?.total ?? null,
-            source: 'api-football',
+            competition: competitionName,
+            season: '2024/25',
+            homeTeam: match.HomeTeam,
+            awayTeam: match.AwayTeam,
+            startTimeUTC: match.DateUtc,
+            startTimeLocal: toIstanbulTime(match.DateUtc),
+            status: (match.HomeTeamScore !== null && match.AwayTeamScore !== null) ? 'finished' : 'scheduled',
+            scoreHome: match.HomeTeamScore,
+            scoreAway: match.AwayTeamScore,
+            source: 'fixturedownload',
             lastFetchedAt: new Date().toISOString()
         }));
-
     } catch (error) {
-        console.error(`Error fetching ${league.name}:`, error.message);
+        console.error(`Error fetching ${competitionName} from fixturedownload.com:`, error.message);
         return [];
     }
 }
 
 // Main function
 async function main() {
-    if (!API_KEY) {
-        console.error('ERROR: APIFOOTBALL_KEY environment variable not set');
-        process.exit(1);
-    }
-
     console.log('Starting basketball data fetch...');
-    console.log(`API Key: ${API_KEY.substring(0, 8)}...`);
 
     let allMatches = [];
 
-    for (const league of LEAGUES) {
-        // Add delay between requests to avoid rate limiting
-        if (allMatches.length > 0) {
-            await new Promise(resolve => setTimeout(resolve, 2000));
-        }
+    // 1. EuroLeague
+    const elMatches = await getLeagueMatches(
+        'https://fixturedownload.com/feed/json/turkish-airlines-euroleague-2024',
+        'EuroLeague'
+    );
+    allMatches = [...allMatches, ...elMatches];
 
-        const matches = await getLeagueMatches(league);
-        allMatches = allMatches.concat(matches);
-    }
+    // 2. EuroCup
+    const ecMatches = await getLeagueMatches(
+        'https://fixturedownload.com/feed/json/eurocup-2024',
+        'EuroCup'
+    );
+    allMatches = [...allMatches, ...ecMatches];
 
-    // Remove duplicates by ID
-    const uniqueMatches = [...new Map(allMatches.map(m => [m.id, m])).values()];
+    // Filter by date window (past 14 days + next 14 days)
+    const now = new Date();
+    const windowStart = new Date(now);
+    windowStart.setDate(windowStart.getDate() - 14);
+    const windowEnd = new Date(now);
+    windowEnd.setDate(windowEnd.getDate() + 14);
+
+    const filteredMatches = allMatches.filter(match => {
+        const d = new Date(match.startTimeUTC);
+        return d >= windowStart && d <= windowEnd;
+    });
 
     // Sort by date
-    uniqueMatches.sort((a, b) => new Date(a.startTimeUTC) - new Date(b.startTimeUTC));
+    filteredMatches.sort((a, b) => new Date(a.startTimeUTC) - new Date(b.startTimeUTC));
 
-    console.log(`Total basketball matches: ${uniqueMatches.length}`);
+    console.log(`Total basketball matches after filtering: ${filteredMatches.length}`);
 
     // Write output
     fs.mkdirSync(path.dirname(OUTPUT_FILE), { recursive: true });
-    fs.writeFileSync(OUTPUT_FILE, JSON.stringify(uniqueMatches, null, 2));
+    fs.writeFileSync(OUTPUT_FILE, JSON.stringify(filteredMatches, null, 2));
     console.log(`Written to: ${OUTPUT_FILE}`);
-
-    return { success: true, count: uniqueMatches.length };
 }
 
 main().catch(error => {
