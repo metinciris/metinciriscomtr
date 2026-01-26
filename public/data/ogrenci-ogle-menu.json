@@ -1,7 +1,12 @@
 {
-  "date": "25.01.2026",
-  "items": [],
-  "kcal": null,
+  "date": "26.01.2026",
+  "items": [
+    "ALAROMEN ÇORBASI",
+    "ZEYTİNYAĞLI BARBUNYA",
+    "FIRIN MAKARNA",
+    "ELMA"
+  ],
+  "kcal": "950",
   "source": "https://w3.sdu.edu.tr/aylik-yemek-listesi?dosya=yemekler_ogle&tur=2",
-  "updatedAt": "2026-01-25T07:39:20.821Z"
+  "updatedAt": "2026-01-26T05:08:40.857Z"
 }
