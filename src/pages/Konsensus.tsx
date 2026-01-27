@@ -57,6 +57,7 @@ const ORGANIZER_OPTIONS = [
   'Üropatoloji Konsensus Grubu',
   'Diğer',
 ];
+const posterButtonOnly = isPast && !!meeting.poster_url;
 
 function getOrganizerWithEmoji(organizer: string): string {
   const emoji = ORGANIZER_EMOJIS[organizer] || '';
@@ -439,11 +440,22 @@ function MeetingCard({
   </div>
 
   {/* Right poster */}
-  {hasPoster ? (
-    <div className="md:col-span-5 flex justify-end">
+{hasPoster ? (
+  <div className="md:col-span-5 flex justify-end">
+    {/* Past: sadece buton */}
+    {posterButtonOnly ? (
       <button
         onClick={() => onPosterClick?.(meeting.poster_url!)}
-        className="w-full md:max-w-[360px] self-stretch h-full rounded-3xl border-2 border-indigo-200 bg-white/70 hover:bg-white transition p-4 shadow-md hover:shadow-lg flex flex-col"
+        className="inline-flex items-center justify-center px-4 py-3 rounded-2xl bg-indigo-50 text-indigo-800 text-sm font-black border border-indigo-100 hover:bg-indigo-100 transition"
+        title="Afişi büyüt"
+      >
+        <ImageIcon className="w-4 h-4 mr-2" />
+        Afişi Gör
+      </button>
+    ) : (
+      <button
+        onClick={() => onPosterClick?.(meeting.poster_url!)}
+        className="w-full md:max-w-[360px] rounded-3xl border-2 border-indigo-200 bg-white/70 hover:bg-white transition p-4 shadow-md hover:shadow-lg flex flex-col"
         title="Afişi büyüt"
       >
         <div className="w-full rounded-2xl overflow-hidden border border-indigo-200 bg-white shadow-sm">
@@ -468,10 +480,12 @@ function MeetingCard({
           Dokun / tıkla büyüt
         </div>
       </button>
-    </div>
-  ) : (
-    <div className="hidden md:block md:col-span-5" />
-  )}
+    )}
+  </div>
+) : (
+  <div className="hidden md:block md:col-span-5" />
+)}
+
 </div>
 
           </div>
