@@ -168,6 +168,77 @@ function PosterLightbox({ url, onClose }: { url: string; onClose: () => void }) 
   );
 }
 
+function SectionTitle({ title, icon, color = 'blue' }: { title: string; icon: React.ReactNode; color?: string }) {
+  const colorClasses: Record<string, string> = {
+    blue: 'text-blue-700 bg-blue-100',
+    indigo: 'text-indigo-700 bg-indigo-100',
+    gray: 'text-gray-600 bg-gray-100',
+    red: 'text-red-700 bg-red-100',
+  };
+
+  return (
+    <div className="flex items-center mb-6">
+      <div className={`p-2.5 rounded-xl mr-3 ${colorClasses[color] || colorClasses.blue}`}>{icon}</div>
+      <h2 className="text-xl font-black text-gray-900 tracking-tight">{title}</h2>
+    </div>
+  );
+}
+
+/** Bildirimler kartı (reuse: mobile + desktop) */
+function NotificationsCard({
+  pushEnabled,
+  pushLoading,
+  togglePush,
+}: {
+  pushEnabled: boolean;
+  pushLoading: boolean;
+  togglePush: () => void;
+}) {
+  return (
+    <div className="bg-white rounded-3xl shadow-xl p-6 sm:p-8 border border-gray-100">
+      <div className="flex flex-col gap-3">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <h3 className="text-lg font-black text-gray-800 flex items-center">
+              <Bell className="w-5 h-5 mr-2 text-blue-600" /> Bildirimler
+            </h3>
+            <div className={`w-3 h-3 rounded-full ${pushEnabled ? 'bg-green-500 animate-pulse' : 'bg-gray-300'}`} />
+            <span className="text-sm font-semibold text-gray-600">{pushEnabled ? 'Açık' : 'Kapalı'}</span>
+          </div>
+
+          {/* Desktop görünümde düğme aynı satırın sağında */}
+          <button
+            onClick={togglePush}
+            disabled={pushLoading}
+            className={`hidden sm:inline-flex px-4 py-2 rounded-2xl font-black transition-all ${
+              pushEnabled
+                ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                : 'bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-100'
+            }`}
+          >
+            {pushLoading ? 'İşlem...' : pushEnabled ? 'Kapat' : 'Etkinleştir'}
+          </button>
+        </div>
+
+        {/* Mobile: buton başlığın hemen altında, full width */}
+        <button
+          onClick={togglePush}
+          disabled={pushLoading}
+          className={`sm:hidden w-full px-4 py-3 rounded-2xl font-black transition-all ${
+            pushEnabled
+              ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              : 'bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-100'
+          }`}
+        >
+          {pushLoading ? 'İşlem...' : pushEnabled ? 'Bildirimleri kapat' : 'Bildirimleri etkinleştir'}
+        </button>
+
+        <p className="text-sm text-gray-500">Toplantılardan 15 dk önce hatırlatma gönderilir.</p>
+      </div>
+    </div>
+  );
+}
+
 // Meeting Card Component
 function MeetingCard({
   meeting,
@@ -197,9 +268,13 @@ function MeetingCard({
   onShareWhatsApp?: (meeting: Meeting) => void;
 }) {
   const hasIdPw = !!(meeting.zoom_id || meeting.zoom_password);
-  // İstek: ID/PW varsa Zoom link (join) görünmesin; yoksa link görünsün.
+
+  // İstek: Zoom ID/PW varsa linki gizle (join görünmesin).
+  // ID/PW yoksa ve link varsa "Zoom'a Katıl" görünsün.
   const showJoin = !!meeting.zoom_link && !hasIdPw;
   const showIdPw = !isPast && hasIdPw;
+
+  const hasPoster = !!meeting.poster_url;
 
   return (
     <div
@@ -214,7 +289,6 @@ function MeetingCard({
       {/* Subtle top shine */}
       {!isPast && <div className="pointer-events-none absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-white/60 to-transparent" />}
 
-      {/* Spotlight Accent */}
       {isTodaySpotlight && (
         <>
           <div className="absolute top-0 left-0 w-1.5 h-full bg-indigo-500/60" />
@@ -222,127 +296,159 @@ function MeetingCard({
         </>
       )}
 
-      <div className="flex justify-between items-start relative z-10">
-        <div className="flex-1">
-          <div className="flex flex-wrap items-center gap-2 mb-3">
-            {meeting.organizer && (
-              <button
-                onClick={() => onOrganizerClick?.(meeting.organizer)}
-                className={`px-2.5 py-1 rounded-full text-xs font-black cursor-pointer hover:ring-2 hover:ring-current transition-all ${
-                  isPast ? 'bg-gray-200 text-gray-600' : 'bg-blue-100 text-blue-800'
-                }`}
-              >
-                {getOrganizerWithEmoji(meeting.organizer)}
-              </button>
-            )}
-            {!isPast && <MeetingStatusBadge meeting={meeting} now={now} />}
-          </div>
-
-          {/* Typography touch: tighter tracking + better leading + responsive size */}
-          <h3
-            className={`font-black tracking-tight leading-snug ${
-              isPast ? 'text-gray-600' : 'text-gray-900'
-            } text-[20px] sm:text-[22px] md:text-[24px] mb-3 group-hover:text-blue-700 transition-colors`}
-          >
-            {meeting.title}
-          </h3>
-
-          {/* Info pills: clearer hierarchy */}
-          <div className="flex flex-wrap gap-2">
-            <div className={`inline-flex items-center text-sm font-semibold px-3 py-2 rounded-xl border ${isPast ? 'bg-gray-50 border-gray-200 text-gray-600' : 'bg-blue-50 border-blue-100 text-blue-800'}`}>
-              <Calendar className="w-4 h-4 mr-2" />
-              {formatDate(meeting.date)}
-            </div>
-            <div className={`inline-flex items-center text-sm font-semibold px-3 py-2 rounded-xl border ${isPast ? 'bg-gray-50 border-gray-200 text-gray-600' : 'bg-indigo-50 border-indigo-100 text-indigo-800'}`}>
-              <Clock className="w-4 h-4 mr-2" />
-              {formatTime(meeting.time, meeting.duration)}
-            </div>
-          </div>
-
-          {meeting.description && (
-            <p className={`mt-4 text-[13px] sm:text-sm leading-relaxed ${isPast ? 'text-gray-500 italic' : 'text-gray-700'}`}>
-              {meeting.description}
-            </p>
+      <div className="relative z-10">
+        {/* Top row: badges + admin actions */}
+        <div className="flex flex-wrap items-center gap-2 mb-3">
+          {meeting.organizer && (
+            <button
+              onClick={() => onOrganizerClick?.(meeting.organizer)}
+              className={`px-2.5 py-1 rounded-full text-xs font-black cursor-pointer hover:ring-2 hover:ring-current transition-all ${
+                isPast ? 'bg-gray-200 text-gray-600' : 'bg-blue-100 text-blue-800'
+              }`}
+            >
+              {getOrganizerWithEmoji(meeting.organizer)}
+            </button>
           )}
 
-          {!isPast && (
-            <div className="mt-5 pt-4 border-t border-gray-100">
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
-                {/* Left: Zoom + actions */}
-                <div className="md:col-span-7">
-                  {/* Zoom Join (sadece link var + ID/PW yok) */}
-                  {showJoin && (
-                    <a
-                      href={meeting.zoom_link!}
-                      className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-black rounded-xl transition shadow-md hover:shadow-blue-200"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <Video className="w-4 h-4 mr-2" />
-                      Zoom&apos;a Katıl
-                    </a>
-                  )}
+          {!isPast && <MeetingStatusBadge meeting={meeting} now={now} />}
 
-                  {/* Zoom ID/PW (link olsa da olmasa da; join gizlenmiş oluyor) */}
-                  {showIdPw && (
-                    <div className="mt-3 flex flex-wrap gap-5">
-                      {meeting.zoom_id && (
-                        <div className="bg-gray-100 px-3 py-2 rounded-xl text-sm font-semibold text-gray-700">
-                          <span className="font-black text-gray-900">Zoom ID:</span> {meeting.zoom_id}
-                        </div>
-                      )}
-                      {meeting.zoom_password && (
-                        <div className="bg-gray-100 px-3 py-2 rounded-xl text-sm font-semibold text-gray-700">
-                          <span className="font-black text-gray-900">Şifre:</span> {meeting.zoom_password}
-                        </div>
-                      )}
-                    </div>
-                  )}
+          {/* Admin edit/delete moved here (right side) */}
+          {isAdmin && (
+            <div className="ml-auto flex items-center gap-2">
+              <button
+                onClick={() => onEdit(meeting)}
+                className="p-2 rounded-xl bg-blue-50 text-blue-700 hover:bg-blue-100 transition"
+                title="Düzenle"
+              >
+                <Edit className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => onDelete(meeting.id)}
+                className="p-2 rounded-xl bg-red-50 text-red-700 hover:bg-red-100 transition"
+                title="Sil"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+        </div>
 
-                  {/* Per-meeting Actions */}
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    <button
-                      onClick={() => onAddToCalendar?.(meeting)}
-                      className="inline-flex items-center px-3 py-2 rounded-xl bg-blue-50 text-blue-800 hover:bg-blue-100 text-sm font-black transition border border-blue-100"
-                    >
-                      <ExternalLink className="w-4 h-4 mr-2" />
-                      Takvime ekle
-                    </button>
+        {/* Title */}
+        <h3
+          className={`font-black tracking-tight leading-snug ${
+            isPast ? 'text-gray-600' : 'text-gray-900'
+          } text-[20px] sm:text-[22px] md:text-[24px] mb-3`}
+        >
+          {meeting.title}
+        </h3>
 
-                    <button
-                      onClick={() => onDownloadIcs?.(meeting)}
-                      className="inline-flex items-center px-3 py-2 rounded-xl bg-indigo-50 text-indigo-800 hover:bg-indigo-100 text-sm font-black transition border border-indigo-100"
-                    >
-                      <Download className="w-4 h-4 mr-2" />
-                      iCal (.ics) indir
-                    </button>
+        {/* Info pills */}
+        <div className="flex flex-wrap gap-2">
+          <div
+            className={`inline-flex items-center text-sm font-semibold px-3 py-2 rounded-xl border ${
+              isPast ? 'bg-gray-50 border-gray-200 text-gray-600' : 'bg-blue-50 border-blue-100 text-blue-800'
+            }`}
+          >
+            <Calendar className="w-4 h-4 mr-2" />
+            {formatDate(meeting.date)}
+          </div>
+          <div
+            className={`inline-flex items-center text-sm font-semibold px-3 py-2 rounded-xl border ${
+              isPast ? 'bg-gray-50 border-gray-200 text-gray-600' : 'bg-indigo-50 border-indigo-100 text-indigo-800'
+            }`}
+          >
+            <Clock className="w-4 h-4 mr-2" />
+            {formatTime(meeting.time, meeting.duration)}
+          </div>
+        </div>
 
-                    <button
-                      onClick={() => onShareWhatsApp?.(meeting)}
-                      className="inline-flex items-center px-3 py-2 rounded-xl bg-green-50 text-green-800 hover:bg-green-100 text-sm font-black transition border border-green-100"
-                    >
-                      <MessageCircle className="w-4 h-4 mr-2" />
-                      WhatsApp paylaş
-                    </button>
+        {meeting.description && (
+          <p className={`mt-4 text-[13px] sm:text-sm leading-relaxed ${isPast ? 'text-gray-500 italic' : 'text-gray-700'}`}>
+            {meeting.description}
+          </p>
+        )}
+
+        {!isPast && (
+          <div className="mt-5 pt-4 border-t border-gray-100">
+            {/* Right poster should "fit nicely" into empty space:
+                - make right column wider (7/5)
+                - make poster card stretch (self-stretch + h-full)
+                - use aspect ratio for image so it fills area well */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
+              {/* Left */}
+              <div className={`md:col-span-${hasPoster ? 7 : 12}`}>
+                {/* Zoom join */}
+                {showJoin && (
+                  <a
+                    href={meeting.zoom_link!}
+                    className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-black rounded-xl transition shadow-md hover:shadow-blue-200"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Video className="w-4 h-4 mr-2" />
+                    Zoom&apos;a Katıl
+                  </a>
+                )}
+
+                {/* Zoom ID/PW */}
+                {showIdPw && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {meeting.zoom_id && (
+                      <div className="bg-gray-100 px-3 py-2 rounded-xl text-sm font-semibold text-gray-700">
+                        <span className="font-black text-gray-900">Zoom ID:</span> {meeting.zoom_id}
+                      </div>
+                    )}
+                    {meeting.zoom_password && (
+                      <div className="bg-gray-100 px-3 py-2 rounded-xl text-sm font-semibold text-gray-700">
+                        <span className="font-black text-gray-900">Şifre:</span> {meeting.zoom_password}
+                      </div>
+                    )}
                   </div>
+                )}
 
-                  {/* Nice touch: subtle hint if no zoom info */}
-                  {!showJoin && !showIdPw && (
-                    <div className="mt-3 text-xs font-semibold text-gray-400">
-                      Zoom bilgisi eklenmemiş.
-                    </div>
-                  )}
+                {/* Actions */}
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <button
+                    onClick={() => onAddToCalendar?.(meeting)}
+                    className="inline-flex items-center px-3 py-2 rounded-xl bg-blue-50 text-blue-800 hover:bg-blue-100 text-sm font-black transition border border-blue-100"
+                  >
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                    Takvime ekle
+                  </button>
+
+                  <button
+                    onClick={() => onDownloadIcs?.(meeting)}
+                    className="inline-flex items-center px-3 py-2 rounded-xl bg-indigo-50 text-indigo-800 hover:bg-indigo-100 text-sm font-black transition border border-indigo-100"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    iCal (.ics) indir
+                  </button>
+
+                  <button
+                    onClick={() => onShareWhatsApp?.(meeting)}
+                    className="inline-flex items-center px-3 py-2 rounded-xl bg-green-50 text-green-800 hover:bg-green-100 text-sm font-black transition border border-green-100"
+                  >
+                    <MessageCircle className="w-4 h-4 mr-2" />
+                    WhatsApp paylaş
+                  </button>
                 </div>
 
-                {/* Right: Poster */}
-                <div className="md:col-span-4">
-                  {meeting.poster_url ? (
-                    <button
-                      onClick={() => onPosterClick?.(meeting.poster_url!)}
-                      className="w-full rounded-2xl border border-indigo-200 bg-indigo-50/40 hover:bg-indigo-50 transition p-3 flex md:flex-col items-center md:items-stretch gap-3"
-                      title="Afişi büyüt"
-                    >
-                      <div className="w-24 h-24 md:w-full md:h-64 rounded-2xl overflow-hidden border border-indigo-200 bg-white shadow-sm">
+                {!showJoin && !showIdPw && (
+                  <div className="mt-3 text-xs font-semibold text-gray-400">Zoom bilgisi eklenmemiş.</div>
+                )}
+              </div>
+
+              {/* Right poster */}
+              {hasPoster ? (
+                <div className="md:col-span-5 flex">
+                  <button
+                    onClick={() => onPosterClick?.(meeting.poster_url!)}
+                    className="w-full self-stretch h-full rounded-3xl border-2 border-indigo-200 bg-white/70 hover:bg-white transition p-4 shadow-md hover:shadow-lg flex flex-col"
+                    title="Afişi büyüt"
+                  >
+                    {/* Image: fill width nicely */}
+                    <div className="w-full rounded-2xl overflow-hidden border border-indigo-200 bg-white shadow-sm">
+                      <div className="w-full aspect-[4/5]">
                         <img
                           src={meeting.poster_url!}
                           alt="Toplantı afişi"
@@ -350,63 +456,28 @@ function MeetingCard({
                           loading="lazy"
                         />
                       </div>
-
-                      <div className="flex-1 md:flex-none text-left md:text-center">
-                        <div className="inline-flex items-center justify-center px-4 py-2 bg-white text-indigo-800 text-sm font-black rounded-xl border border-indigo-100">
-                          <ImageIcon className="w-4 h-4 mr-2" />
-                          Afişi Gör
-                        </div>
-                        <div className="text-xs text-indigo-700 font-semibold mt-2 opacity-80">
-                          Dokun / tıkla büyüt
-                        </div>
-                      </div>
-                    </button>
-                  ) : (
-                    <div className="hidden md:block rounded-2xl border border-dashed border-gray-200 bg-gray-50 p-4 text-center text-xs text-gray-400">
-                      Afiş yok
                     </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
 
-        {isAdmin && (
-          <div className="flex gap-2 ml-4 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button
-              onClick={() => onEdit(meeting)}
-              className="p-2 text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-xl transition"
-              title="Düzenle"
-            >
-              <Edit className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => onDelete(meeting.id)}
-              className="p-2 text-red-700 bg-red-50 hover:bg-red-100 rounded-xl transition"
-              title="Sil"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
+                    <div className="mt-4 flex items-center justify-center gap-2">
+                      <div className="inline-flex items-center justify-center px-4 py-2 bg-indigo-50 text-indigo-800 text-sm font-black rounded-xl border border-indigo-100">
+                        <ImageIcon className="w-4 h-4 mr-2" />
+                        Afişi Gör
+                      </div>
+                    </div>
+
+                    <div className="text-xs text-indigo-700 font-semibold mt-2 text-center opacity-80">
+                      Dokun / tıkla büyüt
+                    </div>
+                  </button>
+                </div>
+              ) : (
+                // Desktop: sağ taraf boş kalsın (hiçbir şey yazma)
+                <div className="hidden md:block md:col-span-5" />
+              )}
+            </div>
           </div>
         )}
       </div>
-    </div>
-  );
-}
-
-function SectionTitle({ title, icon, color = 'blue' }: { title: string; icon: React.ReactNode; color?: string }) {
-  const colorClasses: Record<string, string> = {
-    blue: 'text-blue-700 bg-blue-100',
-    indigo: 'text-indigo-700 bg-indigo-100',
-    gray: 'text-gray-600 bg-gray-100',
-    red: 'text-red-700 bg-red-100',
-  };
-
-  return (
-    <div className="flex items-center mb-6">
-      <div className={`p-2.5 rounded-xl mr-3 ${colorClasses[color] || colorClasses.blue}`}>{icon}</div>
-      <h2 className="text-xl font-black text-gray-900 tracking-tight">{title}</h2>
     </div>
   );
 }
@@ -468,7 +539,6 @@ function MeetingList({
 
   return (
     <div className="space-y-10">
-      {/* Active Filter Badge */}
       {selectedOrganizer && (
         <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 flex items-center justify-between animate-in fade-in slide-in-from-top-2">
           <div className="flex items-center">
@@ -486,7 +556,6 @@ function MeetingList({
         </div>
       )}
 
-      {/* Today's Spotlight */}
       {todayMeetings.length > 0 && (
         <div className="bg-white rounded-3xl shadow-2xl p-8 border-2 border-indigo-500 overflow-hidden relative">
           <div className="absolute top-0 left-0 w-2 h-full bg-indigo-500" />
@@ -513,7 +582,6 @@ function MeetingList({
         </div>
       )}
 
-      {/* Tomorrow Meetings */}
       <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
         <SectionTitle title="YARIN" icon={<Calendar className="w-6 h-6" />} color="blue" />
 
@@ -542,7 +610,6 @@ function MeetingList({
         )}
       </div>
 
-      {/* Future Meetings */}
       <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
         <SectionTitle title="GELECEK TOPLANTILAR" icon={<Calendar className="w-6 h-6" />} color="blue" />
 
@@ -573,7 +640,6 @@ function MeetingList({
         )}
       </div>
 
-      {/* Past Meetings (Collapsible) */}
       <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100 opacity-90">
         <button onClick={() => setShowPast(!showPast)} className="w-full flex items-center justify-between text-left">
           <SectionTitle title={`ARŞİV (${filteredPast.length})`} icon={<BookOpen className="w-6 h-6" />} color="gray" />
@@ -581,6 +647,7 @@ function MeetingList({
             <ChevronDown className="w-5 h-5 text-gray-500" />
           </div>
         </button>
+
         {showPast && (
           <div className="mt-4 pt-4 border-t border-gray-100 space-y-4 animate-in slide-in-from-top-4 duration-300">
             {filteredPast.length === 0 ? (
@@ -646,9 +713,7 @@ function AdminPanel({
   const handleVerifyClick = () => {
     const newCount = clickCount + 1;
     setClickCount(newCount);
-    if (newCount >= 3) {
-      setVerified(true);
-    }
+    if (newCount >= 3) setVerified(true);
   };
 
   const resetVerification = () => {
@@ -664,9 +729,8 @@ function AdminPanel({
     setError('');
 
     const success = await onLogin(credentials.username, credentials.password);
-    if (!success) {
-      setError('Geçersiz kullanıcı adı veya şifre');
-    } else {
+    if (!success) setError('Geçersiz kullanıcı adı veya şifre');
+    else {
       setShowLogin(false);
       setCredentials({ username: '', password: '' });
       resetVerification();
@@ -717,7 +781,6 @@ function AdminPanel({
 
       {showLogin && (
         <div className="mt-6 space-y-4">
-          {/* Mouse verification */}
           <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl p-4">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-black text-gray-700">Fare Doğrulaması</span>
@@ -739,7 +802,6 @@ function AdminPanel({
             )}
           </div>
 
-          {/* Login form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <input
               type="text"
@@ -778,10 +840,11 @@ function AdminPanel({
 export function Konsensus() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
+
   const [pushEnabled, setPushEnabled] = useState(!!pushService.getSavedEndpoint());
   const [pushLoading, setPushLoading] = useState(false);
-  const [now, setNow] = useState(new Date());
 
+  const [now, setNow] = useState(new Date());
   const { loading, addMeeting, deleteMeeting, getUpcomingMeetings, getPastMeetings, refetch } = useMeetings();
 
   const [formData, setFormData] = useState<MeetingFormData>({
@@ -801,7 +864,7 @@ export function Konsensus() {
   const [selectedOrganizer, setSelectedOrganizer] = useState<string | null>(null);
   const [activePoster, setActivePoster] = useState<string | null>(null);
 
-  // ---------- Helpers for per-meeting calendar/ics/whatsapp ----------
+  // Helpers for per-meeting actions
   const formatDateTime = (date: Date) => {
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -927,11 +990,10 @@ export function Konsensus() {
     [getGoogleCalendarUrlForMeeting]
   );
 
-  // Calculate Stats
+  // Stats
   const getGroupStats = () => {
     const allMeetings = [...getUpcomingMeetings(), ...getPastMeetings()];
     const stats: Record<string, number> = {};
-
     allMeetings.forEach((m) => {
       if (m.organizer) stats[m.organizer] = (stats[m.organizer] || 0) + 1;
     });
@@ -944,7 +1006,7 @@ export function Konsensus() {
 
   const groupStats = getGroupStats();
 
-  // Check auth state
+  // Auth
   useEffect(() => {
     const checkAuth = async () => {
       const {
@@ -966,7 +1028,7 @@ export function Konsensus() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Set default date
+  // Default date
   useEffect(() => {
     const nowLocal = new Date();
     const turkeyOffset = 3 * 60;
@@ -977,7 +1039,7 @@ export function Konsensus() {
     setFormData((prev) => ({ ...prev, date: prev.date || dateStr }));
   }, []);
 
-  // Auto refetch at 00:05
+  // Refetch at 00:05
   useEffect(() => {
     const scheduleRefetch = () => {
       const nowLocal = new Date();
@@ -996,21 +1058,18 @@ export function Konsensus() {
     return () => clearTimeout(timeoutId);
   }, [refetch]);
 
-  // Update real-time state every minute
+  // Now tick
   useEffect(() => {
     const intervalId = setInterval(() => {
       const currentNow = new Date();
       setNow(currentNow);
-
-      if (currentNow.getHours() === 0 && currentNow.getMinutes() === 0) {
-        refetch();
-      }
+      if (currentNow.getHours() === 0 && currentNow.getMinutes() === 0) refetch();
     }, 60000);
 
     return () => clearInterval(intervalId);
   }, [refetch]);
 
-  // Push notification validation
+  // Push validation
   useEffect(() => {
     const validate = async () => {
       try {
@@ -1146,16 +1205,13 @@ export function Konsensus() {
 
   return (
     <PageContainer>
-      {/* Active Poster Lightbox */}
       {activePoster && <PosterLightbox url={activePoster} onClose={() => setActivePoster(null)} />}
 
-      {/* Header Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-12 mb-8 rounded-xl shadow-lg relative overflow-hidden">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-10 sm:p-12 mb-6 rounded-xl shadow-lg relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32" />
         <div className="relative z-10 flex flex-col items-center justify-center text-center">
-          <h1 className="text-4xl md:text-5xl font-black mb-3 tracking-tight">
-            Patoloji Konsensus Toplantı Takibi
-          </h1>
+          <h1 className="text-4xl md:text-5xl font-black mb-3 tracking-tight">Patoloji Konsensus Toplantı Takibi</h1>
           <p className="text-white/90 text-sm font-medium">
             Telegram kanalımız üzerinden{' '}
             <a
@@ -1171,10 +1227,15 @@ export function Konsensus() {
         </div>
       </div>
 
-      {/* Main Application Layout: Two Columns on Desktop */}
+      {/* MOBILE: Bildirimler header’ın hemen altında */}
+      <div className="lg:hidden mb-8">
+        <NotificationsCard pushEnabled={pushEnabled} pushLoading={pushLoading} togglePush={togglePush} />
+      </div>
+
+      {/* Main layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-        {/* Left Column: Meeting Lists */}
-        <div className="lg:col-span-8 order-1 lg:order-1">
+        {/* Left: Meetings */}
+        <div className="lg:col-span-8 order-1">
           {!loading && (
             <MeetingList
               upcomingMeetings={upcomingMeetings}
@@ -1197,39 +1258,14 @@ export function Konsensus() {
           )}
         </div>
 
-        {/* Right Column: Notifications + Stats + Admin */}
-        <div className="lg:col-span-4 order-3 lg:order-2 space-y-8 lg:sticky lg:top-8">
-          {/* Push Notification Control */}
-          <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
-            <div className="flex flex-col gap-3">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <h3 className="text-lg font-black text-gray-800 flex items-center">
-                    <Bell className="w-5 h-5 mr-2 text-blue-600" /> Bildirimler
-                  </h3>
-                  <div className={`w-3 h-3 rounded-full ${pushEnabled ? 'bg-green-500 animate-pulse' : 'bg-gray-300'}`} />
-                  <span className="text-sm font-semibold text-gray-600">{pushEnabled ? 'Açık' : 'Kapalı'}</span>
-                </div>
-
-                {/* Desktop: başlıkla aynı satır sağda, Mobile: başlığın altında */}
-                <button
-                  onClick={togglePush}
-                  disabled={pushLoading}
-                  className={`sm:w-auto w-full px-4 py-2 rounded-2xl font-black transition-all ${
-                    pushEnabled
-                      ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      : 'bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-100'
-                  }`}
-                >
-                  {pushLoading ? 'İşlem...' : pushEnabled ? 'Bildirimleri kapat' : 'Bildirimleri etkinleştir'}
-                </button>
-              </div>
-
-              <p className="text-sm text-gray-500">Toplantılardan 15 dk önce hatırlatma gönderilir.</p>
-            </div>
+        {/* Right: Desktop side */}
+        <div className="lg:col-span-4 order-2 space-y-8 lg:sticky lg:top-8">
+          {/* DESKTOP: Bildirimler sağ kolonda */}
+          <div className="hidden lg:block">
+            <NotificationsCard pushEnabled={pushEnabled} pushLoading={pushLoading} togglePush={togglePush} />
           </div>
 
-          {/* En Aktif Gruplar */}
+          {/* Stats */}
           <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100 overflow-hidden relative">
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-400 to-orange-500" />
             <h2 className="text-xl font-black text-gray-900 mb-6 flex items-center">
@@ -1284,10 +1320,11 @@ export function Konsensus() {
         </div>
       </div>
 
-      {/* Bottom Section: Add/Edit Form */}
+      {/* Admin form */}
       {isAdmin && !authLoading && (
         <div className="mt-12 bg-white rounded-4xl shadow-2xl p-10 border border-blue-50 relative overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600" />
+
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
             <SectionTitle title="TOPLANTI OLUŞTUR / DÜZENLE" icon={<Plus className="w-6 h-6" />} color="blue" />
             <div className="flex gap-3">
@@ -1322,7 +1359,6 @@ export function Konsensus() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            {/* Form Inputs */}
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
@@ -1340,6 +1376,7 @@ export function Konsensus() {
                     ))}
                   </select>
                 </div>
+
                 <div className="space-y-2">
                   <label className="text-sm font-black text-gray-700 ml-1">Başlık *</label>
                   <input
@@ -1421,6 +1458,7 @@ export function Konsensus() {
                     className="px-5 py-3 bg-white border-0 rounded-xl focus:ring-2 focus:ring-blue-500 transition"
                   />
                 </div>
+
                 <div className="pt-2">
                   <h4 className="text-sm font-black text-blue-800 uppercase tracking-widest mb-3 italic flex items-center">
                     <ImageIcon className="w-4 h-4 mr-2" /> Toplantı Afişi (URL)
@@ -1436,7 +1474,6 @@ export function Konsensus() {
               </div>
             </div>
 
-            {/* Live Preview */}
             <div className="space-y-6">
               <label className="text-sm font-black text-gray-500 ml-1 uppercase tracking-widest">Canlı Önizleme</label>
               {isFormValid() ? (
