@@ -29,6 +29,16 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_VAPID_PUBLIC_KEY: ${{ secrets.VITE_VAPID_PUBLIC_KEY }}
+          VITE_SAVE_SUB_URL: ${{ secrets.VITE_SAVE_SUB_URL }}
+          VITE_SEND_PUSH_URL: ${{ secrets.VITE_SEND_PUSH_URL }}
+          VITE_PUBMED_API_KEY: ${{ secrets.VITE_PUBMED_API_KEY }}
+          VITE_GITHUB_REPO_OWNER: ${{ secrets.VITE_GITHUB_REPO_OWNER }}
+          VITE_GITHUB_REPO_NAME: ${{ secrets.VITE_GITHUB_REPO_NAME }}
+          VITE_API_RATE_LIMIT: ${{ secrets.VITE_API_RATE_LIMIT }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
