@@ -25,7 +25,8 @@ import {
   X,
 } from 'lucide-react';
 
-// Organizer emoji map
+/* ----------------------------- Organizer Options ----------------------------- */
+
 const ORGANIZER_EMOJIS: Record<string, string> = {
   'Baş Boyun Patolojisi-Vaka Tartışma Grubu': '🗣️',
   'Dermatopatoloji vaka tartışma grubu': '🧫',
@@ -57,7 +58,6 @@ const ORGANIZER_OPTIONS = [
   'Üropatoloji Konsensus Grubu',
   'Diğer',
 ];
-const posterButtonOnly = isPast && !!meeting.poster_url;
 
 function getOrganizerWithEmoji(organizer: string): string {
   const emoji = ORGANIZER_EMOJIS[organizer] || '';
@@ -81,7 +81,8 @@ function formatTime(time: string, duration: number): string {
   return `${time} - ${endDate.toTimeString().slice(0, 5)}`;
 }
 
-// Meeting Status Types
+/* ----------------------------- Meeting Status ------------------------------ */
+
 type MeetingStatus = 'upcoming' | 'countdown' | 'live' | 'finished';
 
 function getMeetingStatus(meeting: Meeting, now: Date): { status: MeetingStatus; diffMinutes: number; diffHours: number } {
@@ -102,10 +103,7 @@ function getMeetingStatus(meeting: Meeting, now: Date): { status: MeetingStatus;
   const m = diffToStart % 60;
 
   const isToday = new Date(meeting.date).toDateString() === now.toDateString();
-
-  if (isToday) {
-    return { status: 'countdown', diffMinutes: m, diffHours: h };
-  }
+  if (isToday) return { status: 'countdown', diffMinutes: m, diffHours: h };
 
   return { status: 'upcoming', diffMinutes: m, diffHours: h };
 }
@@ -116,7 +114,7 @@ function MeetingStatusBadge({ meeting, now }: { meeting: Meeting; now: Date }) {
   if (status === 'live') {
     return (
       <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-black bg-red-600 text-white animate-pulse shadow-lg shadow-red-200">
-        <span className="w-2 h-2 bg-white rounded-full mr-1.5 "></span>
+        <span className="w-2 h-2 bg-white rounded-full mr-1.5" />
         CANLI • {diffMinutes} dk
       </div>
     );
@@ -135,7 +133,6 @@ function MeetingStatusBadge({ meeting, now }: { meeting: Meeting; now: Date }) {
   today.setHours(0, 0, 0, 0);
   const mDate = new Date(meeting.date);
   mDate.setHours(0, 0, 0, 0);
-
   if (mDate.getTime() === today.getTime()) {
     return (
       <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-black bg-blue-600 text-white shadow-lg shadow-blue-200">
@@ -146,6 +143,8 @@ function MeetingStatusBadge({ meeting, now }: { meeting: Meeting; now: Date }) {
 
   return null;
 }
+
+/* ----------------------------- Poster Lightbox ----------------------------- */
 
 function PosterLightbox({ url, onClose }: { url: string; onClose: () => void }) {
   return (
@@ -169,12 +168,13 @@ function PosterLightbox({ url, onClose }: { url: string; onClose: () => void }) 
   );
 }
 
+/* --------------------------------- UI Bits -------------------------------- */
+
 function SectionTitle({ title, icon, color = 'blue' }: { title: string; icon: React.ReactNode; color?: string }) {
   const colorClasses: Record<string, string> = {
     blue: 'text-blue-700 bg-blue-100',
     indigo: 'text-indigo-700 bg-indigo-100',
     gray: 'text-gray-600 bg-gray-100',
-    red: 'text-red-700 bg-red-100',
   };
 
   return (
@@ -185,7 +185,8 @@ function SectionTitle({ title, icon, color = 'blue' }: { title: string; icon: Re
   );
 }
 
-/** Bildirimler kartı (reuse: mobile + desktop) */
+/* ------------------------------ Notifications ------------------------------ */
+
 function NotificationsCard({
   pushEnabled,
   pushLoading,
@@ -207,7 +208,7 @@ function NotificationsCard({
             <span className="text-sm font-semibold text-gray-600">{pushEnabled ? 'Açık' : 'Kapalı'}</span>
           </div>
 
-          {/* Desktop görünümde düğme aynı satırın sağında */}
+          {/* Desktop: same row on right */}
           <button
             onClick={togglePush}
             disabled={pushLoading}
@@ -221,7 +222,7 @@ function NotificationsCard({
           </button>
         </div>
 
-        {/* Mobile: buton başlığın hemen altında, full width */}
+        {/* Mobile: under the title */}
         <button
           onClick={togglePush}
           disabled={pushLoading}
@@ -240,7 +241,8 @@ function NotificationsCard({
   );
 }
 
-// Meeting Card Component
+/* ------------------------------- Meeting Card ------------------------------ */
+
 function MeetingCard({
   meeting,
   isAdmin,
@@ -268,27 +270,28 @@ function MeetingCard({
   onDownloadIcs?: (meeting: Meeting) => void;
   onShareWhatsApp?: (meeting: Meeting) => void;
 }) {
+  const past = !!isPast;
+
   const hasIdPw = !!(meeting.zoom_id || meeting.zoom_password);
 
-  // İstek: Zoom ID/PW varsa linki gizle (join görünmesin).
-  // ID/PW yoksa ve link varsa "Zoom'a Katıl" görünsün.
-  const showJoin = !!meeting.zoom_link && !hasIdPw;
-  const showIdPw = !isPast && hasIdPw;
+  // İstek: ID/PW varsa linki sakla (join görünmesin). ID/PW yoksa link varsa join göster.
+  const showJoin = !!meeting.zoom_link && !hasIdPw && !past;
+  const showIdPw = !past && hasIdPw;
 
   const hasPoster = !!meeting.poster_url;
+  const posterButtonOnly = past && hasPoster;
 
   return (
     <div
       className={`group relative overflow-hidden transition-all duration-300 hover:-translate-y-[1px] ${
-        isPast
+        past
           ? 'bg-gray-50 border-gray-200 grayscale-[0.5] hover:grayscale-0'
           : isTodaySpotlight
             ? 'bg-gradient-to-br from-blue-50 to-indigo-50 border-indigo-300 ring-2 ring-indigo-500/20 shadow-xl'
             : 'bg-white border-gray-200 hover:border-blue-300 hover:shadow-lg'
       } border-2 rounded-2xl p-5 mb-4`}
     >
-      {/* Subtle top shine */}
-      {!isPast && <div className="pointer-events-none absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-white/60 to-transparent" />}
+      {!past && <div className="pointer-events-none absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-white/60 to-transparent" />}
 
       {isTodaySpotlight && (
         <>
@@ -304,16 +307,15 @@ function MeetingCard({
             <button
               onClick={() => onOrganizerClick?.(meeting.organizer)}
               className={`px-2.5 py-1 rounded-full text-xs font-black cursor-pointer hover:ring-2 hover:ring-current transition-all ${
-                isPast ? 'bg-gray-200 text-gray-600' : 'bg-blue-100 text-blue-800'
+                past ? 'bg-gray-200 text-gray-600' : 'bg-blue-100 text-blue-800'
               }`}
             >
               {getOrganizerWithEmoji(meeting.organizer)}
             </button>
           )}
 
-          {!isPast && <MeetingStatusBadge meeting={meeting} now={now} />}
+          {!past && <MeetingStatusBadge meeting={meeting} now={now} />}
 
-          {/* Admin edit/delete moved here (right side) */}
           {isAdmin && (
             <div className="ml-auto flex items-center gap-2">
               <button
@@ -337,7 +339,7 @@ function MeetingCard({
         {/* Title */}
         <h3
           className={`font-black tracking-tight leading-snug ${
-            isPast ? 'text-gray-600' : 'text-gray-900'
+            past ? 'text-gray-600' : 'text-gray-900'
           } text-[20px] sm:text-[22px] md:text-[24px] mb-3`}
         >
           {meeting.title}
@@ -347,7 +349,7 @@ function MeetingCard({
         <div className="flex flex-wrap gap-2">
           <div
             className={`inline-flex items-center text-sm font-semibold px-3 py-2 rounded-xl border ${
-              isPast ? 'bg-gray-50 border-gray-200 text-gray-600' : 'bg-blue-50 border-blue-100 text-blue-800'
+              past ? 'bg-gray-50 border-gray-200 text-gray-600' : 'bg-blue-50 border-blue-100 text-blue-800'
             }`}
           >
             <Calendar className="w-4 h-4 mr-2" />
@@ -355,7 +357,7 @@ function MeetingCard({
           </div>
           <div
             className={`inline-flex items-center text-sm font-semibold px-3 py-2 rounded-xl border ${
-              isPast ? 'bg-gray-50 border-gray-200 text-gray-600' : 'bg-indigo-50 border-indigo-100 text-indigo-800'
+              past ? 'bg-gray-50 border-gray-200 text-gray-600' : 'bg-indigo-50 border-indigo-100 text-indigo-800'
             }`}
           >
             <Clock className="w-4 h-4 mr-2" />
@@ -364,130 +366,126 @@ function MeetingCard({
         </div>
 
         {meeting.description && (
-          <p className={`mt-4 text-[13px] sm:text-sm leading-relaxed ${isPast ? 'text-gray-500 italic' : 'text-gray-700'}`}>
+          <p className={`mt-4 text-[13px] sm:text-sm leading-relaxed ${past ? 'text-gray-500 italic' : 'text-gray-700'}`}>
             {meeting.description}
           </p>
         )}
 
-        {!isPast && (
+        {/* Bottom: zoom/actions + poster */}
+        {!past && (
           <div className="mt-5 pt-4 border-t border-gray-100">
-            {/* Right poster should "fit nicely" into empty space:
-                - make right column wider (7/5)
-                - make poster card stretch (self-stretch + h-full)
-                - use aspect ratio for image so it fills area well */}
-<div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
-  {/* Left */}
-  <div className={hasPoster ? 'md:col-span-7' : 'md:col-span-12'}>
-    {/* Zoom join */}
-    {showJoin && (
-      <a
-        href={meeting.zoom_link!}
-        className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-black rounded-xl transition shadow-md hover:shadow-blue-200"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        <Video className="w-4 h-4 mr-2" />
-        Zoom&apos;a Katıl
-      </a>
-    )}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+              {/* Left */}
+              <div className={hasPoster ? 'md:col-span-7' : 'md:col-span-12'}>
+                {showJoin && (
+                  <a
+                    href={meeting.zoom_link!}
+                    className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-black rounded-xl transition shadow-md hover:shadow-blue-200"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Video className="w-4 h-4 mr-2" />
+                    Zoom&apos;a Katıl
+                  </a>
+                )}
 
-    {/* Zoom ID/PW */}
-    {showIdPw && (
-      <div className="mt-3 flex flex-wrap gap-2">
-        {meeting.zoom_id && (
-          <div className="bg-gray-100 px-3 py-2 rounded-xl text-sm font-semibold text-gray-700">
-            <span className="font-black text-gray-900">Zoom ID:</span> {meeting.zoom_id}
+                {showIdPw && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {meeting.zoom_id && (
+                      <div className="bg-gray-100 px-3 py-2 rounded-xl text-sm font-semibold text-gray-700">
+                        <span className="font-black text-gray-900">Zoom ID:</span> {meeting.zoom_id}
+                      </div>
+                    )}
+                    {meeting.zoom_password && (
+                      <div className="bg-gray-100 px-3 py-2 rounded-xl text-sm font-semibold text-gray-700">
+                        <span className="font-black text-gray-900">Şifre:</span> {meeting.zoom_password}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <button
+                    onClick={() => onAddToCalendar?.(meeting)}
+                    className="inline-flex items-center px-3 py-2 rounded-xl bg-blue-50 text-blue-800 hover:bg-blue-100 text-sm font-black transition border border-blue-100"
+                  >
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                    Takvime ekle
+                  </button>
+
+                  <button
+                    onClick={() => onDownloadIcs?.(meeting)}
+                    className="inline-flex items-center px-3 py-2 rounded-xl bg-indigo-50 text-indigo-800 hover:bg-indigo-100 text-sm font-black transition border border-indigo-100"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    iCal (.ics) indir
+                  </button>
+
+                  <button
+                    onClick={() => onShareWhatsApp?.(meeting)}
+                    className="inline-flex items-center px-3 py-2 rounded-xl bg-green-50 text-green-800 hover:bg-green-100 text-sm font-black transition border border-green-100"
+                  >
+                    <MessageCircle className="w-4 h-4 mr-2" />
+                    WhatsApp paylaş
+                  </button>
+                </div>
+
+                {!showJoin && !showIdPw && (
+                  <div className="mt-3 text-xs font-semibold text-gray-400">Zoom bilgisi eklenmemiş.</div>
+                )}
+              </div>
+
+              {/* Right poster (upcoming/today/tomorrow/future) */}
+              {hasPoster ? (
+                <div className="md:col-span-5 flex justify-end">
+                  <button
+                    onClick={() => onPosterClick?.(meeting.poster_url!)}
+                    className="w-full md:max-w-[360px] rounded-3xl border-2 border-indigo-200 bg-white/70 hover:bg-white transition p-4 shadow-md hover:shadow-lg flex flex-col"
+                    title="Afişi büyüt"
+                  >
+                    <div className="w-full rounded-2xl overflow-hidden border border-indigo-200 bg-white shadow-sm">
+                      <div className="w-full aspect-[3/4]">
+                        <img
+                          src={meeting.poster_url!}
+                          alt="Toplantı afişi"
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="mt-4 flex items-center justify-center gap-2">
+                      <div className="inline-flex items-center justify-center px-4 py-2 bg-indigo-50 text-indigo-800 text-sm font-black rounded-xl border border-indigo-100">
+                        <ImageIcon className="w-4 h-4 mr-2" />
+                        Afişi Gör
+                      </div>
+                    </div>
+
+                    <div className="text-xs text-indigo-700 font-semibold mt-2 text-center opacity-80">
+                      Dokun / tıkla büyüt
+                    </div>
+                  </button>
+                </div>
+              ) : (
+                <div className="hidden md:block md:col-span-5" />
+              )}
+            </div>
           </div>
         )}
-        {meeting.zoom_password && (
-          <div className="bg-gray-100 px-3 py-2 rounded-xl text-sm font-semibold text-gray-700">
-            <span className="font-black text-gray-900">Şifre:</span> {meeting.zoom_password}
-          </div>
-        )}
-      </div>
-    )}
 
-    {/* Actions */}
-    <div className="mt-4 flex flex-wrap gap-2">
-      <button
-        onClick={() => onAddToCalendar?.(meeting)}
-        className="inline-flex items-center px-3 py-2 rounded-xl bg-blue-50 text-blue-800 hover:bg-blue-100 text-sm font-black transition border border-blue-100"
-      >
-        <ExternalLink className="w-4 h-4 mr-2" />
-        Takvime ekle
-      </button>
-
-      <button
-        onClick={() => onDownloadIcs?.(meeting)}
-        className="inline-flex items-center px-3 py-2 rounded-xl bg-indigo-50 text-indigo-800 hover:bg-indigo-100 text-sm font-black transition border border-indigo-100"
-      >
-        <Download className="w-4 h-4 mr-2" />
-        iCal (.ics) indir
-      </button>
-
-      <button
-        onClick={() => onShareWhatsApp?.(meeting)}
-        className="inline-flex items-center px-3 py-2 rounded-xl bg-green-50 text-green-800 hover:bg-green-100 text-sm font-black transition border border-green-100"
-      >
-        <MessageCircle className="w-4 h-4 mr-2" />
-        WhatsApp paylaş
-      </button>
-    </div>
-
-    {!showJoin && !showIdPw && (
-      <div className="mt-3 text-xs font-semibold text-gray-400">Zoom bilgisi eklenmemiş.</div>
-    )}
-  </div>
-
-  {/* Right poster */}
-{hasPoster ? (
-  <div className="md:col-span-5 flex justify-end">
-    {/* Past: sadece buton */}
-    {posterButtonOnly ? (
-      <button
-        onClick={() => onPosterClick?.(meeting.poster_url!)}
-        className="inline-flex items-center justify-center px-4 py-3 rounded-2xl bg-indigo-50 text-indigo-800 text-sm font-black border border-indigo-100 hover:bg-indigo-100 transition"
-        title="Afişi büyüt"
-      >
-        <ImageIcon className="w-4 h-4 mr-2" />
-        Afişi Gör
-      </button>
-    ) : (
-      <button
-        onClick={() => onPosterClick?.(meeting.poster_url!)}
-        className="w-full md:max-w-[360px] rounded-3xl border-2 border-indigo-200 bg-white/70 hover:bg-white transition p-4 shadow-md hover:shadow-lg flex flex-col"
-        title="Afişi büyüt"
-      >
-        <div className="w-full rounded-2xl overflow-hidden border border-indigo-200 bg-white shadow-sm">
-          <div className="w-full aspect-[3/4]">
-            <img
-              src={meeting.poster_url!}
-              alt="Toplantı afişi"
-              className="w-full h-full object-cover"
-              loading="lazy"
-            />
-          </div>
-        </div>
-
-        <div className="mt-4 flex items-center justify-center gap-2">
-          <div className="inline-flex items-center justify-center px-4 py-2 bg-indigo-50 text-indigo-800 text-sm font-black rounded-xl border border-indigo-100">
-            <ImageIcon className="w-4 h-4 mr-2" />
-            Afişi Gör
-          </div>
-        </div>
-
-        <div className="text-xs text-indigo-700 font-semibold mt-2 text-center opacity-80">
-          Dokun / tıkla büyüt
-        </div>
-      </button>
-    )}
-  </div>
-) : (
-  <div className="hidden md:block md:col-span-5" />
-)}
-
-</div>
-
+        {/* Past: poster varsa sadece buton */}
+        {past && hasPoster && (
+          <div className="mt-5 pt-4 border-t border-gray-100">
+            {posterButtonOnly && (
+              <button
+                onClick={() => onPosterClick?.(meeting.poster_url!)}
+                className="inline-flex items-center justify-center px-4 py-3 rounded-2xl bg-indigo-50 text-indigo-800 text-sm font-black border border-indigo-100 hover:bg-indigo-100 transition"
+                title="Afişi büyüt"
+              >
+                <ImageIcon className="w-4 h-4 mr-2" />
+                Afişi Gör
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -495,7 +493,8 @@ function MeetingCard({
   );
 }
 
-// Meeting List Component
+/* ------------------------------- Meeting List ------------------------------ */
+
 function MeetingList({
   upcomingMeetings,
   pastMeetings,
@@ -544,8 +543,8 @@ function MeetingList({
   const todayMeetings = filteredUpcoming.filter((m) => new Date(m.date).toDateString() === todayKey);
   const tomorrowMeetings = filteredUpcoming.filter((m) => new Date(m.date).toDateString() === tomorrowKey);
   const futureMeetings = filteredUpcoming.filter((m) => {
-    const d = new Date(m.date);
-    return d.toDateString() !== todayKey && d.toDateString() !== tomorrowKey;
+    const dKey = new Date(m.date).toDateString();
+    return dKey !== todayKey && dKey !== tomorrowKey;
   });
 
   const visiblePast = showAllPast ? filteredPast : filteredPast.slice(0, 5);
@@ -583,7 +582,7 @@ function MeetingList({
                 onDelete={onDelete}
                 onEdit={onEdit}
                 now={now}
-                isTodaySpotlight={true}
+                isTodaySpotlight
                 onOrganizerClick={onOrganizerClick}
                 onPosterClick={onPosterClick}
                 onAddToCalendar={onAddToCalendar}
@@ -653,7 +652,8 @@ function MeetingList({
         )}
       </div>
 
-      <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100 opacity-90">
+      {/* Past meetings */}
+      <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100 opacity-95">
         <button onClick={() => setShowPast(!showPast)} className="w-full flex items-center justify-between text-left">
           <SectionTitle title={`ARŞİV (${filteredPast.length})`} icon={<BookOpen className="w-6 h-6" />} color="gray" />
           <div className={`p-2 rounded-lg bg-gray-100 transition-transform duration-300 ${showPast ? 'rotate-180' : ''}`}>
@@ -706,7 +706,8 @@ function MeetingList({
   );
 }
 
-// Admin Panel Component
+/* ------------------------------- Admin Panel ------------------------------- */
+
 function AdminPanel({
   isAdmin,
   onLogin,
@@ -759,7 +760,7 @@ function AdminPanel({
 
   if (isAdmin) {
     return (
-      <div className="bg-white rounded-2xl shadow-xl p-6">
+      <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-black text-gray-900">Admin Paneli</h2>
           <button
@@ -777,7 +778,7 @@ function AdminPanel({
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-xl p-6">
+    <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-black text-gray-900">Admin Paneli</h2>
         <button
@@ -849,7 +850,8 @@ function AdminPanel({
   );
 }
 
-// Main Konsensus Component
+/* ------------------------------- Main Page -------------------------------- */
+
 export function Konsensus() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
@@ -877,7 +879,8 @@ export function Konsensus() {
   const [selectedOrganizer, setSelectedOrganizer] = useState<string | null>(null);
   const [activePoster, setActivePoster] = useState<string | null>(null);
 
-  // Helpers for per-meeting actions
+  /* ----------------- per-meeting calendar/ics/whatsapp ----------------- */
+
   const formatDateTime = (date: Date) => {
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -1003,7 +1006,8 @@ export function Konsensus() {
     [getGoogleCalendarUrlForMeeting]
   );
 
-  // Stats
+  /* ----------------------------- group stats ----------------------------- */
+
   const getGroupStats = () => {
     const allMeetings = [...getUpcomingMeetings(), ...getPastMeetings()];
     const stats: Record<string, number> = {};
@@ -1019,7 +1023,8 @@ export function Konsensus() {
 
   const groupStats = getGroupStats();
 
-  // Auth
+  /* -------------------------------- auth -------------------------------- */
+
   useEffect(() => {
     const checkAuth = async () => {
       const {
@@ -1041,18 +1046,19 @@ export function Konsensus() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Default date
+  /* ------------------------------ default date ------------------------------ */
+
   useEffect(() => {
     const nowLocal = new Date();
     const turkeyOffset = 3 * 60;
     const localOffset = nowLocal.getTimezoneOffset();
     const turkeyTime = new Date(nowLocal.getTime() + (turkeyOffset + localOffset) * 60000);
     const dateStr = turkeyTime.toISOString().split('T')[0];
-
     setFormData((prev) => ({ ...prev, date: prev.date || dateStr }));
   }, []);
 
-  // Refetch at 00:05
+  /* ------------------------------ auto refetch ------------------------------ */
+
   useEffect(() => {
     const scheduleRefetch = () => {
       const nowLocal = new Date();
@@ -1071,7 +1077,8 @@ export function Konsensus() {
     return () => clearTimeout(timeoutId);
   }, [refetch]);
 
-  // Now tick
+  /* -------------------------------- clock -------------------------------- */
+
   useEffect(() => {
     const intervalId = setInterval(() => {
       const currentNow = new Date();
@@ -1082,7 +1089,8 @@ export function Konsensus() {
     return () => clearInterval(intervalId);
   }, [refetch]);
 
-  // Push validation
+  /* -------------------------- push subscription check -------------------------- */
+
   useEffect(() => {
     const validate = async () => {
       try {
@@ -1118,6 +1126,8 @@ export function Konsensus() {
     }
   };
 
+  /* ------------------------------ admin actions ------------------------------ */
+
   const handleLogin = async (username: string, password: string): Promise<boolean> => {
     try {
       const email = 'admin@patoloji.com';
@@ -1149,9 +1159,7 @@ export function Konsensus() {
     return formData.organizer === 'Diğer' ? formData.customOrganizer.trim() : formData.organizer.trim();
   };
 
-  const isFormValid = () => {
-    return !!(formData.title && formData.date && formData.time);
-  };
+  const isFormValid = () => !!(formData.title && formData.date && formData.time);
 
   const handleSave = async () => {
     if (!isFormValid()) return;
@@ -1240,46 +1248,103 @@ export function Konsensus() {
         </div>
       </div>
 
-      {/* MOBILE: Bildirimler header’ın hemen altında */}
+      {/* Mobile notifications under header */}
       <div className="lg:hidden mb-8">
         <NotificationsCard pushEnabled={pushEnabled} pushLoading={pushLoading} togglePush={togglePush} />
       </div>
 
       {/* Main layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-        {/* Left: Meetings */}
+        {/* Left */}
         <div className="lg:col-span-8 order-1">
           {!loading && (
-            <MeetingList
-              upcomingMeetings={upcomingMeetings}
-              pastMeetings={pastMeetings}
-              isAdmin={isAdmin}
-              onDelete={handleDelete}
-              onEdit={handleEdit}
-              now={now}
-              selectedOrganizer={selectedOrganizer}
-              onOrganizerClick={(org) => {
-                setSelectedOrganizer(org);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              onClearFilter={() => setSelectedOrganizer(null)}
-              onPosterClick={setActivePoster}
-              onAddToCalendar={(m) => window.open(getGoogleCalendarUrlForMeeting(m), '_blank')}
-              onDownloadIcs={downloadIcalForMeeting}
-              onShareWhatsApp={shareWhatsAppForMeeting}
-            />
+            <>
+              <MeetingList
+                upcomingMeetings={upcomingMeetings}
+                pastMeetings={pastMeetings}
+                isAdmin={isAdmin}
+                onDelete={handleDelete}
+                onEdit={handleEdit}
+                now={now}
+                selectedOrganizer={selectedOrganizer}
+                onOrganizerClick={(org) => {
+                  setSelectedOrganizer(org);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                onClearFilter={() => setSelectedOrganizer(null)}
+                onPosterClick={setActivePoster}
+                onAddToCalendar={(m) => window.open(getGoogleCalendarUrlForMeeting(m), '_blank')}
+                onDownloadIcs={downloadIcalForMeeting}
+                onShareWhatsApp={shareWhatsAppForMeeting}
+              />
+
+              {/* Mobile: En Aktif Gruplar listelerin altında gelsin */}
+              <div className="lg:hidden mt-8">
+                <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100 overflow-hidden relative">
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-400 to-orange-500" />
+                  <h2 className="text-xl font-black text-gray-900 mb-6 flex items-center">
+                    <span className="text-2xl mr-3">🏆</span> En Aktif Gruplar
+                  </h2>
+                  <div className="space-y-4">
+                    {groupStats.map((stat, index) => (
+                      <button
+                        key={stat.name}
+                        onClick={() => {
+                          setSelectedOrganizer(stat.name);
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                        className={`w-full group flex items-center justify-between p-3 rounded-2xl transition-all ${
+                          selectedOrganizer === stat.name ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'bg-gray-50 hover:bg-blue-50'
+                        }`}
+                      >
+                        <div className="flex items-center overflow-hidden">
+                          <span
+                            className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black mr-3 shrink-0 ${
+                              index === 0
+                                ? 'bg-yellow-400 text-yellow-900'
+                                : index === 1
+                                  ? 'bg-gray-300 text-gray-800'
+                                  : index === 2
+                                    ? 'bg-orange-300 text-orange-900'
+                                    : selectedOrganizer === stat.name
+                                      ? 'bg-blue-400 text-white'
+                                      : 'bg-gray-200 text-gray-500'
+                            }`}
+                          >
+                            {index + 1}
+                          </span>
+                          <span className={`text-sm font-black truncate ${selectedOrganizer === stat.name ? 'text-white' : 'text-gray-700'}`}>
+                            {getOrganizerWithEmoji(stat.name)}
+                          </span>
+                        </div>
+                        <div
+                          className={`px-2.5 py-1 rounded-lg text-xs font-black shrink-0 ${
+                            selectedOrganizer === stat.name ? 'bg-blue-500 text-white' : 'bg-blue-100 text-blue-700'
+                          }`}
+                        >
+                          {stat.count}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-[10px] text-gray-400 mt-6 text-center italic font-medium">
+                    Toplam toplantı sayılarına göre sıralanmıştır.
+                  </p>
+                </div>
+              </div>
+            </>
           )}
         </div>
 
-        {/* Right: Desktop side */}
+        {/* Right (desktop) */}
         <div className="lg:col-span-4 order-2 space-y-8 lg:sticky lg:top-8">
-          {/* DESKTOP: Bildirimler sağ kolonda */}
+          {/* Desktop notifications top */}
           <div className="hidden lg:block">
             <NotificationsCard pushEnabled={pushEnabled} pushLoading={pushLoading} togglePush={togglePush} />
           </div>
 
-          {/* Stats */}
-          <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100 overflow-hidden relative">
+          {/* Desktop: En Aktif Gruplar Admin üstünde */}
+          <div className="hidden lg:block bg-white rounded-3xl shadow-xl p-8 border border-gray-100 overflow-hidden relative">
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-400 to-orange-500" />
             <h2 className="text-xl font-black text-gray-900 mb-6 flex items-center">
               <span className="text-2xl mr-3">🏆</span> En Aktif Gruplar
@@ -1333,7 +1398,7 @@ export function Konsensus() {
         </div>
       </div>
 
-      {/* Admin form */}
+      {/* Admin add/edit form */}
       {isAdmin && !authLoading && (
         <div className="mt-12 bg-white rounded-4xl shadow-2xl p-10 border border-blue-50 relative overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600" />
