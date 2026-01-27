@@ -24,6 +24,7 @@ import {
     MessageCircle,
     ChevronDown,
     ChevronUp,
+    BookOpen,
 } from 'lucide-react';
 
 // Organizer emoji map
@@ -84,34 +85,40 @@ function formatTime(time: string, duration: number): string {
 // Meeting Status Types
 type MeetingStatus = 'upcoming' | 'countdown' | 'live' | 'finished';
 
-function getMeetingStatus(meeting: Meeting, now: Date): { status: MeetingStatus; diffMinutes: number } {
+function getMeetingStatus(meeting: Meeting, now: Date): { status: MeetingStatus; diffMinutes: number; diffHours: number } {
     const [hours, minutes] = meeting.time.split(':').map(Number);
     const meetingStart = new Date(meeting.date);
     meetingStart.setHours(hours, minutes, 0, 0);
 
     const meetingEnd = new Date(meetingStart.getTime() + meeting.duration * 60000);
 
-    if (now > meetingEnd) return { status: 'finished', diffMinutes: 0 };
+    if (now > meetingEnd) return { status: 'finished', diffMinutes: 0, diffHours: 0 };
     if (now >= meetingStart && now <= meetingEnd) {
         const diff = Math.floor((now.getTime() - meetingStart.getTime()) / 60000);
-        return { status: 'live', diffMinutes: diff };
+        return { status: 'live', diffMinutes: diff, diffHours: 0 };
     }
 
     const diffToStart = Math.floor((meetingStart.getTime() - now.getTime()) / 60000);
-    if (diffToStart <= 60 && diffToStart > 0) {
-        return { status: 'countdown', diffMinutes: diffToStart };
+    const h = Math.floor(diffToStart / 60);
+    const m = diffToStart % 60;
+
+    // Is it today?
+    const isToday = new Date(meeting.date).toDateString() === now.toDateString();
+
+    if (isToday) {
+        return { status: 'countdown', diffMinutes: m, diffHours: h };
     }
 
-    return { status: 'upcoming', diffMinutes: diffToStart };
+    return { status: 'upcoming', diffMinutes: m, diffHours: h };
 }
 
 function StatusBadge({ meeting, now }: { meeting: Meeting, now: Date }) {
-    const { status, diffMinutes } = getMeetingStatus(meeting, now);
+    const { status, diffMinutes, diffHours } = getMeetingStatus(meeting, now);
 
     if (status === 'live') {
         return (
-            <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 animate-pulse border border-red-200">
-                <span className="w-2 h-2 bg-red-500 rounded-full mr-1.5 "></span>
+            <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-red-600 text-white animate-pulse shadow-lg shadow-red-200">
+                <span className="w-2 h-2 bg-white rounded-full mr-1.5 "></span>
                 CANLI • {diffMinutes} dakikadır
             </div>
         );
@@ -119,14 +126,14 @@ function StatusBadge({ meeting, now }: { meeting: Meeting, now: Date }) {
 
     if (status === 'countdown') {
         return (
-            <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800 border border-orange-200">
-                <Clock className="w-3 h-3 mr-1" />
-                Başlamasına {diffMinutes} dk kaldı
+            <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-indigo-600 text-white shadow-lg shadow-indigo-200">
+                <Clock className="w-3 h-3 mr-1.5" />
+                {diffHours > 0 ? `${diffHours} sa ${diffMinutes} dk` : `${diffMinutes} dk`} kaldı
             </div>
         );
     }
 
-    // Check if it's today
+    // Check if it's today (fallback if logic above misses it)
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const mDate = new Date(meeting.date);
@@ -134,7 +141,7 @@ function StatusBadge({ meeting, now }: { meeting: Meeting, now: Date }) {
 
     if (mDate.getTime() === today.getTime()) {
         return (
-            <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
+            <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-blue-600 text-white shadow-lg shadow-blue-200">
                 BUGÜN
             </div>
         );
@@ -150,7 +157,8 @@ function MeetingCard({
     isPast,
     onDelete,
     onEdit,
-    now
+    now,
+    isTodaySpotlight = false
 }: {
     meeting: Meeting;
     isAdmin: boolean;
@@ -158,71 +166,93 @@ function MeetingCard({
     onDelete: (id: string) => void;
     onEdit: (meeting: Meeting) => void;
     now: Date;
+    isTodaySpotlight?: boolean;
 }) {
     const isToday = !isPast && (new Date(meeting.date).toDateString() === now.toDateString());
 
     return (
         <div
-            className={`border-l-4 ${isPast ? 'border-gray-400 bg-gray-50' : isToday ? 'border-blue-600 bg-blue-50/50 ring-2 ring-blue-100 animate-in fade-in duration-500' : 'border-blue-500 bg-blue-50'} p-4 rounded-r-lg mb-4`}
+            className={`group relative overflow-hidden transition-all duration-300 ${isPast
+                ? 'bg-gray-50 border-gray-200 grayscale-[0.5] hover:grayscale-0'
+                : isTodaySpotlight
+                    ? 'bg-gradient-to-br from-blue-50 to-indigo-50 border-indigo-200 ring-2 ring-indigo-500/20 shadow-xl'
+                    : 'bg-white border-gray-100 hover:border-blue-200 hover:shadow-lg'
+                } border rounded-2xl p-5 mb-4`}
         >
-            <div className="flex justify-between items-start">
+            {/* Spotlight Accent */}
+            {isTodaySpotlight && (
+                <div className="absolute top-0 right-0 w-32 h-32 -mr-8 -mt-8 bg-indigo-500/10 rounded-full blur-3xl" />
+            )}
+
+            <div className="flex justify-between items-start relative z-10">
                 <div className="flex-1">
-                    <div className="flex flex-wrap items-center gap-2 mb-2">
+                    <div className="flex flex-wrap items-center gap-2 mb-3">
                         {meeting.organizer && (
-                            <div className={`text-sm ${isPast ? 'text-gray-600' : 'text-blue-700'} font-medium`}>
+                            <div className={`px-2 py-0.5 rounded text-xs font-semibold ${isPast ? 'bg-gray-200 text-gray-600' : 'bg-blue-100 text-blue-700'}`}>
                                 {getOrganizerWithEmoji(meeting.organizer)}
                             </div>
                         )}
                         {!isPast && <StatusBadge meeting={meeting} now={now} />}
                     </div>
-                    <h3 className={`font-semibold ${isPast ? 'text-gray-700' : 'text-blue-900'} text-lg mb-2`}>
+
+                    <h3 className={`font-bold ${isPast ? 'text-gray-600' : 'text-gray-900'} text-xl mb-3 group-hover:text-blue-600 transition-colors`}>
                         {meeting.title}
                     </h3>
-                    <div className={`space-y-2 ${isPast ? 'text-gray-600' : 'text-blue-800'}`}>
-                        <div className="flex items-center">
-                            <Calendar className="w-4 h-4 mr-2" />
+
+                    <div className={`grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4 ${isPast ? 'text-gray-500' : 'text-gray-600'}`}>
+                        <div className="flex items-center text-sm font-medium">
+                            <div className={`p-1.5 rounded-lg mr-2 ${isPast ? 'bg-gray-100' : 'bg-blue-50 text-blue-600'}`}>
+                                <Calendar className="w-4 h-4" />
+                            </div>
                             {formatDate(meeting.date)}
                         </div>
-                        <div className="flex items-center">
-                            <Clock className="w-4 h-4 mr-2" />
-                            {formatTime(meeting.time, meeting.duration)} (Europe/Istanbul)
-                        </div>
-                        {meeting.description && <p className="mt-2">{meeting.description}</p>}
-                        {(meeting.zoom_link || meeting.zoom_id) && (
-                            <div className="mt-3 pt-3 border-t border-blue-200">
-                                {meeting.zoom_link && (
-                                    <div className="flex items-center">
-                                        <Video className="w-4 h-4 mr-2" />
-                                        <a
-                                            href={meeting.zoom_link}
-                                            className="text-blue-600 hover:underline font-medium"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                        >
-                                            Zoom Bağlantısı
-                                        </a>
-                                    </div>
-                                )}
-                                <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm">
-                                    {meeting.zoom_id && <div><span className="opacity-70">ID:</span> {meeting.zoom_id}</div>}
-                                    {meeting.zoom_password && <div><span className="opacity-70">Parola:</span> {meeting.zoom_password}</div>}
-                                </div>
+                        <div className="flex items-center text-sm font-medium">
+                            <div className={`p-1.5 rounded-lg mr-2 ${isPast ? 'bg-gray-100' : 'bg-indigo-50 text-indigo-600'}`}>
+                                <Clock className="w-4 h-4" />
                             </div>
-                        )}
+                            {formatTime(meeting.time, meeting.duration)}
+                        </div>
                     </div>
+
+                    {meeting.description && (
+                        <p className={`mt-4 text-sm leading-relaxed ${isPast ? 'text-gray-500 italic' : 'text-gray-600'}`}>
+                            {meeting.description}
+                        </p>
+                    )}
+
+                    {(meeting.zoom_link || meeting.zoom_id) && !isPast && (
+                        <div className="mt-5 pt-4 border-t border-gray-100">
+                            {meeting.zoom_link && (
+                                <a
+                                    href={meeting.zoom_link}
+                                    className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition shadow-md hover:shadow-blue-200"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    <Video className="w-4 h-4 mr-2" />
+                                    Zoom'a Katıl
+                                </a>
+                            )}
+                            <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-xs font-medium text-gray-500">
+                                {meeting.zoom_id && <div className="bg-gray-100 px-2 py-1 rounded">ID: <span className="text-gray-800">{meeting.zoom_id}</span></div>}
+                                {meeting.zoom_password && <div className="bg-gray-100 px-2 py-1 rounded">PW: <span className="text-gray-800">{meeting.zoom_password}</span></div>}
+                            </div>
+                        </div>
+                    )}
                 </div>
+
                 {isAdmin && (
-                    <div className="flex gap-2 ml-4">
+                    <div className="flex gap-2 ml-4 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
                             onClick={() => onEdit(meeting)}
-                            className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition"
+                            className="p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-xl transition"
                             title="Düzenle"
                         >
                             <Edit className="w-4 h-4" />
                         </button>
                         <button
                             onClick={() => onDelete(meeting.id)}
-                            className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition"
+                            className="p-2 text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition"
                             title="Sil"
                         >
                             <Trash2 className="w-4 h-4" />
@@ -230,6 +260,24 @@ function MeetingCard({
                     </div>
                 )}
             </div>
+        </div>
+    );
+}
+
+function SectionTitle({ title, icon, color = 'blue' }: { title: string, icon: React.ReactNode, color?: string }) {
+    const colorClasses: Record<string, string> = {
+        blue: 'text-blue-600 bg-blue-100',
+        indigo: 'text-indigo-600 bg-indigo-100',
+        gray: 'text-gray-500 bg-gray-100',
+        red: 'text-red-600 bg-red-100'
+    };
+
+    return (
+        <div className="flex items-center mb-6">
+            <div className={`p-2.5 rounded-xl mr-3 ${colorClasses[color] || colorClasses.blue}`}>
+                {icon}
+            </div>
+            <h2 className="text-xl font-black text-gray-900 tracking-tight">{title}</h2>
         </div>
     );
 }
@@ -252,48 +300,74 @@ function MeetingList({
 }) {
     const [showPast, setShowPast] = useState(false);
 
+    const todayMeetings = upcomingMeetings.filter(m => new Date(m.date).toDateString() === now.toDateString());
+    const onlyUpcoming = upcomingMeetings.filter(m => new Date(m.date).toDateString() !== now.toDateString());
+
     return (
-        <div className="space-y-6 mb-8">
+        <div className="space-y-10">
+            {/* Today's Spotlight */}
+            {todayMeetings.length > 0 && (
+                <div className="bg-white rounded-3xl shadow-2xl p-8 border-2 border-indigo-500 overflow-hidden relative">
+                    <div className="absolute top-0 left-0 w-2 h-full bg-indigo-500" />
+                    <SectionTitle title="GÜNÜN TOPLANTILARI" icon={<Clock className="w-6 h-6" />} color="indigo" />
+
+                    <div className="grid grid-cols-1 gap-6">
+                        {todayMeetings.map((meeting) => (
+                            <MeetingCard
+                                key={meeting.id}
+                                meeting={meeting}
+                                isAdmin={isAdmin}
+                                onDelete={onDelete}
+                                onEdit={onEdit}
+                                now={now}
+                                isTodaySpotlight={true}
+                            />
+                        ))}
+                    </div>
+                </div>
+            )}
+
             {/* Upcoming Meetings */}
-            <div className="bg-white rounded-2xl shadow-xl p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                    <Calendar className="w-5 h-5 mr-2 text-blue-600" />
-                    Yaklaşan Toplantılar
-                </h2>
-                {upcomingMeetings.length === 0 ? (
-                    <p className="text-gray-500 text-center py-8">Yaklaşan toplantı bulunmuyor.</p>
+            <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
+                <SectionTitle title="YAKLAŞAN TOPLANTILAR" icon={<Calendar className="w-6 h-6" />} color="blue" />
+
+                {onlyUpcoming.length === 0 ? (
+                    <div className="text-center py-12 rounded-2xl bg-gray-50 border-2 border-dashed border-gray-200">
+                        <p className="text-gray-400 font-medium">Buralar biraz sessiz... Yeni toplantı planlanmamış.</p>
+                    </div>
                 ) : (
-                    upcomingMeetings.map((meeting) => (
-                        <MeetingCard
-                            key={meeting.id}
-                            meeting={meeting}
-                            isAdmin={isAdmin}
-                            onDelete={onDelete}
-                            onEdit={onEdit}
-                            now={now}
-                        />
-                    ))
+                    <div className="space-y-2">
+                        {onlyUpcoming.map((meeting) => (
+                            <MeetingCard
+                                key={meeting.id}
+                                meeting={meeting}
+                                isAdmin={isAdmin}
+                                onDelete={onDelete}
+                                onEdit={onEdit}
+                                now={now}
+                            />
+                        ))}
+                    </div>
                 )}
             </div>
 
             {/* Past Meetings (Collapsible) */}
-            <div className="bg-white rounded-2xl shadow-xl p-6">
+            <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100 opacity-90">
                 <button
                     onClick={() => setShowPast(!showPast)}
-                    className="w-full flex items-center justify-between text-xl font-semibold text-gray-900 mb-4"
+                    className="w-full flex items-center justify-between text-left"
                 >
-                    <span className="flex items-center">
-                        <Clock className="w-5 h-5 mr-2 text-gray-500" />
-                        Geçmiş Toplantılar ({pastMeetings.length})
-                    </span>
-                    {showPast ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                    <SectionTitle title={`ARŞİV (${pastMeetings.length})`} icon={<BookOpen className="w-6 h-6" />} color="gray" />
+                    <div className={`p-2 rounded-lg bg-gray-100 transition-transform duration-300 ${showPast ? 'rotate-180' : ''}`}>
+                        <ChevronDown className="w-5 h-5 text-gray-500" />
+                    </div>
                 </button>
                 {showPast && (
-                    <>
+                    <div className="mt-4 pt-4 border-t border-gray-100 grid grid-cols-1 gap-4 animate-in slide-in-from-top-4 duration-300">
                         {pastMeetings.length === 0 ? (
-                            <p className="text-gray-500 text-center py-8">Geçmiş toplantı bulunmuyor.</p>
+                            <p className="text-gray-400 text-center py-8 italic font-medium">Arşiv henüz boş.</p>
                         ) : (
-                            pastMeetings.slice(0, 10).map((meeting) => (
+                            pastMeetings.slice(0, 5).map((meeting) => (
                                 <MeetingCard
                                     key={meeting.id}
                                     meeting={meeting}
@@ -305,7 +379,10 @@ function MeetingList({
                                 />
                             ))
                         )}
-                    </>
+                        {pastMeetings.length > 5 && (
+                            <p className="text-center text-xs text-gray-400 mt-2">Son 5 toplantı gösteriliyor</p>
+                        )}
+                    </div>
                 )}
             </div>
         </div>
@@ -872,373 +949,242 @@ export function Konsensus() {
                 </p>
             </div>
 
-            {/* Push Notification Toggle */}
-            <div className="bg-white rounded-2xl shadow-xl p-6 mb-8">
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                    <div className="flex flex-wrap items-center gap-4">
-                        <button
-                            onClick={togglePush}
-                            disabled={pushLoading}
-                            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition flex items-center"
-                        >
-                            {pushEnabled ? <BellOff className="w-4 h-4 mr-2" /> : <Bell className="w-4 h-4 mr-2" />}
-                            {pushEnabled ? 'Bildirimleri Kapat' : 'Bildirimleri Aç'}
-                        </button>
-                        <span className="text-sm text-gray-600">
-                            Durum: <span className="font-medium">{pushEnabled ? 'Açık' : 'Kapalı'}</span>
-                            <br />
-                            <span className="text-xs">
-                                Toplantılardan 15 dakika önce bildirim gönderilir.{' '}
-                                <a href="https://t.me/konsensustakip" target="_blank" className="text-blue-600 hover:underline">
-                                    Telegram kanalı
-                                </a>
-                            </span>
-                        </span>
-                    </div>
-                </div>
-            </div>
-
-            {/* Success/Copy Messages */}
-            {successMessage && (
-                <div className="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-pulse">
-                    {successMessage}
-                </div>
-            )}
-            {copyMessage && (
-                <div className="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-pulse">
-                    {copyMessage}
-                </div>
-            )}
-
-            {/* Loading/Error States */}
-            {loading && (
-                <div className="bg-white rounded-2xl shadow-xl p-8 mb-8 text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4" />
-                    <p className="text-gray-600">Toplantılar yükleniyor...</p>
-                </div>
-            )}
-
-            {error && (
-                <div className="bg-red-50 border border-red-200 rounded-2xl p-6 mb-8">
-                    <p className="text-red-800">Hata: {error}</p>
-                    <button
-                        onClick={refetch}
-                        className="mt-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition"
-                    >
-                        Tekrar Dene
-                    </button>
-                </div>
-            )}
-
-            {/* Meeting List */}
-            {!loading && (
-                <MeetingList
-                    upcomingMeetings={upcomingMeetings}
-                    pastMeetings={pastMeetings}
-                    isAdmin={isAdmin}
-                    onDelete={handleDelete}
-                    onEdit={handleEdit}
-                    now={now}
-                />
-            )}
-
-            {/* Meeting Form + Preview (Two Column Layout) */}
-            <div className="grid lg:grid-cols-2 gap-8">
-                {/* Meeting Form */}
-                <div className="bg-white rounded-2xl shadow-xl p-8">
-                    <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-2xl font-semibold text-gray-900 flex items-center">
-                            <Plus className="w-6 h-6 mr-2 text-blue-600" />
-                            Toplantı Bilgileri
-                        </h2>
-                        {isAdmin && isFormValid() && (
-                            <button
-                                onClick={handleSave}
-                                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition flex items-center font-semibold"
-                            >
-                                <Save className="w-4 h-4 mr-2" /> Kaydet
-                            </button>
-                        )}
-                    </div>
-
-                    <div className="space-y-6">
-                        {/* Organizer */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Etkinlik Düzenleyen</label>
-                            <select
-                                value={formData.organizer}
-                                onChange={(e) => updateField('organizer', e.target.value)}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                            >
-                                <option value="">Seçiniz...</option>
-                                {ORGANIZER_OPTIONS.map((opt) => (
-                                    <option key={opt} value={opt}>
-                                        {getOrganizerWithEmoji(opt)}
-                                    </option>
-                                ))}
-                            </select>
-                            {formData.organizer === 'Diğer' && (
-                                <div className="mt-3">
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Grup Adı</label>
-                                    <input
-                                        type="text"
-                                        value={formData.customOrganizer}
-                                        onChange={(e) => updateField('customOrganizer', e.target.value)}
-                                        placeholder="Örn. Patoloji Eğitim Toplantısı"
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                                    />
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Title */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Etkinlik Adı *</label>
-                            <input
-                                type="text"
-                                value={formData.title}
-                                onChange={(e) => updateField('title', e.target.value)}
-                                placeholder="ör. Meme Patolojisi Konsensus Toplantısı"
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                            />
-                        </div>
-
-                        {/* Date & Time */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    <Calendar className="w-4 h-4 inline mr-1" /> Tarih *
-                                </label>
-                                <input
-                                    type="date"
-                                    value={formData.date}
-                                    onChange={(e) => updateField('date', e.target.value)}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    <Clock className="w-4 h-4 inline mr-1" /> Saat *
-                                </label>
-                                <input
-                                    type="time"
-                                    value={formData.time}
-                                    onChange={(e) => updateField('time', e.target.value)}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                                />
-                            </div>
-                        </div>
-
-                        {/* Duration */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Süre (dakika)</label>
-                            <select
-                                value={formData.duration}
-                                onChange={(e) => updateField('duration', parseInt(e.target.value))}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                            >
-                                <option value={30}>30 dakika</option>
-                                <option value={60}>1 saat</option>
-                                <option value={90}>1.5 saat</option>
-                                <option value={120}>2 saat</option>
-                                <option value={180}>3 saat</option>
-                            </select>
-                        </div>
-
-                        {/* Description */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Açıklama</label>
-                            <textarea
-                                value={formData.description}
-                                onChange={(e) => updateField('description', e.target.value)}
-                                placeholder="ör. konsensus grubumuzun ilk vaka sunumu"
-                                rows={3}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-none"
-                            />
-                        </div>
-
-                        {/* Zoom Info */}
-                        <div className="border-t pt-6">
-                            <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                                <Video className="w-5 h-5 mr-2 text-blue-600" /> Zoom Bilgileri (Opsiyonel)
-                            </h3>
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Zoom Bağlantısı</label>
-                                    <input
-                                        type="url"
-                                        value={formData.zoomLink}
-                                        onChange={(e) => updateField('zoomLink', e.target.value)}
-                                        placeholder="https://zoom.us/j/..."
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                                    />
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">Meeting ID</label>
-                                        <input
-                                            type="text"
-                                            value={formData.zoomId}
-                                            onChange={(e) => updateField('zoomId', e.target.value)}
-                                            placeholder="781 667 1158"
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">Parola</label>
-                                        <input
-                                            type="text"
-                                            value={formData.zoomPassword}
-                                            onChange={(e) => updateField('zoomPassword', e.target.value)}
-                                            placeholder="123456"
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+            {/* Main Application Layout: Two Columns on Desktop */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+                {/* Left Column: Meeting Lists (Wider) */}
+                <div className="lg:col-span-8 order-2 lg:order-1">
+                    {!loading && (
+                        <MeetingList
+                            upcomingMeetings={upcomingMeetings}
+                            pastMeetings={pastMeetings}
+                            isAdmin={isAdmin}
+                            onDelete={handleDelete}
+                            onEdit={handleEdit}
+                            now={now}
+                        />
+                    )}
                 </div>
 
-                {/* Right Column: Preview + Actions */}
-                <div className="space-y-6">
-                    {/* Preview */}
-                    <div className="bg-white rounded-2xl shadow-xl p-8">
-                        <h2 className="text-2xl font-semibold text-gray-900 mb-6">Önizleme</h2>
-                        {isFormValid() ? (
-                            <div className="border-l-4 border-blue-500 bg-blue-50 p-4 rounded-r-lg">
-                                {getFormOrganizer() && (
-                                    <div className="text-sm text-blue-700 mb-2 font-medium">
-                                        {getOrganizerWithEmoji(formData.organizer === 'Diğer' ? formData.customOrganizer || 'Diğer' : formData.organizer)}
-                                    </div>
-                                )}
-                                <h3 className="font-semibold text-blue-900 text-lg mb-2">{formData.title}</h3>
-                                <div className="space-y-2 text-blue-800">
-                                    <div className="flex items-center">
-                                        <Calendar className="w-4 h-4 mr-2" />
-                                        {formatDate(formData.date)}
-                                    </div>
-                                    <div className="flex items-center">
-                                        <Clock className="w-4 h-4 mr-2" />
-                                        {formatTime(formData.time, formData.duration)} (Europe/Istanbul)
-                                    </div>
-                                    {formData.description && <p className="mt-2">{formData.description}</p>}
-                                    {(formData.zoomLink || formData.zoomId) && (
-                                        <div className="mt-3 pt-3 border-t border-blue-200">
-                                            {formData.zoomLink && (
-                                                <div className="flex items-center">
-                                                    <Video className="w-4 h-4 mr-2" />
-                                                    <a
-                                                        href={formData.zoomLink}
-                                                        className="text-blue-600 hover:underline"
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                    >
-                                                        Zoom Bağlantısı
-                                                    </a>
-                                                </div>
-                                            )}
-                                            {formData.zoomId && <div className="mt-1">Meeting ID: {formData.zoomId}</div>}
-                                            {formData.zoomPassword && <div className="mt-1">Parola: {formData.zoomPassword}</div>}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="text-center py-8 text-gray-500">
-                                <Calendar className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                                <p>Etkinlik bilgilerini doldurun</p>
-                            </div>
-                        )}
-                    </div>
-
+                {/* Right Column: Actions & Form (Narrower) */}
+                <div className="lg:col-span-4 order-1 lg:order-2 space-y-8 lg:sticky lg:top-8">
                     {/* Calendar Actions */}
-                    <div className="bg-white rounded-2xl shadow-xl p-8">
-                        <h2 className="text-2xl font-semibold text-gray-900 mb-6">Takvime Ekle</h2>
+                    <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100 overflow-hidden relative">
+                        <div className="absolute top-0 right-0 w-24 h-24 -mr-12 -mt-12 bg-blue-500/10 rounded-full blur-2xl" />
+                        <h2 className="text-xl font-black text-gray-900 mb-6 flex items-center">
+                            <Calendar className="w-5 h-5 mr-3 text-blue-600" /> Hızlı Erişim
+                        </h2>
                         <div className="space-y-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                <button
-                                    onClick={() => window.open(getGoogleCalendarUrl(), '_blank')}
-                                    disabled={!isFormValid()}
-                                    className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transition transform hover:scale-105 disabled:hover:scale-100 flex items-center justify-center"
-                                >
-                                    <ExternalLink className="w-4 h-4 mr-2" /> Google Takvim'e Ekle
-                                </button>
-                                <button
-                                    onClick={() => copyToClipboard(getGoogleCalendarUrl(), 'Google Calendar linki')}
-                                    disabled={!isFormValid()}
-                                    className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transition transform hover:scale-105 disabled:hover:scale-100 flex items-center justify-center"
-                                >
-                                    <Copy className="w-4 h-4 mr-2" /> Linki Kopyala
-                                </button>
-                            </div>
+                            <button
+                                onClick={() => window.open(getGoogleCalendarUrl(), '_blank')}
+                                disabled={!isFormValid()}
+                                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-5 py-3.3 rounded-2xl font-bold hover:shadow-lg hover:shadow-blue-200 transition-all flex items-center justify-center disabled:grayscale disabled:opacity-50"
+                            >
+                                <ExternalLink className="w-4 h-4 mr-2" /> Google Takvim
+                            </button>
                             <button
                                 onClick={downloadIcal}
                                 disabled={!isFormValid()}
-                                className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-4 rounded-lg font-semibold hover:from-green-700 hover:to-green-800 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transition transform hover:scale-105 disabled:hover:scale-100 flex items-center justify-center"
+                                className="w-full bg-indigo-50 text-indigo-700 px-5 py-3.3 rounded-2xl font-bold hover:bg-indigo-100 transition-all flex items-center justify-center disabled:grayscale disabled:opacity-50"
                             >
-                                <Download className="w-5 h-5 mr-2" /> .ics Dosyası İndir
+                                <Download className="w-5 h-5 mr-2" /> iCal (.ics) İndir
                             </button>
-                            {!isFormValid() && (
-                                <p className="text-sm text-gray-500 text-center">* Etkinlik adı, tarih ve saat alanları zorunludur</p>
-                            )}
+                            <button
+                                onClick={() => copyToClipboard(getWhatsAppMessage(), 'WhatsApp duyurusu')}
+                                disabled={!isFormValid()}
+                                className="w-full bg-green-50 text-green-700 px-5 py-3.3 rounded-2xl font-bold hover:bg-green-100 transition-all flex items-center justify-center disabled:grayscale disabled:opacity-50"
+                            >
+                                <MessageCircle className="w-5 h-5 mr-2" /> WhatsApp Paylaş
+                            </button>
                         </div>
                     </div>
 
-                    {/* WhatsApp Sharing */}
-                    <div className="bg-white rounded-2xl shadow-xl p-8">
-                        <h2 className="text-2xl font-semibold text-gray-900 mb-6 flex items-center">
-                            <MessageCircle className="w-6 h-6 mr-2 text-green-600" /> WhatsApp Paylaşımı
-                        </h2>
-                        {isFormValid() ? (
-                            <div className="space-y-4">
-                                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                                    <div className="text-sm text-green-800 whitespace-pre-line font-mono">{getWhatsAppMessage()}</div>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                    <button
-                                        onClick={() => {
-                                            const msg = getWhatsAppMessage();
-                                            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
-                                        }}
-                                        className="bg-green-600 text-white px-6 py-4 rounded-lg font-semibold hover:bg-green-700 transition transform hover:scale-105 flex items-center justify-center"
-                                    >
-                                        <MessageCircle className="w-5 h-5 mr-2" />
-                                        WhatsApp'ta Aç
-                                    </button>
-                                    <button
-                                        onClick={() => copyToClipboard(getWhatsAppMessage(), 'WhatsApp mesajı')}
-                                        className="bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-4 rounded-lg font-semibold hover:from-green-700 hover:to-green-800 transition transform hover:scale-105 flex items-center justify-center"
-                                    >
-                                        <Copy className="w-5 h-5 mr-2" />
-                                        WhatsApp Mesajını Kopyala
-                                    </button>
-                                </div>
+                    {/* Push Notification Control */}
+                    <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
+                        <div className="flex flex-col gap-4">
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-lg font-bold text-gray-800 flex items-center">
+                                    <Bell className="w-5 h-5 mr-2 text-blue-600" /> Bildirimler
+                                </h3>
+                                <div className={`w-3 h-3 rounded-full ${pushEnabled ? 'bg-green-500 animate-pulse' : 'bg-gray-300'}`} />
                             </div>
-                        ) : (
-                            <div className="text-center py-8 text-gray-500">
-                                <MessageCircle className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                                <p>Etkinlik bilgilerini doldurun</p>
-                            </div>
-                        )}
+                            <p className="text-sm text-gray-500">Toplantılardan 15 dk önce hatırlatma gönderilir.</p>
+                            <button
+                                onClick={togglePush}
+                                disabled={pushLoading}
+                                className={`w-full py-3 rounded-2xl font-bold transition-all ${pushEnabled
+                                    ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                    : 'bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-100'
+                                    }`}
+                            >
+                                {pushLoading ? 'İşlem yapılıyor...' : pushEnabled ? 'Bildirimleri Kapat' : 'Bildirimleri Etkinleştir'}
+                            </button>
+                        </div>
                     </div>
+
+                    <AdminPanel isAdmin={isAdmin} onLogin={handleLogin} onLogout={handleLogout} />
                 </div>
             </div>
 
-            {/* Admin Panel */}
-            <div className="mt-12">
-                <AdminPanel isAdmin={isAdmin} onLogin={handleLogin} onLogout={handleLogout} />
-            </div>
+            {/* Bottom Section: Add/Edit Form - Full Width when triggered or at bottom */}
+            {isAdmin && (
+                <div className="mt-12 bg-white rounded-4xl shadow-2xl p-10 border border-blue-50 relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600" />
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
+                        <SectionTitle title="TOPLANTI OLUŞTUR / DÜZENLE" icon={<Plus className="w-6 h-6" />} color="blue" />
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setFormData({
+                                    title: '', organizer: '', customOrganizer: '', date: '', time: '20:00', duration: 60,
+                                    description: '', zoomLink: '', zoomId: '', zoomPassword: ''
+                                })}
+                                className="px-6 py-3 rounded-2xl font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 transition"
+                            >
+                                Temizle
+                            </button>
+                            <button
+                                onClick={handleSave}
+                                disabled={!isFormValid()}
+                                className="px-8 py-3 rounded-2xl font-black bg-blue-600 text-white hover:bg-blue-700 shadow-xl shadow-blue-200 transition transform active:scale-95 disabled:grayscale"
+                            >
+                                <Save className="w-5 h-5 inline mr-2" /> Toplantıyı Kaydet
+                            </button>
+                        </div>
+                    </div>
 
-            {/* Footer */}
-            <div className="text-center mt-12 pt-8 border-t border-gray-200">
-                <p className="text-gray-600">
-                    Patoloji toplantılarınızı kolayca takvime ekleyin • İstanbul zaman dilimi.{' '}
-                    <a href="/#ziyaret-mesaji" className="text-blue-600 hover:underline">
-                        İletişim
-                    </a>
-                </p>
-            </div>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                        {/* Form Inputs */}
+                        <div className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-gray-700 ml-1">Düzenleyici</label>
+                                    <select
+                                        value={formData.organizer}
+                                        onChange={(e) => updateField('organizer', e.target.value)}
+                                        className="w-full px-5 py-4 bg-gray-50 border-0 rounded-2xl focus:ring-2 focus:ring-blue-500 font-medium transition"
+                                    >
+                                        <option value="">Seçiniz</option>
+                                        {ORGANIZER_OPTIONS.map(o => <option key={o} value={o}>{getOrganizerWithEmoji(o)}</option>)}
+                                    </select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-gray-700 ml-1">Başlık *</label>
+                                    <input
+                                        type="text"
+                                        value={formData.title}
+                                        onChange={(e) => updateField('title', e.target.value)}
+                                        placeholder="Toplantı başlığı"
+                                        className="w-full px-5 py-4 bg-gray-50 border-0 rounded-2xl focus:ring-2 focus:ring-blue-500 font-medium transition"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-gray-700 ml-1">Tarih *</label>
+                                    <input
+                                        type="date"
+                                        value={formData.date}
+                                        onChange={(e) => updateField('date', e.target.value)}
+                                        className="w-full px-5 py-4 bg-gray-50 border-0 rounded-2xl focus:ring-2 focus:ring-blue-500 font-medium transition"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-gray-700 ml-1">Saat *</label>
+                                    <input
+                                        type="time"
+                                        value={formData.time}
+                                        onChange={(e) => updateField('time', e.target.value)}
+                                        className="w-full px-5 py-4 bg-gray-50 border-0 rounded-2xl focus:ring-2 focus:ring-blue-500 font-medium transition"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-gray-700 ml-1">Süre</label>
+                                    <select
+                                        value={formData.duration}
+                                        onChange={(e) => updateField('duration', parseInt(e.target.value))}
+                                        className="w-full px-5 py-4 bg-gray-50 border-0 rounded-2xl focus:ring-2 focus:ring-blue-500 font-medium transition"
+                                    >
+                                        <option value={30}>30 Dakika</option>
+                                        <option value={60}>1 Saat</option>
+                                        <option value={90}>1.5 Saat</option>
+                                        <option value={120}>2 Saat</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-gray-700 ml-1">Açıklama</label>
+                                <textarea
+                                    value={formData.description}
+                                    onChange={(e) => updateField('description', e.target.value)}
+                                    rows={3}
+                                    className="w-full px-5 py-4 bg-gray-50 border-0 rounded-2xl focus:ring-2 focus:ring-blue-500 font-medium transition resize-none"
+                                />
+                            </div>
+
+                            <div className="p-6 bg-blue-50/50 rounded-3xl space-y-4">
+                                <h4 className="text-sm font-black text-blue-800 uppercase tracking-widest">Zoom Erişimi</h4>
+                                <input
+                                    type="url"
+                                    value={formData.zoomLink}
+                                    onChange={(e) => updateField('zoomLink', e.target.value)}
+                                    placeholder="Zoom Linki"
+                                    className="w-full px-5 py-3 bg-white border-0 rounded-xl focus:ring-2 focus:ring-blue-500 transition"
+                                />
+                                <div className="grid grid-cols-2 gap-4">
+                                    <input
+                                        type="text"
+                                        value={formData.zoomId}
+                                        onChange={(e) => updateField('zoomId', e.target.value)}
+                                        placeholder="Meeting ID"
+                                        className="px-5 py-3 bg-white border-0 rounded-xl focus:ring-2 focus:ring-blue-500 transition"
+                                    />
+                                    <input
+                                        type="text"
+                                        value={formData.zoomPassword}
+                                        onChange={(e) => updateField('zoomPassword', e.target.value)}
+                                        placeholder="Passcode"
+                                        className="px-5 py-3 bg-white border-0 rounded-xl focus:ring-2 focus:ring-blue-500 transition"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Live Preview */}
+                        <div className="space-y-6">
+                            <label className="text-sm font-bold text-gray-500 ml-1 uppercase tracking-widest">Canlı Önizleme</label>
+                            {isFormValid() ? (
+                                <div className="scale-105 origin-top">
+                                    <MeetingCard
+                                        meeting={{
+                                            id: 'preview',
+                                            title: formData.title,
+                                            organizer: getFormOrganizer(),
+                                            date: formData.date,
+                                            time: formData.time,
+                                            duration: formData.duration,
+                                            description: formData.description,
+                                            zoom_link: formData.zoomLink,
+                                            zoom_id: formData.zoomId,
+                                            zoom_password: formData.zoomPassword
+                                        }}
+                                        isAdmin={false}
+                                        onDelete={() => { }}
+                                        onEdit={() => { }}
+                                        now={now}
+                                        isTodaySpotlight={new Date(formData.date).toDateString() === now.toDateString()}
+                                    />
+                                </div>
+                            ) : (
+                                <div className="h-full min-h-[300px] border-4 border-dashed border-gray-100 rounded-4xl flex flex-col items-center justify-center text-gray-300">
+                                    <Plus className="w-12 h-12 mb-4" />
+                                    <p className="font-bold">Bilgileri doldurunca önizleme açılır</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </PageContainer>
     );
 }
