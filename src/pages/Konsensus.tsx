@@ -269,7 +269,7 @@ function MeetingCard({
             <div className="mt-5 pt-4 border-t border-gray-100">
               <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
                 {/* Left: Zoom + actions */}
-                <div className="md:col-span-8">
+                <div className="md:col-span-7">
                   {/* Zoom Join (sadece link var + ID/PW yok) */}
                   {showJoin && (
                     <a
@@ -285,7 +285,7 @@ function MeetingCard({
 
                   {/* Zoom ID/PW (link olsa da olmasa da; join gizlenmiş oluyor) */}
                   {showIdPw && (
-                    <div className="mt-3 flex flex-wrap gap-2">
+                    <div className="mt-3 flex flex-wrap gap-5">
                       {meeting.zoom_id && (
                         <div className="bg-gray-100 px-3 py-2 rounded-xl text-sm font-semibold text-gray-700">
                           <span className="font-black text-gray-900">Zoom ID:</span> {meeting.zoom_id}
@@ -342,7 +342,7 @@ function MeetingCard({
                       className="w-full rounded-2xl border border-indigo-200 bg-indigo-50/40 hover:bg-indigo-50 transition p-3 flex md:flex-col items-center md:items-stretch gap-3"
                       title="Afişi büyüt"
                     >
-                      <div className="w-20 h-20 md:w-full md:h-44 rounded-xl overflow-hidden border border-indigo-200 bg-white">
+                      <div className="w-24 h-24 md:w-full md:h-64 rounded-2xl overflow-hidden border border-indigo-200 bg-white shadow-sm">
                         <img
                           src={meeting.poster_url!}
                           alt="Toplantı afişi"
