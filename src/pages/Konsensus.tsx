@@ -81,6 +81,68 @@ function formatTime(time: string, duration: number): string {
     return `${time} - ${endDate.toTimeString().slice(0, 5)}`;
 }
 
+// Meeting Status Types
+type MeetingStatus = 'upcoming' | 'countdown' | 'live' | 'finished';
+
+function getMeetingStatus(meeting: Meeting, now: Date): { status: MeetingStatus; diffMinutes: number } {
+    const [hours, minutes] = meeting.time.split(':').map(Number);
+    const meetingStart = new Date(meeting.date);
+    meetingStart.setHours(hours, minutes, 0, 0);
+
+    const meetingEnd = new Date(meetingStart.getTime() + meeting.duration * 60000);
+
+    if (now > meetingEnd) return { status: 'finished', diffMinutes: 0 };
+    if (now >= meetingStart && now <= meetingEnd) {
+        const diff = Math.floor((now.getTime() - meetingStart.getTime()) / 60000);
+        return { status: 'live', diffMinutes: diff };
+    }
+
+    const diffToStart = Math.floor((meetingStart.getTime() - now.getTime()) / 60000);
+    if (diffToStart <= 60 && diffToStart > 0) {
+        return { status: 'countdown', diffMinutes: diffToStart };
+    }
+
+    return { status: 'upcoming', diffMinutes: diffToStart };
+}
+
+function StatusBadge({ meeting, now }: { meeting: Meeting, now: Date }) {
+    const { status, diffMinutes } = getMeetingStatus(meeting, now);
+
+    if (status === 'live') {
+        return (
+            <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 animate-pulse border border-red-200">
+                <span className="w-2 h-2 bg-red-500 rounded-full mr-1.5 "></span>
+                CANLI • {diffMinutes} dakikadır
+            </div>
+        );
+    }
+
+    if (status === 'countdown') {
+        return (
+            <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800 border border-orange-200">
+                <Clock className="w-3 h-3 mr-1" />
+                Başlamasına {diffMinutes} dk kaldı
+            </div>
+        );
+    }
+
+    // Check if it's today
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const mDate = new Date(meeting.date);
+    mDate.setHours(0, 0, 0, 0);
+
+    if (mDate.getTime() === today.getTime()) {
+        return (
+            <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
+                BUGÜN
+            </div>
+        );
+    }
+
+    return null;
+}
+
 // Meeting Card Component
 function MeetingCard({
     meeting,
@@ -88,24 +150,31 @@ function MeetingCard({
     isPast,
     onDelete,
     onEdit,
+    now
 }: {
     meeting: Meeting;
     isAdmin: boolean;
     isPast?: boolean;
     onDelete: (id: string) => void;
     onEdit: (meeting: Meeting) => void;
+    now: Date;
 }) {
+    const isToday = !isPast && (new Date(meeting.date).toDateString() === now.toDateString());
+
     return (
         <div
-            className={`border-l-4 ${isPast ? 'border-gray-400 bg-gray-50' : 'border-blue-500 bg-blue-50'} p-4 rounded-r-lg mb-4`}
+            className={`border-l-4 ${isPast ? 'border-gray-400 bg-gray-50' : isToday ? 'border-blue-600 bg-blue-50/50 ring-2 ring-blue-100 animate-in fade-in duration-500' : 'border-blue-500 bg-blue-50'} p-4 rounded-r-lg mb-4`}
         >
             <div className="flex justify-between items-start">
                 <div className="flex-1">
-                    {meeting.organizer && (
-                        <div className={`text-sm ${isPast ? 'text-gray-600' : 'text-blue-700'} mb-2 font-medium`}>
-                            {getOrganizerWithEmoji(meeting.organizer)}
-                        </div>
-                    )}
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
+                        {meeting.organizer && (
+                            <div className={`text-sm ${isPast ? 'text-gray-600' : 'text-blue-700'} font-medium`}>
+                                {getOrganizerWithEmoji(meeting.organizer)}
+                            </div>
+                        )}
+                        {!isPast && <StatusBadge meeting={meeting} now={now} />}
+                    </div>
                     <h3 className={`font-semibold ${isPast ? 'text-gray-700' : 'text-blue-900'} text-lg mb-2`}>
                         {meeting.title}
                     </h3>
@@ -126,7 +195,7 @@ function MeetingCard({
                                         <Video className="w-4 h-4 mr-2" />
                                         <a
                                             href={meeting.zoom_link}
-                                            className="text-blue-600 hover:underline"
+                                            className="text-blue-600 hover:underline font-medium"
                                             target="_blank"
                                             rel="noopener noreferrer"
                                         >
@@ -134,8 +203,10 @@ function MeetingCard({
                                         </a>
                                     </div>
                                 )}
-                                {meeting.zoom_id && <div className="mt-1">Meeting ID: {meeting.zoom_id}</div>}
-                                {meeting.zoom_password && <div className="mt-1">Parola: {meeting.zoom_password}</div>}
+                                <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm">
+                                    {meeting.zoom_id && <div><span className="opacity-70">ID:</span> {meeting.zoom_id}</div>}
+                                    {meeting.zoom_password && <div><span className="opacity-70">Parola:</span> {meeting.zoom_password}</div>}
+                                </div>
                             </div>
                         )}
                     </div>
@@ -170,12 +241,14 @@ function MeetingList({
     isAdmin,
     onDelete,
     onEdit,
+    now
 }: {
     upcomingMeetings: Meeting[];
     pastMeetings: Meeting[];
     isAdmin: boolean;
     onDelete: (id: string) => void;
     onEdit: (meeting: Meeting) => void;
+    now: Date;
 }) {
     const [showPast, setShowPast] = useState(false);
 
@@ -197,6 +270,7 @@ function MeetingList({
                             isAdmin={isAdmin}
                             onDelete={onDelete}
                             onEdit={onEdit}
+                            now={now}
                         />
                     ))
                 )}
@@ -227,6 +301,7 @@ function MeetingList({
                                     isPast
                                     onDelete={onDelete}
                                     onEdit={onEdit}
+                                    now={now}
                                 />
                             ))
                         )}
@@ -396,6 +471,7 @@ export function Konsensus() {
     const [copyMessage, setCopyMessage] = useState('');
     const [pushEnabled, setPushEnabled] = useState(!!pushService.getSavedEndpoint());
     const [pushLoading, setPushLoading] = useState(false);
+    const [now, setNow] = useState(new Date());
 
     const notificationPermission = typeof Notification !== 'undefined' ? Notification.permission : 'unsupported';
 
@@ -460,6 +536,21 @@ export function Konsensus() {
 
         const timeoutId = scheduleRefetch();
         return () => clearTimeout(timeoutId);
+    }, [refetch]);
+
+    // Update real-time state every minute
+    useEffect(() => {
+        const intervalId = setInterval(() => {
+            const currentNow = new Date();
+            setNow(currentNow);
+
+            // If it's midnight, refetch to move meetings to past
+            if (currentNow.getHours() === 0 && currentNow.getMinutes() === 0) {
+                refetch();
+            }
+        }, 60000);
+
+        return () => clearInterval(intervalId);
     }, [refetch]);
 
     // Push notification validation
@@ -847,6 +938,7 @@ export function Konsensus() {
                     isAdmin={isAdmin}
                     onDelete={handleDelete}
                     onEdit={handleEdit}
+                    now={now}
                 />
             )}
 
