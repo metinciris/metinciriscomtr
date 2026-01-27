@@ -85,7 +85,10 @@ function formatTime(time: string, duration: number): string {
 
 type MeetingStatus = 'upcoming' | 'countdown' | 'live' | 'finished';
 
-function getMeetingStatus(meeting: Meeting, now: Date): { status: MeetingStatus; diffMinutes: number; diffHours: number } {
+function getMeetingStatus(
+  meeting: Meeting,
+  now: Date
+): { status: MeetingStatus; diffMinutes: number; diffHours: number } {
   const [hours, minutes] = meeting.time.split(':').map(Number);
   const meetingStart = new Date(meeting.date);
   meetingStart.setHours(hours, minutes, 0, 0);
@@ -273,8 +276,7 @@ function MeetingCard({
   const past = !!isPast;
 
   const hasIdPw = !!(meeting.zoom_id || meeting.zoom_password);
-
-  // İstek: ID/PW varsa linki sakla (join görünmesin). ID/PW yoksa link varsa join göster.
+  // İstek: ID/PW varsa link görünmesin; ID/PW yoksa link varsa join görünsün.
   const showJoin = !!meeting.zoom_link && !hasIdPw && !past;
   const showIdPw = !past && hasIdPw;
 
@@ -283,7 +285,7 @@ function MeetingCard({
 
   return (
     <div
-      className={`group relative overflow-hidden transition-all duration-300 hover:-translate-y-[1px] ${
+      className={`group relative overflow-hidden transition-all duration-300 ${
         past
           ? 'bg-gray-50 border-gray-200 grayscale-[0.5] hover:grayscale-0'
           : isTodaySpotlight
@@ -291,8 +293,6 @@ function MeetingCard({
             : 'bg-white border-gray-200 hover:border-blue-300 hover:shadow-lg'
       } border-2 rounded-2xl p-5 mb-4`}
     >
-      {!past && <div className="pointer-events-none absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-white/60 to-transparent" />}
-
       {isTodaySpotlight && (
         <>
           <div className="absolute top-0 left-0 w-1.5 h-full bg-indigo-500/60" />
@@ -300,257 +300,148 @@ function MeetingCard({
         </>
       )}
 
-      <div className="relative z-10">
-        {/* Top row: badges + admin actions */}
-        <div className="flex flex-wrap items-center gap-2 mb-3">
-          {meeting.organizer && (
+      {/* Row 1: badges + admin actions */}
+      <div className="relative z-10 flex flex-wrap items-center gap-2 mb-3">
+        {meeting.organizer && (
+          <button
+            onClick={() => onOrganizerClick?.(meeting.organizer)}
+            className={`px-2.5 py-1 rounded-full text-xs font-black cursor-pointer hover:ring-2 hover:ring-current transition-all ${
+              past ? 'bg-gray-200 text-gray-600' : 'bg-blue-100 text-blue-800'
+            }`}
+          >
+            {getOrganizerWithEmoji(meeting.organizer)}
+          </button>
+        )}
+
+        {!past && <MeetingStatusBadge meeting={meeting} now={now} />}
+
+        {isAdmin && (
+          <div className="ml-auto flex items-center gap-2">
             <button
-              onClick={() => onOrganizerClick?.(meeting.organizer)}
-              className={`px-2.5 py-1 rounded-full text-xs font-black cursor-pointer hover:ring-2 hover:ring-current transition-all ${
-                past ? 'bg-gray-200 text-gray-600' : 'bg-blue-100 text-blue-800'
+              onClick={() => onEdit(meeting)}
+              className="p-2 rounded-xl bg-blue-50 text-blue-700 hover:bg-blue-100 transition"
+              title="Düzenle"
+            >
+              <Edit className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => onDelete(meeting.id)}
+              className="p-2 rounded-xl bg-red-50 text-red-700 hover:bg-red-100 transition"
+              title="Sil"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Row 2: main content + poster (poster fills full card height on desktop) */}
+      <div className="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
+        {/* LEFT */}
+        <div className={`${hasPoster ? 'md:col-span-7' : 'md:col-span-12'} flex flex-col`}>
+          <h3
+            className={`font-black tracking-tight leading-snug ${
+              past ? 'text-gray-600' : 'text-gray-900'
+            } text-[20px] sm:text-[22px] md:text-[24px]`}
+          >
+            {meeting.title}
+          </h3>
+
+          <div className="mt-3 flex flex-wrap gap-2">
+            <div
+              className={`inline-flex items-center text-sm font-semibold px-3 py-2 rounded-xl border ${
+                past ? 'bg-gray-50 border-gray-200 text-gray-600' : 'bg-blue-50 border-blue-100 text-blue-800'
               }`}
             >
-              {getOrganizerWithEmoji(meeting.organizer)}
-            </button>
-          )}
-
-          {!past && <MeetingStatusBadge meeting={meeting} now={now} />}
-
-          {isAdmin && (
-            <div className="ml-auto flex items-center gap-2">
-              <button
-                onClick={() => onEdit(meeting)}
-                className="p-2 rounded-xl bg-blue-50 text-blue-700 hover:bg-blue-100 transition"
-                title="Düzenle"
-              >
-                <Edit className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => onDelete(meeting.id)}
-                className="p-2 rounded-xl bg-red-50 text-red-700 hover:bg-red-100 transition"
-                title="Sil"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
+              <Calendar className="w-4 h-4 mr-2" />
+              {formatDate(meeting.date)}
             </div>
-          )}
-        </div>
-
-        {/* Title */}
-        <h3
-          className={`font-black tracking-tight leading-snug ${
-            past ? 'text-gray-600' : 'text-gray-900'
-          } text-[20px] sm:text-[22px] md:text-[24px] mb-3`}
-        >
-          {meeting.title}
-        </h3>
-
-        {/* Info pills */}
-        <div className="flex flex-wrap gap-2">
-          <div
-            className={`inline-flex items-center text-sm font-semibold px-3 py-2 rounded-xl border ${
-              past ? 'bg-gray-50 border-gray-200 text-gray-600' : 'bg-blue-50 border-blue-100 text-blue-800'
-            }`}
-          >
-            <Calendar className="w-4 h-4 mr-2" />
-            {formatDate(meeting.date)}
-          </div>
-          <div
-            className={`inline-flex items-center text-sm font-semibold px-3 py-2 rounded-xl border ${
-              past ? 'bg-gray-50 border-gray-200 text-gray-600' : 'bg-indigo-50 border-indigo-100 text-indigo-800'
-            }`}
-          >
-            <Clock className="w-4 h-4 mr-2" />
-            {formatTime(meeting.time, meeting.duration)}
-          </div>
-        </div>
-
-        {meeting.description && (
-          <p className={`mt-4 text-[13px] sm:text-sm leading-relaxed ${past ? 'text-gray-500 italic' : 'text-gray-700'}`}>
-            {meeting.description}
-          </p>
-        )}
-
-        {/* Bottom: zoom/actions + poster */}
-        {!past && (
-<div className="mt-5 pt-4 border-t border-gray-100">
-  <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
-    {/* Left */}
-    <div className={(hasPoster ? 'md:col-span-7' : 'md:col-span-12') + ' flex flex-col'}>
-      {showJoin && (
-        <a
-          href={meeting.zoom_link!}
-          className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-black rounded-xl transition shadow-md hover:shadow-blue-200"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Video className="w-4 h-4 mr-2" />
-          Zoom&apos;a Katıl
-        </a>
-      )}
-
-      {showIdPw && (
-        <div className="mt-3 flex flex-wrap gap-2">
-          {meeting.zoom_id && (
-            <div className="bg-gray-100 px-3 py-2 rounded-xl text-sm font-semibold text-gray-700">
-              <span className="font-black text-gray-900">Zoom ID:</span> {meeting.zoom_id}
-            </div>
-          )}
-          {meeting.zoom_password && (
-            <div className="bg-gray-100 px-3 py-2 rounded-xl text-sm font-semibold text-gray-700">
-              <span className="font-black text-gray-900">Şifre:</span> {meeting.zoom_password}
-            </div>
-          )}
-        </div>
-      )}
-
-      <div className="mt-4 flex flex-wrap gap-2">
-        <button
-          onClick={() => onAddToCalendar?.(meeting)}
-          className="inline-flex items-center px-3 py-2 rounded-xl bg-blue-50 text-blue-800 hover:bg-blue-100 text-sm font-black transition border border-blue-100"
-        >
-          <ExternalLink className="w-4 h-4 mr-2" />
-          Takvime ekle
-        </button>
-
-        <button
-          onClick={() => onDownloadIcs?.(meeting)}
-          className="inline-flex items-center px-3 py-2 rounded-xl bg-indigo-50 text-indigo-800 hover:bg-indigo-100 text-sm font-black transition border border-indigo-100"
-        >
-          <Download className="w-4 h-4 mr-2" />
-          iCal (.ics) indir
-        </button>
-
-        <button
-          onClick={() => onShareWhatsApp?.(meeting)}
-          className="inline-flex items-center px-3 py-2 rounded-xl bg-green-50 text-green-800 hover:bg-green-100 text-sm font-black transition border border-green-100"
-        >
-          <MessageCircle className="w-4 h-4 mr-2" />
-          WhatsApp paylaş
-        </button>
-      </div>
-
-      {!showJoin && !showIdPw && (
-        <div className="mt-3 inline-flex items-center px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-xs font-semibold text-gray-500 w-fit">
-          Zoom bilgisi eklenmemiş.
-        </div>
-      )}
-
-      {/* sol taraf kısa kalırsa sağın yüksekliği artmasın diye min spacer */}
-      <div className="flex-1" />
-    </div>
-
-    {/* Right poster */}
-    {hasPoster ? (
-      <div className="md:col-span-5 h-full flex">
-        <button
-          onClick={() => onPosterClick?.(meeting.poster_url!)}
-          className="w-full h-full rounded-3xl border-2 border-indigo-200 bg-white/70 hover:bg-white transition p-4 shadow-md hover:shadow-lg flex flex-col"
-          title="Afişi büyüt"
-        >
-          {/* bu blok artık kalan yüksekliği dolduracak */}
-          <div className="w-full rounded-2xl overflow-hidden border border-indigo-200 bg-white shadow-sm flex-1">
-            <img
-              src={meeting.poster_url!}
-              alt="Toplantı afişi"
-              className="w-full h-full object-cover"
-              loading="lazy"
-            />
-          </div>
-
-          <div className="mt-4 flex items-center justify-center gap-2">
-            <div className="inline-flex items-center justify-center px-4 py-2 bg-indigo-50 text-indigo-800 text-sm font-black rounded-xl border border-indigo-100">
-              <ImageIcon className="w-4 h-4 mr-2" />
-              Afişi Gör
+            <div
+              className={`inline-flex items-center text-sm font-semibold px-3 py-2 rounded-xl border ${
+                past ? 'bg-gray-50 border-gray-200 text-gray-600' : 'bg-indigo-50 border-indigo-100 text-indigo-800'
+              }`}
+            >
+              <Clock className="w-4 h-4 mr-2" />
+              {formatTime(meeting.time, meeting.duration)}
             </div>
           </div>
 
-          <div className="text-xs text-indigo-700 font-semibold mt-2 text-center opacity-80">
-            Dokun / tıkla büyüt
-          </div>
-        </button>
-      </div>
-    ) : (
-      <div className="hidden md:block md:col-span-5" />
-    )}
-  </div>
-</div>
+          {meeting.description && (
+            <p className={`mt-4 text-[13px] sm:text-sm leading-relaxed ${past ? 'text-gray-500 italic' : 'text-gray-700'}`}>
+              {meeting.description}
+            </p>
+          )}
 
+          {/* Spacer: lets poster fill height while left content stays compact */}
+          <div className="flex-1" />
 
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <button
-                    onClick={() => onAddToCalendar?.(meeting)}
-                    className="inline-flex items-center px-3 py-2 rounded-xl bg-blue-50 text-blue-800 hover:bg-blue-100 text-sm font-black transition border border-blue-100"
-                  >
-                    <ExternalLink className="w-4 h-4 mr-2" />
-                    Takvime ekle
-                  </button>
+          {/* Bottom actions */}
+          {!past && (
+            <div className="mt-5 pt-4 border-t border-gray-100">
+              {showJoin && (
+                <a
+                  href={meeting.zoom_link!}
+                  className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-black rounded-xl transition shadow-md hover:shadow-blue-200"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Video className="w-4 h-4 mr-2" />
+                  Zoom&apos;a Katıl
+                </a>
+              )}
 
-                  <button
-                    onClick={() => onDownloadIcs?.(meeting)}
-                    className="inline-flex items-center px-3 py-2 rounded-xl bg-indigo-50 text-indigo-800 hover:bg-indigo-100 text-sm font-black transition border border-indigo-100"
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    iCal (.ics) indir
-                  </button>
-
-                  <button
-                    onClick={() => onShareWhatsApp?.(meeting)}
-                    className="inline-flex items-center px-3 py-2 rounded-xl bg-green-50 text-green-800 hover:bg-green-100 text-sm font-black transition border border-green-100"
-                  >
-                    <MessageCircle className="w-4 h-4 mr-2" />
-                    WhatsApp paylaş
-                  </button>
+              {showIdPw && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {meeting.zoom_id && (
+                    <div className="bg-gray-100 px-3 py-2 rounded-xl text-sm font-semibold text-gray-700">
+                      <span className="font-black text-gray-900">Zoom ID:</span> {meeting.zoom_id}
+                    </div>
+                  )}
+                  {meeting.zoom_password && (
+                    <div className="bg-gray-100 px-3 py-2 rounded-xl text-sm font-semibold text-gray-700">
+                      <span className="font-black text-gray-900">Şifre:</span> {meeting.zoom_password}
+                    </div>
+                  )}
                 </div>
+              )}
 
-                {!showJoin && !showIdPw && (
-                  <div className="mt-3 text-xs font-semibold text-gray-400">Zoom bilgisi eklenmemiş.</div>
-                )}
+              <div className="mt-4 flex flex-wrap gap-2">
+                <button
+                  onClick={() => onAddToCalendar?.(meeting)}
+                  className="inline-flex items-center px-3 py-2 rounded-xl bg-blue-50 text-blue-800 hover:bg-blue-100 text-sm font-black transition border border-blue-100"
+                >
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  Takvime ekle
+                </button>
+
+                <button
+                  onClick={() => onDownloadIcs?.(meeting)}
+                  className="inline-flex items-center px-3 py-2 rounded-xl bg-indigo-50 text-indigo-800 hover:bg-indigo-100 text-sm font-black transition border border-indigo-100"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  iCal (.ics) indir
+                </button>
+
+                <button
+                  onClick={() => onShareWhatsApp?.(meeting)}
+                  className="inline-flex items-center px-3 py-2 rounded-xl bg-green-50 text-green-800 hover:bg-green-100 text-sm font-black transition border border-green-100"
+                >
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  WhatsApp paylaş
+                </button>
               </div>
 
-              {/* Right poster (upcoming/today/tomorrow/future) */}
-              {hasPoster ? (
-<div className="md:col-span-5 flex justify-end">
-  <button
-    onClick={() => onPosterClick?.(meeting.poster_url!)}
-    className="w-full rounded-3xl border-2 border-indigo-200 bg-white/70 hover:bg-white transition p-4 shadow-md hover:shadow-lg flex flex-col"
-    title="Afişi büyüt"
-  >
-
-                    <div className="w-full rounded-2xl overflow-hidden border border-indigo-200 bg-white shadow-sm">
-                      <div className="w-full aspect-[3/4]">
-                        <img
-                          src={meeting.poster_url!}
-                          alt="Toplantı afişi"
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="mt-4 flex items-center justify-center gap-2">
-                      <div className="inline-flex items-center justify-center px-4 py-2 bg-indigo-50 text-indigo-800 text-sm font-black rounded-xl border border-indigo-100">
-                        <ImageIcon className="w-4 h-4 mr-2" />
-                        Afişi Gör
-                      </div>
-                    </div>
-
-                    <div className="text-xs text-indigo-700 font-semibold mt-2 text-center opacity-80">
-                      Dokun / tıkla büyüt
-                    </div>
-                  </button>
+              {!showJoin && !showIdPw && (
+                <div className="mt-3 inline-flex items-center px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 text-xs font-semibold text-gray-500 w-fit">
+                  Zoom bilgisi eklenmemiş.
                 </div>
-              ) : (
-                <div className="hidden md:block md:col-span-5" />
               )}
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Past: poster varsa sadece buton */}
-        {past && hasPoster && (
-          <div className="mt-5 pt-4 border-t border-gray-100">
-            {posterButtonOnly && (
+          {/* Past: poster varsa sadece buton */}
+          {posterButtonOnly && (
+            <div className="mt-5 pt-4 border-t border-gray-100">
               <button
                 onClick={() => onPosterClick?.(meeting.poster_url!)}
                 className="inline-flex items-center justify-center px-4 py-3 rounded-2xl bg-indigo-50 text-indigo-800 text-sm font-black border border-indigo-100 hover:bg-indigo-100 transition"
@@ -559,8 +450,43 @@ function MeetingCard({
                 <ImageIcon className="w-4 h-4 mr-2" />
                 Afişi Gör
               </button>
-            )}
+            </div>
+          )}
+        </div>
+
+        {/* RIGHT (Poster) */}
+        {hasPoster && !past ? (
+          <div className="md:col-span-5 flex h-full">
+            <button
+              onClick={() => onPosterClick?.(meeting.poster_url!)}
+              className="w-full h-full rounded-3xl border-2 border-indigo-200 bg-white/70 hover:bg-white transition p-4 shadow-md hover:shadow-lg flex flex-col"
+              title="Afişi büyüt"
+            >
+              {/* Fill remaining height */}
+              <div className="w-full rounded-2xl overflow-hidden border border-indigo-200 bg-white shadow-sm flex-1">
+                <img
+                  src={meeting.poster_url!}
+                  alt="Toplantı afişi"
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
+              </div>
+
+              <div className="mt-4 flex items-center justify-center gap-2">
+                <div className="inline-flex items-center justify-center px-4 py-2 bg-indigo-50 text-indigo-800 text-sm font-black rounded-xl border border-indigo-100">
+                  <ImageIcon className="w-4 h-4 mr-2" />
+                  Afişi Gör
+                </div>
+              </div>
+
+              <div className="text-xs text-indigo-700 font-semibold mt-2 text-center opacity-80">
+                Dokun / tıkla büyüt
+              </div>
+            </button>
           </div>
+        ) : (
+          // No poster on desktop: keep space empty (no text)
+          <div className="hidden md:block md:col-span-5" />
         )}
       </div>
     </div>
@@ -1401,9 +1327,7 @@ export function Konsensus() {
                       </button>
                     ))}
                   </div>
-                  <p className="text-[10px] text-gray-400 mt-6 text-center italic font-medium">
-                    Toplam toplantı sayılarına göre sıralanmıştır.
-                  </p>
+                  <p className="text-[10px] text-gray-400 mt-6 text-center italic font-medium">Toplam toplantı sayılarına göre sıralanmıştır.</p>
                 </div>
               </div>
             </>
