@@ -25,6 +25,8 @@ import {
     ChevronDown,
     ChevronUp,
     BookOpen,
+    Image as ImageIcon,
+    X,
 } from 'lucide-react';
 
 // Organizer emoji map
@@ -112,7 +114,7 @@ function getMeetingStatus(meeting: Meeting, now: Date): { status: MeetingStatus;
     return { status: 'upcoming', diffMinutes: m, diffHours: h };
 }
 
-function StatusBadge({ meeting, now }: { meeting: Meeting, now: Date }) {
+function MeetingStatusBadge({ meeting, now }: { meeting: Meeting, now: Date }) {
     const { status, diffMinutes, diffHours } = getMeetingStatus(meeting, now);
 
     if (status === 'live') {
@@ -133,7 +135,6 @@ function StatusBadge({ meeting, now }: { meeting: Meeting, now: Date }) {
         );
     }
 
-    // Check if it's today (fallback if logic above misses it)
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const mDate = new Date(meeting.date);
@@ -150,6 +151,28 @@ function StatusBadge({ meeting, now }: { meeting: Meeting, now: Date }) {
     return null;
 }
 
+function PosterLightbox({ url, onClose }: { url: string; onClose: () => void }) {
+    return (
+        <div
+            className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-4 md:p-10 animate-in fade-in duration-300"
+            onClick={onClose}
+        >
+            <button
+                onClick={onClose}
+                className="absolute top-6 right-6 p-3 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all z-[110]"
+            >
+                <X className="w-8 h-8" />
+            </button>
+            <img
+                src={url}
+                alt="Toplantı Afişi"
+                className="max-w-full max-h-full object-contain rounded-lg shadow-2xl animate-in zoom-in-95 duration-300"
+                onClick={(e) => e.stopPropagation()}
+            />
+        </div>
+    );
+}
+
 // Meeting Card Component
 function MeetingCard({
     meeting,
@@ -159,7 +182,8 @@ function MeetingCard({
     onEdit,
     now,
     isTodaySpotlight = false,
-    onOrganizerClick
+    onOrganizerClick,
+    onPosterClick
 }: {
     meeting: Meeting;
     isAdmin: boolean;
@@ -169,6 +193,7 @@ function MeetingCard({
     now: Date;
     isTodaySpotlight?: boolean;
     onOrganizerClick?: (organizer: string) => void;
+    onPosterClick?: (url: string) => void;
 }) {
     const isToday = !isPast && (new Date(meeting.date).toDateString() === now.toDateString());
 
@@ -197,7 +222,7 @@ function MeetingCard({
                                 {getOrganizerWithEmoji(meeting.organizer)}
                             </button>
                         )}
-                        {!isPast && <StatusBadge meeting={meeting} now={now} />}
+                        {!isPast && <MeetingStatusBadge meeting={meeting} now={now} />}
                     </div>
 
                     <h3 className={`font-bold ${isPast ? 'text-gray-600' : 'text-gray-900'} text-xl mb-3 group-hover:text-blue-600 transition-colors`}>
@@ -226,19 +251,30 @@ function MeetingCard({
                     )}
 
                     {(meeting.zoom_link || meeting.zoom_id) && !isPast && (
-                        <div className="mt-5 pt-4 border-t border-gray-100">
-                            {meeting.zoom_link && (
-                                <a
-                                    href={meeting.zoom_link}
-                                    className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition shadow-md hover:shadow-blue-200"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                >
-                                    <Video className="w-4 h-4 mr-2" />
-                                    Zoom'a Katıl
-                                </a>
-                            )}
-                            <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-xs font-medium text-gray-500">
+                        <div className="mt-5 pt-4 border-t border-gray-100 flex flex-wrap items-center justify-between gap-4">
+                            <div className="flex flex-wrap items-center gap-3">
+                                {meeting.zoom_link && (
+                                    <a
+                                        href={meeting.zoom_link}
+                                        className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition shadow-md hover:shadow-blue-200"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        <Video className="w-4 h-4 mr-2" />
+                                        Zoom'a Katıl
+                                    </a>
+                                )}
+                                {meeting.poster_url && isToday && (
+                                    <button
+                                        onClick={() => onPosterClick?.(meeting.poster_url!)}
+                                        className="inline-flex items-center px-4 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 text-sm font-bold rounded-xl transition border border-indigo-100"
+                                    >
+                                        <ImageIcon className="w-4 h-4 mr-2" />
+                                        Afişi Gör
+                                    </button>
+                                )}
+                            </div>
+                            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs font-medium text-gray-500">
                                 {meeting.zoom_id && <div className="bg-gray-100 px-2 py-1 rounded">ID: <span className="text-gray-800">{meeting.zoom_id}</span></div>}
                                 {meeting.zoom_password && <div className="bg-gray-100 px-2 py-1 rounded">PW: <span className="text-gray-800">{meeting.zoom_password}</span></div>}
                             </div>
@@ -297,7 +333,8 @@ function MeetingList({
     now,
     selectedOrganizer,
     onOrganizerClick,
-    onClearFilter
+    onClearFilter,
+    onPosterClick
 }: {
     upcomingMeetings: Meeting[];
     pastMeetings: Meeting[];
@@ -308,6 +345,7 @@ function MeetingList({
     selectedOrganizer: string | null;
     onOrganizerClick: (organizer: string) => void;
     onClearFilter: () => void;
+    onPosterClick: (url: string) => void;
 }) {
     const [showPast, setShowPast] = useState(false);
     const [showAllPast, setShowAllPast] = useState(false);
@@ -363,6 +401,7 @@ function MeetingList({
                                 now={now}
                                 isTodaySpotlight={true}
                                 onOrganizerClick={onOrganizerClick}
+                                onPosterClick={onPosterClick}
                             />
                         ))}
                     </div>
@@ -390,6 +429,7 @@ function MeetingList({
                                 onEdit={onEdit}
                                 now={now}
                                 onOrganizerClick={onOrganizerClick}
+                                onPosterClick={onPosterClick}
                             />
                         ))}
                     </div>
@@ -424,6 +464,7 @@ function MeetingList({
                                             onEdit={onEdit}
                                             now={now}
                                             onOrganizerClick={onOrganizerClick}
+                                            onPosterClick={onPosterClick}
                                         />
                                     ))}
                                 </div>
@@ -624,9 +665,11 @@ export function Konsensus() {
         zoomLink: '',
         zoomId: '',
         zoomPassword: '',
+        posterUrl: '',
     });
 
     const [selectedOrganizer, setSelectedOrganizer] = useState<string | null>(null);
+    const [activePoster, setActivePoster] = useState<string | null>(null);
 
     // Calculate Stats
     const getGroupStats = () => {
@@ -797,6 +840,7 @@ export function Konsensus() {
             zoom_link: formData.zoomLink,
             zoom_id: formData.zoomId,
             zoom_password: formData.zoomPassword,
+            poster_url: formData.posterUrl,
         });
 
         if (result.success) {
@@ -813,6 +857,7 @@ export function Konsensus() {
                 zoomLink: '',
                 zoomId: '',
                 zoomPassword: '',
+                posterUrl: '',
             });
         }
     };
@@ -836,6 +881,7 @@ export function Konsensus() {
             zoomLink: meeting.zoom_link ?? '',
             zoomId: meeting.zoom_id ?? '',
             zoomPassword: meeting.zoom_password ?? '',
+            posterUrl: meeting.poster_url ?? '',
         });
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
@@ -1016,17 +1062,33 @@ export function Konsensus() {
 
     return (
         <PageContainer>
-            {/* Header */}
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-12 mb-8 rounded-xl shadow-lg">
-                <div className="flex items-center justify-center mb-4">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 rounded-full">
-                        <Users className="w-8 h-8 text-white" />
+            {/* Active Poster Lightbox */}
+            {activePoster && (
+                <PosterLightbox
+                    url={activePoster}
+                    onClose={() => setActivePoster(null)}
+                />
+            )}
+
+            {/* Header Section */}
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-12 mb-8 rounded-xl shadow-lg relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32" />
+                <div className="relative z-10 flex flex-col items-center justify-center text-center">
+                    <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 rounded-3xl backdrop-blur-md mb-6 shadow-xl border border-white/30">
+                        <Users className="w-10 h-10 text-white" />
+                    </div>
+                    <h1 className="text-4xl md:text-5xl font-black mb-4 tracking-tight">Patoloji Konsensus Toplantıları</h1>
+                    <div className="flex flex-wrap items-center justify-center gap-4 text-white/90 text-sm font-medium">
+                        <div className="flex items-center bg-white/10 px-4 py-2 rounded-full backdrop-blur-sm">
+                            <Bell className="w-4 h-4 mr-2" />
+                            Bildirim: {notificationPermission === 'granted' ? 'Açık' : 'Kapalı'}
+                        </div>
+                        <div className="flex items-center bg-white/10 px-4 py-2 rounded-full backdrop-blur-sm">
+                            <Clock className="w-4 h-4 mr-2" />
+                            Bölge: Europe/Istanbul
+                        </div>
                     </div>
                 </div>
-                <h1 className="text-white mb-4 text-4xl font-bold text-center">Patoloji Konsensus Toplantıları</h1>
-                <p className="text-white/90 max-w-3xl text-lg text-center mx-auto">
-                    Bildirim izni: <span className="font-medium">{notificationPermission}</span>
-                </p>
             </div>
 
             {/* Main Application Layout: Two Columns on Desktop */}
@@ -1047,6 +1109,7 @@ export function Konsensus() {
                                 window.scrollTo({ top: 0, behavior: 'smooth' });
                             }}
                             onClearFilter={() => setSelectedOrganizer(null)}
+                            onPosterClick={setActivePoster}
                         />
                     )}
                 </div>
@@ -1068,15 +1131,15 @@ export function Konsensus() {
                                         window.scrollTo({ top: 0, behavior: 'smooth' });
                                     }}
                                     className={`w-full group flex items-center justify-between p-3 rounded-2xl transition-all ${selectedOrganizer === stat.name
-                                            ? 'bg-blue-600 text-white shadow-lg shadow-blue-200'
-                                            : 'bg-gray-50 hover:bg-blue-50'
+                                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-200'
+                                        : 'bg-gray-50 hover:bg-blue-50'
                                         }`}
                                 >
                                     <div className="flex items-center overflow-hidden">
                                         <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold mr-3 shrink-0 ${index === 0 ? 'bg-yellow-400 text-yellow-900' :
-                                                index === 1 ? 'bg-gray-300 text-gray-800' :
-                                                    index === 2 ? 'bg-orange-300 text-orange-900' :
-                                                        selectedOrganizer === stat.name ? 'bg-blue-400 text-white' : 'bg-gray-200 text-gray-500'
+                                            index === 1 ? 'bg-gray-300 text-gray-800' :
+                                                index === 2 ? 'bg-orange-300 text-orange-900' :
+                                                    selectedOrganizer === stat.name ? 'bg-blue-400 text-white' : 'bg-gray-200 text-gray-500'
                                             }`}>
                                             {index + 1}
                                         </span>
@@ -1162,7 +1225,7 @@ export function Konsensus() {
                             <button
                                 onClick={() => setFormData({
                                     title: '', organizer: '', customOrganizer: '', date: '', time: '20:00', duration: 60,
-                                    description: '', zoomLink: '', zoomId: '', zoomPassword: ''
+                                    description: '', zoomLink: '', zoomId: '', zoomPassword: '', posterUrl: ''
                                 })}
                                 className="px-6 py-3 rounded-2xl font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 transition"
                             >
@@ -1274,6 +1337,21 @@ export function Konsensus() {
                                         className="px-5 py-3 bg-white border-0 rounded-xl focus:ring-2 focus:ring-blue-500 transition"
                                     />
                                 </div>
+                                <div className="pt-2">
+                                    <h4 className="text-sm font-black text-blue-800 uppercase tracking-widest mb-3 italic flex items-center">
+                                        <ImageIcon className="w-4 h-4 mr-2" /> Toplantı Afişi (URL)
+                                    </h4>
+                                    <input
+                                        type="url"
+                                        value={formData.posterUrl}
+                                        onChange={(e) => updateField('posterUrl', e.target.value)}
+                                        placeholder="Afiş resim linki (örn: https://.../afis.jpg)"
+                                        className="w-full px-5 py-3 bg-white border-0 rounded-xl focus:ring-2 focus:ring-blue-500 transition"
+                                    />
+                                    <p className="text-[10px] text-blue-400 mt-2 ml-1">
+                                        * Afiş sadece bugün gerçekleşen toplantılarda görünür.
+                                    </p>
+                                </div>
                             </div>
                         </div>
 
@@ -1293,13 +1371,15 @@ export function Konsensus() {
                                             description: formData.description,
                                             zoom_link: formData.zoomLink,
                                             zoom_id: formData.zoomId,
-                                            zoom_password: formData.zoomPassword
+                                            zoom_password: formData.zoomPassword,
+                                            poster_url: formData.posterUrl
                                         }}
                                         isAdmin={false}
                                         onDelete={() => { }}
                                         onEdit={() => { }}
                                         now={now}
                                         isTodaySpotlight={new Date(formData.date).toDateString() === now.toDateString()}
+                                        onPosterClick={setActivePoster}
                                     />
                                 </div>
                             ) : (

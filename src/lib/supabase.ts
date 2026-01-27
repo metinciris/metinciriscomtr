@@ -19,6 +19,7 @@ export interface Meeting {
     zoom_link?: string;
     zoom_id?: string;
     zoom_password?: string;
+    poster_url?: string;
     created_at?: string;
     updated_at?: string;
 }
@@ -35,4 +36,5 @@ export interface MeetingFormData {
     zoomLink: string;
     zoomId: string;
     zoomPassword: string;
+    posterUrl: string;
 }
