@@ -100,7 +100,6 @@ function getMeetingStatus(meeting: Meeting, now: Date): { status: MeetingStatus;
   const h = Math.floor(diffToStart / 60);
   const m = diffToStart % 60;
 
-  // Is it today?
   const isToday = new Date(meeting.date).toDateString() === now.toDateString();
 
   if (isToday) {
@@ -115,16 +114,16 @@ function MeetingStatusBadge({ meeting, now }: { meeting: Meeting; now: Date }) {
 
   if (status === 'live') {
     return (
-      <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-red-600 text-white animate-pulse shadow-lg shadow-red-200">
+      <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-black bg-red-600 text-white animate-pulse shadow-lg shadow-red-200">
         <span className="w-2 h-2 bg-white rounded-full mr-1.5 "></span>
-        CANLI • {diffMinutes} dakikadır
+        CANLI • {diffMinutes} dk
       </div>
     );
   }
 
   if (status === 'countdown') {
     return (
-      <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-indigo-600 text-white shadow-lg shadow-indigo-200">
+      <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-black bg-indigo-600 text-white shadow-lg shadow-indigo-200">
         <Clock className="w-3 h-3 mr-1.5" />
         {diffHours > 0 ? `${diffHours} sa ${diffMinutes} dk` : `${diffMinutes} dk`} kaldı
       </div>
@@ -138,7 +137,7 @@ function MeetingStatusBadge({ meeting, now }: { meeting: Meeting; now: Date }) {
 
   if (mDate.getTime() === today.getTime()) {
     return (
-      <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-blue-600 text-white shadow-lg shadow-blue-200">
+      <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-black bg-blue-600 text-white shadow-lg shadow-blue-200">
         BUGÜN
       </div>
     );
@@ -197,9 +196,14 @@ function MeetingCard({
   onDownloadIcs?: (meeting: Meeting) => void;
   onShareWhatsApp?: (meeting: Meeting) => void;
 }) {
+  const hasIdPw = !!(meeting.zoom_id || meeting.zoom_password);
+  // İstek: ID/PW varsa Zoom link (join) görünmesin; yoksa link görünsün.
+  const showJoin = !!meeting.zoom_link && !hasIdPw;
+  const showIdPw = !isPast && hasIdPw;
+
   return (
     <div
-      className={`group relative overflow-hidden transition-all duration-300 ${
+      className={`group relative overflow-hidden transition-all duration-300 hover:-translate-y-[1px] ${
         isPast
           ? 'bg-gray-50 border-gray-200 grayscale-[0.5] hover:grayscale-0'
           : isTodaySpotlight
@@ -207,9 +211,15 @@ function MeetingCard({
             : 'bg-white border-gray-200 hover:border-blue-300 hover:shadow-lg'
       } border-2 rounded-2xl p-5 mb-4`}
     >
+      {/* Subtle top shine */}
+      {!isPast && <div className="pointer-events-none absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-white/60 to-transparent" />}
+
       {/* Spotlight Accent */}
       {isTodaySpotlight && (
-        <div className="absolute top-0 right-0 w-32 h-32 -mr-8 -mt-8 bg-indigo-500/10 rounded-full blur-3xl" />
+        <>
+          <div className="absolute top-0 left-0 w-1.5 h-full bg-indigo-500/60" />
+          <div className="absolute top-0 right-0 w-32 h-32 -mr-8 -mt-8 bg-indigo-500/10 rounded-full blur-3xl" />
+        </>
       )}
 
       <div className="flex justify-between items-start relative z-10">
@@ -218,8 +228,8 @@ function MeetingCard({
             {meeting.organizer && (
               <button
                 onClick={() => onOrganizerClick?.(meeting.organizer)}
-                className={`px-2 py-0.5 rounded text-xs font-semibold cursor-pointer hover:ring-2 hover:ring-current transition-all ${
-                  isPast ? 'bg-gray-200 text-gray-600' : 'bg-blue-100 text-blue-700'
+                className={`px-2.5 py-1 rounded-full text-xs font-black cursor-pointer hover:ring-2 hover:ring-current transition-all ${
+                  isPast ? 'bg-gray-200 text-gray-600' : 'bg-blue-100 text-blue-800'
                 }`}
               >
                 {getOrganizerWithEmoji(meeting.organizer)}
@@ -228,117 +238,135 @@ function MeetingCard({
             {!isPast && <MeetingStatusBadge meeting={meeting} now={now} />}
           </div>
 
+          {/* Typography touch: tighter tracking + better leading + responsive size */}
           <h3
-            className={`font-bold ${isPast ? 'text-gray-600' : 'text-gray-900'} text-xl mb-3 group-hover:text-blue-600 transition-colors`}
+            className={`font-black tracking-tight leading-snug ${
+              isPast ? 'text-gray-600' : 'text-gray-900'
+            } text-[20px] sm:text-[22px] md:text-[24px] mb-3 group-hover:text-blue-700 transition-colors`}
           >
             {meeting.title}
           </h3>
 
-          <div className={`grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4 ${isPast ? 'text-gray-500' : 'text-gray-600'}`}>
-            <div className="flex items-center text-sm font-medium">
-              <div className={`p-1.5 rounded-lg mr-2 ${isPast ? 'bg-gray-100' : 'bg-blue-50 text-blue-600'}`}>
-                <Calendar className="w-4 h-4" />
-              </div>
+          {/* Info pills: clearer hierarchy */}
+          <div className="flex flex-wrap gap-2">
+            <div className={`inline-flex items-center text-sm font-semibold px-3 py-2 rounded-xl border ${isPast ? 'bg-gray-50 border-gray-200 text-gray-600' : 'bg-blue-50 border-blue-100 text-blue-800'}`}>
+              <Calendar className="w-4 h-4 mr-2" />
               {formatDate(meeting.date)}
             </div>
-            <div className="flex items-center text-sm font-medium">
-              <div className={`p-1.5 rounded-lg mr-2 ${isPast ? 'bg-gray-100' : 'bg-indigo-50 text-indigo-600'}`}>
-                <Clock className="w-4 h-4" />
-              </div>
+            <div className={`inline-flex items-center text-sm font-semibold px-3 py-2 rounded-xl border ${isPast ? 'bg-gray-50 border-gray-200 text-gray-600' : 'bg-indigo-50 border-indigo-100 text-indigo-800'}`}>
+              <Clock className="w-4 h-4 mr-2" />
               {formatTime(meeting.time, meeting.duration)}
             </div>
           </div>
 
           {meeting.description && (
-            <p className={`mt-4 text-sm leading-relaxed ${isPast ? 'text-gray-500 italic' : 'text-gray-600'}`}>
+            <p className={`mt-4 text-[13px] sm:text-sm leading-relaxed ${isPast ? 'text-gray-500 italic' : 'text-gray-700'}`}>
               {meeting.description}
             </p>
           )}
 
           {!isPast && (
             <div className="mt-5 pt-4 border-t border-gray-100">
-              {/* Zoom + Poster */}
-              {(meeting.zoom_link || meeting.zoom_id || meeting.poster_url) && (
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                  <div className="flex flex-wrap items-center gap-3">
-                    {meeting.zoom_link && (
-                      <a
-                        href={meeting.zoom_link}
-                        className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition shadow-md hover:shadow-blue-200"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <Video className="w-4 h-4 mr-2" />
-                        Zoom&apos;a Katıl
-                      </a>
-                    )}
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
+                {/* Left: Zoom + actions */}
+                <div className="md:col-span-8">
+                  {/* Zoom Join (sadece link var + ID/PW yok) */}
+                  {showJoin && (
+                    <a
+                      href={meeting.zoom_link!}
+                      className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-black rounded-xl transition shadow-md hover:shadow-blue-200"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Video className="w-4 h-4 mr-2" />
+                      Zoom&apos;a Katıl
+                    </a>
+                  )}
 
-                    {meeting.poster_url && (
-                      <div className="flex items-center gap-3">
-                        <button
-                          onClick={() => onPosterClick?.(meeting.poster_url!)}
-                          className="inline-flex items-center px-4 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 text-sm font-bold rounded-xl transition border border-indigo-100"
-                        >
+                  {/* Zoom ID/PW (link olsa da olmasa da; join gizlenmiş oluyor) */}
+                  {showIdPw && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {meeting.zoom_id && (
+                        <div className="bg-gray-100 px-3 py-2 rounded-xl text-sm font-semibold text-gray-700">
+                          <span className="font-black text-gray-900">Zoom ID:</span> {meeting.zoom_id}
+                        </div>
+                      )}
+                      {meeting.zoom_password && (
+                        <div className="bg-gray-100 px-3 py-2 rounded-xl text-sm font-semibold text-gray-700">
+                          <span className="font-black text-gray-900">Şifre:</span> {meeting.zoom_password}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Per-meeting Actions */}
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <button
+                      onClick={() => onAddToCalendar?.(meeting)}
+                      className="inline-flex items-center px-3 py-2 rounded-xl bg-blue-50 text-blue-800 hover:bg-blue-100 text-sm font-black transition border border-blue-100"
+                    >
+                      <ExternalLink className="w-4 h-4 mr-2" />
+                      Takvime ekle
+                    </button>
+
+                    <button
+                      onClick={() => onDownloadIcs?.(meeting)}
+                      className="inline-flex items-center px-3 py-2 rounded-xl bg-indigo-50 text-indigo-800 hover:bg-indigo-100 text-sm font-black transition border border-indigo-100"
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      iCal (.ics) indir
+                    </button>
+
+                    <button
+                      onClick={() => onShareWhatsApp?.(meeting)}
+                      className="inline-flex items-center px-3 py-2 rounded-xl bg-green-50 text-green-800 hover:bg-green-100 text-sm font-black transition border border-green-100"
+                    >
+                      <MessageCircle className="w-4 h-4 mr-2" />
+                      WhatsApp paylaş
+                    </button>
+                  </div>
+
+                  {/* Nice touch: subtle hint if no zoom info */}
+                  {!showJoin && !showIdPw && (
+                    <div className="mt-3 text-xs font-semibold text-gray-400">
+                      Zoom bilgisi eklenmemiş.
+                    </div>
+                  )}
+                </div>
+
+                {/* Right: Poster */}
+                <div className="md:col-span-4">
+                  {meeting.poster_url ? (
+                    <button
+                      onClick={() => onPosterClick?.(meeting.poster_url!)}
+                      className="w-full rounded-2xl border border-indigo-200 bg-indigo-50/40 hover:bg-indigo-50 transition p-3 flex md:flex-col items-center md:items-stretch gap-3"
+                      title="Afişi büyüt"
+                    >
+                      <div className="w-20 h-20 md:w-full md:h-44 rounded-xl overflow-hidden border border-indigo-200 bg-white">
+                        <img
+                          src={meeting.poster_url!}
+                          alt="Toplantı afişi"
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                      </div>
+
+                      <div className="flex-1 md:flex-none text-left md:text-center">
+                        <div className="inline-flex items-center justify-center px-4 py-2 bg-white text-indigo-800 text-sm font-black rounded-xl border border-indigo-100">
                           <ImageIcon className="w-4 h-4 mr-2" />
                           Afişi Gör
-                        </button>
-
-                        <button
-                          onClick={() => onPosterClick?.(meeting.poster_url!)}
-                          className="w-14 h-14 rounded-xl overflow-hidden border border-indigo-200 shadow-sm hover:shadow transition"
-                          title="Afişi büyüt"
-                        >
-                          <img
-                            src={meeting.poster_url!}
-                            alt="Afiş küçük resim"
-                            className="w-full h-full object-cover"
-                            loading="lazy"
-                          />
-                        </button>
+                        </div>
+                        <div className="text-xs text-indigo-700 font-semibold mt-2 opacity-80">
+                          Dokun / tıkla büyüt
+                        </div>
                       </div>
-                    )}
-                  </div>
-
-                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs font-medium text-gray-500">
-                    {meeting.zoom_id && (
-                      <div className="bg-gray-100 px-2 py-1 rounded">
-                        ID: <span className="text-gray-800">{meeting.zoom_id}</span>
-                      </div>
-                    )}
-                    {meeting.zoom_password && (
-                      <div className="bg-gray-100 px-2 py-1 rounded">
-                        PW: <span className="text-gray-800">{meeting.zoom_password}</span>
-                      </div>
-                    )}
-                  </div>
+                    </button>
+                  ) : (
+                    <div className="hidden md:block rounded-2xl border border-dashed border-gray-200 bg-gray-50 p-4 text-center text-xs text-gray-400">
+                      Afiş yok
+                    </div>
+                  )}
                 </div>
-              )}
-
-              {/* Per-meeting Actions */}
-              <div className="mt-4 flex flex-wrap gap-2">
-                <button
-                  onClick={() => onAddToCalendar?.(meeting)}
-                  className="inline-flex items-center px-3 py-2 rounded-xl bg-blue-50 text-blue-700 hover:bg-blue-100 text-sm font-bold transition border border-blue-100"
-                >
-                  <ExternalLink className="w-4 h-4 mr-2" />
-                  Takvime ekle
-                </button>
-
-                <button
-                  onClick={() => onDownloadIcs?.(meeting)}
-                  className="inline-flex items-center px-3 py-2 rounded-xl bg-indigo-50 text-indigo-700 hover:bg-indigo-100 text-sm font-bold transition border border-indigo-100"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  iCal (.ics) indir
-                </button>
-
-                <button
-                  onClick={() => onShareWhatsApp?.(meeting)}
-                  className="inline-flex items-center px-3 py-2 rounded-xl bg-green-50 text-green-700 hover:bg-green-100 text-sm font-bold transition border border-green-100"
-                >
-                  <MessageCircle className="w-4 h-4 mr-2" />
-                  WhatsApp paylaş
-                </button>
               </div>
             </div>
           )}
@@ -348,14 +376,14 @@ function MeetingCard({
           <div className="flex gap-2 ml-4 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
             <button
               onClick={() => onEdit(meeting)}
-              className="p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-xl transition"
+              className="p-2 text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-xl transition"
               title="Düzenle"
             >
               <Edit className="w-4 h-4" />
             </button>
             <button
               onClick={() => onDelete(meeting.id)}
-              className="p-2 text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition"
+              className="p-2 text-red-700 bg-red-50 hover:bg-red-100 rounded-xl transition"
               title="Sil"
             >
               <Trash2 className="w-4 h-4" />
@@ -369,10 +397,10 @@ function MeetingCard({
 
 function SectionTitle({ title, icon, color = 'blue' }: { title: string; icon: React.ReactNode; color?: string }) {
   const colorClasses: Record<string, string> = {
-    blue: 'text-blue-600 bg-blue-100',
-    indigo: 'text-indigo-600 bg-indigo-100',
-    gray: 'text-gray-500 bg-gray-100',
-    red: 'text-red-600 bg-red-100',
+    blue: 'text-blue-700 bg-blue-100',
+    indigo: 'text-indigo-700 bg-indigo-100',
+    gray: 'text-gray-600 bg-gray-100',
+    red: 'text-red-700 bg-red-100',
   };
 
   return (
@@ -424,8 +452,17 @@ function MeetingList({
   const filteredUpcoming = filterMeetings(upcomingMeetings);
   const filteredPast = filterMeetings(pastMeetings);
 
-  const todayMeetings = filteredUpcoming.filter((m) => new Date(m.date).toDateString() === now.toDateString());
-  const onlyUpcoming = filteredUpcoming.filter((m) => new Date(m.date).toDateString() !== now.toDateString());
+  const todayKey = now.toDateString();
+  const tomorrow = new Date(now);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowKey = tomorrow.toDateString();
+
+  const todayMeetings = filteredUpcoming.filter((m) => new Date(m.date).toDateString() === todayKey);
+  const tomorrowMeetings = filteredUpcoming.filter((m) => new Date(m.date).toDateString() === tomorrowKey);
+  const futureMeetings = filteredUpcoming.filter((m) => {
+    const d = new Date(m.date);
+    return d.toDateString() !== todayKey && d.toDateString() !== tomorrowKey;
+  });
 
   const visiblePast = showAllPast ? filteredPast : filteredPast.slice(0, 5);
 
@@ -435,14 +472,14 @@ function MeetingList({
       {selectedOrganizer && (
         <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 flex items-center justify-between animate-in fade-in slide-in-from-top-2">
           <div className="flex items-center">
-            <Users className="w-5 h-5 text-blue-600 mr-2" />
+            <Users className="w-5 h-5 text-blue-700 mr-2" />
             <span className="text-blue-900 font-medium">
               Filtre: <strong>{selectedOrganizer}</strong> ({filteredUpcoming.length + filteredPast.length} toplantı)
             </span>
           </div>
           <button
             onClick={onClearFilter}
-            className="text-sm font-bold text-blue-600 hover:text-blue-800 bg-white px-3 py-1.5 rounded-xl shadow-sm transition"
+            className="text-sm font-black text-blue-700 hover:text-blue-900 bg-white px-3 py-1.5 rounded-xl shadow-sm transition"
           >
             Filtreyi Temizle
           </button>
@@ -453,7 +490,7 @@ function MeetingList({
       {todayMeetings.length > 0 && (
         <div className="bg-white rounded-3xl shadow-2xl p-8 border-2 border-indigo-500 overflow-hidden relative">
           <div className="absolute top-0 left-0 w-2 h-full bg-indigo-500" />
-          <SectionTitle title="GÜNÜN TOPLANTILARI" icon={<Clock className="w-6 h-6" />} color="indigo" />
+          <SectionTitle title="BUGÜN" icon={<Clock className="w-6 h-6" />} color="indigo" />
 
           <div className="grid grid-cols-1 gap-6">
             {todayMeetings.map((meeting) => (
@@ -476,19 +513,48 @@ function MeetingList({
         </div>
       )}
 
-      {/* Upcoming Meetings */}
+      {/* Tomorrow Meetings */}
       <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
-        <SectionTitle title="YAKLAŞAN TOPLANTILAR" icon={<Calendar className="w-6 h-6" />} color="blue" />
+        <SectionTitle title="YARIN" icon={<Calendar className="w-6 h-6" />} color="blue" />
 
-        {onlyUpcoming.length === 0 ? (
-          <div className="text-center py-12 rounded-2xl bg-gray-50 border-2 border-dashed border-gray-200">
+        {tomorrowMeetings.length === 0 ? (
+          <div className="text-center py-10 rounded-2xl bg-gray-50 border-2 border-dashed border-gray-200">
+            <p className="text-gray-400 font-medium">Yarın için toplantı yok.</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {tomorrowMeetings.map((meeting) => (
+              <MeetingCard
+                key={meeting.id}
+                meeting={meeting}
+                isAdmin={isAdmin}
+                onDelete={onDelete}
+                onEdit={onEdit}
+                now={now}
+                onOrganizerClick={onOrganizerClick}
+                onPosterClick={onPosterClick}
+                onAddToCalendar={onAddToCalendar}
+                onDownloadIcs={onDownloadIcs}
+                onShareWhatsApp={onShareWhatsApp}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Future Meetings */}
+      <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
+        <SectionTitle title="GELECEK TOPLANTILAR" icon={<Calendar className="w-6 h-6" />} color="blue" />
+
+        {futureMeetings.length === 0 ? (
+          <div className="text-center py-10 rounded-2xl bg-gray-50 border-2 border-dashed border-gray-200">
             <p className="text-gray-400 font-medium">
-              {selectedOrganizer ? `${selectedOrganizer} için yaklaşan toplantı yok.` : 'Buralar biraz sessiz... Yeni toplantı planlanmamış.'}
+              {selectedOrganizer ? `${selectedOrganizer} için gelecek toplantı yok.` : 'Yeni toplantı planlanmamış.'}
             </p>
           </div>
         ) : (
           <div className="space-y-2">
-            {onlyUpcoming.map((meeting) => (
+            {futureMeetings.map((meeting) => (
               <MeetingCard
                 key={meeting.id}
                 meeting={meeting}
@@ -544,7 +610,7 @@ function MeetingList({
                   <div className="flex flex-col items-center pt-4">
                     <button
                       onClick={() => setShowAllPast(!showAllPast)}
-                      className="text-sm font-bold text-gray-600 hover:text-blue-600 bg-gray-100 px-6 py-2 rounded-full transition-all"
+                      className="text-sm font-black text-gray-600 hover:text-blue-700 bg-gray-100 px-6 py-2 rounded-full transition-all"
                     >
                       {showAllPast ? 'Daha Az Göster' : 'Tüm Arşivi Göster'}
                     </button>
@@ -618,14 +684,14 @@ function AdminPanel({
     return (
       <div className="bg-white rounded-2xl shadow-xl p-6">
         <div className="flex justify-between items-center">
-          <h2 className="text-xl font-semibold text-gray-900">Admin Paneli</h2>
+          <h2 className="text-xl font-black text-gray-900">Admin Paneli</h2>
           <button
             onClick={handleLogout}
             disabled={loading}
-            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 disabled:opacity-50 transition flex items-center"
+            className="bg-red-600 text-white px-4 py-2 rounded-xl hover:bg-red-700 disabled:opacity-50 transition flex items-center font-black"
           >
             <LogOut className="w-4 h-4 mr-2" />
-            {loading ? 'Çıkış yapılıyor...' : 'Çıkış Yap'}
+            {loading ? 'Çıkış...' : 'Çıkış Yap'}
           </button>
         </div>
         <p className="text-gray-600 mt-2">Admin olarak giriş yaptınız. Toplantı ekleyip silebilirsiniz.</p>
@@ -636,13 +702,13 @@ function AdminPanel({
   return (
     <div className="bg-white rounded-2xl shadow-xl p-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold text-gray-900">Admin Paneli</h2>
+        <h2 className="text-xl font-black text-gray-900">Admin Paneli</h2>
         <button
           onClick={() => {
             setShowLogin(!showLogin);
             if (!showLogin) resetVerification();
           }}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition flex items-center"
+          className="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition flex items-center font-black"
         >
           <LogIn className="w-4 h-4 mr-2" />
           Giriş Yap
@@ -652,20 +718,20 @@ function AdminPanel({
       {showLogin && (
         <div className="mt-6 space-y-4">
           {/* Mouse verification */}
-          <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-4">
+          <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl p-4">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">Fare Doğrulaması</span>
+              <span className="text-sm font-black text-gray-700">Fare Doğrulaması</span>
               <span className="text-xs text-gray-500">{clickCount}/3 tık</span>
             </div>
             {verified ? (
-              <div className="bg-green-100 text-green-800 py-3 px-4 rounded-lg flex items-center justify-center border-2 border-green-300">
-                <span className="text-sm font-medium">✅ Fare doğrulaması tamamlandı</span>
+              <div className="bg-green-100 text-green-800 py-3 px-4 rounded-xl flex items-center justify-center border-2 border-green-300">
+                <span className="text-sm font-black">✅ Fare doğrulaması tamamlandı</span>
               </div>
             ) : (
               <button
                 type="button"
                 onClick={handleVerifyClick}
-                className="w-full bg-blue-100 hover:bg-blue-200 text-blue-800 py-3 px-4 rounded-lg transition flex items-center justify-center border-2 border-blue-300"
+                className="w-full bg-blue-100 hover:bg-blue-200 text-blue-800 py-3 px-4 rounded-xl transition flex items-center justify-center border-2 border-blue-300 font-black"
               >
                 <MousePointer2 className="w-5 h-5 mr-2" />
                 Buraya {3 - clickCount} kez daha tıklayın
@@ -680,7 +746,7 @@ function AdminPanel({
               placeholder="Kullanıcı adı"
               value={credentials.username}
               onChange={(e) => setCredentials({ ...credentials, username: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               disabled={!verified}
             />
             <input
@@ -688,18 +754,19 @@ function AdminPanel({
               placeholder="Şifre"
               value={credentials.password}
               onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               disabled={!verified}
             />
-            {error && <p className="text-red-600 text-sm">{error}</p>}
+            {error && <p className="text-red-600 text-sm font-semibold">{error}</p>}
             <button
               type="submit"
               disabled={loading || !verified}
-              className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition"
+              className="w-full bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 disabled:bg-gray-400 transition font-black"
             >
-              {loading ? 'Giriş yapılıyor...' : 'Giriş Yap'}
+              {loading ? 'Giriş...' : 'Giriş Yap'}
             </button>
           </form>
+
           {!verified && <p className="text-xs text-gray-500 text-center">Giriş yapmak için önce fare doğrulamasını tamamlayın</p>}
         </div>
       )}
@@ -767,45 +834,42 @@ export function Konsensus() {
     return `https://calendar.google.com/calendar/render?${params.toString()}`;
   }, []);
 
-  const generateIcalForMeeting = useCallback(
-    (m: Meeting) => {
-      const [hours, minutes] = m.time.split(':').map(Number);
-      const start = new Date(m.date);
-      start.setHours(hours, minutes, 0, 0);
-      const end = new Date(start.getTime() + m.duration * 60000);
+  const generateIcalForMeeting = useCallback((m: Meeting) => {
+    const [hours, minutes] = m.time.split(':').map(Number);
+    const start = new Date(m.date);
+    start.setHours(hours, minutes, 0, 0);
+    const end = new Date(start.getTime() + m.duration * 60000);
 
-      let description = (m.description ?? '').replace(/\n/g, '\\n');
-      if (m.organizer) description = `Düzenleyen: ${m.organizer}\\n\\n${description}`;
-      if (m.zoom_link) description += `\\n\\nZoom Bağlantısı: ${m.zoom_link}`;
-      if (m.zoom_id) description += `\\nZoom Meeting ID: ${m.zoom_id}`;
-      if (m.zoom_password) description += `\\nZoom Parolası: ${m.zoom_password}`;
+    let description = (m.description ?? '').replace(/\n/g, '\\n');
+    if (m.organizer) description = `Düzenleyen: ${m.organizer}\\n\\n${description}`;
+    if (m.zoom_link) description += `\\n\\nZoom Bağlantısı: ${m.zoom_link}`;
+    if (m.zoom_id) description += `\\nZoom Meeting ID: ${m.zoom_id}`;
+    if (m.zoom_password) description += `\\nZoom Parolası: ${m.zoom_password}`;
 
-      const location = m.zoom_link ? `LOCATION:${m.zoom_link}` : '';
+    const location = m.zoom_link ? `LOCATION:${m.zoom_link}` : '';
 
-      return [
-        'BEGIN:VCALENDAR',
-        'VERSION:2.0',
-        'PRODID:-//Patoloji Toplantı Takvimi//TR',
-        'CALSCALE:GREGORIAN',
-        'METHOD:PUBLISH',
-        'BEGIN:VEVENT',
-        `UID:${m.id || Date.now()}@patoloji-toplanti-takvimi`,
-        `DTSTART;TZID=Europe/Istanbul:${formatDateTime(start)}`,
-        `DTEND;TZID=Europe/Istanbul:${formatDateTime(end)}`,
-        `SUMMARY:${m.title}`,
-        location,
-        `DESCRIPTION:${description}`,
-        `DTSTAMP:${formatDateTime(new Date())}`,
-        'STATUS:CONFIRMED',
-        'SEQUENCE:0',
-        'END:VEVENT',
-        'END:VCALENDAR',
-      ]
-        .filter(Boolean)
-        .join('\r\n');
-    },
-    []
-  );
+    return [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Patoloji Toplantı Takvimi//TR',
+      'CALSCALE:GREGORIAN',
+      'METHOD:PUBLISH',
+      'BEGIN:VEVENT',
+      `UID:${m.id || Date.now()}@patoloji-toplanti-takvimi`,
+      `DTSTART;TZID=Europe/Istanbul:${formatDateTime(start)}`,
+      `DTEND;TZID=Europe/Istanbul:${formatDateTime(end)}`,
+      `SUMMARY:${m.title}`,
+      location,
+      `DESCRIPTION:${description}`,
+      `DTSTAMP:${formatDateTime(new Date())}`,
+      'STATUS:CONFIRMED',
+      'SEQUENCE:0',
+      'END:VEVENT',
+      'END:VCALENDAR',
+    ]
+      .filter(Boolean)
+      .join('\r\n');
+  }, []);
 
   const downloadIcalForMeeting = useCallback(
     (m: Meeting) => {
@@ -1089,15 +1153,27 @@ export function Konsensus() {
       <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-12 mb-8 rounded-xl shadow-lg relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32" />
         <div className="relative z-10 flex flex-col items-center justify-center text-center">
-          {/* SVG kaldırıldı */}
-          <h1 className="text-4xl md:text-5xl font-black mb-2 tracking-tight">Patoloji Konsensus Toplantı Takibi</h1>
-          <p className="text-white/85 text-sm font-medium">Toplantıları takip edin, takvime ekleyin, .ics indirin ve WhatsApp’tan paylaşın.</p>
+          <h1 className="text-4xl md:text-5xl font-black mb-3 tracking-tight">
+            Patoloji Konsensus Toplantı Takibi
+          </h1>
+          <p className="text-white/90 text-sm font-medium">
+            Telegram kanalımız üzerinden{' '}
+            <a
+              href="https://t.me/konsensustakip"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-4 font-black hover:text-white"
+            >
+              (tıklayın)
+            </a>{' '}
+            bildirim alın. Toplantılardan 15 dakika önce bildirim gönderilir.
+          </p>
         </div>
       </div>
 
       {/* Main Application Layout: Two Columns on Desktop */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-        {/* Left Column: Meeting Lists (Wider) */}
+        {/* Left Column: Meeting Lists */}
         <div className="lg:col-span-8 order-1 lg:order-1">
           {!loading && (
             <MeetingList
@@ -1127,20 +1203,22 @@ export function Konsensus() {
           <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
             <div className="flex flex-col gap-3">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <div className="flex items-center justify-between sm:justify-start gap-3">
-                  <h3 className="text-lg font-bold text-gray-800 flex items-center">
+                <div className="flex items-center gap-3">
+                  <h3 className="text-lg font-black text-gray-800 flex items-center">
                     <Bell className="w-5 h-5 mr-2 text-blue-600" /> Bildirimler
                   </h3>
                   <div className={`w-3 h-3 rounded-full ${pushEnabled ? 'bg-green-500 animate-pulse' : 'bg-gray-300'}`} />
                   <span className="text-sm font-semibold text-gray-600">{pushEnabled ? 'Açık' : 'Kapalı'}</span>
                 </div>
 
-                {/* Desktop: sağ üstte, Mobile: başlığın altında */}
+                {/* Desktop: başlıkla aynı satır sağda, Mobile: başlığın altında */}
                 <button
                   onClick={togglePush}
                   disabled={pushLoading}
-                  className={`sm:w-auto w-full px-4 py-2 rounded-2xl font-bold transition-all ${
-                    pushEnabled ? 'bg-gray-100 text-gray-700 hover:bg-gray-200' : 'bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-100'
+                  className={`sm:w-auto w-full px-4 py-2 rounded-2xl font-black transition-all ${
+                    pushEnabled
+                      ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      : 'bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-100'
                   }`}
                 >
                   {pushLoading ? 'İşlem...' : pushEnabled ? 'Bildirimleri kapat' : 'Bildirimleri etkinleştir'}
@@ -1151,7 +1229,7 @@ export function Konsensus() {
             </div>
           </div>
 
-          {/* En Aktif Gruplar (Desktop: Admin üstü, Mobile: Yaklaşan toplantılardan sonra) */}
+          {/* En Aktif Gruplar */}
           <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100 overflow-hidden relative">
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-400 to-orange-500" />
             <h2 className="text-xl font-black text-gray-900 mb-6 flex items-center">
@@ -1171,7 +1249,7 @@ export function Konsensus() {
                 >
                   <div className="flex items-center overflow-hidden">
                     <span
-                      className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold mr-3 shrink-0 ${
+                      className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black mr-3 shrink-0 ${
                         index === 0
                           ? 'bg-yellow-400 text-yellow-900'
                           : index === 1
@@ -1185,7 +1263,7 @@ export function Konsensus() {
                     >
                       {index + 1}
                     </span>
-                    <span className={`text-sm font-bold truncate ${selectedOrganizer === stat.name ? 'text-white' : 'text-gray-700'}`}>
+                    <span className={`text-sm font-black truncate ${selectedOrganizer === stat.name ? 'text-white' : 'text-gray-700'}`}>
                       {getOrganizerWithEmoji(stat.name)}
                     </span>
                   </div>
@@ -1229,7 +1307,7 @@ export function Konsensus() {
                     posterUrl: '',
                   })
                 }
-                className="px-6 py-3 rounded-2xl font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 transition"
+                className="px-6 py-3 rounded-2xl font-black bg-gray-100 text-gray-600 hover:bg-gray-200 transition"
               >
                 Temizle
               </button>
@@ -1248,11 +1326,11 @@ export function Konsensus() {
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-gray-700 ml-1">Düzenleyici</label>
+                  <label className="text-sm font-black text-gray-700 ml-1">Düzenleyici</label>
                   <select
                     value={formData.organizer}
                     onChange={(e) => updateField('organizer', e.target.value)}
-                    className="w-full px-5 py-4 bg-gray-50 border-0 rounded-2xl focus:ring-2 focus:ring-blue-500 font-medium transition"
+                    className="w-full px-5 py-4 bg-gray-50 border-0 rounded-2xl focus:ring-2 focus:ring-blue-500 font-semibold transition"
                   >
                     <option value="">Seçiniz</option>
                     {ORGANIZER_OPTIONS.map((o) => (
@@ -1263,42 +1341,42 @@ export function Konsensus() {
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-gray-700 ml-1">Başlık *</label>
+                  <label className="text-sm font-black text-gray-700 ml-1">Başlık *</label>
                   <input
                     type="text"
                     value={formData.title}
                     onChange={(e) => updateField('title', e.target.value)}
                     placeholder="Toplantı başlığı"
-                    className="w-full px-5 py-4 bg-gray-50 border-0 rounded-2xl focus:ring-2 focus:ring-blue-500 font-medium transition"
+                    className="w-full px-5 py-4 bg-gray-50 border-0 rounded-2xl focus:ring-2 focus:ring-blue-500 font-semibold transition"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-gray-700 ml-1">Tarih *</label>
+                  <label className="text-sm font-black text-gray-700 ml-1">Tarih *</label>
                   <input
                     type="date"
                     value={formData.date}
                     onChange={(e) => updateField('date', e.target.value)}
-                    className="w-full px-5 py-4 bg-gray-50 border-0 rounded-2xl focus:ring-2 focus:ring-blue-500 font-medium transition"
+                    className="w-full px-5 py-4 bg-gray-50 border-0 rounded-2xl focus:ring-2 focus:ring-blue-500 font-semibold transition"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-gray-700 ml-1">Saat *</label>
+                  <label className="text-sm font-black text-gray-700 ml-1">Saat *</label>
                   <input
                     type="time"
                     value={formData.time}
                     onChange={(e) => updateField('time', e.target.value)}
-                    className="w-full px-5 py-4 bg-gray-50 border-0 rounded-2xl focus:ring-2 focus:ring-blue-500 font-medium transition"
+                    className="w-full px-5 py-4 bg-gray-50 border-0 rounded-2xl focus:ring-2 focus:ring-blue-500 font-semibold transition"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-gray-700 ml-1">Süre</label>
+                  <label className="text-sm font-black text-gray-700 ml-1">Süre</label>
                   <select
                     value={formData.duration}
                     onChange={(e) => updateField('duration', parseInt(e.target.value))}
-                    className="w-full px-5 py-4 bg-gray-50 border-0 rounded-2xl focus:ring-2 focus:ring-blue-500 font-medium transition"
+                    className="w-full px-5 py-4 bg-gray-50 border-0 rounded-2xl focus:ring-2 focus:ring-blue-500 font-semibold transition"
                   >
                     <option value={30}>30 Dakika</option>
                     <option value={60}>1 Saat</option>
@@ -1309,12 +1387,12 @@ export function Konsensus() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-bold text-gray-700 ml-1">Açıklama</label>
+                <label className="text-sm font-black text-gray-700 ml-1">Açıklama</label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => updateField('description', e.target.value)}
                   rows={3}
-                  className="w-full px-5 py-4 bg-gray-50 border-0 rounded-2xl focus:ring-2 focus:ring-blue-500 font-medium transition resize-none"
+                  className="w-full px-5 py-4 bg-gray-50 border-0 rounded-2xl focus:ring-2 focus:ring-blue-500 font-semibold transition resize-none"
                 />
               </div>
 
@@ -1360,9 +1438,9 @@ export function Konsensus() {
 
             {/* Live Preview */}
             <div className="space-y-6">
-              <label className="text-sm font-bold text-gray-500 ml-1 uppercase tracking-widest">Canlı Önizleme</label>
+              <label className="text-sm font-black text-gray-500 ml-1 uppercase tracking-widest">Canlı Önizleme</label>
               {isFormValid() ? (
-                <div className="scale-105 origin-top">
+                <div className="scale-[1.03] origin-top">
                   <MeetingCard
                     meeting={{
                       id: 'preview',
@@ -1391,7 +1469,7 @@ export function Konsensus() {
               ) : (
                 <div className="h-full min-h-[300px] border-4 border-dashed border-gray-100 rounded-4xl flex flex-col items-center justify-center text-gray-300">
                   <Plus className="w-12 h-12 mb-4" />
-                  <p className="font-bold">Bilgileri doldurunca önizleme açılır</p>
+                  <p className="font-black">Bilgileri doldurunca önizleme açılır</p>
                 </div>
               )}
             </div>
