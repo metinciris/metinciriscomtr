@@ -158,7 +158,8 @@ function MeetingCard({
     onDelete,
     onEdit,
     now,
-    isTodaySpotlight = false
+    isTodaySpotlight = false,
+    onOrganizerClick
 }: {
     meeting: Meeting;
     isAdmin: boolean;
@@ -167,6 +168,7 @@ function MeetingCard({
     onEdit: (meeting: Meeting) => void;
     now: Date;
     isTodaySpotlight?: boolean;
+    onOrganizerClick?: (organizer: string) => void;
 }) {
     const isToday = !isPast && (new Date(meeting.date).toDateString() === now.toDateString());
 
@@ -188,9 +190,12 @@ function MeetingCard({
                 <div className="flex-1">
                     <div className="flex flex-wrap items-center gap-2 mb-3">
                         {meeting.organizer && (
-                            <div className={`px-2 py-0.5 rounded text-xs font-semibold ${isPast ? 'bg-gray-200 text-gray-600' : 'bg-blue-100 text-blue-700'}`}>
+                            <button
+                                onClick={() => onOrganizerClick?.(meeting.organizer)}
+                                className={`px-2 py-0.5 rounded text-xs font-semibold cursor-pointer hover:ring-2 hover:ring-current transition-all ${isPast ? 'bg-gray-200 text-gray-600' : 'bg-blue-100 text-blue-700'}`}
+                            >
                                 {getOrganizerWithEmoji(meeting.organizer)}
-                            </div>
+                            </button>
                         )}
                         {!isPast && <StatusBadge meeting={meeting} now={now} />}
                     </div>
@@ -289,7 +294,10 @@ function MeetingList({
     isAdmin,
     onDelete,
     onEdit,
-    now
+    now,
+    selectedOrganizer,
+    onOrganizerClick,
+    onClearFilter
 }: {
     upcomingMeetings: Meeting[];
     pastMeetings: Meeting[];
@@ -297,14 +305,47 @@ function MeetingList({
     onDelete: (id: string) => void;
     onEdit: (meeting: Meeting) => void;
     now: Date;
+    selectedOrganizer: string | null;
+    onOrganizerClick: (organizer: string) => void;
+    onClearFilter: () => void;
 }) {
     const [showPast, setShowPast] = useState(false);
+    const [showAllPast, setShowAllPast] = useState(false);
 
-    const todayMeetings = upcomingMeetings.filter(m => new Date(m.date).toDateString() === now.toDateString());
-    const onlyUpcoming = upcomingMeetings.filter(m => new Date(m.date).toDateString() !== now.toDateString());
+    // Dynamic Filtering
+    const filterMeetings = (meetings: Meeting[]) => {
+        if (!selectedOrganizer) return meetings;
+        return meetings.filter(m => m.organizer === selectedOrganizer);
+    };
+
+    const filteredUpcoming = filterMeetings(upcomingMeetings);
+    const filteredPast = filterMeetings(pastMeetings);
+
+    const todayMeetings = filteredUpcoming.filter(m => new Date(m.date).toDateString() === now.toDateString());
+    const onlyUpcoming = filteredUpcoming.filter(m => new Date(m.date).toDateString() !== now.toDateString());
+
+    const visiblePast = showAllPast ? filteredPast : filteredPast.slice(0, 5);
 
     return (
         <div className="space-y-10">
+            {/* Active Filter Badge */}
+            {selectedOrganizer && (
+                <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 flex items-center justify-between animate-in fade-in slide-in-from-top-2">
+                    <div className="flex items-center">
+                        <Users className="w-5 h-5 text-blue-600 mr-2" />
+                        <span className="text-blue-900 font-medium">
+                            Filtre: <strong>{selectedOrganizer}</strong> ({filteredUpcoming.length + filteredPast.length} toplantı)
+                        </span>
+                    </div>
+                    <button
+                        onClick={onClearFilter}
+                        className="text-sm font-bold text-blue-600 hover:text-blue-800 bg-white px-3 py-1.5 rounded-xl shadow-sm transition"
+                    >
+                        Filtreyi Temizle
+                    </button>
+                </div>
+            )}
+
             {/* Today's Spotlight */}
             {todayMeetings.length > 0 && (
                 <div className="bg-white rounded-3xl shadow-2xl p-8 border-2 border-indigo-500 overflow-hidden relative">
@@ -321,6 +362,7 @@ function MeetingList({
                                 onEdit={onEdit}
                                 now={now}
                                 isTodaySpotlight={true}
+                                onOrganizerClick={onOrganizerClick}
                             />
                         ))}
                     </div>
@@ -333,7 +375,9 @@ function MeetingList({
 
                 {onlyUpcoming.length === 0 ? (
                     <div className="text-center py-12 rounded-2xl bg-gray-50 border-2 border-dashed border-gray-200">
-                        <p className="text-gray-400 font-medium">Buralar biraz sessiz... Yeni toplantı planlanmamış.</p>
+                        <p className="text-gray-400 font-medium">
+                            {selectedOrganizer ? `${selectedOrganizer} için yaklaşan toplantı yok.` : 'Buralar biraz sessiz... Yeni toplantı planlanmamış.'}
+                        </p>
                     </div>
                 ) : (
                     <div className="space-y-2">
@@ -345,6 +389,7 @@ function MeetingList({
                                 onDelete={onDelete}
                                 onEdit={onEdit}
                                 now={now}
+                                onOrganizerClick={onOrganizerClick}
                             />
                         ))}
                     </div>
@@ -357,30 +402,44 @@ function MeetingList({
                     onClick={() => setShowPast(!showPast)}
                     className="w-full flex items-center justify-between text-left"
                 >
-                    <SectionTitle title={`ARŞİV (${pastMeetings.length})`} icon={<BookOpen className="w-6 h-6" />} color="gray" />
+                    <SectionTitle title={`ARŞİV (${filteredPast.length})`} icon={<BookOpen className="w-6 h-6" />} color="gray" />
                     <div className={`p-2 rounded-lg bg-gray-100 transition-transform duration-300 ${showPast ? 'rotate-180' : ''}`}>
                         <ChevronDown className="w-5 h-5 text-gray-500" />
                     </div>
                 </button>
                 {showPast && (
-                    <div className="mt-4 pt-4 border-t border-gray-100 grid grid-cols-1 gap-4 animate-in slide-in-from-top-4 duration-300">
-                        {pastMeetings.length === 0 ? (
+                    <div className="mt-4 pt-4 border-t border-gray-100 space-y-4 animate-in slide-in-from-top-4 duration-300">
+                        {filteredPast.length === 0 ? (
                             <p className="text-gray-400 text-center py-8 italic font-medium">Arşiv henüz boş.</p>
                         ) : (
-                            pastMeetings.slice(0, 5).map((meeting) => (
-                                <MeetingCard
-                                    key={meeting.id}
-                                    meeting={meeting}
-                                    isAdmin={isAdmin}
-                                    isPast
-                                    onDelete={onDelete}
-                                    onEdit={onEdit}
-                                    now={now}
-                                />
-                            ))
-                        )}
-                        {pastMeetings.length > 5 && (
-                            <p className="text-center text-xs text-gray-400 mt-2">Son 5 toplantı gösteriliyor</p>
+                            <>
+                                <div className="grid grid-cols-1 gap-4">
+                                    {visiblePast.map((meeting) => (
+                                        <MeetingCard
+                                            key={meeting.id}
+                                            meeting={meeting}
+                                            isAdmin={isAdmin}
+                                            isPast
+                                            onDelete={onDelete}
+                                            onEdit={onEdit}
+                                            now={now}
+                                            onOrganizerClick={onOrganizerClick}
+                                        />
+                                    ))}
+                                </div>
+
+                                {filteredPast.length > 5 && (
+                                    <div className="flex flex-col items-center pt-4">
+                                        <button
+                                            onClick={() => setShowAllPast(!showAllPast)}
+                                            className="text-sm font-bold text-gray-600 hover:text-blue-600 bg-gray-100 px-6 py-2 rounded-full transition-all"
+                                        >
+                                            {showAllPast ? 'Daha Az Göster' : 'Tüm Arşivi Göster'}
+                                        </button>
+                                        {!showAllPast && <p className="text-center text-xs text-gray-400 mt-3 font-medium">Son 5 toplantı gösteriliyor</p>}
+                                    </div>
+                                )}
+                            </>
                         )}
                     </div>
                 )}
@@ -566,6 +625,27 @@ export function Konsensus() {
         zoomId: '',
         zoomPassword: '',
     });
+
+    const [selectedOrganizer, setSelectedOrganizer] = useState<string | null>(null);
+
+    // Calculate Stats
+    const getGroupStats = () => {
+        const allMeetings = [...getUpcomingMeetings(), ...getPastMeetings()];
+        const stats: Record<string, number> = {};
+
+        allMeetings.forEach(m => {
+            if (m.organizer) {
+                stats[m.organizer] = (stats[m.organizer] || 0) + 1;
+            }
+        });
+
+        return Object.entries(stats)
+            .map(([name, count]) => ({ name, count }))
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 5);
+    };
+
+    const groupStats = getGroupStats();
 
     // Check auth state
     useEffect(() => {
@@ -961,12 +1041,59 @@ export function Konsensus() {
                             onDelete={handleDelete}
                             onEdit={handleEdit}
                             now={now}
+                            selectedOrganizer={selectedOrganizer}
+                            onOrganizerClick={(org) => {
+                                setSelectedOrganizer(org);
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }}
+                            onClearFilter={() => setSelectedOrganizer(null)}
                         />
                     )}
                 </div>
 
                 {/* Right Column: Actions & Form (Narrower) */}
                 <div className="lg:col-span-4 order-1 lg:order-2 space-y-8 lg:sticky lg:top-8">
+                    {/* Achievement Stats */}
+                    <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100 overflow-hidden relative">
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-400 to-orange-500" />
+                        <h2 className="text-xl font-black text-gray-900 mb-6 flex items-center">
+                            <span className="text-2xl mr-3">🏆</span> En Aktif Gruplar
+                        </h2>
+                        <div className="space-y-4">
+                            {groupStats.map((stat, index) => (
+                                <button
+                                    key={stat.name}
+                                    onClick={() => {
+                                        setSelectedOrganizer(stat.name);
+                                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                                    }}
+                                    className={`w-full group flex items-center justify-between p-3 rounded-2xl transition-all ${selectedOrganizer === stat.name
+                                            ? 'bg-blue-600 text-white shadow-lg shadow-blue-200'
+                                            : 'bg-gray-50 hover:bg-blue-50'
+                                        }`}
+                                >
+                                    <div className="flex items-center overflow-hidden">
+                                        <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold mr-3 shrink-0 ${index === 0 ? 'bg-yellow-400 text-yellow-900' :
+                                                index === 1 ? 'bg-gray-300 text-gray-800' :
+                                                    index === 2 ? 'bg-orange-300 text-orange-900' :
+                                                        selectedOrganizer === stat.name ? 'bg-blue-400 text-white' : 'bg-gray-200 text-gray-500'
+                                            }`}>
+                                            {index + 1}
+                                        </span>
+                                        <span className={`text-sm font-bold truncate ${selectedOrganizer === stat.name ? 'text-white' : 'text-gray-700'}`}>
+                                            {getOrganizerWithEmoji(stat.name)}
+                                        </span>
+                                    </div>
+                                    <div className={`px-2.5 py-1 rounded-lg text-xs font-black shrink-0 ${selectedOrganizer === stat.name ? 'bg-blue-500 text-white' : 'bg-blue-100 text-blue-700'
+                                        }`}>
+                                        {stat.count}
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+                        <p className="text-[10px] text-gray-400 mt-6 text-center italic font-medium">Toplam toplantı sayılarına göre sıralanmıştır.</p>
+                    </div>
+
                     {/* Calendar Actions */}
                     <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100 overflow-hidden relative">
                         <div className="absolute top-0 right-0 w-24 h-24 -mr-12 -mt-12 bg-blue-500/10 rounded-full blur-2xl" />
