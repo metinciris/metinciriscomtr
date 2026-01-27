@@ -437,12 +437,13 @@ function MeetingCard({
 
               {/* Right poster (upcoming/today/tomorrow/future) */}
               {hasPoster ? (
-                <div className="md:col-span-5 flex justify-end">
-                  <button
-                    onClick={() => onPosterClick?.(meeting.poster_url!)}
-                    className="w-full md:max-w-[360px] rounded-3xl border-2 border-indigo-200 bg-white/70 hover:bg-white transition p-4 shadow-md hover:shadow-lg flex flex-col"
-                    title="Afişi büyüt"
-                  >
+<div className="md:col-span-5 flex justify-end">
+  <button
+    onClick={() => onPosterClick?.(meeting.poster_url!)}
+    className="w-full rounded-3xl border-2 border-indigo-200 bg-white/70 hover:bg-white transition p-4 shadow-md hover:shadow-lg flex flex-col"
+    title="Afişi büyüt"
+  >
+
                     <div className="w-full rounded-2xl overflow-hidden border border-indigo-200 bg-white shadow-sm">
                       <div className="w-full aspect-[3/4]">
                         <img
