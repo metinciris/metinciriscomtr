@@ -30,20 +30,23 @@ export function Portfolyo() {
   return (
     <PageContainer>
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-[#8E44AD] to-[#9B59B6] text-white p-12 mb-8">
-        <h1 className="text-white mb-4">Prof. Dr. İbrahim Metin ÇİRİŞ</h1>
-        <p className="text-white/90 mb-2">
-          Süleyman Demirel Üniversitesi Tıp Fakültesi Patoloji Anabilim Dalı
-        </p>
-        <p className="text-white/80">
-          Profesör | Tıbbi Patoloji Uzmanı
-        </p>
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-purple-600 via-violet-700 to-purple-800 text-white p-10 md:p-14 mb-10">
+        <div className="absolute inset-0 bg-black/10" />
+        <div className="relative z-10">
+          <h1 className="text-4xl md:text-5xl font-black mb-4 leading-tight">Prof. Dr. İbrahim Metin ÇİRİŞ</h1>
+          <p className="text-lg md:text-xl text-white/90 mb-2">
+            Süleyman Demirel Üniversitesi Tıp Fakültesi Patoloji Anabilim Dalı
+          </p>
+          <p className="text-white/80">
+            Profesör | Tıbbi Patoloji Uzmanı
+          </p>
+        </div>
       </div>
 
       {/* Akademik Metrikler */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white p-8 text-center">
-          <div className="bg-[#00A6D6] w-20 h-20 flex items-center justify-center text-white mx-auto mb-4">
+        <div className="bg-white rounded-2xl p-8 text-center shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-100">
+          <div className="bg-gradient-to-br from-blue-500 to-cyan-600 w-20 h-20 rounded-2xl flex items-center justify-center text-white mx-auto mb-4 shadow-lg">
             <TrendingUp size={40} />
           </div>
           <h3 className="mb-2">H-Index</h3>
@@ -58,8 +61,8 @@ export function Portfolyo() {
           </a>
         </div>
 
-        <div className="bg-white p-8 text-center">
-          <div className="bg-[#27AE60] w-20 h-20 flex items-center justify-center text-white mx-auto mb-4">
+        <div className="bg-white rounded-2xl p-8 text-center shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-100">
+          <div className="bg-gradient-to-br from-emerald-500 to-green-600 w-20 h-20 rounded-2xl flex items-center justify-center text-white mx-auto mb-4 shadow-lg">
             <FileText size={40} />
           </div>
           <h3 className="mb-2">Atıf Sayısı</h3>
@@ -74,8 +77,8 @@ export function Portfolyo() {
           </a>
         </div>
 
-        <div className="bg-white p-8 text-center">
-          <div className="bg-[#E74C3C] w-20 h-20 flex items-center justify-center text-white mx-auto mb-4">
+        <div className="bg-white rounded-2xl p-8 text-center shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-100">
+          <div className="bg-gradient-to-br from-rose-500 to-red-600 w-20 h-20 rounded-2xl flex items-center justify-center text-white mx-auto mb-4 shadow-lg">
             <BarChart3 size={40} />
           </div>
           <h3 className="mb-2">Deneyim</h3>
@@ -91,7 +94,7 @@ export function Portfolyo() {
       <div className="mb-8">
         <h2 className="mb-6">Uzmanlık Alanları</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white p-6">
+          <div className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100">
             <h3 className="mb-3 text-[#00A6D6]">Endokrin Patoloji</h3>
             <p className="text-muted-foreground">
               Tiroid İnce İğne Aspirasyon Biyopsisi, Tiroid ameliyat materyalleri,
@@ -99,7 +102,7 @@ export function Portfolyo() {
             </p>
           </div>
 
-          <div className="bg-white p-6">
+          <div className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100">
             <h3 className="mb-3 text-[#27AE60]">Karaciğer ve Pankreatikobiliyer Patoloji</h3>
             <p className="text-muted-foreground">
               Hepatitler, siroz. Karaciğer, safra yolları, pankreas hastalıkları ve
@@ -107,14 +110,14 @@ export function Portfolyo() {
             </p>
           </div>
 
-          <div className="bg-white p-6">
+          <div className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100">
             <h3 className="mb-3 text-[#E74C3C]">Kemik ve Yumuşak Doku Patolojileri</h3>
             <p className="text-muted-foreground">
               Kemik, yumuşak doku yerleşimli tümör patolojileri.
             </p>
           </div>
 
-          <div className="bg-white p-6">
+          <div className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100">
             <h3 className="mb-3 text-[#F39C12]">Diğer Uzmanlık Alanları</h3>
             <p className="text-muted-foreground">
               Baş boyun patolojisi, merkezi sinir sistemi patolojisi, tümör dışı böbrek
@@ -135,7 +138,7 @@ export function Portfolyo() {
         </p>
 
         {/* Baş Boyun Patolojisi */}
-        <div className="bg-white mb-4">
+        <div className="bg-white rounded-2xl mb-4 shadow-sm border border-gray-100 overflow-hidden">
           <button
             onClick={() => toggleSection('basboyun')}
             className="w-full p-6 flex items-center justify-between hover:bg-gray-50 transition-colors"

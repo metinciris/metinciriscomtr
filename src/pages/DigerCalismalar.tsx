@@ -167,6 +167,24 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
 
     return (
         <PageContainer>
+            {/* Hero Banner */}
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 via-teal-700 to-cyan-800 text-white p-10 md:p-14 mb-10">
+                <div className="absolute inset-0 bg-black/10" />
+                <div className="relative z-10">
+                    <div className="flex items-center gap-3 mb-4">
+                        <Briefcase className="w-8 h-8" />
+                        <span className="px-3 py-1 bg-white/20 rounded-full text-sm font-medium">Araçlar & Projeler</span>
+                    </div>
+                    <h1 className="text-4xl md:text-5xl font-black mb-4 leading-tight">
+                        Diğer Çalışmalar
+                    </h1>
+                    <p className="text-lg md:text-xl text-white/80 max-w-2xl">
+                        Patoloji araçları, eğitim materyalleri ve kişisel projeler.
+                        Kategorilere göre filtreleyin veya arama yapın.
+                    </p>
+                </div>
+            </div>
+
             <div className="mb-12">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-gray-100">
                     <div className="flex flex-wrap gap-2">
