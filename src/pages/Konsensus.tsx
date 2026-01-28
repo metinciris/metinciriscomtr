@@ -295,51 +295,61 @@ function shareWhatsApp(m: Meeting) {
     clock: '\u{1F550}',     // 🕐
     note: '\u{1F4DD}',      // 📝
     alarm: '\u{23F0}',      // ⏰
+    live: '\u{1F7E2}',      // 🟢
+    bell: '\u{1F514}',      // 🔔
   };
 
-  /* ---------- BUGÜN / YARIN / KALAN SÜRE ---------- */
-  const nowKey = dateKeyInTz(new Date(), 'Europe/Istanbul');
+  /* ---------- BUGÜN / YARIN / DURUM ---------- */
+  const todayKey = dateKeyInTz(new Date(), 'Europe/Istanbul');
 
-  const { y, m: mo, d } = parseYMD(nowKey);
+  const { y, m: mo, d } = parseYMD(todayKey);
   const base = new Date(Date.UTC(y, mo - 1, d, 12, 0, 0));
   const tomorrowKey = dateKeyInTz(
     new Date(base.getTime() + 24 * 60 * 60 * 1000),
     'Europe/Istanbul'
   );
 
-  let dayPrefix = '';
+  let headerLine = '';
 
-  if (m.date === nowKey) {
-    // BUGÜN → kalan süre hesapla
+  if (m.date === todayKey) {
     const now = new Date();
     const [hh, mm] = (m.time || '20:00').split(':').map(Number);
-    const meetingTime = new Date(
+
+    const meetingStart = new Date(
       now.getFullYear(),
       now.getMonth(),
       now.getDate(),
       hh,
       mm,
+      0,
       0
     );
 
-    const diffMin = Math.round((meetingTime.getTime() - now.getTime()) / 60000);
+    const meetingEnd = new Date(meetingStart.getTime() + duration * 60000);
 
-    if (diffMin > 0) {
-      const h = Math.floor(diffMin / 60);
-      const min = diffMin % 60;
-      const remain =
-        h > 0 ? `${h} saat ${min} dk` : `${min} dk`;
+    if (now >= meetingStart && now <= meetingEnd) {
+      const liveMin = Math.floor((now.getTime() - meetingStart.getTime()) / 60000);
+      headerLine = `${EMOJI.live} *ŞU ANDA CANLI* — ${liveMin} dk oldu\n\n`;
+    } else if (now < meetingStart) {
+      const diffMin = Math.round((meetingStart.getTime() - now.getTime()) / 60000);
 
-      dayPrefix = `🔴 *BUGÜN* ${EMOJI.alarm} *${remain} kaldı*\n\n`;
+      if (diffMin <= 5) {
+        headerLine = `${EMOJI.bell} *SON ${diffMin} DK!* ${EMOJI.alarm}\n\n`;
+      } else {
+        const h = Math.floor(diffMin / 60);
+        const min = diffMin % 60;
+        const remain = h > 0 ? `${h} saat ${min} dk` : `${min} dk`;
+        headerLine = `🔴 *BUGÜN* ${EMOJI.alarm} *${remain} kaldı*\n\n`;
+      }
     } else {
-      dayPrefix = `🔴 *BUGÜN*\n\n`;
+      headerLine = `🔴 *BUGÜN* — (toplantı bitti)\n\n`;
     }
   } else if (m.date === tomorrowKey) {
-    dayPrefix = `🟠 *YARIN*\n\n`;
+    headerLine = `🟠 *YARIN*\n\n`;
   }
 
   /* ---------- MESAJ ---------- */
-  let msg = `${dayPrefix}${EMOJI.micro} *${organizer}* ${EMOJI.micro}\n\n`;
+  let msg = `${headerLine}${EMOJI.micro} *${organizer}* ${EMOJI.micro}\n\n`;
   msg += `${EMOJI.clipboard} *${m.title}*\n\n`;
   msg += `${EMOJI.cal} *Tarih:* ${formatDateTR(m.date)}\n`;
   msg += `${EMOJI.clock} *Saat:* ${(m.time || '20:00')} - ${endParts.time} (Türkiye)\n`;
@@ -348,7 +358,21 @@ function shareWhatsApp(m: Meeting) {
     msg += `\n${EMOJI.note} *Açıklama:* ${m.description}\n`;
   }
 
+  if (m.zoom_id || m.zoom_password || m.zoom_link) {
+    msg += `\n🔗 *Zoom Bilgileri:*\n`;
+    if (m.zoom_id) msg += `• ID: ${m.zoom_id}\n`;
+    if (m.zoom_password) msg += `• Şifre: ${m.zoom_password}\n`;
+    if (!m.zoom_id && !m.zoom_password && m.zoom_link) {
+      msg += `• Bağlantı: ${m.zoom_link}\n`;
+    }
+  }
+
   msg += `\n📅 *Google Takvim'e Ekle:*\n${buildGoogleCalendarUrl(m)}`;
+
+  /* ---------- PANOYA KOPYALA ---------- */
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(msg).catch(() => {});
+  }
 
   const encoded = encodeURIComponent(msg);
 
@@ -359,8 +383,8 @@ function shareWhatsApp(m: Meeting) {
 
   window.open(url, '_blank');
 }
-
 /* ------------------------------- Notifications ------------------------------ */
+
 
 
 function NotificationsCard({
