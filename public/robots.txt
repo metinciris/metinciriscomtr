@@ -9,7 +9,6 @@ Allow: /sitemap.xml
 # Belirli dizinleri engelle (güvenlik ve gereksiz tarama)
 Disallow: /data/
 Disallow: /*.json$
-Disallow: /sw.js
 
 # Sitemap konumu
 Sitemap: https://metinciris.com.tr/sitemap.xml
@@ -20,19 +19,16 @@ Crawl-delay: 1
 # Googlebot için özel kurallar
 User-agent: Googlebot
 Allow: /
-Allow: /#*
 Sitemap: https://metinciris.com.tr/sitemap.xml
 
 # Bingbot için özel kurallar
 User-agent: Bingbot
 Allow: /
-Allow: /#*
 Sitemap: https://metinciris.com.tr/sitemap.xml
 
 # Yandex için özel kurallar
 User-agent: Yandex
 Allow: /
-Allow: /#*
 Sitemap: https://metinciris.com.tr/sitemap.xml
 
 # Host bilgisi

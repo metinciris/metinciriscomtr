@@ -203,16 +203,16 @@ const getStructuredData = (currentPage: string, meta: { title: string; descripti
     // Ana navigasyon öğeleri - arama motorlarında sitelinks olarak görünecek
     const navigationItems = [
         { name: "Ana Sayfa", url: `${BASE_URL}/` },
-        { name: "Biyopsi Sonucu", url: `${BASE_URL}/#biyopsi-sonucu` },
-        { name: "İletişim", url: `${BASE_URL}/#iletisim` },
-        { name: "Ders Notları", url: `${BASE_URL}/#ders-notlari` },
-        { name: "Yayınlar", url: `${BASE_URL}/#yayinlar` },
-        { name: "Tanı Tuzakları", url: `${BASE_URL}/#tani-tuzaklari` },
-        { name: "Ayın Vakası", url: `${BASE_URL}/#ayin-vakasi` },
-        { name: "SVS Mikroskopi", url: `${BASE_URL}/#svs-reader` },
-        { name: "PubMed Trend", url: `${BASE_URL}/#pubmed-trend` },
-        { name: "Konsensus", url: `${BASE_URL}/#konsensus` },
-        { name: "Diğer Çalışmalar", url: `${BASE_URL}/#diger-calismalar` }
+        { name: "Biyopsi Sonucu", url: `${BASE_URL}/biyopsi-sonucu` },
+        { name: "İletişim", url: `${BASE_URL}/iletisim` },
+        { name: "Ders Notları", url: `${BASE_URL}/ders-notlari` },
+        { name: "Yayınlar", url: `${BASE_URL}/yayinlar` },
+        { name: "Tanı Tuzakları", url: `${BASE_URL}/tani-tuzaklari` },
+        { name: "Ayın Vakası", url: `${BASE_URL}/ayin-vakasi` },
+        { name: "SVS Mikroskopi", url: `${BASE_URL}/svs-reader` },
+        { name: "PubMed Trend", url: `${BASE_URL}/pubmed-trend` },
+        { name: "Konsensus", url: `${BASE_URL}/konsensus` },
+        { name: "Diğer Çalışmalar", url: `${BASE_URL}/diger-calismalar` }
     ];
 
     const baseStructuredData = {
@@ -253,8 +253,8 @@ const getStructuredData = (currentPage: string, meta: { title: string; descripti
             },
             {
                 "@type": "WebPage",
-                "@id": `${BASE_URL}/#${currentPage === 'home' ? '' : currentPage}`,
-                "url": currentPage === 'home' ? BASE_URL : `${BASE_URL}/#${currentPage}`,
+                "@id": `${BASE_URL}/${currentPage === 'home' ? '' : currentPage}`,
+                "url": currentPage === 'home' ? BASE_URL : `${BASE_URL}/${currentPage}`,
                 "name": meta.title,
                 "description": meta.description,
                 "isPartOf": {
@@ -288,7 +288,7 @@ const getStructuredData = (currentPage: string, meta: { title: string; descripti
                         "@type": "ListItem",
                         "position": 2,
                         "name": meta.title.split(' | ')[0],
-                        "item": `${BASE_URL}/#${currentPage}`
+                        "item": `${BASE_URL}/${currentPage}`
                     }
                 ]
             } : null
@@ -302,7 +302,7 @@ const getStructuredData = (currentPage: string, meta: { title: string; descripti
 export const SEO: React.FC<SEOProps> = ({ currentPage }) => {
     useEffect(() => {
         const meta = PAGE_METADATA[currentPage] || PAGE_METADATA.home;
-        const canonicalUrl = currentPage === 'home' ? BASE_URL : `${BASE_URL}/#${currentPage}`;
+        const canonicalUrl = currentPage === 'home' ? BASE_URL : `${BASE_URL}/${currentPage}`;
 
         // Update Title
         document.title = meta.title;

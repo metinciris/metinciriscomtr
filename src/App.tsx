@@ -141,38 +141,68 @@ const Konsensus = React.lazy(() =>
 export default function App() {
   const [currentPage, setCurrentPage] = React.useState('home');
 
-  // Hash tabanlı navigation (geri/ileri butonları çalışsın)
-  React.useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash.slice(1) || 'home';
-      // Liste içindeki geçerli sayfalar
-      const validPages = [
-        'home', 'iletisim', 'ziyaret-mesaji', 'biyopsi-sonucu', 'baktigim-biyopsiler',
-        'nobetci-eczane', 'hastane-yemek', 'ders-notlari', 'ders-programi', 'ogrenci-yemek',
-        'donem-3', 'galeri', 'portfolyo', 'sinav-analizi', 'yayinlar', 'podcast',
-        'blog', 'github', 'facebook', 'linkedin', 'diger-calismalar', 'fetus-uzunluklari',
-        'rcb-calculator', 'gist-raporlama', 'makale', 'deprem', 'svs-reader',
-        'tani-tuzaklari', 'ayin-vakasi', 'prizma-3d', 'makale-takip', 'lenf-nodu', 'finans', 'pubmed-trend', 'online-test-analiz', 'euro-maclar', 'konsensus'
-      ];
+  // Geçerli sayfalar listesi
+  const validPages = [
+    'home', 'iletisim', 'ziyaret-mesaji', 'biyopsi-sonucu', 'baktigim-biyopsiler',
+    'nobetci-eczane', 'hastane-yemek', 'ders-notlari', 'ders-programi', 'ogrenci-yemek',
+    'donem-3', 'galeri', 'portfolyo', 'sinav-analizi', 'yayinlar', 'podcast',
+    'blog', 'github', 'facebook', 'linkedin', 'diger-calismalar', 'fetus-uzunluklari',
+    'rcb-calculator', 'gist-raporlama', 'makale', 'deprem', 'svs-reader',
+    'tani-tuzaklari', 'ayin-vakasi', 'prizma-3d', 'makale-takip', 'lenf-nodu', 'finans', 'pubmed-trend', 'online-test-analiz', 'euro-maclar', 'konsensus'
+  ];
 
+  // Path'ten sayfa adını çıkar
+  const getPageFromPath = (pathname: string): string => {
+    // Başındaki slash'ı kaldır
+    const path = pathname.replace(/^\//, '') || 'home';
+    return validPages.includes(path) ? path : '404';
+  };
+
+  // Path tabanlı navigation (SEO dostu)
+  React.useEffect(() => {
+    // 1. GitHub Pages 404 yönlendirmesini kontrol et
+    const redirectPath = sessionStorage.getItem('spa-redirect-path');
+    if (redirectPath) {
+      sessionStorage.removeItem('spa-redirect-path');
+      const page = getPageFromPath(redirectPath);
+      setCurrentPage(page);
+      // URL'yi güncelle (browser history'ye ekle)
+      window.history.replaceState({ page }, '', redirectPath);
+      return;
+    }
+
+    // 2. Eski hash-based URL'leri destekle (geriye uyumluluk)
+    if (window.location.hash) {
+      const hash = window.location.hash.slice(1);
       if (validPages.includes(hash)) {
+        // Hash'i path'e çevir ve yönlendir
+        const newPath = hash === 'home' ? '/' : `/${hash}`;
+        window.history.replaceState({ page: hash }, '', newPath);
         setCurrentPage(hash);
-      } else {
-        setCurrentPage('404');
+        return;
       }
+    }
+
+    // 3. Normal path-based routing
+    const handlePathChange = () => {
+      const page = getPageFromPath(window.location.pathname);
+      setCurrentPage(page);
     };
 
-    window.addEventListener('hashchange', handleHashChange);
-    handleHashChange(); // ilk açılışta URL'ye göre sayfa seç
+    // Popstate: geri/ileri butonları için
+    window.addEventListener('popstate', handlePathChange);
+    handlePathChange(); // ilk açılışta URL'ye göre sayfa seç
 
-    return () => window.removeEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('popstate', handlePathChange);
   }, []);
 
   const navigate = (page: string) => {
+    const path = page === 'home' ? '/' : `/${page}`;
+    window.history.pushState({ page }, '', path);
     setCurrentPage(page);
-    window.location.hash = page;
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
 
   const renderPage = () => {
     switch (currentPage) {
@@ -269,7 +299,7 @@ export default function App() {
         return <PubMedTrend />;
 
       case 'online-test-analiz':
-        return <OnlineTestAnaliz onNavigate={navigate} />;
+        return <OnlineTestAnaliz />;
 
       case 'euro-maclar':
         return <EuroMaclar />;
