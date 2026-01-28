@@ -46,6 +46,7 @@ export function Makale({ onNavigate }: MakaleProps) {
 
         const res = await fetch(url);
         if (!res.ok) {
+          console.error(`GitHub API Error: ${res.status} for URL: ${url}`);
           throw new Error(`GitHub issues getirilemedi (HTTP ${res.status})`);
         }
 
@@ -116,20 +117,26 @@ export function Makale({ onNavigate }: MakaleProps) {
       )}
 
       {/* Daha fazla butonu */}
-      <div className="flex justify-center mt-8">
+      <div className="flex justify-center mt-12 pb-12">
         {hasMore ? (
           <Button
             onClick={() => loadIssues(page + 1)}
             disabled={isLoading}
+            className="min-w-[200px] h-11 relative"
           >
+            <div className={`flex items-center justify-center gap-2 transition-opacity ${isLoading ? 'opacity-0' : 'opacity-100'}`}>
+              <Loader2 size={18} />
+              <span>Daha fazla göster</span>
+            </div>
             {isLoading && (
-              <Loader2 size={16} className="animate-spin mr-2" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Loader2 size={20} className="animate-spin" />
+              </div>
             )}
-            Daha fazla göster
           </Button>
         ) : (
           issues.length > 0 && (
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground bg-slate-50 px-6 py-2 rounded-full border border-slate-100">
               Tüm kayıtlar yüklendi.
             </p>
           )
