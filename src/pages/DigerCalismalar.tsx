@@ -10,6 +10,7 @@ interface DigerCalismalarProps {
 
 export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
     const [searchQuery, setSearchQuery] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState('all');
 
     const items = [
         {
@@ -151,12 +152,15 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
         }
     };
 
-    const filteredItems = items.filter(item =>
-        item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.subtitle.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredItems = items.filter(item => {
+        const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.subtitle.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
+        return matchesSearch && matchesCategory;
+    });
 
     const categories = [
+        { id: 'all', name: 'Tümü' },
         { id: 'patoloji', name: 'Patoloji & Eğitim' },
         { id: 'diger', name: 'Diğer Çalışmalar' }
     ];
@@ -165,19 +169,29 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
         <PageContainer>
             <div className="mb-12">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-gray-100">
-                    <div>
-                        <h1 className="text-3xl font-bold text-gray-900">Diğer Çalışmalar</h1>
-                        <p className="text-gray-500 mt-1">Akademik ve idari çalışmalar arşivi</p>
+                    <div className="flex flex-wrap gap-2">
+                        {categories.map(cat => (
+                            <button
+                                key={cat.id}
+                                onClick={() => setSelectedCategory(cat.id)}
+                                className={`px-6 py-2.5 rounded-xl font-medium transition-all ${selectedCategory === cat.id
+                                        ? 'bg-[#8E44AD] text-white shadow-lg shadow-[#8E44AD]/30 scale-105'
+                                        : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-100 hover:border-[#8E44AD]/30'
+                                    }`}
+                            >
+                                {cat.name}
+                            </button>
+                        ))}
                     </div>
 
-                    <div className="relative w-full md:w-96">
+                    <div className="relative w-full md:w-80">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <Search className="h-5 w-5 text-gray-400" />
                         </div>
                         <input
                             type="text"
                             placeholder="Çalışmanızı bulun..."
-                            className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#8E44AD]/30 focus:border-[#8E44AD] focus:bg-white transition-all text-base shadow-sm"
+                            className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#8E44AD]/30 focus:border-[#8E44AD] transition-all text-base shadow-sm"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
@@ -185,32 +199,20 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
                 </div>
             </div>
 
-            {categories.map(category => {
-                const categoryItems = filteredItems.filter(item => item.category === category.id);
-                if (categoryItems.length === 0) return null;
-
-                return (
-                    <div key={category.id} className="mb-12">
-                        <h2 className="text-2xl font-bold mb-6 text-gray-800 border-b-2 border-[#8E44AD]/20 pb-2 inline-block">
-                            {category.name}
-                        </h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {categoryItems.map((item, idx) => (
-                                <MetroTile
-                                    key={idx}
-                                    title={item.title}
-                                    subtitle={item.subtitle}
-                                    icon={item.icon}
-                                    color={item.color || ''}
-                                    style={item.style}
-                                    size="medium"
-                                    onClick={() => handleNavigate(item.page)}
-                                />
-                            ))}
-                        </div>
-                    </div>
-                );
-            })}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredItems.map((item, idx) => (
+                    <MetroTile
+                        key={idx}
+                        title={item.title}
+                        subtitle={item.subtitle}
+                        icon={item.icon}
+                        color={item.color || ''}
+                        style={item.style}
+                        size="medium"
+                        onClick={() => handleNavigate(item.page)}
+                    />
+                ))}
+            </div>
 
             {filteredItems.length === 0 && (
                 <div className="text-center py-20 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
