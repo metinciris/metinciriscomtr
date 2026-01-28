@@ -1,3 +1,4 @@
+
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { pushService } from '../services/pushService';
@@ -24,17 +25,10 @@ import {
 } from 'lucide-react';
 
 /**
- * Konsensus.tsx (full page)
- * - Deploy-safe: exports both named and default component.
- * - No hardcoded admin password in code. Uses Supabase Auth email/password.
- * - UI:
- *   - Header: title + Telegram info text with link.
- *   - Notifications card: desktop aligned right, mobile under header.
- *   - Meetings: Today / Tomorrow / Future, plus Past (collapsible).
- *   - Meeting card: poster on the right filling card height (desktop), below (mobile).
- *   - Zoom: if ID/PW exists => show ID/PW and hide join link; else show join link if provided.
- *   - Per-meeting actions: Google Calendar, .ics download, WhatsApp share.
- *   - Past meetings: if poster exists => only “Afişi Gör” button (no big poster).
+ * Istanbul-time safe version:
+ * - "Today / Tomorrow" grouping uses Europe/Istanbul date key (NOT UTC).
+ * - Date display uses Europe/Istanbul.
+ * - Google Calendar / ICS / WhatsApp times are generated from date+time strings without JS Date timezone pitfalls.
  */
 
 type Meeting = {
@@ -65,6 +59,8 @@ type MeetingFormData = {
   zoomPassword: string;
   posterUrl: string;
 };
+
+const IST_TZ = 'Europe/Istanbul';
 
 const ORGANIZER_EMOJIS: Record<string, string> = {
   'Baş Boyun Patolojisi-Vaka Tartışma Grubu': '🗣️',
@@ -109,27 +105,61 @@ function normalizeId(id: string | number) {
   return typeof id === 'string' ? id : String(id);
 }
 
+function parseYMD(dateStr: string) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  return { y, m, d };
+}
+
+function dateKeyInTz(d: Date, timeZone = IST_TZ) {
+  // en-CA gives YYYY-MM-DD
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(d);
+}
+
 function formatDateTR(dateString: string): string {
-  return new Date(dateString).toLocaleDateString('tr-TR', {
+  // Avoid Date("YYYY-MM-DD") timezone quirks by constructing UTC noon and formatting in Istanbul.
+  const { y, m, d } = parseYMD(dateString);
+  const safe = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
+  return new Intl.DateTimeFormat('tr-TR', {
+    timeZone: IST_TZ,
     weekday: 'long',
     year: 'numeric',
     month: 'long',
     day: 'numeric',
-  });
+  }).format(safe);
+}
+
+function addMinutesToDateTime(dateStr: string, timeStr: string, minutesToAdd: number) {
+  const { y, m, d } = parseYMD(dateStr);
+  const [hh, mm] = timeStr.split(':').map(Number);
+  const base = new Date(Date.UTC(y, m - 1, d, hh, mm, 0, 0)); // timezone-less math
+  const next = new Date(base.getTime() + minutesToAdd * 60000);
+  const yy = next.getUTCFullYear();
+  const mo = String(next.getUTCMonth() + 1).padStart(2, '0');
+  const da = String(next.getUTCDate()).padStart(2, '0');
+  const h = String(next.getUTCHours()).padStart(2, '0');
+  const mi = String(next.getUTCMinutes()).padStart(2, '0');
+  return { date: `${yy}-${mo}-${da}`, time: `${h}:${mi}` };
 }
 
 function toTimeRange(time: string, durationMinutes: number): string {
-  const [hh, mm] = time.split(':').map(Number);
-  const start = new Date();
-  start.setHours(hh, mm, 0, 0);
-  const end = new Date(start.getTime() + durationMinutes * 60000);
-  return `${time} - ${end.toTimeString().slice(0, 5)}`;
+  const end = addMinutesToDateTime('2000-01-01', time, durationMinutes).time; // same-day math
+  return `${time} - ${end}`;
 }
 
-function startOfDayKey(d: Date) {
-  const x = new Date(d);
-  x.setHours(0, 0, 0, 0);
-  return x.toISOString().slice(0, 10);
+function toCompact(dateStr: string, timeStr: string) {
+  const { y, m, d } = parseYMD(dateStr);
+  const [hh, mm] = timeStr.split(':').map(Number);
+  const yy = String(y).padStart(4, '0');
+  const mo = String(m).padStart(2, '0');
+  const da = String(d).padStart(2, '0');
+  const h = String(hh).padStart(2, '0');
+  const mi = String(mm).padStart(2, '0');
+  return `${yy}${mo}${da}T${h}${mi}00`;
 }
 
 /* ----------------------------- Poster Lightbox ----------------------------- */
@@ -170,19 +200,9 @@ function SectionTitle({ title, icon }: { title: string; icon: React.ReactNode })
 
 function buildGoogleCalendarUrl(m: Meeting) {
   const duration = Math.max(15, m.duration ?? 60);
-  const [hh, mm] = (m.time || '20:00').split(':').map(Number);
-  const start = new Date(m.date);
-  start.setHours(hh, mm, 0, 0);
-  const end = new Date(start.getTime() + duration * 60000);
-
-  const fmt = (d: Date) => {
-    const y = d.getFullYear();
-    const mo = String(d.getMonth() + 1).padStart(2, '0');
-    const da = String(d.getDate()).padStart(2, '0');
-    const h = String(d.getHours()).padStart(2, '0');
-    const mi = String(d.getMinutes()).padStart(2, '0');
-    return `${y}${mo}${da}T${h}${mi}00`;
-  };
+  const start = toCompact(m.date, m.time || '20:00');
+  const endParts = addMinutesToDateTime(m.date, m.time || '20:00', duration);
+  const end = toCompact(endParts.date, endParts.time);
 
   let details = (m.description ?? '').trim();
   if (m.organizer) details = `Düzenleyen: ${m.organizer}\n\n${details}`;
@@ -193,9 +213,9 @@ function buildGoogleCalendarUrl(m: Meeting) {
   const params = new URLSearchParams({
     action: 'TEMPLATE',
     text: m.title,
-    dates: `${fmt(start)}/${fmt(end)}`,
+    dates: `${start}/${end}`,
     details,
-    ctz: 'Europe/Istanbul',
+    ctz: IST_TZ,
   });
 
   return `https://calendar.google.com/calendar/render?${params.toString()}`;
@@ -203,19 +223,9 @@ function buildGoogleCalendarUrl(m: Meeting) {
 
 function buildIcs(m: Meeting) {
   const duration = Math.max(15, m.duration ?? 60);
-  const [hh, mm] = (m.time || '20:00').split(':').map(Number);
-  const start = new Date(m.date);
-  start.setHours(hh, mm, 0, 0);
-  const end = new Date(start.getTime() + duration * 60000);
-
-  const fmt = (d: Date) => {
-    const y = d.getFullYear();
-    const mo = String(d.getMonth() + 1).padStart(2, '0');
-    const da = String(d.getDate()).padStart(2, '0');
-    const h = String(d.getHours()).padStart(2, '0');
-    const mi = String(d.getMinutes()).padStart(2, '0');
-    return `${y}${mo}${da}T${h}${mi}00`;
-  };
+  const start = toCompact(m.date, m.time || '20:00');
+  const endParts = addMinutesToDateTime(m.date, m.time || '20:00', duration);
+  const end = toCompact(endParts.date, endParts.time);
 
   let description = (m.description ?? '').replace(/\n/g, '\\n');
   if (m.organizer) description = `Düzenleyen: ${m.organizer}\\n\\n${description}`;
@@ -233,12 +243,12 @@ function buildIcs(m: Meeting) {
     'METHOD:PUBLISH',
     'BEGIN:VEVENT',
     `UID:${normalizeId(m.id)}@konsensus-takip`,
-    `DTSTART;TZID=Europe/Istanbul:${fmt(start)}`,
-    `DTEND;TZID=Europe/Istanbul:${fmt(end)}`,
+    `DTSTART;TZID=${IST_TZ}:${start}`,
+    `DTEND;TZID=${IST_TZ}:${end}`,
     `SUMMARY:${m.title}`,
     location,
     `DESCRIPTION:${description}`,
-    `DTSTAMP:${fmt(new Date())}`,
+    `DTSTAMP:${toCompact(dateKeyInTz(new Date(), 'UTC'), '00:00')}`,
     'STATUS:CONFIRMED',
     'SEQUENCE:0',
     'END:VEVENT',
@@ -268,20 +278,13 @@ function downloadIcs(m: Meeting) {
 
 function shareWhatsApp(m: Meeting) {
   const duration = Math.max(15, m.duration ?? 60);
-  const [hh, mm] = (m.time || '20:00').split(':').map(Number);
-  const start = new Date(m.date);
-  start.setHours(hh, mm, 0, 0);
-  const end = new Date(start.getTime() + duration * 60000);
-
-  const fmtDate = (d: Date) =>
-    d.toLocaleDateString('tr-TR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-  const fmtTime = (d: Date) => d.toTimeString().slice(0, 5);
+  const endParts = addMinutesToDateTime(m.date, m.time || '20:00', duration);
 
   const organizer = m.organizer || 'Patoloji Toplantısı';
   let msg = `🔬 *${organizer}* 🔬\n\n`;
   msg += `📋 *${m.title}*\n\n`;
-  msg += `📆 *Tarih:* ${fmtDate(start)}\n`;
-  msg += `🕐 *Saat:* ${fmtTime(start)} - ${fmtTime(end)} (Türkiye)\n`;
+  msg += `📆 *Tarih:* ${formatDateTR(m.date)}\n`;
+  msg += `🕐 *Saat:* ${(m.time || '20:00')} - ${endParts.time} (Türkiye)\n`;
   if (m.description) msg += `\n📝 *Açıklama:* ${m.description}\n`;
   if (m.zoom_id || m.zoom_password || m.zoom_link) {
     msg += `\n🔗 *Zoom Bilgileri:*\n`;
@@ -319,7 +322,6 @@ function NotificationsCard({
           <div className="text-sm text-gray-500 mt-1">Toplantılardan 15 dk önce hatırlatma gönderilir.</div>
         </div>
 
-        {/* Desktop: button on the right aligned with title */}
         <button
           onClick={togglePush}
           disabled={pushLoading}
@@ -331,7 +333,6 @@ function NotificationsCard({
         </button>
       </div>
 
-      {/* Mobile: button under the title */}
       <button
         onClick={togglePush}
         disabled={pushLoading}
@@ -386,7 +387,6 @@ function MeetingCard({
             : 'bg-white border-gray-200 hover:border-blue-300 hover:shadow-lg'
       }`}
     >
-      {/* Top row: organizer chip + admin actions */}
       <div className="flex flex-wrap items-center gap-2 mb-3">
         {meeting.organizer && (
           <button
@@ -419,9 +419,7 @@ function MeetingCard({
         )}
       </div>
 
-      {/* Main grid */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
-        {/* LEFT */}
         <div className={`${hasPoster && !isPast ? 'md:col-span-7' : 'md:col-span-12'} flex flex-col`}>
           <h3 className={`text-[20px] sm:text-[22px] md:text-[24px] font-black tracking-tight leading-snug ${isPast ? 'text-gray-700' : 'text-gray-900'}`}>
             {meeting.title}
@@ -444,10 +442,8 @@ function MeetingCard({
             </p>
           )}
 
-          {/* Spacer so poster can fill height on desktop */}
           <div className="flex-1" />
 
-          {/* PAST: if poster exists, only show button */}
           {posterButtonOnly && (
             <div className="mt-5 pt-4 border-t border-gray-100">
               <button
@@ -460,7 +456,6 @@ function MeetingCard({
             </div>
           )}
 
-          {/* UPCOMING/TODAY actions */}
           {!isPast && (
             <div className="mt-5 pt-4 border-t border-gray-100">
               {showJoin && (
@@ -519,7 +514,6 @@ function MeetingCard({
           )}
         </div>
 
-        {/* RIGHT: poster (only for non-past) */}
         {hasPoster && !isPast ? (
           <div className="md:col-span-5 flex h-full">
             <button
@@ -565,7 +559,6 @@ function AdminPanel({
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // simple "click 3 times" verification (as before)
   const [clickCount, setClickCount] = useState(0);
   const [verified, setVerified] = useState(false);
 
@@ -701,7 +694,7 @@ function AdminPanel({
 
 export function Konsensus() {
   const [now, setNow] = useState<Date>(new Date());
-  const nowKey = useMemo(() => startOfDayKey(now), [now]);
+  const nowKey = useMemo(() => dateKeyInTz(now, IST_TZ), [now]);
 
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [loading, setLoading] = useState(true);
@@ -709,17 +702,14 @@ export function Konsensus() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
 
-  // notifications
   const [pushEnabled, setPushEnabled] = useState(!!pushService.getSavedEndpoint());
   const [pushLoading, setPushLoading] = useState(false);
 
-  // UI state
   const [selectedOrganizer, setSelectedOrganizer] = useState<string | null>(null);
   const [activePoster, setActivePoster] = useState<string | null>(null);
   const [showPast, setShowPast] = useState(false);
   const [showAllPast, setShowAllPast] = useState(false);
 
-  // Admin form
   const [formData, setFormData] = useState<MeetingFormData>({
     title: '',
     organizer: '',
@@ -740,7 +730,6 @@ export function Konsensus() {
 
   const isFormValid = useCallback(() => !!(formData.title && formData.date && formData.time), [formData.title, formData.date, formData.time]);
 
-  // auth
   useEffect(() => {
     let alive = true;
 
@@ -765,13 +754,11 @@ export function Konsensus() {
     };
   }, []);
 
-  // tick clock
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 60000);
     return () => clearInterval(id);
   }, []);
 
-  // fetch meetings
   const fetchMeetings = useCallback(async () => {
     setLoading(true);
     const { data, error } = await supabase.from('meetings').select('*').order('date', { ascending: true }).order('time', { ascending: true });
@@ -783,7 +770,6 @@ export function Konsensus() {
     fetchMeetings();
   }, [fetchMeetings]);
 
-  // validate push subscription occasionally
   useEffect(() => {
     const validate = async () => {
       try {
@@ -816,17 +802,17 @@ export function Konsensus() {
     }
   }, [pushEnabled, pushLoading]);
 
-  // filtering + grouping
   const filteredMeetings = useMemo(() => {
     if (!selectedOrganizer) return meetings;
     return meetings.filter((m) => (m.organizer || '') === selectedOrganizer);
   }, [meetings, selectedOrganizer]);
 
   const { todayMeetings, tomorrowMeetings, futureMeetings, pastMeetings } = useMemo(() => {
-    const nowD = new Date(nowKey);
-    const tomorrow = new Date(nowD);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowKey = startOfDayKey(tomorrow);
+    // tomorrow based on Istanbul key as well
+    const { y, m, d } = parseYMD(nowKey);
+    const base = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
+    const tomorrow = new Date(base.getTime() + 24 * 60 * 60 * 1000);
+    const tomorrowKey = dateKeyInTz(tomorrow, IST_TZ);
 
     const t: Meeting[] = [];
     const to: Meeting[] = [];
@@ -857,7 +843,6 @@ export function Konsensus() {
       .slice(0, 5);
   }, [meetings]);
 
-  // admin operations
   const handleLogin = useCallback(async (email: string, password: string) => {
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -896,7 +881,6 @@ export function Konsensus() {
       await supabase.from('meetings').insert(payload);
     }
 
-    // reset (keep date)
     setFormData((prev) => ({
       ...prev,
       title: '',
@@ -909,12 +893,12 @@ export function Konsensus() {
       zoomId: '',
       zoomPassword: '',
       posterUrl: '',
-      ...( { id: undefined } as any ),
+      ...({ id: undefined } as any),
     }));
 
     await fetchMeetings();
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [fetchMeetings, formData, getFormOrganizer, isFormValid]);
+  }, [fetchMeetings, formData, getFormOrganizer, isFormValid, nowKey]);
 
   const handleDelete = useCallback(async (id: string | number) => {
     if (!confirm('Bu toplantıyı silmek istediğinize emin misiniz?')) return;
@@ -925,7 +909,7 @@ export function Konsensus() {
   const handleEdit = useCallback((m: Meeting) => {
     const isKnownOrganizer = ORGANIZER_OPTIONS.includes((m.organizer || '') as any);
     setFormData({
-      ...( { id: m.id } as any ),
+      ...({ id: m.id } as any),
       title: m.title || '',
       organizer: isKnownOrganizer ? (m.organizer || '') : 'Diğer',
       customOrganizer: isKnownOrganizer ? '' : (m.organizer || ''),
@@ -946,7 +930,6 @@ export function Konsensus() {
       {activePoster && <PosterLightbox url={activePoster} onClose={() => setActivePoster(null)} />}
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-8 sm:p-10 rounded-3xl shadow-lg relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32" />
           <div className="relative z-10 text-center">
@@ -966,18 +949,14 @@ export function Konsensus() {
               bildirim alın. Toplantılardan 15 dakika önce bildirim gönderilir.
             </p>
 
-            {/* Mobile notifications right under header */}
             <div className="mt-6 lg:hidden text-left">
               <NotificationsCard pushEnabled={pushEnabled} pushLoading={pushLoading} togglePush={togglePush} />
             </div>
           </div>
         </div>
 
-        {/* Desktop layout */}
         <div className="mt-8 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* LEFT: lists */}
           <div className="lg:col-span-8 space-y-8">
-            {/* Filter row */}
             {selectedOrganizer && (
               <div className="bg-white border border-blue-100 rounded-3xl p-4 sm:p-5 shadow-sm flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -995,7 +974,6 @@ export function Konsensus() {
               </div>
             )}
 
-            {/* Today */}
             <div className="bg-white rounded-3xl shadow-xl p-6 sm:p-8 border border-gray-100">
               <SectionTitle title="Bugün" icon={<Clock className="w-6 h-6" />} />
               {loading ? (
@@ -1024,7 +1002,6 @@ export function Konsensus() {
               )}
             </div>
 
-            {/* Tomorrow */}
             <div className="bg-white rounded-3xl shadow-xl p-6 sm:p-8 border border-gray-100">
               <SectionTitle title="Yarın" icon={<Calendar className="w-6 h-6" />} />
               {loading ? (
@@ -1053,7 +1030,6 @@ export function Konsensus() {
               )}
             </div>
 
-            {/* Future */}
             <div className="bg-white rounded-3xl shadow-xl p-6 sm:p-8 border border-gray-100">
               <SectionTitle title="Gelecek Toplantılar" icon={<Calendar className="w-6 h-6" />} />
               {loading ? (
@@ -1082,7 +1058,6 @@ export function Konsensus() {
               )}
             </div>
 
-            {/* Mobile: En Aktif Gruplar should appear after upcoming blocks */}
             <div className="lg:hidden bg-white rounded-3xl shadow-xl p-6 sm:p-8 border border-gray-100">
               <div className="flex items-center gap-3 mb-5">
                 <div className="p-2.5 rounded-2xl bg-yellow-100 text-yellow-800">🏆</div>
@@ -1114,19 +1089,13 @@ export function Konsensus() {
               </div>
             </div>
 
-            {/* Past */}
             <div className="bg-white rounded-3xl shadow-xl p-6 sm:p-8 border border-gray-100">
-              <button
-                onClick={() => setShowPast((v) => !v)}
-                className="w-full flex items-center justify-between text-left"
-              >
+              <button onClick={() => setShowPast((v) => !v)} className="w-full flex items-center justify-between text-left">
                 <div className="flex items-center gap-3">
                   <div className="p-2.5 rounded-2xl bg-gray-100 text-gray-600">
                     <BookOpen className="w-6 h-6" />
                   </div>
-                  <h2 className="text-xl sm:text-2xl font-black tracking-tight text-gray-900">
-                    Arşiv ({pastMeetings.length})
-                  </h2>
+                  <h2 className="text-xl sm:text-2xl font-black tracking-tight text-gray-900">Arşiv ({pastMeetings.length})</h2>
                 </div>
                 <div className={`p-2 rounded-xl bg-gray-100 transition-transform ${showPast ? 'rotate-180' : ''}`}>
                   <ChevronDown className="w-5 h-5 text-gray-600" />
@@ -1174,14 +1143,11 @@ export function Konsensus() {
             </div>
           </div>
 
-          {/* RIGHT: notifications + active groups + admin */}
           <div className="lg:col-span-4 space-y-8 lg:sticky lg:top-8">
-            {/* Desktop notifications aligned right to title area (already done in card) */}
             <div className="hidden lg:block">
               <NotificationsCard pushEnabled={pushEnabled} pushLoading={pushLoading} togglePush={togglePush} />
             </div>
 
-            {/* Desktop: En Aktif Gruplar ABOVE admin panel */}
             <div className="hidden lg:block bg-white rounded-3xl shadow-xl p-8 border border-gray-100 overflow-hidden relative">
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-400 to-orange-500" />
               <h2 className="text-xl font-black text-gray-900 mb-6 flex items-center">
@@ -1216,7 +1182,6 @@ export function Konsensus() {
 
             <AdminPanel isAdmin={isAdmin} onLogin={handleLogin} onLogout={handleLogout} />
 
-            {/* Admin form (only when logged in) */}
             {isAdmin && !authLoading && (
               <div className="bg-white rounded-3xl shadow-xl p-6 sm:p-8 border border-gray-100">
                 <div className="flex items-center justify-between gap-3 mb-6">
