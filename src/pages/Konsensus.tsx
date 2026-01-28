@@ -280,22 +280,66 @@ function isMobileDevice() {
   if (typeof navigator === 'undefined') return false;
   return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
 }
+
 function shareWhatsApp(m: Meeting) {
   const duration = Math.max(15, m.duration ?? 60);
   const endParts = addMinutesToDateTime(m.date, m.time || '20:00', duration);
 
   const organizer = m.organizer || 'Patoloji Toplantısı';
 
-  // Emojileri unicode olarak yazıyoruz (desktop bozulmasın diye)
+  // Emojiler (desktop bozulmasın diye unicode)
   const EMOJI = {
     micro: '\u{1F52C}',     // 🔬
     clipboard: '\u{1F4CB}', // 📋
     cal: '\u{1F4C6}',       // 📆
     clock: '\u{1F550}',     // 🕐
     note: '\u{1F4DD}',      // 📝
+    alarm: '\u{23F0}',      // ⏰
   };
 
-  let msg = `${EMOJI.micro} *${organizer}* ${EMOJI.micro}\n\n`;
+  /* ---------- BUGÜN / YARIN / KALAN SÜRE ---------- */
+  const nowKey = dateKeyInTz(new Date(), 'Europe/Istanbul');
+
+  const { y, m: mo, d } = parseYMD(nowKey);
+  const base = new Date(Date.UTC(y, mo - 1, d, 12, 0, 0));
+  const tomorrowKey = dateKeyInTz(
+    new Date(base.getTime() + 24 * 60 * 60 * 1000),
+    'Europe/Istanbul'
+  );
+
+  let dayPrefix = '';
+
+  if (m.date === nowKey) {
+    // BUGÜN → kalan süre hesapla
+    const now = new Date();
+    const [hh, mm] = (m.time || '20:00').split(':').map(Number);
+    const meetingTime = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      hh,
+      mm,
+      0
+    );
+
+    const diffMin = Math.round((meetingTime.getTime() - now.getTime()) / 60000);
+
+    if (diffMin > 0) {
+      const h = Math.floor(diffMin / 60);
+      const min = diffMin % 60;
+      const remain =
+        h > 0 ? `${h} saat ${min} dk` : `${min} dk`;
+
+      dayPrefix = `🔴 *BUGÜN* ${EMOJI.alarm} *${remain} kaldı*\n\n`;
+    } else {
+      dayPrefix = `🔴 *BUGÜN*\n\n`;
+    }
+  } else if (m.date === tomorrowKey) {
+    dayPrefix = `🟠 *YARIN*\n\n`;
+  }
+
+  /* ---------- MESAJ ---------- */
+  let msg = `${dayPrefix}${EMOJI.micro} *${organizer}* ${EMOJI.micro}\n\n`;
   msg += `${EMOJI.clipboard} *${m.title}*\n\n`;
   msg += `${EMOJI.cal} *Tarih:* ${formatDateTR(m.date)}\n`;
   msg += `${EMOJI.clock} *Saat:* ${(m.time || '20:00')} - ${endParts.time} (Türkiye)\n`;
@@ -308,9 +352,7 @@ function shareWhatsApp(m: Meeting) {
 
   const encoded = encodeURIComponent(msg);
 
-  // 🔑 Kritik fark burada:
-  // Mobil → wa.me
-  // Desktop → WhatsApp Web
+  // Mobil → wa.me | Desktop → WhatsApp Web
   const url = isMobileDevice()
     ? `https://wa.me/?text=${encoded}`
     : `https://web.whatsapp.com/send?text=${encoded}`;
@@ -319,6 +361,7 @@ function shareWhatsApp(m: Meeting) {
 }
 
 /* ------------------------------- Notifications ------------------------------ */
+
 
 function NotificationsCard({
   pushEnabled,
