@@ -240,7 +240,7 @@ export function Yayinlar() {
         <StatCard icon={FileText} label="Atıf Sayısı" value={`${data.stats.citations}+`} color="from-emerald-500 to-teal-600" delay={100} />
         <StatCard icon={BookOpen} label="SCI/SSCI" value={`${data.stats.sciCount}+`} color="from-rose-500 to-pink-600" delay={200} />
         <StatCard icon={GraduationCap} label="Ulusal" value={`${data.stats.nationalCount}+`} color="from-amber-500 to-orange-600" delay={300} />
-        <StatCard icon={Award} label="Kongre" value={`${data.stats.congressCount}+`} color="from-purple-500 to-violet-600" delay={400} />
+        <StatCard icon={Award} label="Katılım" value={`${data.stats.congressCount}+`} color="from-purple-500 to-violet-600" delay={400} />
       </div>
 
       {/* Search */}
