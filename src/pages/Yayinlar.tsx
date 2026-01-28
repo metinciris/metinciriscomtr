@@ -1,11 +1,176 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { PageContainer } from '../components/PageContainer';
-import { FileText, ExternalLink, Search, BookOpen, Award, ChevronDown, TrendingUp, Users, Presentation } from 'lucide-react';
-import { Input } from '../components/ui/input';
+import {
+  FileText, ExternalLink, Search, BookOpen, Award, ChevronDown,
+  TrendingUp, Users, GraduationCap, Calendar, MapPin, Sparkles
+} from 'lucide-react';
+
+interface Publication {
+  code?: string;
+  year: number;
+  authors: string;
+  title: string;
+  journal: string;
+  volume?: string;
+  pages?: string;
+  doi?: string;
+  quartile?: string;
+  index?: string;
+}
+
+interface Book {
+  year: number;
+  authors: string;
+  title: string;
+  publisher: string;
+  type: string;
+  category: string;
+}
+
+interface PublicationsData {
+  scientificParticipations: string[];
+  sciPublications: Publication[];
+  nationalPublications: Publication[];
+  books: Book[];
+  stats: {
+    hIndex: number;
+    citations: number;
+    sciCount: number;
+    nationalCount: number;
+    congressCount: number;
+  };
+  lastUpdated: string;
+}
+
+const QUARTILE_COLORS: Record<string, string> = {
+  Q1: 'from-emerald-500 to-green-600',
+  Q2: 'from-blue-500 to-cyan-600',
+  Q3: 'from-amber-500 to-orange-600',
+  Q4: 'from-rose-500 to-red-600'
+};
+
+function StatCard({ icon: Icon, label, value, color, delay }: {
+  icon: React.ElementType;
+  label: string;
+  value: string | number;
+  color: string;
+  delay: number;
+}) {
+  const [show, setShow] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setShow(true), delay);
+    return () => clearTimeout(timer);
+  }, [delay]);
+
+  return (
+    <div
+      className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${color} p-6 text-white shadow-lg transform transition-all duration-500 hover:scale-105 hover:shadow-2xl ${show ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+    >
+      <div className="absolute -right-4 -top-4 opacity-20">
+        <Icon size={80} />
+      </div>
+      <div className="relative z-10">
+        <Icon size={28} className="mb-3 opacity-90" />
+        <div className="text-4xl font-black mb-1">{value}</div>
+        <div className="text-sm font-medium opacity-90">{label}</div>
+      </div>
+    </div>
+  );
+}
+
+function PublicationCard({ pub, color }: { pub: Publication; color: string }) {
+  return (
+    <div className="group bg-white rounded-xl p-6 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-transparent hover:-translate-y-1">
+      <div className="flex flex-wrap gap-2 mb-4">
+        <span className="px-3 py-1 bg-gradient-to-r from-rose-600 to-red-700 text-white text-sm font-bold rounded-full">
+          {pub.year}
+        </span>
+        {pub.quartile && (
+          <span className={`px-3 py-1 bg-gradient-to-r ${QUARTILE_COLORS[pub.quartile] || 'from-gray-500 to-gray-600'} text-white text-sm font-bold rounded-full`}>
+            {pub.quartile}
+          </span>
+        )}
+        {pub.code && (
+          <span className="px-3 py-1 bg-gray-600 text-white text-sm font-medium rounded-full">
+            {pub.code}
+          </span>
+        )}
+        {pub.index && (
+          <span className="px-3 py-1 bg-purple-600 text-white text-sm font-medium rounded-full">
+            {pub.index}
+          </span>
+        )}
+      </div>
+
+      <h4 className="text-lg font-semibold text-gray-800 mb-3 leading-snug group-hover:text-blue-700 transition-colors">
+        {pub.title}
+      </h4>
+
+      <p className="text-sm text-gray-500 mb-2 line-clamp-2">{pub.authors}</p>
+
+      <p className="text-sm text-gray-600 mb-3">
+        <em className="text-blue-600">{pub.journal}</em>
+        {pub.volume && <span className="text-gray-400"> • {pub.volume}</span>}
+        {pub.pages && <span className="text-gray-400"> • pp. {pub.pages}</span>}
+      </p>
+
+      {pub.doi && (
+        <a
+          href={`https://doi.org/${pub.doi}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 text-sm text-blue-500 hover:text-blue-700 font-medium transition-colors"
+        >
+          <ExternalLink size={14} />
+          DOI: {pub.doi}
+        </a>
+      )}
+    </div>
+  );
+}
+
+function TimelineItem({ text, index }: { text: string; index: number }) {
+  // Parse date from text (look for patterns like "4-8 Eylül 1997" or "2 Mayıs 1998")
+  const yearMatch = text.match(/\d{4}/);
+  const year = yearMatch ? yearMatch[0] : '';
+
+  return (
+    <div className="relative pl-8 pb-6 group">
+      {/* Timeline line */}
+      <div className="absolute left-3 top-3 bottom-0 w-0.5 bg-gradient-to-b from-purple-400 to-purple-100 group-last:hidden" />
+
+      {/* Timeline dot */}
+      <div className="absolute left-0 top-1.5 w-6 h-6 rounded-full bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center shadow-md">
+        <div className="w-2 h-2 rounded-full bg-white" />
+      </div>
+
+      {/* Content */}
+      <div className="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow border border-gray-100">
+        {year && (
+          <span className="inline-block px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-bold rounded mb-2">
+            {year}
+          </span>
+        )}
+        <p className="text-gray-700 text-sm leading-relaxed m-0">{text}</p>
+      </div>
+    </div>
+  );
+}
 
 export function Yayinlar() {
-  const [searchTerm, setSearchTerm] = React.useState('');
-  const [expandedSections, setExpandedSections] = React.useState<string[]>(['sci']);
+  const [data, setData] = useState<PublicationsData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [expandedSections, setExpandedSections] = useState<string[]>(['sci']);
+
+  useEffect(() => {
+    fetch('/data/publications.json')
+      .then(res => res.json())
+      .then(setData)
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
 
   const toggleSection = (section: string) => {
     setExpandedSections(prev =>
@@ -17,287 +182,33 @@ export function Yayinlar() {
 
   const isExpanded = (section: string) => expandedSections.includes(section);
 
-  // Bilimsel Katılımlar
-  const scientificParticipations = [
-    'XIII. Ulusal Patoloji Kongresi, 4-8 Eylül 1997, İstanbul',
-    'Deri eki tümörleri kursu, 2 Mayıs 1998, İzmir',
-    'Jinekolojik onkoloji patoloji kursu, 6. Ulusal Jinekolojik Onkoloji Kongresi bünyesinde, 12 Ekim 1998, Antalya',
-    'XIV. Ulusal Patoloji Kongresi, 11-17 Nisan 1999, Kuşadası',
-    'Endometrial biyopsi ve küretaj materyallerinin değerlendirilmesi kursu, XIV. Ulusal Patoloji Kongresi bünyesinde, 11-17 Nisan 1999, Kuşadası',
-    'Akciğer tümörleri kursu, XIV. Ulusal Patoloji Kongresi bünyesinde, 11-17 Nisan 1999, Kuşadası',
-    'Isparta sosyal ve bilimsel etkinlik günleri, 22-25 Haziran 2000, Isparta',
-    'Kemik ve yumuşak doku tümörleri sempozyumu, 15-19 Ekim 2002, Pamukkale Ü',
-    'XVI. Ulusal Patoloji Kongresi, 29-31 Mayıs 2003, Ankara Patoloji Derneği',
-    'Gastroenteropankreatik GEP endokrin tümörler kursu, 20 Mart 2004, Marmara Oteli, İstanbul',
-    'Basics and applications of molecular pathology kursu, 21 Mart 2004, Marmara Oteli, İstanbul',
-    'Uluslararası katılımlı karaciğer sempozyumu, 21-22 Nisan 2004, Isparta',
-    '17. Ulusal Patoloji Sempozyumu, 3-6 Ekim 2004, Gaziantep',
-    'VI. stereolojik metotlar ve uygulamaları kursu, 11-14 Ekim 2004, Isparta',
-    'Cerrahi meme patolojisi günleri, 16-17 Nisan 2005, İstanbul',
-    'Over tümörleri kursu, 14-15 Mayıs 2005, İzmir',
-    'Tiroid sitopatolojisi kursu, 19-20 Kasım 2005, Hacettepe, Ankara',
-    'Nefropatoloji kursu, 22-23 Kasım 2005, Adana',
-    'Akciğerlerin patolojik incelenmesinde potansiyel güçlükler ve nadir görülen akciğer lezyonları kursu, 3-4 Haziran 2006, Çukurova Üniversitesi, Adana',
-    'Patolojide yenilikler ve ayırıcı tanı kursu, 17-18 Mart 2007, Hacettepe Ankara',
-    '9. Ulusal meme hastalıkları kongresi, 5-9 Eylül 2007, Ankara',
-    'Patoloji kursu, 9. Ulusal meme hastalıkları kongresi kapsamında, 5-9 Eylül 2007, Ankara',
-    'Gastrointestinal ve hepatobiliyer sistem patolojileri kursu, 2-3 Kasım 2007, Sivas',
-    'Karaciğer patolojisi kursu, 23-24 Mayıs 2008, Ege Patoloji Derneği İzmir',
-    '18. Ulusal Patoloji Kongresi, 25-29 Ekim 2008, Antalya',
-    'IV. Ulusal Sitopatoloji Kongresi, 26-29 Mart 2009, Hacettepe Ankara',
-    'Probleme dayalı öğrenim kursu, 13-15 Nisan 2009, Isparta',
-    'Yüksek dereceli glial tümörler kursu, 7 Kasım 2009, Acıbadem Ü, İstanbul',
-    'Patolojide yenilikler ve ayırıcı tanı kursu, 3-4 Nisan 2010, Hacettepe Ankara',
-    'Kemik iliği kursu, 9-11 Nisan 2011, Çeşme',
-    'Hepatobiliyer sistem patolojisi kursu, 7 Haziran 2010, Marmara Ü, İstanbul',
-    '20. Ulusal Patoloji Kongresi, 29 Eylül - 3 Kasım 2010, Eskişehir',
-    'Baş boyun patolojisi kursu, 20. Ulusal Patoloji Kongresi kapsamında, 29 Eylül - 3 Kasım 2010, Eskişehir',
-    'Olgularla baş boyun patolojisi kursu, 1 Nisan 2011, Ankara',
-    'Patolojide yenilikler ve ayırıcı tanı kursu, 2-3 Nisan 2011',
-    '36. Avrupa sitoloji kongresi. 36th European Congress of Cytology, 22-25 Eylül 2011, İstanbul',
-    'Pediatrik ve perinatal patoloji kursu, 16 Kasım 2011, İzmir',
-    '21. Ulusal Patoloji Kongresi, 16-20 Kasım 2011, İzmir',
-    'Mediasten patolojisi kursu, 14 Ocak 2012, Adana',
-    'Dermatopatoloji kursu, 14 Nisan 2012, İstanbul',
-    'IX. Deney hayvanları kullanımı eğitim programı katılımı, 21 Eylül 2012',
-    '22. Ulusal Patoloji Kursu, 7-11 Kasım 2012, Antalya',
-    'Endokrin kursu, 23 Haziran 2013, İstanbul',
-    'Surgical pathology: Current concepts meeting, 13-14 Nisan 2013, Adana',
-    'Deney hayvanları kullanım sertifikası, sertifika no: 2013/029. 16-23 Kasım 2013, Isparta',
-    'Jinekopatoloji kursu, 7 Aralık 2013, Ege Patoloji Derneği, İzmir',
-    '7. Ultrasonografi eşliğinde uygulamalı karaciğer biyopsi kursu katkısı, 12 Nisan 2013, Isparta',
-    'First international medical students congress presentation and participation, 3-5 Mayıs 2013, Isparta',
-    'Nefropatoloji kursu, 27-28 Eylül 2014, Ege Patoloji Derneği, İzmir',
-    'Tıp eğitiminde ölçme değerlendirme kursu, 15-16 Nisan 2014, Isparta',
-    '26. Ulusal Patoloji ve 7. Ulusal Sitopatoloji Kongresi, 2-6 Kasım 2016, Antalya',
-    'Eğitim becerileri kursu, 15-18 Şubat 2017, Isparta',
-    'Tıp eğitiminde ölçme ve değerlendirme kursu katkısı, belge no: 24/11/2017/230. 23-24 Kasım 2017, Isparta',
-    '28. Ulusal Patoloji Kongresi, 27-30 Ekim 2018, Ankara',
-    '4. Multidisipliner baş boyun kanserleri kongresi konuşmacı katılımı, 8-11 Mart 2018, Antalya',
-    'Meme kanseri patolojisi kursu, 21 Nisan 2018, Ege Patoloji Derneği, İzmir',
-    'Renal transplant patolojisi kursu, 28. Ulusal Patoloji Kongresi kapsamında, 30 Ekim 2018, Ankara',
-    'Uygulamalı mikroskop çalıştayı katkısı, 13-15 Mart 2019, Isparta',
-    'Solunum zirvesi, baş boyun tümörlerinde sıradışı olgular sunumu, 13-15 Haziran 2019, Isparta',
-    '29. Ulusal Patoloji Kongresi, 23-26 Ekim 2019, Trabzon',
-    '2025–2026 Global Cytology Educational Programı, American Society of Cytopathology (ASC) tarafından akredite edilmiş sürekli tıp eğitimi sertifikası. 12/09/2025'
-  ];
+  if (loading) {
+    return (
+      <PageContainer>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent" />
+        </div>
+      </PageContainer>
+    );
+  }
 
-  // SCI-Expanded Makaleler (güncellenmiş liste)
-  const sciPublications = [
-    {
-      code: 'A1',
-      year: 2000,
-      authors: 'O.Zekioğlu, Y.Erhan, N.Özdemir, M.Çiriş, Y.Erhan',
-      title: 'Adenoid cystic carcinoma of the breast: a case report and clues for its differential diagnosis',
-      journal: 'Journal of BUON',
-      pages: '457-460',
-      index: 'ISI'
-    },
-    {
-      code: 'A2',
-      year: 2001,
-      authors: 'S.Arslanoglu, M.Yalaz, D.Gökşen, M.Coker, S.Tütüncüoglu, M.Akisu, S.Darcan, N.Kultursay, M.Ciriş, E.Demirtaş',
-      title: 'Molybdenum cofactor deficiency associated with Dandy–Walker complex',
-      journal: 'Brain and Development',
-      pages: '815-818',
-      doi: '10.1016/S0387-7604(01)00316-3',
-      index: 'ISI'
-    },
-    {
-      code: 'A3',
-      year: 2002,
-      authors: 'H.Bayramoglu, O.Zekioglu, Y.Erhan, M.Ciriş, N.Ozdemir',
-      title: 'Fine-needle aspiration biopsy of invasive micropapillary carcinoma of the breast: a report of five cases',
-      journal: 'Diagnostic Cytopathology',
-      pages: '214-217',
-      doi: '10.1002/dc.10176',
-      index: 'ISI'
-    },
-    {
-      code: 'A4',
-      year: 2002,
-      authors: 'Y.Erhan, N.Ozdemir, O.Zekioglu, D.Nart, M.Ciris',
-      title: 'Breast carcinomas with choriocarcinomatous features: case reports and review of the literature',
-      journal: 'The Breast Journal',
-      pages: '244-248',
-      doi: '10.1046/j.1524-4741.2002.08411.x',
-      index: 'ISI'
-    },
-    {
-      code: 'A58',
-      year: 2019,
-      authors: 'Ibrahim Metin Çiriş, Gamze Erkılınc, Kemal Kursat Bozkurt, Nermin Karahan, Hasan Yasan, Mehmet Emre Sivrice',
-      title: 'Cartilaginous choristomas in tonsillectomy specimen: A prospective analysis',
-      journal: 'International Journal of Pediatric Otorhinolaryngology',
-      volume: '122',
-      pages: '191-195',
-      doi: '10.1016/j.ijporl.2019.04.020',
-      quartile: 'Q3'
-    },
-    {
-      year: 2024,
-      authors: 'Altuntaş Selman Hakkı, Uslusoy Fuat, Aydın Mustafa Asım, et al., ÇİRİŞ İbrahim Metin',
-      title: 'Investigation into a new denervation model of the sciatic nerve zones in rats: Selective motor or sensorial denervation',
-      journal: 'Acta Orthopaedica et Traumatologica Turcica',
-      volume: '58(1)',
-      pages: '10-19',
-      doi: '10.5152/j.aott.2024.22125',
-      quartile: 'Q4'
-    },
-    {
-      year: 2024,
-      authors: 'İskender Muhsin Fırat, Çına Müge, Çamlı Şevket Tolga, ÇİRİŞ İbrahim Metin, et al.',
-      title: 'Evaluation of the Effects of Locally Applied Resveratrol and Cigarette Smoking on Bone Healing',
-      journal: 'APPL SCI-BASEL',
-      volume: '14(15)',
-      doi: '10.3390/app14156411',
-      quartile: 'Q1'
-    },
-    {
-      year: 2023,
-      authors: 'DURAK ÖZLEM, BOZKURT KEMAL KÜRŞAT, ÇİRİŞ İBRAHİM METİN, et al.',
-      title: 'Programmed cell death 1 and programmed cell death ligand 1 expression in invasive breast carcinoma',
-      journal: 'Informa UK Limited',
-      volume: '98(2)',
-      pages: '147-154',
-      doi: '10.1080/10520295.2022.2137586',
-      quartile: 'Q4'
-    },
-    {
-      year: 2022,
-      authors: 'Sengun Sevinç, Korkmaz Hakan, Boyluboy Serife Mehtap, ÇİRİŞ İbrahim Metin, et al.',
-      title: 'Diagnostic and prognostic value of Stanniocalcin 1 expression in papillary thyroid cancer',
-      journal: 'Endocrine',
-      volume: '78(1)',
-      pages: '95-103',
-      doi: '10.1007/s12020-022-03126-4',
-      quartile: 'Q3'
-    },
-    {
-      year: 2022,
-      authors: 'Pekgöz Sakir, Asci Halil, SAVRAN Mehtap, et al., ÇİRİŞ İbrahim Metin',
-      title: 'Nebivolol alleviates liver damage caused by methotrexate via AKT1/Hif1α/eNOS signaling',
-      journal: 'Drug and Chemical Toxicology',
-      volume: '45(5)',
-      pages: '2153-2159',
-      doi: '10.1080/01480545.2021.1908759',
-      quartile: 'Q3'
-    },
-    {
-      year: 2021,
-      authors: 'Yasan Hasan, Kumbul Yusuf Cagdas, ÇİRİŞ İbrahim Metin, et al.',
-      title: 'The Importance of Prostate-Specific Membrane Antigen Expression in Carotid Body Paragangliomas',
-      journal: 'TURKISH ARCHIVES OF OTORHINOLARYNGOLOGY',
-      pages: '203-209',
-      doi: '10.4274/tao.2021.2021-3-17'
-    },
-    {
-      year: 2021,
-      authors: 'Erdoğan M, Korkmaz H, Torus B, et al., ÇİRİŞ İbrahim Metin',
-      title: 'The Role of Metabolic Volumetric Parameters in Predicting Malignancy in Incidental Thyroid Nodules',
-      journal: 'Molecular imaging and radionuclide therapy',
-      volume: '30(2)',
-      pages: '86-92',
-      doi: '10.4274/mirt.galenos.2021.75983',
-      quartile: 'Q3'
-    },
-    {
-      year: 2020,
-      authors: 'Topal Olgun, Çina Aksoy Müge, ÇİRİŞ İbrahim Metin, et al.',
-      title: 'Assessment of the effect of pulsed electromagnetic field application on bone healing',
-      journal: 'ELECTROMAGNETIC BIOLOGY AND MEDICINE',
-      volume: '39(3)',
-      pages: '206-217',
-      doi: '10.1080/15368378.2020.1762636',
-      quartile: 'Q2'
-    },
-    {
-      year: 2019,
-      authors: 'ÇİRİŞ İBRAHİM METİN, SİVRİCE MEHMET EMRE, ERKILINÇ GAMZE, et al.',
-      title: 'Cartilaginous choristomas in tonsillectomy specimen: A prospective analysis',
-      journal: 'INTERNATIONAL JOURNAL OF PEDIATRIC OTORHINOLARYNGOLOGY',
-      pages: '191-195',
-      doi: '10.1016/j.ijporl.2019.04.020',
-      quartile: 'Q3'
-    },
-    {
-      year: 2018,
-      authors: 'BAŞAL ÖZGÜR, ATAY TOLGA, ÇİRİŞ İBRAHİM METİN, BAYKAL YAKUP BARBAROS',
-      title: 'Epidermal growth factor (EGF) promotes bone healing in surgically induced osteonecrosis',
-      journal: 'Bosnian Journal of Basic Medical Sciences',
-      volume: '18(4)',
-      pages: '352-360'
-    }
-  ];
+  if (!data) {
+    return (
+      <PageContainer>
+        <div className="text-center py-12 text-gray-500">
+          Veriler yüklenirken bir hata oluştu.
+        </div>
+      </PageContainer>
+    );
+  }
 
-  // Ulusal Hakemli Dergiler (genişletilmiş)
-  const nationalPublications = [
-    {
-      year: 2024,
-      authors: 'KAYA ONUR, AKÇAM FÜSUN ZEYNEP, SÖNMEZ YONCA, et al., ÇİRİŞ İBRAHİM METİN',
-      title: 'Evaluation of Non-invasive Methods for Prediction of Fibrosis in Chronic Hepatitis B and C Infections',
-      journal: 'VIRAL HEPATIT DERGISI-VIRAL HEPATITIS JOURNAL',
-      index: 'TR DİZİN'
-    },
-    {
-      year: 2023,
-      authors: 'OĞUZOĞLU ALİ SERDAR, ŞENOL NİLGÜN, YASAN HASAN, et al., ÇİRİŞ İBRAHİM METİN',
-      title: 'PROSTAT-SPESİFİK MEMBRAN ANTİGEN MENENGİOM TEDAVİSİNDE YER ALABİLİR Mİ?',
-      journal: 'Süleyman Demirel Üniversitesi Tıp Fakültesi Dergisi',
-      volume: '30(3)',
-      pages: '302-307',
-      doi: '10.17343/sdutfd.1209482',
-      index: 'TR DİZİN'
-    },
-    {
-      year: 2022,
-      authors: 'OĞUZOĞLU ALİ SERDAR, ŞENOL NİLGÜN, YASAN HASAN, et al., ÇİRİŞ İBRAHİM METİN',
-      title: 'GLİAL TÜMÖR TEDAVİSİNDE TAMAMLAYICI HEDEF TEDAVİ: PROSTAT SPESİFİK MEMBRAN ANTİJEN (PSMA)',
-      journal: 'Süleyman Demirel Üniversitesi Tıp Fakültesi Dergisi',
-      volume: '29(1)',
-      doi: '10.17343/sdutfd.1066328',
-      index: 'TR DİZİN'
-    },
-    {
-      year: 2019,
-      authors: 'KORKMAZ SELMA, ERTURAN İJLAL, FİLİZ BAŞAK, et al., ÇİRİŞ İBRAHİM METİN',
-      title: 'Idiopathic palmoplantar filiform hyperkeratosis succesfully treated with systemic isotretinoin',
-      journal: 'Türkderm-Deri Hastalıkları ve Frengi Arşivi',
-      volume: '53(3)',
-      pages: '119-121',
-      doi: '10.4274/turkderm.galenos.2018.34466',
-      index: 'TR DİZİN'
-    },
-    {
-      year: 2019,
-      authors: 'ERKILINÇ GAMZE, ÇİRİŞ İBRAHİM METİN, KARAHAN NERMİN, DURAK ÖZLEM',
-      title: 'TİROİDİN PRİMER MALİGN TERATOMU: OLGU SUNUMU',
-      journal: 'SDÜ Tıp Fakültesi Dergisi',
-      volume: '26(3)',
-      pages: '344-347',
-      doi: '10.17343/sdutfd.453896',
-      index: 'TR DİZİN'
-    }
-  ];
+  const filteredSci = data.sciPublications.filter(pub =>
+    pub.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    pub.authors.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    pub.journal.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-  // Kitaplar
-  const books = [
-    {
-      year: 2021,
-      authors: 'ÇİRİŞ İbrahim Metin, YÜCEER Ramazan Oğuz',
-      title: 'METASTATİK OMURGA TÜMÖRLERİNİN YÖNETİMİ / MANAGEMENT OF METASTATIC SPINE TUMORS',
-      publisher: 'Türkiye Klinikleri',
-      type: 'Bölüm',
-      category: 'ULUSAL'
-    }
-  ];
-
-  const allPublications = [
-    ...sciPublications.map(p => ({ ...p, category: 'SCI' })),
-    ...nationalPublications.map(p => ({ ...p, category: 'Ulusal' }))
-  ];
-
-  const filteredPublications = allPublications.filter(pub =>
+  const filteredNational = data.nationalPublications.filter(pub =>
     pub.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     pub.authors.toLowerCase().includes(searchTerm.toLowerCase()) ||
     pub.journal.toLowerCase().includes(searchTerm.toLowerCase())
@@ -306,91 +217,72 @@ export function Yayinlar() {
   return (
     <PageContainer>
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-[#DC143C] to-[#A52A2A] text-white p-12 mb-8">
-        <h1 className="text-white mb-4">Akademik Yayınlar</h1>
-        <p className="text-white/90">
-          Tıbbi Patoloji alanında yayımlanmış bilimsel çalışmalar
-        </p>
-      </div>
-
-      {/* İstatistikler */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-6 mb-8">
-        <div className="bg-white p-6 text-center">
-          <div className="bg-[#00A6D6] w-16 h-16 flex items-center justify-center text-white mx-auto mb-3">
-            <TrendingUp size={32} />
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-rose-600 via-red-700 to-rose-800 text-white p-10 md:p-14 mb-10">
+        <div className="absolute inset-0 bg-black/10" />
+        <div className="relative z-10">
+          <div className="flex items-center gap-3 mb-4">
+            <Sparkles className="w-8 h-8" />
+            <span className="px-3 py-1 bg-white/20 rounded-full text-sm font-medium">Prof. Dr. Metin Çiriş</span>
           </div>
-          <h3 className="mb-2">H-Index</h3>
-          <p className="text-muted-foreground">24</p>
-        </div>
-        <div className="bg-white p-6 text-center">
-          <div className="bg-[#27AE60] w-16 h-16 flex items-center justify-center text-white mx-auto mb-3">
-            <FileText size={32} />
-          </div>
-          <h3 className="mb-2">Atıf</h3>
-          <p className="text-muted-foreground">2050+</p>
-        </div>
-        <div className="bg-white p-6 text-center">
-          <div className="bg-[#E74C3C] w-16 h-16 flex items-center justify-center text-white mx-auto mb-3">
-            <BookOpen size={32} />
-          </div>
-          <h3 className="mb-2">SCI/SSCI</h3>
-          <p className="text-muted-foreground">58+</p>
-        </div>
-        <div className="bg-white p-6 text-center">
-          <div className="bg-[#F39C12] w-16 h-16 flex items-center justify-center text-white mx-auto mb-3">
-            <FileText size={32} />
-          </div>
-          <h3 className="mb-2">Ulusal</h3>
-          <p className="text-muted-foreground">45+</p>
-        </div>
-        <div className="bg-white p-6 text-center">
-          <div className="bg-[#8E44AD] w-16 h-16 flex items-center justify-center text-white mx-auto mb-3">
-            <Award size={32} />
-          </div>
-          <h3 className="mb-2">Kongre</h3>
-          <p className="text-muted-foreground">143+</p>
+          <h1 className="text-4xl md:text-5xl font-black mb-4 leading-tight">
+            Akademik Yayınlar
+          </h1>
+          <p className="text-lg md:text-xl text-white/80 max-w-2xl">
+            Tıbbi Patoloji alanında yayımlanmış bilimsel çalışmalar,
+            kongre katılımları ve akademik katkılar
+          </p>
         </div>
       </div>
 
-      {/* Arama */}
-      <div className="bg-white p-6 mb-8">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
-          <Input
-            type="text"
-            placeholder="Yayınlarda ara (başlık, yazar, dergi)..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6 mb-10">
+        <StatCard icon={TrendingUp} label="H-Index" value={data.stats.hIndex} color="from-blue-500 to-indigo-600" delay={0} />
+        <StatCard icon={FileText} label="Atıf Sayısı" value={`${data.stats.citations}+`} color="from-emerald-500 to-teal-600" delay={100} />
+        <StatCard icon={BookOpen} label="SCI/SSCI" value={`${data.stats.sciCount}+`} color="from-rose-500 to-pink-600" delay={200} />
+        <StatCard icon={GraduationCap} label="Ulusal" value={`${data.stats.nationalCount}+`} color="from-amber-500 to-orange-600" delay={300} />
+        <StatCard icon={Award} label="Kongre" value={`${data.stats.congressCount}+`} color="from-purple-500 to-violet-600" delay={400} />
       </div>
 
-      {/* Bilimsel Katılımlar */}
+      {/* Search */}
+      <div className="relative mb-8">
+        <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+          <Search className="w-5 h-5 text-gray-400" />
+        </div>
+        <input
+          type="text"
+          placeholder="Yayınlarda ara (başlık, yazar, dergi)..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full pl-12 pr-4 py-4 text-lg rounded-2xl bg-white border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all shadow-sm outline-none"
+        />
+      </div>
+
+      {/* Scientific Participations - Timeline */}
       <div className="mb-8">
-        <div className="bg-white">
+        <div className="bg-gradient-to-br from-gray-50 to-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <button
             onClick={() => toggleSection('katilim')}
-            className="w-full p-6 flex items-center justify-between hover:bg-gray-50 transition-colors"
+            className="w-full p-6 flex items-center justify-between hover:bg-gray-50/50 transition-colors"
           >
             <div className="flex items-center gap-4">
-              <div className="bg-[#9B59B6] w-12 h-12 flex items-center justify-center text-white">
-                <Users size={24} />
+              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center text-white shadow-lg">
+                <Users size={28} />
               </div>
-              <h2 className="text-left">Bilimsel Katılımlar ({scientificParticipations.length})</h2>
+              <div className="text-left">
+                <h2 className="text-xl font-bold text-gray-800">Bilimsel Katılımlar</h2>
+                <p className="text-sm text-gray-500">{data.scientificParticipations.length} etkinlik</p>
+              </div>
             </div>
             <ChevronDown
               size={24}
-              className={`transition-transform ${isExpanded('katilim') ? 'rotate-180' : ''}`}
+              className={`text-gray-400 transition-transform duration-300 ${isExpanded('katilim') ? 'rotate-180' : ''}`}
             />
           </button>
           {isExpanded('katilim') && (
-            <div className="p-6 pt-0 border-t">
-              <div className="space-y-3">
-                {scientificParticipations.map((participation, index) => (
-                  <div key={index} className="border-l-4 border-[#9B59B6] pl-4 py-2 hover:bg-gray-50 transition-colors">
-                    <p className="text-muted-foreground m-0">{participation}</p>
-                  </div>
+            <div className="px-6 pb-6 border-t border-gray-100">
+              <div className="pt-6 max-h-[600px] overflow-y-auto pr-2">
+                {data.scientificParticipations.map((item, idx) => (
+                  <TimelineItem key={idx} text={item} index={idx} />
                 ))}
               </div>
             </div>
@@ -398,64 +290,32 @@ export function Yayinlar() {
         </div>
       </div>
 
-      {/* SCI-Expanded Makaleler */}
+      {/* SCI Publications */}
       <div className="mb-8">
-        <div className="bg-white">
+        <div className="bg-gradient-to-br from-gray-50 to-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <button
             onClick={() => toggleSection('sci')}
-            className="w-full p-6 flex items-center justify-between hover:bg-gray-50 transition-colors"
+            className="w-full p-6 flex items-center justify-between hover:bg-gray-50/50 transition-colors"
           >
             <div className="flex items-center gap-4">
-              <div className="bg-[#00A6D6] w-12 h-12 flex items-center justify-center text-white">
-                <FileText size={24} />
+              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center text-white shadow-lg">
+                <FileText size={28} />
               </div>
-              <h2 className="text-left">Uluslararası Hakemli Dergilerde Yayımlanan Makaleler ({sciPublications.length})</h2>
+              <div className="text-left">
+                <h2 className="text-xl font-bold text-gray-800">Uluslararası Hakemli Dergiler</h2>
+                <p className="text-sm text-gray-500">{filteredSci.length} makale</p>
+              </div>
             </div>
             <ChevronDown
               size={24}
-              className={`transition-transform ${isExpanded('sci') ? 'rotate-180' : ''}`}
+              className={`text-gray-400 transition-transform duration-300 ${isExpanded('sci') ? 'rotate-180' : ''}`}
             />
           </button>
           {isExpanded('sci') && (
-            <div className="p-6 pt-0 border-t">
-              <div className="space-y-6">
-                {(searchTerm ? filteredPublications.filter(p => p.category === 'SCI') : sciPublications).map((pub, index) => (
-                  <div key={index} className="border-l-4 border-[#00A6D6] pl-6 py-3 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-start gap-3 mb-3">
-                      <div className="bg-[#DC143C] text-white px-3 py-1 flex-shrink-0">
-                        {pub.year}
-                      </div>
-                      {pub.quartile && (
-                        <div className={`px-3 py-1 flex-shrink-0 ${pub.quartile === 'Q1' ? 'bg-[#27AE60] text-white' :
-                            pub.quartile === 'Q2' ? 'bg-[#00A6D6] text-white' :
-                              pub.quartile === 'Q3' ? 'bg-[#F39C12] text-white' :
-                                'bg-[#E74C3C] text-white'
-                          }`}>
-                          {pub.quartile}
-                        </div>
-                      )}
-                      {pub.code && (
-                        <div className="bg-[#555] text-white px-3 py-1 flex-shrink-0 text-sm">
-                          {pub.code}
-                        </div>
-                      )}
-                    </div>
-                    <p className="text-muted-foreground mb-2">{pub.authors}</p>
-                    <h4 className="mb-2">{pub.title}</h4>
-                    <p className="text-muted-foreground mb-2">
-                      <em>{pub.journal}</em>{pub.volume && `, ${pub.volume}`}{pub.pages && `, ${pub.pages}`}
-                    </p>
-                    {pub.doi && (
-                      <a
-                        href={`https://doi.org/${pub.doi}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-[#00A6D6] hover:underline"
-                      >
-                        DOI: {pub.doi} <ExternalLink size={14} />
-                      </a>
-                    )}
-                  </div>
+            <div className="px-6 pb-6 border-t border-gray-100">
+              <div className="pt-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {filteredSci.map((pub, idx) => (
+                  <PublicationCard key={idx} pub={pub} color="blue" />
                 ))}
               </div>
             </div>
@@ -463,55 +323,32 @@ export function Yayinlar() {
         </div>
       </div>
 
-      {/* Ulusal Hakemli Dergiler */}
+      {/* National Publications */}
       <div className="mb-8">
-        <div className="bg-white">
+        <div className="bg-gradient-to-br from-gray-50 to-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <button
             onClick={() => toggleSection('ulusal')}
-            className="w-full p-6 flex items-center justify-between hover:bg-gray-50 transition-colors"
+            className="w-full p-6 flex items-center justify-between hover:bg-gray-50/50 transition-colors"
           >
             <div className="flex items-center gap-4">
-              <div className="bg-[#27AE60] w-12 h-12 flex items-center justify-center text-white">
-                <BookOpen size={24} />
+              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center text-white shadow-lg">
+                <BookOpen size={28} />
               </div>
-              <h2 className="text-left">Ulusal Hakemli Dergilerde Yayımlanan Makaleler ({nationalPublications.length})</h2>
+              <div className="text-left">
+                <h2 className="text-xl font-bold text-gray-800">Ulusal Hakemli Dergiler</h2>
+                <p className="text-sm text-gray-500">{filteredNational.length} makale</p>
+              </div>
             </div>
             <ChevronDown
               size={24}
-              className={`transition-transform ${isExpanded('ulusal') ? 'rotate-180' : ''}`}
+              className={`text-gray-400 transition-transform duration-300 ${isExpanded('ulusal') ? 'rotate-180' : ''}`}
             />
           </button>
           {isExpanded('ulusal') && (
-            <div className="p-6 pt-0 border-t">
-              <div className="space-y-6">
-                {(searchTerm ? filteredPublications.filter(p => p.category === 'Ulusal') : nationalPublications).map((pub, index) => (
-                  <div key={index} className="border-l-4 border-[#27AE60] pl-6 py-3 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-start gap-3 mb-3">
-                      <div className="bg-[#DC143C] text-white px-3 py-1">
-                        {pub.year}
-                      </div>
-                      {pub.index && (
-                        <div className="bg-[#8E44AD] text-white px-3 py-1">
-                          {pub.index}
-                        </div>
-                      )}
-                    </div>
-                    <p className="text-muted-foreground mb-2">{pub.authors}</p>
-                    <h4 className="mb-2">{pub.title}</h4>
-                    <p className="text-muted-foreground mb-2">
-                      <em>{pub.journal}</em>{pub.volume && `, ${pub.volume}`}{pub.pages && `, ${pub.pages}`}
-                    </p>
-                    {pub.doi && (
-                      <a
-                        href={`https://doi.org/${pub.doi}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-[#00A6D6] hover:underline"
-                      >
-                        DOI: {pub.doi} <ExternalLink size={14} />
-                      </a>
-                    )}
-                  </div>
+            <div className="px-6 pb-6 border-t border-gray-100">
+              <div className="pt-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {filteredNational.map((pub, idx) => (
+                  <PublicationCard key={idx} pub={pub} color="green" />
                 ))}
               </div>
             </div>
@@ -519,43 +356,46 @@ export function Yayinlar() {
         </div>
       </div>
 
-      {/* Kitaplar */}
+      {/* Books */}
       <div className="mb-8">
-        <div className="bg-white">
+        <div className="bg-gradient-to-br from-gray-50 to-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <button
             onClick={() => toggleSection('kitap')}
-            className="w-full p-6 flex items-center justify-between hover:bg-gray-50 transition-colors"
+            className="w-full p-6 flex items-center justify-between hover:bg-gray-50/50 transition-colors"
           >
             <div className="flex items-center gap-4">
-              <div className="bg-[#8E44AD] w-12 h-12 flex items-center justify-center text-white">
-                <BookOpen size={24} />
+              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white shadow-lg">
+                <BookOpen size={28} />
               </div>
-              <h2 className="text-left">Kitaplar ({books.length})</h2>
+              <div className="text-left">
+                <h2 className="text-xl font-bold text-gray-800">Kitaplar</h2>
+                <p className="text-sm text-gray-500">{data.books.length} kitap/bölüm</p>
+              </div>
             </div>
             <ChevronDown
               size={24}
-              className={`transition-transform ${isExpanded('kitap') ? 'rotate-180' : ''}`}
+              className={`text-gray-400 transition-transform duration-300 ${isExpanded('kitap') ? 'rotate-180' : ''}`}
             />
           </button>
           {isExpanded('kitap') && (
-            <div className="p-6 pt-0 border-t">
-              <div className="space-y-6">
-                {books.map((book, index) => (
-                  <div key={index} className="border-l-4 border-[#8E44AD] pl-6 py-3 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-start gap-3 mb-3">
-                      <div className="bg-[#DC143C] text-white px-3 py-1">
+            <div className="px-6 pb-6 border-t border-gray-100">
+              <div className="pt-6 space-y-4">
+                {data.books.map((book, idx) => (
+                  <div key={idx} className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      <span className="px-3 py-1 bg-gradient-to-r from-rose-600 to-red-700 text-white text-sm font-bold rounded-full">
                         {book.year}
-                      </div>
-                      <div className="bg-[#00A6D6] text-white px-3 py-1">
+                      </span>
+                      <span className="px-3 py-1 bg-blue-600 text-white text-sm font-medium rounded-full">
                         {book.type}
-                      </div>
-                      <div className="bg-[#F39C12] text-white px-3 py-1">
+                      </span>
+                      <span className="px-3 py-1 bg-amber-600 text-white text-sm font-medium rounded-full">
                         {book.category}
-                      </div>
+                      </span>
                     </div>
-                    <p className="text-muted-foreground mb-2">{book.authors}</p>
-                    <h4 className="mb-2">{book.title}</h4>
-                    <p className="text-muted-foreground">{book.publisher}</p>
+                    <h4 className="text-lg font-semibold text-gray-800 mb-2">{book.title}</h4>
+                    <p className="text-sm text-gray-500 mb-2">{book.authors}</p>
+                    <p className="text-sm text-gray-600"><em>{book.publisher}</em></p>
                   </div>
                 ))}
               </div>
@@ -564,129 +404,79 @@ export function Yayinlar() {
         </div>
       </div>
 
-      {/* İlgi Alanları */}
-      <div className="mb-8">
-        <h2 className="mb-6">Araştırma İlgi Alanları</h2>
-        <div className="bg-white p-8">
-          <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 text-muted-foreground">
-            <li className="flex items-start gap-2">
-              <span className="text-[#DC143C] mt-1">•</span>
-              <span>Nefropatoloji</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-[#DC143C] mt-1">•</span>
-              <span>Tiroid ve paratiroid patolojisi</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-[#DC143C] mt-1">•</span>
-              <span>Baş-boyun patolojisi</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-[#DC143C] mt-1">•</span>
-              <span>Hepatobiliyer sistem hastalıkları patolojisi</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-[#DC143C] mt-1">•</span>
-              <span>Pankreas patolojisi</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-[#DC143C] mt-1">•</span>
-              <span>Santral sinir sistemi patolojisi</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-[#DC143C] mt-1">•</span>
-              <span>Kemik ve yumuşak doku patolojisi</span>
-            </li>
-          </ul>
-        </div>
-      </div>
-
-      {/* Akademik Bağlantılar */}
+      {/* Academic Links */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <div className="bg-gradient-to-r from-[#00A6D6] to-[#0078D4] text-white p-8">
-          <h3 className="text-white mb-4">Akademik Profiller</h3>
-          <div className="space-y-3">
-            <a
-              href="https://orcid.org/0000-0002-5619-4989"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 text-white/90 hover:text-white hover:underline"
-            >
-              <ExternalLink size={16} />
-              ORCID ID: 0000-0002-5619-4989
-            </a>
-            <a
-              href="https://scholar.google.com.tr/citations?user=zEF_KLsAAAAJ&hl=tr"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 text-white/90 hover:text-white hover:underline"
-            >
-              <ExternalLink size={16} />
-              Google Scholar
-            </a>
-            <a
-              href="https://www.researchgate.net/profile/Metin-Ciris-2"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 text-white/90 hover:text-white hover:underline"
-            >
-              <ExternalLink size={16} />
-              ResearchGate
-            </a>
-            <a
-              href="https://www.scopus.com/authid/detail.uri?authorId=6603213356"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 text-white/90 hover:text-white hover:underline"
-            >
-              <ExternalLink size={16} />
-              Scopus Author ID
-            </a>
+        <div className="rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white p-8 shadow-lg">
+          <h3 className="text-xl font-bold mb-6">Akademik Profiller</h3>
+          <div className="space-y-4">
+            {[
+              { label: 'ORCID ID: 0000-0002-5619-4989', url: 'https://orcid.org/0000-0002-5619-4989' },
+              { label: 'Google Scholar', url: 'https://scholar.google.com.tr/citations?user=zEF_KLsAAAAJ&hl=tr' },
+              { label: 'ResearchGate', url: 'https://www.researchgate.net/profile/Metin-Ciris-2' },
+              { label: 'Scopus Author ID', url: 'https://www.scopus.com/authid/detail.uri?authorId=6603213356' }
+            ].map((link, idx) => (
+              <a
+                key={idx}
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 text-white/90 hover:text-white hover:translate-x-1 transition-all"
+              >
+                <ExternalLink size={16} />
+                {link.label}
+              </a>
+            ))}
           </div>
         </div>
 
-        <div className="bg-white p-8">
-          <h3 className="mb-4">İletişim</h3>
-          <p className="text-muted-foreground mb-4">
+        <div className="rounded-2xl bg-white p-8 shadow-sm border border-gray-100">
+          <h3 className="text-xl font-bold text-gray-800 mb-4">İletişim</h3>
+          <p className="text-gray-600 mb-6">
             Araştırma işbirlikleri ve akademik danışmanlık için:
           </p>
-          <div className="space-y-2 text-muted-foreground">
-            <p className="m-0">
-              <strong>E-posta:</strong>{' '}
-              <a href="mailto:ibrahimciris@sdu.edu.tr" className="text-[#00A6D6] hover:underline">
+          <div className="space-y-3 text-gray-600">
+            <p className="flex items-center gap-2">
+              <span className="font-semibold">E-posta:</span>
+              <a href="mailto:ibrahimciris@sdu.edu.tr" className="text-blue-600 hover:underline">
                 ibrahimciris@sdu.edu.tr
               </a>
             </p>
-            <p className="m-0"><strong>Dahili:</strong> 9292</p>
-            <p className="m-0"><strong>Santral:</strong> +90 246 211 9292</p>
+            <p><span className="font-semibold">Dahili:</span> 9292</p>
+            <p><span className="font-semibold">Santral:</span> +90 246 211 9292</p>
           </div>
         </div>
       </div>
 
-      {/* Bilgilendirme */}
-      <div className="bg-[#E3F2FD] border-l-4 border-[#00A6D6] p-6">
-        <h3 className="mb-3">Güncel Yayınlar</h3>
-        <p className="text-muted-foreground m-0">
-          Tüm yayınların güncel listesi için lütfen{' '}
-          <a
-            href="https://w3.sdu.edu.tr/personel/02956/ibrahim-metin-ciris"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[#00A6D6] hover:underline"
-          >
-            SDÜ Akademik Personel Sayfası
-          </a>
-          {' '}ve{' '}
-          <a
-            href="https://scholar.google.com.tr/citations?user=zEF_KLsAAAAJ&hl=tr"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[#00A6D6] hover:underline"
-          >
-            Google Scholar
-          </a>
-          {' '}profilini ziyaret edebilirsiniz.
-        </p>
+      {/* Footer Note */}
+      <div className="rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-500 p-6">
+        <div className="flex items-start gap-3">
+          <Calendar className="w-5 h-5 text-blue-600 mt-0.5" />
+          <div>
+            <h3 className="font-semibold text-gray-800 mb-2">Güncel Yayınlar</h3>
+            <p className="text-gray-600 text-sm">
+              Tüm yayınların güncel listesi için{' '}
+              <a
+                href="https://w3.sdu.edu.tr/personel/02956/ibrahim-metin-ciris"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline font-medium"
+              >
+                SDÜ Akademik Personel Sayfası
+              </a>
+              {' '}ve{' '}
+              <a
+                href="https://scholar.google.com.tr/citations?user=zEF_KLsAAAAJ&hl=tr"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline font-medium"
+              >
+                Google Scholar
+              </a>
+              {' '}profilini ziyaret edebilirsiniz.
+            </p>
+            <p className="text-xs text-gray-400 mt-2">Son güncelleme: {data.lastUpdated}</p>
+          </div>
+        </div>
       </div>
     </PageContainer>
   );

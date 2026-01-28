@@ -1,0 +1,57 @@
+name: Update Publications from Issue
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  update-publications:
+    # Sadece belirli kullanıcının issue'larını işle
+    if: github.event.issue.user.login == 'metinciris'
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+      issues: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Update publications
+        run: node scripts/update-publications.js
+        env:
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_LABELS: ${{ join(github.event.issue.labels.*.name, ',') }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          
+      - name: Commit changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add public/data/publications.json
+          git diff --staged --quiet || git commit -m "Yeni yayın eklendi via Issue #${{ github.event.issue.number }}"
+          git push
+          
+      - name: Close issue with comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ github.event.issue.number }},
+              body: '✅ Yayın başarıyla eklendi! Değişiklikler birkaç dakika içinde siteye yansıyacaktır.'
+            });
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ github.event.issue.number }},
+              state: 'closed'
+            });
