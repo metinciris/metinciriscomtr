@@ -275,27 +275,47 @@ function downloadIcs(m: Meeting) {
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
-
+/* ------------------------------- paylaş whatsapp ------------------------------ */
+function isMobileDevice() {
+  if (typeof navigator === 'undefined') return false;
+  return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+}
 function shareWhatsApp(m: Meeting) {
   const duration = Math.max(15, m.duration ?? 60);
   const endParts = addMinutesToDateTime(m.date, m.time || '20:00', duration);
 
   const organizer = m.organizer || 'Patoloji Toplantısı';
-  let msg = `🔬 *${organizer}* 🔬\n\n`;
-  msg += `📋 *${m.title}*\n\n`;
-  msg += `📆 *Tarih:* ${formatDateTR(m.date)}\n`;
-  msg += `🕐 *Saat:* ${(m.time || '20:00')} - ${endParts.time} (Türkiye)\n`;
-  if (m.description) msg += `\n📝 *Açıklama:* ${m.description}\n`;
-  if (m.zoom_id || m.zoom_password || m.zoom_link) {
-    msg += `\n🔗 *Zoom Bilgileri:*\n`;
-    if (m.zoom_link) msg += `• Bağlantı: ${m.zoom_link}\n`;
-    if (m.zoom_id) msg += `• ID: ${m.zoom_id}\n`;
-    if (m.zoom_password) msg += `• Şifre: ${m.zoom_password}\n`;
+
+  // Emojileri unicode olarak yazıyoruz (desktop bozulmasın diye)
+  const EMOJI = {
+    micro: '\u{1F52C}',     // 🔬
+    clipboard: '\u{1F4CB}', // 📋
+    cal: '\u{1F4C6}',       // 📆
+    clock: '\u{1F550}',     // 🕐
+    note: '\u{1F4DD}',      // 📝
+  };
+
+  let msg = `${EMOJI.micro} *${organizer}* ${EMOJI.micro}\n\n`;
+  msg += `${EMOJI.clipboard} *${m.title}*\n\n`;
+  msg += `${EMOJI.cal} *Tarih:* ${formatDateTR(m.date)}\n`;
+  msg += `${EMOJI.clock} *Saat:* ${(m.time || '20:00')} - ${endParts.time} (Türkiye)\n`;
+
+  if (m.description) {
+    msg += `\n${EMOJI.note} *Açıklama:* ${m.description}\n`;
   }
+
   msg += `\n📅 *Google Takvim'e Ekle:*\n${buildGoogleCalendarUrl(m)}`;
 
-  const shareUrl = `https://wa.me/?text=${encodeURIComponent(msg)}`;
-  window.open(shareUrl, '_blank');
+  const encoded = encodeURIComponent(msg);
+
+  // 🔑 Kritik fark burada:
+  // Mobil → wa.me
+  // Desktop → WhatsApp Web
+  const url = isMobileDevice()
+    ? `https://wa.me/?text=${encoded}`
+    : `https://web.whatsapp.com/send?text=${encoded}`;
+
+  window.open(url, '_blank');
 }
 
 /* ------------------------------- Notifications ------------------------------ */
