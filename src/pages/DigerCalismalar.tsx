@@ -175,8 +175,8 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
                                 key={cat.id}
                                 onClick={() => setSelectedCategory(cat.id)}
                                 className={`px-6 py-2.5 rounded-xl font-medium transition-all ${selectedCategory === cat.id
-                                        ? 'bg-[#8E44AD] text-white shadow-lg shadow-[#8E44AD]/30 scale-105'
-                                        : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-100 hover:border-[#8E44AD]/30'
+                                    ? 'bg-[#8E44AD] text-white shadow-lg shadow-[#8E44AD]/30 scale-105'
+                                    : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-100 hover:border-[#8E44AD]/30'
                                     }`}
                             >
                                 {cat.name}
@@ -190,7 +190,7 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
                         </div>
                         <input
                             type="text"
-                            placeholder="Çalışmanızı bulun..."
+                            placeholder="Sayfada ara..."
                             className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#8E44AD]/30 focus:border-[#8E44AD] transition-all text-base shadow-sm"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
