@@ -3,7 +3,7 @@
   <!-- Ana Sayfa -->
   <url>
     <loc>https://metinciris.com.tr/</loc>
-    <lastmod>2026-01-13</lastmod>
+    <lastmod>2026-01-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
@@ -11,37 +11,37 @@
   <!-- Hasta Bölümü -->
   <url>
     <loc>https://metinciris.com.tr/#iletisim</loc>
-    <lastmod>2026-01-13</lastmod>
+    <lastmod>2026-01-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://metinciris.com.tr/#biyopsi-sonucu</loc>
-    <lastmod>2026-01-13</lastmod>
+    <lastmod>2026-01-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://metinciris.com.tr/#baktigim-biyopsiler</loc>
-    <lastmod>2026-01-13</lastmod>
+    <lastmod>2026-01-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://metinciris.com.tr/#ziyaret-mesaji</loc>
-    <lastmod>2026-01-13</lastmod>
+    <lastmod>2026-01-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://metinciris.com.tr/#nobetci-eczane</loc>
-    <lastmod>2026-01-13</lastmod>
+    <lastmod>2026-01-28</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://metinciris.com.tr/#hastane-yemek</loc>
-    <lastmod>2026-01-13</lastmod>
+    <lastmod>2026-01-28</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
@@ -49,31 +49,31 @@
   <!-- Öğrenci Bölümü -->
   <url>
     <loc>https://metinciris.com.tr/#ders-notlari</loc>
-    <lastmod>2026-01-13</lastmod>
+    <lastmod>2026-01-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://metinciris.com.tr/#ders-programi</loc>
-    <lastmod>2026-01-13</lastmod>
+    <lastmod>2026-01-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://metinciris.com.tr/#ogrenci-yemek</loc>
-    <lastmod>2026-01-13</lastmod>
+    <lastmod>2026-01-28</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://metinciris.com.tr/#donem-3</loc>
-    <lastmod>2026-01-13</lastmod>
+    <lastmod>2026-01-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://metinciris.com.tr/#galeri</loc>
-    <lastmod>2026-01-13</lastmod>
+    <lastmod>2026-01-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -81,137 +81,155 @@
   <!-- Akademik Bölüm -->
   <url>
     <loc>https://metinciris.com.tr/#portfolyo</loc>
-    <lastmod>2026-01-13</lastmod>
+    <lastmod>2026-01-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://metinciris.com.tr/#sinav-analizi</loc>
-    <lastmod>2026-01-13</lastmod>
+    <lastmod>2026-01-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://metinciris.com.tr/#yayinlar</loc>
-    <lastmod>2026-01-13</lastmod>
+    <lastmod>2026-01-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://metinciris.com.tr/#podcast</loc>
-    <lastmod>2026-01-13</lastmod>
+    <lastmod>2026-01-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://metinciris.com.tr/#blog</loc>
-    <lastmod>2026-01-13</lastmod>
+    <lastmod>2026-01-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
 
-  <!-- Araçlar -->
+  <!-- Patoloji Araçları -->
   <url>
     <loc>https://metinciris.com.tr/#tani-tuzaklari</loc>
-    <lastmod>2026-01-13</lastmod>
+    <lastmod>2026-01-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://metinciris.com.tr/#ayin-vakasi</loc>
-    <lastmod>2026-01-13</lastmod>
+    <lastmod>2026-01-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://metinciris.com.tr/#svs-reader</loc>
-    <lastmod>2026-01-13</lastmod>
+    <lastmod>2026-01-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://metinciris.com.tr/#deprem</loc>
-    <lastmod>2026-01-13</lastmod>
+    <lastmod>2026-01-28</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://metinciris.com.tr/#fetus-uzunluklari</loc>
-    <lastmod>2026-01-13</lastmod>
+    <lastmod>2026-01-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://metinciris.com.tr/#rcb-calculator</loc>
-    <lastmod>2026-01-13</lastmod>
+    <lastmod>2026-01-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://metinciris.com.tr/#gist-raporlama</loc>
-    <lastmod>2026-01-13</lastmod>
+    <lastmod>2026-01-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://metinciris.com.tr/#makale</loc>
-    <lastmod>2026-01-13</lastmod>
+    <lastmod>2026-01-28</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://metinciris.com.tr/#makale-takip</loc>
-    <lastmod>2026-01-13</lastmod>
+    <lastmod>2026-01-28</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://metinciris.com.tr/#lenf-nodu</loc>
-    <lastmod>2026-01-13</lastmod>
+    <lastmod>2026-01-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://metinciris.com.tr/#prizma-3d</loc>
-    <lastmod>2026-01-13</lastmod>
+    <lastmod>2026-01-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://metinciris.com.tr/#finans</loc>
-    <lastmod>2026-01-13</lastmod>
+    <lastmod>2026-01-28</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://metinciris.com.tr/#pubmed-trend</loc>
-    <lastmod>2026-01-13</lastmod>
+    <lastmod>2026-01-28</lastmod>
     <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://metinciris.com.tr/#online-test-analiz</loc>
+    <lastmod>2026-01-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://metinciris.com.tr/#euro-maclar</loc>
+    <lastmod>2026-01-28</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://metinciris.com.tr/#konsensus</loc>
+    <lastmod>2026-01-28</lastmod>
+    <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
 
   <!-- Diğer -->
   <url>
     <loc>https://metinciris.com.tr/#diger-calismalar</loc>
-    <lastmod>2026-01-13</lastmod>
+    <lastmod>2026-01-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://metinciris.com.tr/#github</loc>
-    <lastmod>2026-01-13</lastmod>
+    <lastmod>2026-01-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://metinciris.com.tr/#facebook</loc>
-    <lastmod>2026-01-13</lastmod>
+    <lastmod>2026-01-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://metinciris.com.tr/#linkedin</loc>
-    <lastmod>2026-01-13</lastmod>
+    <lastmod>2026-01-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.4</priority>
   </url>

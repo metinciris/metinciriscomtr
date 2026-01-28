@@ -182,6 +182,16 @@ const PAGE_METADATA: Record<string, { title: string; description: string; keywor
         description: 'Tarayıcı üzerinden hızlı ve güvenilir optik form analiz sistemi. DAT dosyalarınızı analiz edin.',
         keywords: 'online sınav analizi, test analizi, optik form, patoloji eğitim'
     },
+    'euro-maclar': {
+        title: 'Avrupa Kupaları Maç Takibi | Prof Dr Metin Çiriş',
+        description: 'Türk takımlarının Avrupa kupalarındaki basketbol ve voleybol maçlarını takip edin. Canlı skorlar ve maç programları.',
+        keywords: 'avrupa kupaları, euroleague, basketbol, voleybol, türk takımları, maç takibi'
+    },
+    'konsensus': {
+        title: 'Patoloji Konsensus Toplantıları | Prof Dr Metin Çiriş',
+        description: 'Patoloji konsensus toplantılarını takip edin. Toplantı tarihleri, zoom/meet linkleri ve bildirim sistemi.',
+        keywords: 'patoloji konsensus, toplantı takibi, patoloji eğitim, online toplantı'
+    },
     '404': {
         title: 'Sayfa Bulunamadı | Prof Dr Metin Çiriş',
         description: 'Aradığınız sayfa mevcut değil.'
@@ -190,6 +200,21 @@ const PAGE_METADATA: Record<string, { title: string; description: string; keywor
 
 // JSON-LD Yapısal Veri
 const getStructuredData = (currentPage: string, meta: { title: string; description: string }) => {
+    // Ana navigasyon öğeleri - arama motorlarında sitelinks olarak görünecek
+    const navigationItems = [
+        { name: "Ana Sayfa", url: `${BASE_URL}/` },
+        { name: "Biyopsi Sonucu", url: `${BASE_URL}/#biyopsi-sonucu` },
+        { name: "İletişim", url: `${BASE_URL}/#iletisim` },
+        { name: "Ders Notları", url: `${BASE_URL}/#ders-notlari` },
+        { name: "Yayınlar", url: `${BASE_URL}/#yayinlar` },
+        { name: "Tanı Tuzakları", url: `${BASE_URL}/#tani-tuzaklari` },
+        { name: "Ayın Vakası", url: `${BASE_URL}/#ayin-vakasi` },
+        { name: "SVS Mikroskopi", url: `${BASE_URL}/#svs-reader` },
+        { name: "PubMed Trend", url: `${BASE_URL}/#pubmed-trend` },
+        { name: "Konsensus", url: `${BASE_URL}/#konsensus` },
+        { name: "Diğer Çalışmalar", url: `${BASE_URL}/#diger-calismalar` }
+    ];
+
     const baseStructuredData = {
         "@context": "https://schema.org",
         "@graph": [
@@ -202,6 +227,11 @@ const getStructuredData = (currentPage: string, meta: { title: string; descripti
                 "inLanguage": "tr-TR",
                 "publisher": {
                     "@id": `${BASE_URL}/#person`
+                },
+                "potentialAction": {
+                    "@type": "SearchAction",
+                    "target": `${BASE_URL}/?q={search_term_string}`,
+                    "query-input": "required name=search_term_string"
                 }
             },
             {
@@ -231,12 +261,43 @@ const getStructuredData = (currentPage: string, meta: { title: string; descripti
                     "@id": `${BASE_URL}/#website`
                 },
                 "inLanguage": "tr-TR"
-            }
-        ]
+            },
+            // Site Navigasyon Öğesi - Arama motorlarına alt sayfaları tanıtır
+            {
+                "@type": "SiteNavigationElement",
+                "@id": `${BASE_URL}/#navigation`,
+                "name": "Ana Navigasyon",
+                "hasPart": navigationItems.map((item, index) => ({
+                    "@type": "SiteNavigationElement",
+                    "position": index + 1,
+                    "name": item.name,
+                    "url": item.url
+                }))
+            },
+            // Breadcrumb - Sayfa hiyerarşisini gösterir
+            currentPage !== 'home' ? {
+                "@type": "BreadcrumbList",
+                "itemListElement": [
+                    {
+                        "@type": "ListItem",
+                        "position": 1,
+                        "name": "Ana Sayfa",
+                        "item": BASE_URL
+                    },
+                    {
+                        "@type": "ListItem",
+                        "position": 2,
+                        "name": meta.title.split(' | ')[0],
+                        "item": `${BASE_URL}/#${currentPage}`
+                    }
+                ]
+            } : null
+        ].filter(Boolean)
     };
 
     return JSON.stringify(baseStructuredData);
 };
+
 
 export const SEO: React.FC<SEOProps> = ({ currentPage }) => {
     useEffect(() => {

@@ -1,9 +1,39 @@
 # https://www.robotstxt.org/robotstxt.html
+# Prof Dr Metin Çiriş - SDÜ Tıbbi Patoloji Web Sitesi
+
+# Tüm arama motorları için kurallar
 User-agent: *
 Allow: /
+Allow: /sitemap.xml
 
-# Sitemap
+# Belirli dizinleri engelle (güvenlik ve gereksiz tarama)
+Disallow: /data/
+Disallow: /*.json$
+Disallow: /sw.js
+
+# Sitemap konumu
 Sitemap: https://metinciris.com.tr/sitemap.xml
 
 # Crawl-delay (Türk siteler için önerilen)
 Crawl-delay: 1
+
+# Googlebot için özel kurallar
+User-agent: Googlebot
+Allow: /
+Allow: /#*
+Sitemap: https://metinciris.com.tr/sitemap.xml
+
+# Bingbot için özel kurallar
+User-agent: Bingbot
+Allow: /
+Allow: /#*
+Sitemap: https://metinciris.com.tr/sitemap.xml
+
+# Yandex için özel kurallar
+User-agent: Yandex
+Allow: /
+Allow: /#*
+Sitemap: https://metinciris.com.tr/sitemap.xml
+
+# Host bilgisi
+Host: https://metinciris.com.tr
