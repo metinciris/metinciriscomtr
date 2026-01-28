@@ -96,31 +96,32 @@ export function TaniTuzaklari() {
 
     const [selectedPitfall, setSelectedPitfall] = useState<Pitfall | null>(null);
 
-    // Initial load hash check
+    // Initial load - URL query check
     useEffect(() => {
         try {
             if (typeof window === "undefined") return;
-            const hash = window.location.hash?.replace("#", "").trim();
-            if (!hash) return;
-            const id = decodeURIComponent(hash);
-            const found = PITFALLS.find((p) => p.id === id);
-            if (found) {
-                setSelectedPitfall(found);
+            // Path-based routing uyumluluğu için query param kullan
+            const urlParams = new URLSearchParams(window.location.search);
+            const pitfallId = urlParams.get('pitfall');
+            if (pitfallId) {
+                const found = PITFALLS.find((p) => p.id === pitfallId);
+                if (found) {
+                    setSelectedPitfall(found);
+                }
             }
         } catch {
             // ignore
         }
     }, []);
 
-    // Update hash on selection
+    // Update URL on selection
     useEffect(() => {
         try {
             if (typeof window === "undefined") return;
             if (selectedPitfall) {
-                window.history.replaceState(null, "", `#${selectedPitfall.id}`);
+                window.history.replaceState(null, "", `/tani-tuzaklari?pitfall=${selectedPitfall.id}`);
             } else {
-                // Sayfa hash'ini koru (F5 için kritik) - Ana sayfaya (pathname) dönmemeli
-                window.history.replaceState(null, "", "#tani-tuzaklari");
+                window.history.replaceState(null, "", `/tani-tuzaklari`);
             }
         } catch {
             // ignore

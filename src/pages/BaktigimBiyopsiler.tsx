@@ -286,21 +286,21 @@ export function BaktigimBiyopsiler() {
 
       {/* Hızlı Erişim Linkleri */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <a href="#portfolyo" className="block group">
+        <a href="/portfolyo" className="block group">
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 h-full hover:shadow-md transition-shadow">
             <h3 className="text-[#11528f] mb-2 group-hover:underline">Uzmanlık Alanlarım ve Akademik Bilgilerim</h3>
             <p className="text-sm text-gray-600">Portfolyo sayfasına git</p>
           </div>
         </a>
 
-        <a href="#yayinlar" className="block group">
+        <a href="/yayinlar" className="block group">
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 h-full hover:shadow-md transition-shadow">
             <h3 className="text-[#DC143C] mb-2 group-hover:underline">Akademik Yayınlarım</h3>
             <p className="text-sm text-gray-600">Katıldığım bilimsel çalışmalar</p>
           </div>
         </a>
 
-        <a href="#biyopsi-sonucu" className="block group">
+        <a href="/biyopsi-sonucu" className="block group">
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 h-full hover:shadow-md transition-shadow">
             <h3 className="text-[#8E44AD] mb-2 group-hover:underline">Biyopsi Sonucu</h3>
             <p className="text-sm text-gray-600">Özel biyopsi değerlendirmesi ve rapor sonuçları</p>
