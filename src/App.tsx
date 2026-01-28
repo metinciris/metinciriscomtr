@@ -1,6 +1,6 @@
 import React from 'react';
 import { Layout } from './components/Layout';
-import { Toaster } from './components/ui/sonner';
+import { Toaster } from 'sonner';
 import { SEO } from './components/SEO';
 
 /**
