@@ -12,7 +12,7 @@
     "scoreHome": 1,
     "scoreAway": 1,
     "source": "football-data",
-    "lastFetchedAt": "2026-01-28T18:45:40.611Z"
+    "lastFetchedAt": "2026-01-29T06:57:22.268Z"
   },
   {
     "id": "football-UEFAEuropaLeague-6",
@@ -27,7 +27,7 @@
     "scoreHome": 0,
     "scoreAway": 1,
     "source": "fixturedownload",
-    "lastFetchedAt": "2026-01-28T18:46:09.956Z"
+    "lastFetchedAt": "2026-01-29T06:57:22.582Z"
   },
   {
     "id": "football-CL-551967",
@@ -38,11 +38,11 @@
     "awayTeam": "Galatasaray SK",
     "startTimeUTC": "2026-01-28T20:00:00Z",
     "startTimeLocal": "2026-01-28T23:00:00+03:00",
-    "status": "scheduled",
-    "scoreHome": null,
-    "scoreAway": null,
+    "status": "finished",
+    "scoreHome": 2,
+    "scoreAway": 0,
     "source": "football-data",
-    "lastFetchedAt": "2026-01-28T18:45:40.612Z"
+    "lastFetchedAt": "2026-01-29T06:57:22.268Z"
   },
   {
     "id": "football-UEFAEuropaLeague-7",
@@ -57,6 +57,6 @@
     "scoreHome": null,
     "scoreAway": null,
     "source": "fixturedownload",
-    "lastFetchedAt": "2026-01-28T18:46:09.956Z"
+    "lastFetchedAt": "2026-01-29T06:57:22.582Z"
   }
 ]
