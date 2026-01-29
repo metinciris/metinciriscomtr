@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { PageContainer } from '../components/PageContainer';
 import { MetroTile } from '../components/MetroTile';
-import { FileBarChart, Activity, FileText, AlertCircle, Microscope, Box, BookOpen, Calculator, TrendingUp, Trophy, Users, Search, Briefcase } from 'lucide-react';
+import { FileBarChart, Activity, FileText, AlertCircle, Microscope, Box, BookOpen, Calculator, TrendingUp, Trophy, Users, Search, Briefcase, Calendar } from 'lucide-react';
 
 
 interface DigerCalismalarProps {
@@ -139,6 +139,14 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
             icon: <Users size={40} />,
             style: { backgroundColor: '#2563eb' },
             page: 'konsensus',
+            category: 'patoloji'
+        },
+        {
+            title: "PubMed Makale Takip",
+            subtitle: "Günlük patoloji dergi makaleleri",
+            icon: <Calendar size={40} />,
+            style: { backgroundColor: '#3b82f6' },
+            page: 'pubmed-makale-takip',
             category: 'patoloji'
         },
     ];

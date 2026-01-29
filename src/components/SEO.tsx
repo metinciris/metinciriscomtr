@@ -192,6 +192,11 @@ const PAGE_METADATA: Record<string, { title: string; description: string; keywor
         description: 'Patoloji konsensus toplantılarını takip edin. Toplantı tarihleri, zoom/meet linkleri ve bildirim sistemi.',
         keywords: 'patoloji konsensus, toplantı takibi, patoloji eğitim, online toplantı'
     },
+    'pubmed-makale-takip': {
+        title: 'PubMed Patoloji Günlük Makale Takibi | Prof Dr Metin Çiriş',
+        description: 'En güncel patoloji makalelerini PubMed üzerinden takip edin. Günlük makale akışı ve özetleri.',
+        keywords: 'patoloji makale, PubMed takip, günlük patoloji, tıp literatürü'
+    },
     '404': {
         title: 'Sayfa Bulunamadı | Prof Dr Metin Çiriş',
         description: 'Aradığınız sayfa mevcut değil.'
@@ -211,6 +216,7 @@ const getStructuredData = (currentPage: string, meta: { title: string; descripti
         { name: "Ayın Vakası", url: `${BASE_URL}/ayin-vakasi` },
         { name: "SVS Mikroskopi", url: `${BASE_URL}/svs-reader` },
         { name: "PubMed Trend", url: `${BASE_URL}/pubmed-trend` },
+        { name: "PubMed Takip", url: `${BASE_URL}/pubmed-makale-takip` },
         { name: "Konsensus", url: `${BASE_URL}/konsensus` },
         { name: "Diğer Çalışmalar", url: `${BASE_URL}/diger-calismalar` }
     ];
