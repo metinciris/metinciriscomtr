@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { PageContainer } from '../components/PageContainer';
 import { MetroTile } from '../components/MetroTile';
-import { FileBarChart, Activity, FileText, AlertCircle, Microscope, Box, BookOpen, Calculator, TrendingUp, Trophy, Users, Search, Briefcase, Calendar } from 'lucide-react';
+import { FileBarChart, Activity, FileText, AlertCircle, Microscope, Box, BookOpen, Calculator, TrendingUp, Trophy, Users, Search, Briefcase, Calendar, Image } from 'lucide-react';
 
 
 interface DigerCalismalarProps {
@@ -148,6 +148,14 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
             style: { backgroundColor: '#3b82f6' },
             page: 'pubmed-makale-takip',
             category: 'patoloji'
+        },
+        {
+            title: "AVIF Dönüştürücü",
+            subtitle: "Resimleri AVIF formatına dönüştür",
+            icon: <Image size={40} />,
+            style: { backgroundColor: '#059669' },
+            page: 'avif-donusturucu',
+            category: 'diger'
         },
     ];
 
