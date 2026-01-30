@@ -200,7 +200,7 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
                         <span className="px-3 py-1 bg-white/20 rounded-full text-sm font-medium">Araçlar & Projeler</span>
                     </div>
                     <h1 className="text-4xl md:text-5xl font-black mb-4 leading-tight">
-                        Diğer Çalışmalar (v2.1)
+                        Diğer Çalışmalar (v2.2)
                     </h1>
                     <p className="text-lg md:text-xl text-white/80 max-w-2xl">
                         Patoloji araçları, eğitim materyalleri ve kişisel projeler.
@@ -242,7 +242,16 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredItems.map((item, idx) => (
+                {/* Sjogren Raporlama - Sabit (Filtrelerden Bağımsız) */}
+                <MetroTile
+                    title="Sjogren Raporlama"
+                    subtitle="Minör tükrük bezi biyopsisi raporlama aracı"
+                    icon={<Microscope size={40} />}
+                    color="bg-indigo-600"
+                    size="medium"
+                    onClick={() => handleNavigate('sjogren-raporlama')}
+                />
+                {filteredItems.filter(i => i.page !== 'sjogren-raporlama').map((item, idx) => (
                     <MetroTile
                         key={idx}
                         title={item.title}
