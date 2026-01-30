@@ -40,12 +40,14 @@ interface ConversionItem {
 
 export function AvifConverter() {
     const [items, setItems] = useState<ConversionItem[]>([]);
-    const [quality, setQuality] = useState(40); // User's example uses 40
     const [isProcessing, setIsProcessing] = useState(false);
     const [selectedItem, setSelectedItem] = useState<ConversionItem | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isDragging, setIsDragging] = useState(false);
     const [isEngineReady, setIsEngineReady] = useState(false);
+
+    // Fixed quality setting from user's example
+    const QUALITY = 40;
 
     // Initialize AVIF Engine
     useEffect(() => {
@@ -104,24 +106,20 @@ export function AvifConverter() {
         updateItemStatus(nextItem.id, 'processing');
 
         try {
-            const img = new Image();
-            img.src = nextItem.previewUrl;
-            await new Promise((resolve, reject) => {
-                img.onload = resolve;
-                img.onerror = reject;
-            });
-
+            // Using createImageBitmap for better efficiency as per example
+            const bm = await createImageBitmap(nextItem.file);
             const canvas = document.createElement('canvas');
-            canvas.width = img.width;
-            canvas.height = img.height;
-            const ctx = canvas.getContext('2d');
+            canvas.width = bm.width;
+            canvas.height = bm.height;
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
             if (!ctx) throw new Error('Canvas context could not be created');
 
-            ctx.drawImage(img, 0, 0);
+            ctx.drawImage(bm, 0, 0);
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            bm.close?.();
 
-            // Convert to AVIF using new API (v2+)
-            const avifBuffer = await encode(imageData, { quality });
+            // Convert to AVIF using fixed quality: 40
+            const avifBuffer = await encode(imageData, { quality: QUALITY });
             const resultBlob = new Blob([avifBuffer], { type: 'image/avif' });
             const resultUrl = URL.createObjectURL(resultBlob);
 
@@ -134,8 +132,8 @@ export function AvifConverter() {
                         resultUrl,
                         newSize: resultBlob.size,
                         progress: 100,
-                        width: img.width,
-                        height: img.height
+                        width: canvas.width,
+                        height: canvas.height
                     }
                     : item
             ));
@@ -226,26 +224,19 @@ export function AvifConverter() {
                 <div className="lg:col-span-1 space-y-6">
                     <div className="bg-white p-6 rounded-3xl shadow-xl border border-gray-100">
                         <h3 className="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
-                            <Layers className="w-5 h-5 text-emerald-600" />
-                            Ayarlar
+                            <ImageIcon className="w-5 h-5 text-emerald-600" />
+                            Dönüştürücü
                         </h3>
 
                         <div className="space-y-4">
-                            <div className="flex justify-between items-center mb-2">
-                                <label className="text-sm font-medium text-gray-600">Kalite</label>
-                                <span className="px-2 py-1 bg-emerald-50 text-emerald-700 rounded-lg text-sm font-bold">%{quality}</span>
-                            </div>
-                            <input
-                                type="range"
-                                min="1"
-                                max="100"
-                                value={quality}
-                                onChange={(e) => setQuality(parseInt(e.target.value))}
-                                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-emerald-600"
-                            />
-                            <p className="text-xs text-gray-400 italic">
-                                Yüksek değerler daha iyi kalite ve daha büyük dosya boyutu sağlar. Genellikle 30-50 idealdir.
+                            <p className="text-sm text-gray-500">
+                                Yüklediğiniz resimler otomatik olarak optimize edilir ve AVIF formatına dönüştürülür.
                             </p>
+                            <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100 italic">
+                                <p className="text-xs text-emerald-700 leading-relaxed text-center">
+                                    "Yüksek kalite, düşük dosya boyutu" ayarı aktif.
+                                </p>
+                            </div>
                         </div>
 
                         <div className="mt-8 pt-6 border-t border-gray-100 flex flex-col gap-3">
