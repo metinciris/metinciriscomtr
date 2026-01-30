@@ -14,7 +14,7 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
 
     const items = [
         {
-            title: "Sjogren Raporlama",
+            title: "✨ YENİ: Sjogren Raporlama",
             subtitle: "Minör tükrük bezi biyopsisi (Sjögren)",
             icon: <Microscope size={40} />,
             color: "bg-[#3498DB]",
@@ -192,7 +192,7 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
     return (
         <PageContainer>
             {/* Hero Banner */}
-            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 via-teal-700 to-cyan-800 text-white p-10 md:p-14 mb-10">
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-violet-600 via-purple-700 to-indigo-800 text-white p-10 md:p-14 mb-10">
                 <div className="absolute inset-0 bg-black/10" />
                 <div className="relative z-10">
                     <div className="flex items-center gap-3 mb-4">
