@@ -12,7 +12,7 @@
     "scoreHome": 1,
     "scoreAway": 1,
     "source": "football-data",
-    "lastFetchedAt": "2026-01-30T06:58:47.534Z"
+    "lastFetchedAt": "2026-01-30T18:53:45.946Z"
   },
   {
     "id": "football-UEFAEuropaLeague-6",
@@ -27,7 +27,7 @@
     "scoreHome": 0,
     "scoreAway": 1,
     "source": "fixturedownload",
-    "lastFetchedAt": "2026-01-30T06:58:47.905Z"
+    "lastFetchedAt": "2026-01-30T18:53:46.327Z"
   },
   {
     "id": "football-CL-551967",
@@ -42,7 +42,7 @@
     "scoreHome": 2,
     "scoreAway": 0,
     "source": "football-data",
-    "lastFetchedAt": "2026-01-30T06:58:47.534Z"
+    "lastFetchedAt": "2026-01-30T18:53:45.946Z"
   },
   {
     "id": "football-UEFAEuropaLeague-7",
@@ -53,10 +53,10 @@
     "awayTeam": "Fenerbahçe",
     "startTimeUTC": "2026-01-29 20:00:00Z",
     "startTimeLocal": "2026-01-29T23:00:00+03:00",
-    "status": "scheduled",
-    "scoreHome": null,
-    "scoreAway": null,
+    "status": "finished",
+    "scoreHome": 1,
+    "scoreAway": 1,
     "source": "fixturedownload",
-    "lastFetchedAt": "2026-01-30T06:58:47.905Z"
+    "lastFetchedAt": "2026-01-30T18:53:46.327Z"
   }
 ]
