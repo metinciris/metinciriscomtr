@@ -14,11 +14,10 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
 
     const items = [
         {
-            title: "SJOGREN RAPORLAMA (YENİ)",
+            title: "Sjogren Raporlama",
             subtitle: "Minör tükrük bezi biyopsisi raporlama aracı",
             icon: <Microscope size={40} />,
-            color: "bg-yellow-400",
-            textColor: "text-black",
+            color: "bg-indigo-600",
             page: 'sjogren-raporlama',
             category: 'patoloji'
         },
@@ -250,6 +249,7 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
                         subtitle={item.subtitle}
                         icon={item.icon}
                         color={item.color || ''}
+                        textColor={(item as any).textColor}
                         style={item.style}
                         size="medium"
                         onClick={() => handleNavigate(item.page)}
