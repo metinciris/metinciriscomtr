@@ -45,11 +45,10 @@ interface TheSportsDBEvent {
 const API_BASE = 'https://www.thesportsdb.com/api/v1/json/123';
 
 // Major European Competitions
-const BASKETBALL_LEAGUES = ['4546', '4547', '4548', '4363']; // EuroLeague, EuroCup, BCL, FIBA Europe Cup
+const BASKETBALL_LEAGUES = ['4363', '4546', '4547', '4548']; // EuroLeague, EuroCup, BCL, FIBA Europe Cup
 const VOLLEYBALL_LEAGUES = [
-    '5616', '5615', '5614', // CEV CL (M), Cup (M), Challenge (M)
-    '5611', '5610', '5612', // World (M), World (W), Euro (W)
-    '4912', '5613', '5621', '5622' // Additional European Volleyball references
+    '5610', '5612', // Womens World & Euro (Available on TheSportsDB)
+    '5616', '5615', '5614' // CEV CL, Cup, Challenge (M) - Fallback/Current
 ];
 
 // Turkish Team Keywords
@@ -277,19 +276,8 @@ export function EuroMaclar() {
                     if (data.events && Array.isArray(data.events)) {
                         const m = data.events.map((e: TheSportsDBEvent) => normalizeEvent(e, sport));
 
-                        // Filtering logic:
-                        // 1. Show ALL matches for CEV Champions League (since user specifically requested it)
-                        // 2. Show ALL matches for EuroLeague (standard practice for this page)
-                        // 3. For others, only show if a Turkish team is involved
-                        const filtered = m.filter((match: EuroMatch) => {
-                            const isChampsLeague = match.competition.toLowerCase().includes('champions league');
-                            const isEuroLeague = match.competition.toLowerCase().includes('euroleague');
-                            const hasTurkish = matchesTurkishFilter(match.homeTeam) || matchesTurkishFilter(match.awayTeam);
-
-                            return isChampsLeague || isEuroLeague || hasTurkish;
-                        });
-
-                        allMatches.push(...filtered);
+                        // Filtering logic: Show ALL matches for specified leagues
+                        allMatches.push(...m);
                     }
                 };
 
@@ -352,9 +340,9 @@ export function EuroMaclar() {
                 <div className="relative z-10">
                     <div className="flex items-center gap-4 mb-2">
                         <Trophy size={32} className="text-yellow-400" />
-                        <h1 className="text-3xl md:text-5xl font-black tracking-tighter uppercase italic">AVRUPA ARENASI</h1>
+                        <h1 className="text-3xl md:text-5xl font-black tracking-tighter uppercase italic">AVRUPA KUPALARI</h1>
                     </div>
-                    <p className="text-slate-400 font-bold uppercase tracking-widest text-xs mb-8">EuroLeague • CEV Champions League • Türk Takımları</p>
+                    <p className="text-slate-400 font-bold uppercase tracking-widest text-xs mb-8">Erkek basketbol Avrupa • Kadın Voleybol CEV</p>
 
                     <div className="flex gap-4">
                         <div className={`px-6 py-4 rounded-2xl flex flex-col gap-1 border-2 ${todaysMatches.length > 0 ? 'bg-yellow-400 border-yellow-500 text-slate-900' : 'bg-slate-900 border-slate-800 text-slate-500'}`}>
@@ -373,7 +361,7 @@ export function EuroMaclar() {
                             onClick={() => setSportFilter(f as any)}
                             className={`px-6 py-3 rounded-xl text-[11px] font-black uppercase transition-all ${sportFilter === f ? 'bg-slate-950 text-white shadow-lg scale-105' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
                         >
-                            {f === 'all' ? 'TÜMÜ' : f === 'basketball' ? 'BASKETBOL' : 'VOLEYBOL'}
+                            {f === 'all' ? 'TÜMÜ' : f === 'basketball' ? 'ERKEK BASKETBOL AVRUPA' : 'KADIN VOLEYBOL CEV'}
                         </button>
                     ))}
                 </div>
