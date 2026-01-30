@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
-import encode from '@jsquash/avif';
+import { encode } from '@jsquash/avif';
 
 interface ConversionItem {
     id: string;
@@ -98,7 +98,9 @@ export function AvifConverter() {
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
             // Convert to AVIF
-            const avifBuffer = await encode(imageData, { quality });
+            // Mapping quality (0-100) to cqLevel (63-0). In AVIF, lower cqLevel means higher quality.
+            const cqLevel = Math.round((1 - quality / 100) * 63);
+            const avifBuffer = await encode(imageData, { cqLevel });
             const resultBlob = new Blob([avifBuffer], { type: 'image/avif' });
 
             setItems(prev => prev.map(item =>
@@ -236,8 +238,8 @@ export function AvifConverter() {
                                 disabled={!isAllDone}
                                 onClick={downloadAllAsZip}
                                 className={`w-full py-4 rounded-2xl font-bold transition-all flex items-center justify-center gap-2 ${isAllDone
-                                        ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-500/20'
-                                        : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                    ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-500/20'
+                                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                                     }`}
                             >
                                 <FileArchive className="w-5 h-5" />
