@@ -45,6 +45,7 @@ export function ZiyaretMesaji() {
                 placeholder="ornek@email.com"
                 inputMode="email"
                 autoComplete="email"
+                className="border-2 border-slate-300 bg-slate-50 focus:border-[#FF8C00] focus:bg-white"
               />
               <p className="text-muted-foreground mt-1 m-0 text-xs">
                 İsteğe bağlıdır. Yazarsanız, size geri dönüş yaparken kullanılabilir.
@@ -62,6 +63,7 @@ export function ZiyaretMesaji() {
                 name="entry.480799618"
                 placeholder="Adınız ve Soyadınız"
                 required
+                className="border-2 border-slate-300 bg-slate-50 focus:border-[#FF8C00] focus:bg-white"
               />
             </div>
 
@@ -74,7 +76,7 @@ export function ZiyaretMesaji() {
                 id="message"
                 name="entry.666122626"
                 placeholder="Görüş, öneri veya sorularınızı buraya yazabilirsiniz..."
-                className="min-h-[200px]"
+                className="min-h-[200px] border-2 border-slate-300 bg-slate-50 focus:border-[#FF8C00] focus:bg-white"
                 required
               />
             </div>
