@@ -192,7 +192,7 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
     return (
         <PageContainer>
             {/* Hero Banner */}
-            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-violet-600 via-purple-700 to-indigo-800 text-white p-10 md:p-14 mb-10">
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-orange-600 via-red-700 to-rose-800 text-white p-10 md:p-14 mb-10">
                 <div className="absolute inset-0 bg-black/10" />
                 <div className="relative z-10">
                     <div className="flex items-center gap-3 mb-4">
@@ -200,7 +200,7 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
                         <span className="px-3 py-1 bg-white/20 rounded-full text-sm font-medium">Araçlar & Projeler</span>
                     </div>
                     <h1 className="text-4xl md:text-5xl font-black mb-4 leading-tight">
-                        Diğer Çalışmalar (v2.2)
+                        Diğer Çalışmalar (v3.0)
                     </h1>
                     <p className="text-lg md:text-xl text-white/80 max-w-2xl">
                         Patoloji araçları, eğitim materyalleri ve kişisel projeler.
@@ -242,12 +242,12 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {/* Sjogren Raporlama - Sabit (Filtrelerden Bağımsız) */}
+                {/* SJOGREN RAPORLAMA - STATIK VE SABIT (V3) */}
                 <MetroTile
-                    title="Sjogren Raporlama"
+                    title="SJOGREN RAPORLAMA"
                     subtitle="Minör tükrük bezi biyopsisi raporlama aracı"
                     icon={<Microscope size={40} />}
-                    color="bg-indigo-600"
+                    color="bg-black text-white"
                     size="medium"
                     onClick={() => handleNavigate('sjogren-raporlama')}
                 />
