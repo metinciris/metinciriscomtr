@@ -197,6 +197,11 @@ const PAGE_METADATA: Record<string, { title: string; description: string; keywor
         description: 'En güncel patoloji makalelerini PubMed üzerinden takip edin. Günlük makale akışı ve özetleri.',
         keywords: 'patoloji makale, PubMed takip, günlük patoloji, tıp literatürü'
     },
+    'avif-donusturucu': {
+        title: 'AVIF Dönüştürücü | Prof Dr Metin Çiriş',
+        description: 'Resimlerinizi modern AVIF formatına dönüştürerek kaliteden ödün vermeden dosya boyutlarını küçültün. Tamamen tarayıcı bazlı ve güvenli.',
+        keywords: 'avif dönüştürücü, resim sıkıştırma, avif converter, kaliteli resim dönüştürme, online avif'
+    },
     '404': {
         title: 'Sayfa Bulunamadı | Prof Dr Metin Çiriş',
         description: 'Aradığınız sayfa mevcut değil.'
@@ -217,6 +222,7 @@ const getStructuredData = (currentPage: string, meta: { title: string; descripti
         { name: "SVS Mikroskopi", url: `${BASE_URL}/svs-reader` },
         { name: "PubMed Trend", url: `${BASE_URL}/pubmed-trend` },
         { name: "PubMed Takip", url: `${BASE_URL}/pubmed-makale-takip` },
+        { name: "AVIF Dönüştürücü", url: `${BASE_URL}/avif-donusturucu` },
         { name: "Konsensus", url: `${BASE_URL}/konsensus` },
         { name: "Diğer Çalışmalar", url: `${BASE_URL}/diger-calismalar` }
     ];
