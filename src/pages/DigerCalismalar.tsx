@@ -46,6 +46,14 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
             category: 'patoloji'
         },
         {
+            title: "Sjögren Raporlama",
+            subtitle: "Minör tükrük bezi biyopsisi",
+            icon: <Microscope size={40} />,
+            color: "bg-[#3498DB]",
+            page: 'sjogren-raporlama',
+            category: 'patoloji'
+        },
+        {
             title: "Deprem",
             subtitle: "Son depremler (Kandilli)",
             icon: <AlertCircle size={40} />,

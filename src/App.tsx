@@ -143,6 +143,9 @@ const PubMedMakaleTakvim = React.lazy(() =>
 const AvifConverter = React.lazy(() =>
   import('./pages/AvifConverter').then((m) => ({ default: m.AvifConverter })),
 );
+const SjogrenRaporlama = React.lazy(() =>
+  import('./pages/SjogrenRaporlama').then((m) => ({ default: m.SjogrenRaporlama })),
+);
 
 export default function App() {
   const [currentPage, setCurrentPage] = React.useState('home');
@@ -154,7 +157,7 @@ export default function App() {
     'donem-3', 'galeri', 'portfolyo', 'sinav-analizi', 'yayinlar', 'podcast',
     'blog', 'github', 'facebook', 'linkedin', 'diger-calismalar', 'fetus-uzunluklari',
     'rcb-calculator', 'gist-raporlama', 'makale', 'deprem', 'svs-reader',
-    'tani-tuzaklari', 'ayin-vakasi', 'prizma-3d', 'makale-takip', 'lenf-nodu', 'finans', 'pubmed-trend', 'online-test-analiz', 'euro-maclar', 'konsensus', 'pubmed-makale-takip', 'avif-donusturucu'
+    'tani-tuzaklari', 'ayin-vakasi', 'prizma-3d', 'makale-takip', 'lenf-nodu', 'finans', 'pubmed-trend', 'online-test-analiz', 'euro-maclar', 'konsensus', 'pubmed-makale-takip', 'avif-donusturucu', 'sjogren-raporlama'
   ];
 
   // Path'ten sayfa adını çıkar
@@ -318,6 +321,9 @@ export default function App() {
 
       case 'avif-donusturucu':
         return <AvifConverter />;
+
+      case 'sjogren-raporlama':
+        return <SjogrenRaporlama />;
 
       case '404':
         return <NotFound onNavigate={navigate} />;

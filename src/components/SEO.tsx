@@ -202,6 +202,11 @@ const PAGE_METADATA: Record<string, { title: string; description: string; keywor
         description: 'Resimlerinizi modern AVIF formatına dönüştürerek kaliteden ödün vermeden dosya boyutlarını küçültün. Tamamen tarayıcı bazlı ve güvenli.',
         keywords: 'avif dönüştürücü, resim sıkıştırma, avif converter, kaliteli resim dönüştürme, online avif'
     },
+    'sjogren-raporlama': {
+        title: 'Sjögren Raporlama Aracı | Prof Dr Metin Çiriş',
+        description: 'Minör tükrük bezi biyopsileri için Sjögren sendromu raporlama kriterleri ve otomatik rapor oluşturucu.',
+        keywords: 'sjögren raporlama, minör tükrük bezi, patoloji raporu, fokus skoru, sjögren sendromu'
+    },
     '404': {
         title: 'Sayfa Bulunamadı | Prof Dr Metin Çiriş',
         description: 'Aradığınız sayfa mevcut değil.'
