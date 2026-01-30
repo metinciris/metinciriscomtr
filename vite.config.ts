@@ -9,6 +9,9 @@ const __dirname = path.dirname(__filename);
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  worker: {
+    format: 'es',
+  },
   base: '/',
   resolve: {
     alias: {
