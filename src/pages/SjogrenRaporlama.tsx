@@ -208,8 +208,8 @@ export default function SjogrenRaporlama() {
 
     // --- Styling ---
     const cardBase = "bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden";
-    const headerBase = "px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50";
-    const labelBase = "block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2.5";
+    const headerBase = "px-4 py-3 border-b border-slate-100 flex items-center justify-between bg-slate-50/50";
+    const labelBase = "block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2";
 
     // Dynamic Color Helpers
     const getYeterlilikColor = (id: string, isSelected: boolean) => {
@@ -260,32 +260,32 @@ export default function SjogrenRaporlama() {
 
     return (
         <PageContainer>
-            <div className="max-w-7xl mx-auto py-4 px-4">
-                {/* Header */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 bg-indigo-600 rounded-xl shadow-lg shadow-indigo-200">
-                            <Microscope className="w-6 h-6 text-white" />
+            <div className="max-w-7xl mx-auto py-1 px-4">
+                {/* Header - More Compact */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-indigo-600 rounded-lg shadow-lg shadow-indigo-200">
+                            <Microscope className="w-5 h-5 text-white" />
                         </div>
                         <div>
-                            <h1 className="text-2xl font-black text-slate-900 leading-tight">Sjögren Raporlama</h1>
-                            <p className="text-sm text-slate-500 font-medium">Minör tükrük bezi biyopsisi standardize rapor aracı</p>
+                            <h1 className="text-xl font-black text-slate-900 leading-tight">Sjögren Raporlama</h1>
+                            <p className="text-[11px] text-slate-500 font-medium">Minör tükrük bezi biyopsisi rapor aracı</p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
                         <button
                             onClick={resetForm}
-                            className="flex items-center gap-2 px-4 py-2 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all text-sm font-bold"
+                            className="flex items-center gap-2 px-3 py-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all text-xs font-bold"
                         >
-                            <RotateCcw className="w-4 h-4" />
+                            <RotateCcw className="w-3.5 h-3.5" />
                             Sıfırla
                         </button>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
                     {/* Left Column - Inputs */}
-                    <div className="lg:col-span-7 space-y-4">
+                    <div className="lg:col-span-7 space-y-3">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {/* Boyama Bilgisi */}
                             <div className={cardBase}>
@@ -460,9 +460,9 @@ export default function SjogrenRaporlama() {
                     </div>
 
                     {/* Right Column - Report Preview (Sticky) */}
-                    <div className="lg:col-span-5 sticky top-4">
-                        <div className="bg-white rounded-2xl border border-indigo-100 shadow-xl shadow-indigo-50/50 overflow-hidden flex flex-col h-full max-h-[calc(100vh-120px)]">
-                            <div className="p-4 border-b border-slate-100 bg-indigo-50/30 flex items-center justify-between">
+                    <div className="lg:col-span-5 sticky top-2">
+                        <div className="bg-white rounded-2xl border border-indigo-100 shadow-xl shadow-indigo-50/50 overflow-hidden flex flex-col h-full max-h-[calc(100vh-80px)]">
+                            <div className="p-3 border-b border-slate-100 bg-indigo-50/30 flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                     <div className="p-1.5 bg-indigo-600 rounded-lg">
                                         <FileText className="w-4 h-4 text-white" />
