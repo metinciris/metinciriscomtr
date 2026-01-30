@@ -143,9 +143,7 @@ const PubMedMakaleTakvim = React.lazy(() =>
 const AvifConverter = React.lazy(() =>
   import('./pages/AvifConverter').then((m) => ({ default: m.AvifConverter })),
 );
-const SjogrenRaporlama = React.lazy(() =>
-  import('./pages/SjogrenRaporlama').then((m) => ({ default: m.SjogrenRaporlama })),
-);
+const SjogrenRaporlama = React.lazy(() => import('./pages/SjogrenRaporlama'));
 
 export default function App() {
   const [currentPage, setCurrentPage] = React.useState('home');

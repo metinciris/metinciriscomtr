@@ -35,7 +35,7 @@ const YETERLILIK_OPTS = [
     { id: "yok", label: "Glandüler doku yok." },
 ];
 
-export function SjogrenRaporlama() {
+export default function SjogrenRaporlama() {
     // --- State ---
     const [stains, setStains] = useState<string[]>(["Masson Trikrom boyası"]);
     const [yeterlilik, setYeterlilik] = useState("yeterli");
@@ -287,8 +287,8 @@ export function SjogrenRaporlama() {
                                             key={opt.id}
                                             onClick={() => setYeterlilik(opt.id)}
                                             className={`flex items-center gap-3 px-4 py-3 rounded-xl border text-sm text-left transition-all ${yeterlilik === opt.id
-                                                    ? "bg-emerald-50 border-emerald-200 text-emerald-800 font-bold"
-                                                    : "bg-white border-slate-100 text-slate-600 hover:bg-slate-50"
+                                                ? "bg-emerald-50 border-emerald-200 text-emerald-800 font-bold"
+                                                : "bg-white border-slate-100 text-slate-600 hover:bg-slate-50"
                                                 }`}
                                         >
                                             <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${yeterlilik === opt.id ? "border-emerald-500 bg-emerald-500" : "border-slate-300"
@@ -330,8 +330,8 @@ export function SjogrenRaporlama() {
                                                     key={opt.id}
                                                     onClick={() => setFokus(opt.id)}
                                                     className={`px-3 py-2.5 rounded-xl border text-sm text-center transition-all ${fokus === opt.id
-                                                            ? "bg-indigo-600 border-indigo-600 text-white font-bold shadow-lg shadow-indigo-600/20"
-                                                            : "bg-white border-slate-100 text-slate-600 hover:bg-slate-50"
+                                                        ? "bg-indigo-600 border-indigo-600 text-white font-bold shadow-lg shadow-indigo-600/20"
+                                                        : "bg-white border-slate-100 text-slate-600 hover:bg-slate-50"
                                                         }`}
                                                 >
                                                     {opt.label}
@@ -351,8 +351,8 @@ export function SjogrenRaporlama() {
                                                         key={opt.id}
                                                         onClick={() => setFibrozis(opt.id)}
                                                         className={`px-4 py-2.5 rounded-xl border text-sm transition-all ${fibrozis === opt.id
-                                                                ? "bg-slate-800 border-slate-800 text-white font-bold"
-                                                                : "bg-white border-slate-100 text-slate-600 hover:bg-slate-50"
+                                                            ? "bg-slate-800 border-slate-800 text-white font-bold"
+                                                            : "bg-white border-slate-100 text-slate-600 hover:bg-slate-50"
                                                             }`}
                                                     >
                                                         {opt.label}
@@ -370,8 +370,8 @@ export function SjogrenRaporlama() {
                                                         key={opt.id}
                                                         onClick={() => setYaglanma(opt.id)}
                                                         className={`px-4 py-2.5 rounded-xl border text-sm transition-all ${yaglanma === opt.id
-                                                                ? "bg-amber-500 border-amber-500 text-white font-bold shadow-lg shadow-amber-500/20"
-                                                                : "bg-white border-slate-100 text-slate-600 hover:bg-slate-50"
+                                                            ? "bg-amber-500 border-amber-500 text-white font-bold shadow-lg shadow-amber-500/20"
+                                                            : "bg-white border-slate-100 text-slate-600 hover:bg-slate-50"
                                                             }`}
                                                     >
                                                         {opt.label}

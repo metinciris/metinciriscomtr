@@ -14,10 +14,11 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
 
     const items = [
         {
-            title: "Sjogren Raporlama",
-            subtitle: "Minor tukruk bezi biyopsisi (Sjogren)",
+            title: "SJOGREN RAPORLAMA (YENİ)",
+            subtitle: "Minör tükrük bezi biyopsisi raporlama aracı",
             icon: <Microscope size={40} />,
-            color: "bg-[#3498DB]",
+            color: "bg-yellow-400",
+            textColor: "text-black",
             page: 'sjogren-raporlama',
             category: 'patoloji'
         },
@@ -200,7 +201,7 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
                         <span className="px-3 py-1 bg-white/20 rounded-full text-sm font-medium">Araçlar & Projeler</span>
                     </div>
                     <h1 className="text-4xl md:text-5xl font-black mb-4 leading-tight">
-                        Diğer Çalışmalar (v2)
+                        Diğer Çalışmalar (v2.1)
                     </h1>
                     <p className="text-lg md:text-xl text-white/80 max-w-2xl">
                         Patoloji araçları, eğitim materyalleri ve kişisel projeler.
