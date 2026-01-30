@@ -25,7 +25,7 @@ export function Iletisim() {
           <div className="bg-white p-6 rounded-lg shadow-sm h-full">
             <div className="flex justify-center mb-6">
               <img
-                src="/img/metinciris.jpg"
+                src="/resim/metinciris.avif"
                 alt="Prof. Dr. Metin Çiriş"
                 className="rounded-lg shadow-md"
                 style={{ width: '300px', height: '423px', objectFit: 'cover' }}

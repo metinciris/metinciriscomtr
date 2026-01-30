@@ -1077,7 +1077,7 @@ export function OnlineTestAnaliz() {
                     const isOpen = currentStep === step.id;
 
                     return (
-                        <Card key={step.id} className="overflow-hidden">
+                        <Card key={step.id} className="overflow-hidden bg-gradient-to-br from-slate-50 to-blue-50/30 shadow-sm hover:shadow-md transition-shadow">
                             <div
                                 ref={(el) => {
                                     headerRefs.current[step.id] = el;
