@@ -14,6 +14,14 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
 
     const items = [
         {
+            title: "Sjogren Raporlama",
+            subtitle: "Minör tükrük bezi biyopsisi (Sjögren)",
+            icon: <Microscope size={40} />,
+            color: "bg-[#3498DB]",
+            page: 'sjogren-raporlama',
+            category: 'patoloji'
+        },
+        {
             title: "Sınav Analizi",
             subtitle: "Sınav sonuçları ve analizleri",
             icon: <FileBarChart size={40} />,
@@ -43,14 +51,6 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
             icon: <FileText size={40} />,
             color: "bg-[#9B59B6]",
             page: 'gist-raporlama',
-            category: 'patoloji'
-        },
-        {
-            title: "Sjögren Raporlama",
-            subtitle: "Minör tükrük bezi biyopsisi",
-            icon: <Microscope size={40} />,
-            color: "bg-[#3498DB]",
-            page: 'sjogren-raporlama',
             category: 'patoloji'
         },
         {
