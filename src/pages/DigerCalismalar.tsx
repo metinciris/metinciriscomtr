@@ -167,7 +167,6 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
         },
     ];
 
-    // Fallback if onNavigate is not provided (though it should be from App.tsx)
     const handleNavigate = (page: string) => {
         if (onNavigate) {
             onNavigate(page);
@@ -192,19 +191,20 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
     return (
         <PageContainer>
             {/* Hero Banner */}
-            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-orange-600 via-red-700 to-rose-800 text-white p-10 md:p-14 mb-10">
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-violet-700 to-purple-800 text-white p-10 md:p-14 mb-10">
                 <div className="absolute inset-0 bg-black/10" />
                 <div className="relative z-10">
                     <div className="flex items-center gap-3 mb-4">
-                        <Briefcase className="w-8 h-8" />
-                        <span className="px-3 py-1 bg-white/20 rounded-full text-sm font-medium">Araçlar & Projeler</span>
+                        <div className="p-2 bg-white/20 rounded-lg backdrop-blur-md">
+                            <Briefcase className="w-6 h-6" />
+                        </div>
+                        <span className="px-3 py-1 bg-white/10 rounded-full text-xs font-bold tracking-wider uppercase">Patoloji & Yazılım</span>
                     </div>
                     <h1 className="text-4xl md:text-5xl font-black mb-4 leading-tight">
-                        Diğer Çalışmalar (v3.0)
+                        Diğer Çalışmalar
                     </h1>
-                    <p className="text-lg md:text-xl text-white/80 max-w-2xl">
-                        Patoloji araçları, eğitim materyalleri ve kişisel projeler.
-                        Kategorilere göre filtreleyin veya arama yapın.
+                    <p className="text-lg md:text-xl text-white/80 max-w-2xl font-medium">
+                        Raporlama araçları, patoloji eğitim materyalleri ve yazılım projeleri.
                     </p>
                 </div>
             </div>
@@ -242,12 +242,12 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {/* SJOGREN RAPORLAMA - STATIK VE SABIT (V3) */}
+                {/* SJOGREN RAPORLAMA - YENİ ETİKETLİ */}
                 <MetroTile
-                    title="SJOGREN RAPORLAMA"
-                    subtitle="Minör tükrük bezi biyopsisi raporlama aracı"
+                    title="Sjögren Raporlama"
+                    subtitle="Minör tükrük bezi biyopsisi (Yeni)"
                     icon={<Microscope size={40} />}
-                    color="bg-black text-white"
+                    color="bg-indigo-600"
                     size="medium"
                     onClick={() => handleNavigate('sjogren-raporlama')}
                 />

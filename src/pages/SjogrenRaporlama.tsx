@@ -207,30 +207,28 @@ export default function SjogrenRaporlama() {
     };
 
     // --- Styling ---
-    const cardBase = "bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden";
-    const headerBase = "px-6 py-4 border-b border-slate-100 flex items-center justify-between";
-    const labelBase = "block text-xs font-bold text-slate-500 uppercase tracking-wider mb-3";
+    const cardBase = "bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden";
+    const headerBase = "px-4 py-3 border-b border-slate-100 flex items-center justify-between bg-slate-50/50";
+    const labelBase = "block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2";
 
     return (
         <PageContainer>
-            <div className="max-w-6xl mx-auto py-8 px-4">
-                {/* Hero Header */}
-                <div className="bg-slate-900 rounded-3xl p-8 mb-8 text-white relative overflow-hidden shadow-xl">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full -mr-32 -mt-32 blur-3xl" />
-                    <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-                        <div>
-                            <div className="flex items-center gap-3 mb-3">
-                                <div className="p-2 bg-blue-500/20 rounded-lg">
-                                    <Microscope className="w-6 h-6 text-blue-400" />
-                                </div>
-                                <span className="text-blue-400 text-sm font-bold tracking-widest uppercase">Patoloji Raporlama</span>
-                            </div>
-                            <h1 className="text-3xl font-black text-white">Sjögren Raporlama</h1>
-                            <p className="text-slate-400 mt-2">Minör tükrük bezi biyopsisi için standardize rapor oluşturucu</p>
+            <div className="max-w-7xl mx-auto py-4 px-4">
+                {/* Compact Header */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-indigo-600 rounded-xl shadow-lg shadow-indigo-200">
+                            <Microscope className="w-6 h-6 text-white" />
                         </div>
+                        <div>
+                            <h1 className="text-2xl font-black text-slate-900 leading-tight">Sjögren Raporlama</h1>
+                            <p className="text-sm text-slate-500 font-medium">Minör tükrük bezi biyopsisi standardize rapor aracı</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-3">
                         <button
                             onClick={resetForm}
-                            className="flex items-center gap-2 px-6 py-3 bg-white/5 hover:bg-white/10 rounded-xl transition-all border border-white/10 text-sm font-medium"
+                            className="flex items-center gap-2 px-4 py-2 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all text-sm font-bold"
                         >
                             <RotateCcw className="w-4 h-4" />
                             Sıfırla
@@ -238,121 +236,116 @@ export default function SjogrenRaporlama() {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                    {/* Left Column - Inputs */}
-                    <div className="lg:col-span-7 space-y-6">
-                        {/* Boyama Bilgisi */}
-                        <div className={cardBase}>
-                            <div className={headerBase}>
-                                <div className="flex items-center gap-3 text-slate-800 font-bold">
-                                    <PageContainer className="p-0 m-0"><div className="w-2 h-2 rounded-full bg-blue-500" /></PageContainer>
-                                    Boyama Bilgisi
-                                </div>
-                                <button onClick={addStain} className="text-blue-600 hover:text-blue-700 p-1 rounded-lg hover:bg-blue-50 transition-colors">
-                                    <Plus className="w-5 h-5" />
-                                </button>
-                            </div>
-                            <div className="p-6 space-y-3">
-                                {stains.map((stain, idx) => (
-                                    <div key={idx} className="flex gap-2">
-                                        <input
-                                            type="text"
-                                            value={stain}
-                                            onChange={(e) => updateStain(idx, e.target.value)}
-                                            placeholder="Boyama adı..."
-                                            className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-                                        />
-                                        {stains.length > 1 && (
-                                            <button onClick={() => removeStain(idx)} className="text-rose-500 hover:bg-rose-50 p-2 rounded-xl transition-colors">
-                                                <Trash2 className="w-5 h-5" />
-                                            </button>
-                                        )}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                    {/* Left Column - Compact Inputs */}
+                    <div className="lg:col-span-7 space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* Boyama Bilgisi */}
+                            <div className={cardBase}>
+                                <div className={headerBase}>
+                                    <div className="flex items-center gap-2 text-slate-700 font-bold text-sm">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                                        Boyama
                                     </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Yeterlilik */}
-                        <div className={cardBase}>
-                            <div className={headerBase}>
-                                <div className="flex items-center gap-3 text-slate-800 font-bold">
-                                    <PageContainer className="p-0 m-0"><div className="w-2 h-2 rounded-full bg-emerald-500" /></PageContainer>
-                                    Yeterlilik
+                                    <button onClick={addStain} className="text-blue-600 hover:bg-blue-50 p-1 rounded-md transition-colors">
+                                        <Plus className="w-4 h-4" />
+                                    </button>
+                                </div>
+                                <div className="p-4 space-y-2">
+                                    {stains.map((stain, idx) => (
+                                        <div key={idx} className="flex gap-2">
+                                            <input
+                                                type="text"
+                                                value={stain}
+                                                onChange={(e) => updateStain(idx, e.target.value)}
+                                                placeholder="Boyama adı..."
+                                                className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all text-slate-700 font-medium"
+                                            />
+                                            {stains.length > 1 && (
+                                                <button onClick={() => removeStain(idx)} className="text-slate-400 hover:text-rose-500 p-1.5">
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            )}
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
-                            <div className="p-6">
-                                <div className="grid grid-cols-1 gap-2">
+
+                            {/* Yeterlilik */}
+                            <div className={cardBase}>
+                                <div className={headerBase}>
+                                    <div className="flex items-center gap-2 text-slate-700 font-bold text-sm">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                        Yeterlilik
+                                    </div>
+                                </div>
+                                <div className="p-4 flex flex-col gap-1.5">
                                     {YETERLILIK_OPTS.map(opt => (
                                         <button
                                             key={opt.id}
                                             onClick={() => setYeterlilik(opt.id)}
-                                            className={`flex items-center gap-3 px-4 py-3 rounded-xl border text-sm text-left transition-all ${yeterlilik === opt.id
+                                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-xs text-left transition-all ${yeterlilik === opt.id
                                                 ? "bg-emerald-50 border-emerald-200 text-emerald-800 font-bold"
-                                                : "bg-white border-slate-100 text-slate-600 hover:bg-slate-50"
+                                                : "bg-white border-slate-100 text-slate-500 hover:bg-slate-50"
                                                 }`}
                                         >
-                                            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${yeterlilik === opt.id ? "border-emerald-500 bg-emerald-500" : "border-slate-300"
-                                                }`}>
-                                                {yeterlilik === opt.id && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                                            <div className={`w-3 h-3 rounded-full border flex items-center justify-center ${yeterlilik === opt.id ? "border-emerald-500 bg-emerald-500" : "border-slate-300"}`}>
+                                                {yeterlilik === opt.id && <div className="w-1 h-1 rounded-full bg-white" />}
                                             </div>
-                                            {opt.label}
+                                            {opt.label.replace(' (minimal 4 mm2)', '')}
                                         </button>
                                     ))}
-                                </div>
-                                {yeterlilik === "yetersiz" && (
-                                    <div className="mt-4 p-4 bg-slate-50 rounded-xl border border-slate-100 animate-in fade-in slide-in-from-top-2">
-                                        <label className="text-xs font-bold text-slate-500 block mb-2">İzlenen Alan (mm2)</label>
+                                    {yeterlilik === "yetersiz" && (
                                         <input
                                             type="number"
                                             value={izlenenMm2}
                                             onChange={(e) => setIzlenenMm2(e.target.value)}
-                                            className="w-full bg-white border border-slate-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                                            placeholder="mm2"
+                                            className="mt-1 w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none"
                                         />
-                                    </div>
-                                )}
+                                    )}
+                                </div>
                             </div>
                         </div>
 
-                        {/* Fokus ve Diğer Ayarlar (Sadece yeterliyse) */}
+                        {/* Fokus ve Ayarlar */}
                         {yeterlilik !== "yok" && (
                             <>
                                 <div className={cardBase}>
                                     <div className={headerBase}>
-                                        <div className="flex items-center gap-3 text-slate-800 font-bold">
-                                            <PageContainer className="p-0 m-0"><div className="w-2 h-2 rounded-full bg-indigo-500" /></PageContainer>
-                                            Fokus Sayısı <span className="text-slate-400 font-normal text-xs">(4 mm2'de)</span>
+                                        <div className="flex items-center gap-2 text-slate-700 font-bold text-sm">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+                                            Fokus Sayısı <span className="text-slate-400 font-normal text-[10px]">(4 mm2)</span>
                                         </div>
                                     </div>
-                                    <div className="p-6">
-                                        <div className="grid grid-cols-5 gap-2">
-                                            {FOKUS_OPTS.map(opt => (
-                                                <button
-                                                    key={opt.id}
-                                                    onClick={() => setFokus(opt.id)}
-                                                    className={`px-3 py-2.5 rounded-xl border text-sm text-center transition-all ${fokus === opt.id
-                                                        ? "bg-indigo-600 border-indigo-600 text-white font-bold shadow-lg shadow-indigo-600/20"
-                                                        : "bg-white border-slate-100 text-slate-600 hover:bg-slate-50"
-                                                        }`}
-                                                >
-                                                    {opt.label}
-                                                </button>
-                                            ))}
-                                        </div>
+                                    <div className="p-4 grid grid-cols-5 md:grid-cols-10 gap-1.5">
+                                        {FOKUS_OPTS.map(opt => (
+                                            <button
+                                                key={opt.id}
+                                                onClick={() => setFokus(opt.id)}
+                                                className={`py-2 rounded-lg border text-[11px] font-bold text-center transition-all ${fokus === opt.id
+                                                    ? "bg-indigo-600 border-indigo-600 text-white shadow-md shadow-indigo-100"
+                                                    : "bg-white border-slate-100 text-slate-500 hover:bg-slate-50"
+                                                    }`}
+                                            >
+                                                {opt.label}
+                                            </button>
+                                        ))}
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="grid grid-cols-2 gap-4">
                                     <div className={cardBase}>
-                                        <div className="p-6">
+                                        <div className="p-4">
                                             <label className={labelBase}>Fibrozis</label>
-                                            <div className="flex flex-col gap-2">
+                                            <div className="flex flex-col gap-1.5">
                                                 {FIBROZIS_OPTS.map(opt => (
                                                     <button
                                                         key={opt.id}
                                                         onClick={() => setFibrozis(opt.id)}
-                                                        className={`px-4 py-2.5 rounded-xl border text-sm transition-all ${fibrozis === opt.id
-                                                            ? "bg-slate-800 border-slate-800 text-white font-bold"
-                                                            : "bg-white border-slate-100 text-slate-600 hover:bg-slate-50"
+                                                        className={`px-3 py-2 rounded-lg border text-xs font-semibold text-left transition-all ${fibrozis === opt.id
+                                                            ? "bg-slate-800 border-slate-800 text-white"
+                                                            : "bg-white border-slate-100 text-slate-500 hover:border-slate-300"
                                                             }`}
                                                     >
                                                         {opt.label}
@@ -362,16 +355,16 @@ export default function SjogrenRaporlama() {
                                         </div>
                                     </div>
                                     <div className={cardBase}>
-                                        <div className="p-6">
+                                        <div className="p-4">
                                             <label className={labelBase}>Yağlanma</label>
-                                            <div className="flex flex-col gap-2">
+                                            <div className="flex flex-col gap-1.5">
                                                 {YAGLANMA_OPTS.map(opt => (
                                                     <button
                                                         key={opt.id}
                                                         onClick={() => setYaglanma(opt.id)}
-                                                        className={`px-4 py-2.5 rounded-xl border text-sm transition-all ${yaglanma === opt.id
-                                                            ? "bg-amber-500 border-amber-500 text-white font-bold shadow-lg shadow-amber-500/20"
-                                                            : "bg-white border-slate-100 text-slate-600 hover:bg-slate-50"
+                                                        className={`px-3 py-2 rounded-lg border text-xs font-semibold text-left transition-all ${yaglanma === opt.id
+                                                            ? "bg-amber-500 border-amber-500 text-white"
+                                                            : "bg-white border-slate-100 text-slate-500 hover:border-slate-300"
                                                             }`}
                                                     >
                                                         {opt.label}
@@ -383,85 +376,80 @@ export default function SjogrenRaporlama() {
                                 </div>
                             </>
                         )}
-                    </div>
 
-                    {/* Right Column - Report & Other Findings */}
-                    <div className="lg:col-span-5 space-y-6">
-                        {/* Rapor Panel */}
-                        <div className="bg-slate-900 rounded-3xl overflow-hidden shadow-2xl relative">
-                            <div className="p-6 border-b border-white/5 flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <FileText className="w-5 h-5 text-blue-400" />
-                                    <span className="font-bold text-white">Rapor Önizleme</span>
-                                </div>
-                                {copied && (
-                                    <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-400 animate-in fade-in zoom-in">
-                                        <Check className="w-3 h-3" />
-                                        KOPYALANDI
-                                    </div>
-                                )}
-                            </div>
-                            <div className="p-6">
-                                <div className="bg-black/30 rounded-2xl p-6 font-mono text-sm leading-relaxed text-blue-100 whitespace-pre-wrap min-h-[300px] border border-white/5">
-                                    {report}
-                                </div>
-                                <button
-                                    onClick={copyToClipboard}
-                                    className="w-full mt-6 flex items-center justify-center gap-2 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-bold transition-all shadow-xl shadow-blue-600/20 active:scale-95"
-                                >
-                                    <Copy className="w-5 h-5" />
-                                    Raporu Kopyala
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Diğer Bulgular */}
+                        {/* Diğer Bulgular - Horizontal Wrap */}
                         <div className={cardBase}>
                             <div className={headerBase}>
-                                <div className="flex items-center gap-3 text-slate-800 font-bold">
-                                    <Info className="w-5 h-5 text-slate-400" />
-                                    Diğer Bulgular
+                                <div className="flex items-center gap-2 text-slate-700 font-bold text-sm">
+                                    <Info className="w-4 h-4 text-slate-400" />
+                                    Ek Bulgular & Notlar
                                 </div>
                             </div>
-                            <div className="p-6 space-y-3">
-                                {[
-                                    { key: "enYogun", label: "En yoğun 4 mm2 alan" },
-                                    { key: "plazmaNadir", label: "Nadir plazma hücresi" },
-                                    { key: "plazmaTopluluk", label: "Plazma hücresi topluluğu (>10)" },
-                                    { key: "onkositik", label: "Duktusta onkositik metaplazi" },
-                                    { key: "devKonfluen", label: "Dev / Konfluen fokus" },
-                                    { key: "germinal", label: "Germinal merkez" },
-                                    { key: "mukozal", label: "Glandsız mukozal fragman" },
-                                ].map((item) => (
-                                    <label
-                                        key={item.key}
-                                        className="flex items-center group cursor-pointer"
-                                    >
-                                        <div className="relative">
+                            <div className="p-4">
+                                <div className="flex flex-wrap gap-x-4 gap-y-2 mb-4">
+                                    {[
+                                        { key: "enYogun", label: "En yoğun 4 mm2" },
+                                        { key: "plazmaNadir", label: "Nadir plazma hücresi" },
+                                        { key: "plazmaTopluluk", label: "Plazma hücresi topluluğu" },
+                                        { key: "onkositik", label: "Onkositik metaplazi" },
+                                        { key: "devKonfluen", label: "Dev/Konfluen fokus" },
+                                        { key: "germinal", label: "Germinal merkez" },
+                                        { key: "mukozal", label: "Glandsız mukoza" },
+                                    ].map((item) => (
+                                        <label key={item.key} className="flex items-center gap-2 group cursor-pointer">
                                             <input
                                                 type="checkbox"
                                                 checked={otherFindings[item.key as keyof typeof otherFindings]}
                                                 onChange={() => toggleOther(item.key as keyof typeof otherFindings)}
-                                                className="peer hidden"
+                                                className="w-3.5 h-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
                                             />
-                                            <div className="w-10 h-6 bg-slate-200 rounded-full peer-checked:bg-blue-500 transition-all after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4" />
-                                        </div>
-                                        <span className="ml-3 text-sm text-slate-600 group-hover:text-slate-900 transition-colors">
-                                            {item.label}
-                                        </span>
-                                    </label>
-                                ))}
-
-                                <div className="pt-4 mt-4 border-t border-slate-100">
-                                    <label className={labelBase}>Ek Notlar</label>
-                                    <input
-                                        type="text"
-                                        value={customOther}
-                                        onChange={(e) => setCustomOther(e.target.value)}
-                                        placeholder="Eklemek istediğiniz diğer detaylar..."
-                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                                    />
+                                            <span className="text-[11px] font-medium text-slate-600 group-hover:text-slate-900">{item.label}</span>
+                                        </label>
+                                    ))}
                                 </div>
+                                <input
+                                    type="text"
+                                    value={customOther}
+                                    onChange={(e) => setCustomOther(e.target.value)}
+                                    placeholder="Ek detaylar..."
+                                    className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-indigo-500 outline-none font-medium"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Right Column - Report Preview (Sticky) */}
+                    <div className="lg:col-span-5 sticky top-4">
+                        <div className="bg-white rounded-2xl border border-indigo-100 shadow-xl shadow-indigo-50/50 overflow-hidden flex flex-col h-full max-h-[calc(100vh-120px)]">
+                            <div className="p-4 border-b border-slate-100 bg-indigo-50/30 flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <div className="p-1.5 bg-indigo-600 rounded-lg">
+                                        <FileText className="w-4 h-4 text-white" />
+                                    </div>
+                                    <span className="font-bold text-slate-800 text-sm">Rapor Önizleme</span>
+                                </div>
+                                {copied && (
+                                    <div className="flex items-center gap-1 text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md">
+                                        <Check className="w-3 h-3" /> KOPYALANDI
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="flex-1 p-6 overflow-auto bg-[url('https://www.transparenttextures.com/patterns/white-paper.png')] bg-white">
+                                <div className="text-slate-800 text-[14px] leading-relaxed font-sans font-medium whitespace-pre-wrap selection:bg-indigo-100">
+                                    {report}
+                                </div>
+                            </div>
+
+                            <div className="p-4 bg-slate-50 border-t border-slate-100">
+                                <button
+                                    onClick={copyToClipboard}
+                                    className="w-full flex items-center justify-center gap-3 py-3 bg-indigo-600 hover:bg-emerald-600 text-white rounded-xl font-bold transition-all shadow-lg shadow-indigo-200 active:scale-95 group"
+                                >
+                                    <Copy className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                                    Raporu Kopyala
+                                </button>
+                                <p className="text-[10px] text-center text-slate-400 mt-2 font-medium">Kopyaladıktan sonra istediğiniz dokümana yapıştırabilirsiniz.</p>
                             </div>
                         </div>
                     </div>
@@ -470,3 +458,4 @@ export default function SjogrenRaporlama() {
         </PageContainer>
     );
 }
+
