@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { PageContainer } from '../components/PageContainer';
 import { motion, AnimatePresence } from 'motion/react';
 import {
@@ -10,11 +10,17 @@ import {
     Loader2,
     FileArchive,
     Trash2,
-    Layers
+    Layers,
+    ZoomIn,
+    ZoomOut,
+    Maximize2,
+    Move,
+    Columns,
+    X
 } from 'lucide-react';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
-import { encode } from '@jsquash/avif';
+import encode, { init } from '@jsquash/avif/encode';
 
 interface ConversionItem {
     id: string;
@@ -27,21 +33,39 @@ interface ConversionItem {
     originalSize: number;
     newSize?: number;
     previewUrl: string;
+    resultUrl?: string;
+    width?: number;
+    height?: number;
 }
 
 export function AvifConverter() {
     const [items, setItems] = useState<ConversionItem[]>([]);
-    const [quality, setQuality] = useState(70);
+    const [quality, setQuality] = useState(40); // User's example uses 40
     const [isProcessing, setIsProcessing] = useState(false);
+    const [selectedItem, setSelectedItem] = useState<ConversionItem | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isDragging, setIsDragging] = useState(false);
+    const [isEngineReady, setIsEngineReady] = useState(false);
 
-    // Auto-start processing when items are added
+    // Initialize AVIF Engine
     useEffect(() => {
-        if (!isProcessing && items.some(item => item.status === 'pending')) {
+        const loadEngine = async () => {
+            try {
+                await init();
+                setIsEngineReady(true);
+            } catch (err) {
+                console.error('Failed to initialize AVIF engine:', err);
+            }
+        };
+        loadEngine();
+    }, []);
+
+    // Auto-start processing
+    useEffect(() => {
+        if (!isProcessing && isEngineReady && items.some(item => item.status === 'pending')) {
             processNext();
         }
-    }, [items, isProcessing]);
+    }, [items, isProcessing, isEngineReady]);
 
     const generateId = (file: File) => `${file.name}-${file.size}-${file.lastModified}`;
 
@@ -80,7 +104,6 @@ export function AvifConverter() {
         updateItemStatus(nextItem.id, 'processing');
 
         try {
-            // Load image into a canvas or ImageData
             const img = new Image();
             img.src = nextItem.previewUrl;
             await new Promise((resolve, reject) => {
@@ -97,15 +120,23 @@ export function AvifConverter() {
             ctx.drawImage(img, 0, 0);
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
-            // Convert to AVIF
-            // Mapping quality (0-100) to cqLevel (63-0). In AVIF, lower cqLevel means higher quality.
-            const cqLevel = Math.round((1 - quality / 100) * 63);
-            const avifBuffer = await encode(imageData, { cqLevel });
+            // Convert to AVIF using new API (v2+)
+            const avifBuffer = await encode(imageData, { quality });
             const resultBlob = new Blob([avifBuffer], { type: 'image/avif' });
+            const resultUrl = URL.createObjectURL(resultBlob);
 
             setItems(prev => prev.map(item =>
                 item.id === nextItem.id
-                    ? { ...item, status: 'completed', resultBlob, newSize: resultBlob.size, progress: 100 }
+                    ? {
+                        ...item,
+                        status: 'completed',
+                        resultBlob,
+                        resultUrl,
+                        newSize: resultBlob.size,
+                        progress: 100,
+                        width: img.width,
+                        height: img.height
+                    }
                     : item
             ));
         } catch (error: any) {
@@ -120,12 +151,6 @@ export function AvifConverter() {
         setItems(prev => prev.map(item =>
             item.id === id ? { ...item, status, error } : item
         ));
-    };
-
-    const downloadOne = (item: ConversionItem) => {
-        if (!item.resultBlob) return;
-        const fileName = item.name.replace(/\.[^/.]+$/, "") + ".avif";
-        saveAs(item.resultBlob, fileName);
     };
 
     const downloadAllAsZip = async () => {
@@ -145,13 +170,19 @@ export function AvifConverter() {
     const removeFile = (id: string) => {
         setItems(prev => {
             const item = prev.find(i => i.id === id);
-            if (item) URL.revokeObjectURL(item.previewUrl);
+            if (item) {
+                URL.revokeObjectURL(item.previewUrl);
+                if (item.resultUrl) URL.revokeObjectURL(item.resultUrl);
+            }
             return prev.filter(i => i.id !== id);
         });
     };
 
     const clearAll = () => {
-        items.forEach(item => URL.revokeObjectURL(item.previewUrl));
+        items.forEach(item => {
+            URL.revokeObjectURL(item.previewUrl);
+            if (item.resultUrl) URL.revokeObjectURL(item.resultUrl);
+        });
         setItems([]);
     };
 
@@ -185,7 +216,7 @@ export function AvifConverter() {
                     </motion.h1>
                     <p className="text-lg md:text-xl text-white/80 max-w-2xl">
                         Resimlerinizi modern AVIF formatına dönüştürerek kaliteden ödün vermeden dosya boyutlarını küçültün.
-                        Tamamen tarayıcı bazlı çalışır, görselleriniz sunucuya yüklenmez.
+                        {!isEngineReady && <span className="block mt-2 font-bold text-amber-300">AVIF Motoru yükleniyor...</span>}
                     </p>
                 </div>
             </div>
@@ -206,14 +237,14 @@ export function AvifConverter() {
                             </div>
                             <input
                                 type="range"
-                                min="0"
+                                min="1"
                                 max="100"
                                 value={quality}
                                 onChange={(e) => setQuality(parseInt(e.target.value))}
                                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-emerald-600"
                             />
                             <p className="text-xs text-gray-400 italic">
-                                Düşük değerler daha küçük dosya boyutu, yüksek değerler daha iyi kalite sağlar.
+                                Yüksek değerler daha iyi kalite ve daha büyük dosya boyutu sağlar. Genellikle 30-50 idealdir.
                             </p>
                         </div>
 
@@ -279,11 +310,6 @@ export function AvifConverter() {
                                     <div className="text-xs text-white/60">Tamamlanan</div>
                                 </div>
                             </div>
-                            {isAllDone && (
-                                <div className="mt-4 p-3 bg-emerald-500/20 border border-emerald-500/30 rounded-xl text-xs text-emerald-300">
-                                    Tüm dosyalar başarıyla dönüştürüldü!
-                                </div>
-                            )}
                         </motion.div>
                     )}
                 </div>
@@ -322,7 +348,10 @@ export function AvifConverter() {
                                             exit={{ opacity: 0, scale: 0.95 }}
                                             className="group bg-gray-50 hover:bg-white hover:shadow-md border border-gray-100 rounded-2xl p-3 flex items-center gap-4 transition-all"
                                         >
-                                            <div className="w-16 h-16 bg-gray-200 rounded-xl overflow-hidden flex-shrink-0">
+                                            <div
+                                                className="w-16 h-16 bg-gray-200 rounded-xl overflow-hidden flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-emerald-500 transition-all"
+                                                onClick={() => item.status === 'completed' && setSelectedItem(item)}
+                                            >
                                                 <img src={item.previewUrl} alt={item.name} className="w-full h-full object-cover" />
                                             </div>
 
@@ -341,7 +370,7 @@ export function AvifConverter() {
                                                         <>
                                                             <span className="w-1 h-1 bg-gray-300 rounded-full" />
                                                             <span className="text-emerald-600 font-bold">{formatSize(item.newSize)}</span>
-                                                            <span className="bg-emerald-100 text-emerald-700 px-1.5 rounded-md">
+                                                            <span className="bg-emerald-100 text-emerald-700 px-1.5 rounded-md font-bold">
                                                                 -%{Math.round((1 - item.newSize / item.originalSize) * 100)}
                                                             </span>
                                                         </>
@@ -358,19 +387,21 @@ export function AvifConverter() {
                                                 )}
 
                                                 {item.status === 'completed' && (
-                                                    <button
-                                                        onClick={() => downloadOne(item)}
-                                                        className="p-2 bg-emerald-100 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-xl transition-all"
-                                                        title="İndir"
-                                                    >
-                                                        <Download className="w-4 h-4" />
-                                                    </button>
-                                                )}
-
-                                                {item.status === 'error' && (
-                                                    <div className="flex items-center gap-1 text-red-500 text-xs p-2" title={item.error}>
-                                                        <AlertCircle className="w-4 h-4" />
-                                                        Hata
+                                                    <div className="flex items-center gap-2">
+                                                        <button
+                                                            onClick={() => setSelectedItem(item)}
+                                                            className="p-2 bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white rounded-xl transition-all"
+                                                            title="Kıyasla (Önce/Sonra)"
+                                                        >
+                                                            <Columns className="w-4 h-4" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => item.resultBlob && saveAs(item.resultBlob, item.name.replace(/\.[^/.]+$/, "") + ".avif")}
+                                                            className="p-2 bg-emerald-100 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-xl transition-all"
+                                                            title="İndir"
+                                                        >
+                                                            <Download className="w-4 h-4" />
+                                                        </button>
                                                     </div>
                                                 )}
 
@@ -390,6 +421,225 @@ export function AvifConverter() {
                     </div>
                 </div>
             </div>
+
+            {/* Comparison Modal */}
+            <AnimatePresence>
+                {selectedItem && (
+                    <ComparisonModal
+                        item={selectedItem}
+                        onClose={() => setSelectedItem(null)}
+                        formatSize={formatSize}
+                    />
+                )}
+            </AnimatePresence>
         </PageContainer>
+    );
+}
+
+interface ComparisonModalProps {
+    item: ConversionItem;
+    onClose: () => void;
+    formatSize: (n: number) => string;
+}
+
+function ComparisonModal({ item, onClose, formatSize }: ComparisonModalProps) {
+    const [split, setSplit] = useState(50);
+    const [scale, setScale] = useState(1);
+    const [position, setPosition] = useState({ x: 0, y: 0 });
+    const [isDragging, setIsDragging] = useState(false);
+    const viewportRef = useRef<HTMLDivElement>(null);
+    const lastPos = useRef({ x: 0, y: 0 });
+
+    const resetView = () => {
+        setScale(1);
+        setPosition({ x: 0, y: 0 });
+    };
+
+    const handleWheel = (e: React.WheelEvent) => {
+        e.preventDefault();
+        const delta = e.deltaY;
+        const zoomSpeed = 0.1;
+        const newScale = Math.min(Math.max(scale - delta * zoomSpeed * 0.01, 0.1), 10);
+        setScale(newScale);
+    };
+
+    const handlePointerDown = (e: React.PointerEvent) => {
+        if ((e.target as HTMLElement).closest('.split-handle')) return;
+        setIsDragging(true);
+        lastPos.current = { x: e.clientX, y: e.clientY };
+        (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    };
+
+    const handlePointerMove = (e: React.PointerEvent) => {
+        if (!isDragging) return;
+        const dx = e.clientX - lastPos.current.x;
+        const dy = e.clientY - lastPos.current.y;
+        setPosition(prev => ({ x: prev.x + dx, y: prev.y + dy }));
+        lastPos.current = { x: e.clientX, y: e.clientY };
+    };
+
+    const handlePointerUp = (e: React.PointerEvent) => {
+        setIsDragging(false);
+    };
+
+    const handleSplitChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSplit(parseInt(e.target.value));
+    };
+
+    const smaller = item.newSize && item.originalSize
+        ? Math.round((1 - item.newSize / item.originalSize) * 100)
+        : 0;
+
+    return (
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 md:p-10 backdrop-blur-sm"
+            onKeyDown={(e) => e.key === 'Escape' && onClose()}
+        >
+            <div className="relative w-full h-full max-w-7xl flex flex-col bg-slate-900 rounded-[2.5rem] overflow-hidden shadow-2xl border border-white/10">
+                {/* Modal Header */}
+                <div className="p-6 flex items-center justify-between border-b border-white/5">
+                    <div>
+                        <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                            <Columns className="w-5 h-5 text-emerald-400" />
+                            Görünüm Kıyasla
+                        </h2>
+                        <p className="text-sm text-white/50">{item.name}</p>
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <div className="hidden md:flex items-center gap-3 bg-white/5 px-4 py-2 rounded-2xl border border-white/5">
+                            <div className="text-center">
+                                <div className="text-[10px] text-white/40 uppercase font-bold tracking-wider">Orijinal</div>
+                                <div className="text-sm font-bold text-white">{formatSize(item.originalSize)}</div>
+                            </div>
+                            <div className="w-px h-8 bg-white/10" />
+                            <div className="text-center">
+                                <div className="text-[10px] text-emerald-400 uppercase font-bold tracking-wider">AVIF</div>
+                                <div className="text-sm font-bold text-emerald-400">{item.newSize ? formatSize(item.newSize) : '-'}</div>
+                            </div>
+                            <div className="w-px h-8 bg-white/10" />
+                            <div className="bg-emerald-500 text-slate-900 text-xs font-black px-2 py-1 rounded-lg">
+                                -%{smaller}
+                            </div>
+                        </div>
+                        <button
+                            onClick={onClose}
+                            className="p-3 bg-white/5 hover:bg-white/10 text-white rounded-full transition-all border border-white/10"
+                        >
+                            <X className="w-6 h-6" />
+                        </button>
+                    </div>
+                </div>
+
+                {/* Main Viewport */}
+                <div
+                    ref={viewportRef}
+                    className="flex-1 relative overflow-hidden cursor-grab active:cursor-grabbing touch-none select-none"
+                    onWheel={handleWheel}
+                    onPointerDown={handlePointerDown}
+                    onPointerMove={handlePointerMove}
+                    onPointerUp={handlePointerUp}
+                >
+                    <div
+                        className="absolute inset-0 flex items-center justify-center transition-transform duration-75"
+                        style={{
+                            transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`
+                        }}
+                    >
+                        {/* Under: Original */}
+                        <img
+                            src={item.previewUrl}
+                            alt="Original"
+                            className="max-w-none shadow-2xl pointer-events-none"
+                            style={{
+                                width: item.width ? `${item.width}px` : 'auto',
+                                height: item.height ? `${item.height}px` : 'auto',
+                            }}
+                        />
+
+                        {/* Top: AVIF with Clip Path */}
+                        <img
+                            src={item.resultUrl}
+                            alt="AVIF"
+                            className="absolute max-w-none shadow-2xl pointer-events-none"
+                            style={{
+                                width: item.width ? `${item.width}px` : 'auto',
+                                height: item.height ? `${item.height}px` : 'auto',
+                                clipPath: `inset(0 0 0 ${split}%)`
+                            }}
+                        />
+                    </div>
+
+                    {/* Labels */}
+                    <div className="absolute top-6 left-6 px-3 py-1.5 bg-black/40 backdrop-blur-md rounded-lg text-xs font-bold text-white border border-white/10 pointer-events-none">
+                        ORİJİNAL
+                    </div>
+                    <div className="absolute top-6 right-6 px-3 py-1.5 bg-emerald-600/60 backdrop-blur-md rounded-lg text-xs font-bold text-white border border-white/10 pointer-events-none">
+                        AVIF
+                    </div>
+
+                    {/* Split Slider UI */}
+                    <div
+                        className="absolute inset-y-0 z-10 pointer-events-none"
+                        style={{ left: `${split}%` }}
+                    >
+                        <div className="absolute inset-y-0 w-1 bg-white shadow-[0_0_15px_rgba(255,255,255,0.5)] transform -translate-x-1/2" />
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-white rounded-full shadow-2xl flex items-center justify-center pointer-events-auto cursor-ew-resize border-4 border-slate-900 group split-handle">
+                            <Move className="w-4 h-4 text-slate-900 group-hover:scale-110 transition-transform" />
+                        </div>
+                    </div>
+
+                    {/* Split Control Input (Invisible Layer for dragging) */}
+                    <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        value={split}
+                        onChange={handleSplitChange}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-ew-resize z-20 pointer-events-auto"
+                    />
+                </div>
+
+                {/* Footer Controls */}
+                <div className="p-6 bg-black/20 flex flex-wrap items-center justify-center gap-3 backdrop-blur-xl">
+                    <div className="flex bg-white/5 rounded-2xl p-1 border border-white/5">
+                        <button onClick={() => setScale(s => Math.max(0.1, s - 0.2))} className="p-3 text-white/70 hover:text-white transition-colors" title="Uzaklaştır"><ZoomOut className="w-5 h-5" /></button>
+                        <div className="flex items-center px-4 text-sm font-bold text-white/50 w-20 justify-center">
+                            %{Math.round(scale * 100)}
+                        </div>
+                        <button onClick={() => setScale(s => Math.min(10, s + 0.2))} className="p-3 text-white/70 hover:text-white transition-colors" title="Yakınlaştır"><ZoomIn className="w-5 h-5" /></button>
+                    </div>
+
+                    <button
+                        onClick={resetView}
+                        className="flex items-center gap-2 px-6 py-3 bg-white/5 hover:bg-white/10 text-white rounded-2xl font-bold transition-all border border-white/5"
+                    >
+                        <Maximize2 className="w-5 h-5" />
+                        Görünümü Sıfırla
+                    </button>
+
+                    <button
+                        onClick={() => item.resultBlob && saveAs(item.resultBlob, item.name.replace(/\.[^/.]+$/, "") + ".avif")}
+                        className="flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-bold transition-all shadow-lg shadow-emerald-600/20"
+                    >
+                        <Download className="w-5 h-5" />
+                        AVIF Olarak İndir
+                    </button>
+
+                    <div className="flex md:hidden items-center gap-3 text-white mt-4 w-full justify-around border-t border-white/5 pt-4">
+                        <div className="text-center">
+                            <div className="text-[10px] text-white/40 uppercase font-bold tracking-wider">Orijinal</div>
+                            <div className="text-sm font-bold">{formatSize(item.originalSize)}</div>
+                        </div>
+                        <div className="text-center">
+                            <div className="text-[10px] text-emerald-400 uppercase font-bold tracking-wider">AVIF</div>
+                            <div className="text-sm font-bold text-emerald-400">-{smaller}%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </motion.div>
     );
 }
