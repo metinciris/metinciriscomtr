@@ -1,13 +1,7 @@
 {
-  "date": "30.01.2026",
-  "items": [
-    "MERCİMEK ÇORBASI",
-    "KIYMALI BİBER DOLMA",
-    "PEYNİRLİ MAKARNA",
-    "KASE YOĞURT",
-    "SIZE NASIL YARDIMCI OLABILIRIM?"
-  ],
-  "kcal": "950",
+  "date": "31.01.2026",
+  "items": [],
+  "kcal": null,
   "source": "https://w3.sdu.edu.tr/aylik-yemek-listesi?dosya=yemekler_ogle&tur=2",
-  "updatedAt": "2026-01-30T07:57:12.361Z"
+  "updatedAt": "2026-01-31T05:24:18.462Z"
 }
