@@ -110,7 +110,7 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
     setTimeout(() => {
       const element = biopsyRefs.current[newBiopsy.id];
       if (element) {
-        const headerOffset = 180; // Increased to ensure the form starts below the sticky header
+        const headerOffset = 260; // Increased to account for sticky header + sticky organ bar
         const elementPosition = element.getBoundingClientRect().top;
         const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
         window.scrollTo({
@@ -167,7 +167,7 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
   const scrollToBiopsy = (id: string) => {
     const element = biopsyRefs.current[id];
     if (element) {
-      const headerOffset = 180;
+      const headerOffset = 260;
       const elementPosition = element.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
       window.scrollTo({
@@ -179,7 +179,7 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="bg-white shadow rounded-lg p-4 sticky top-0 z-10 border border-gray-200">
+      <div className="bg-white shadow-lg rounded-lg p-4 sticky top-[73px] md:top-[81px] z-20 border border-gray-200">
         <div className="flex flex-col space-y-4">
           <div className="flex gap-4">
             {Object.values(BiopsyLocation).map(location => (
@@ -247,7 +247,7 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
         </div>
 
         <div className="lg:col-span-1">
-          <div className="lg:sticky lg:top-40 space-y-4">
+          <div className="lg:sticky lg:top-[220px] space-y-4">
             <ReportPreview
               biopsies={biopsies}
               activeField={activeField}
