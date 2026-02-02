@@ -44,6 +44,12 @@ export default function Podcast({ }: PodcastProps) {
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const voicesRef = useRef<SpeechSynthesisVoice[]>([]);
   const selectedVoiceRef = useRef<SpeechSynthesisVoice | null>(null);
+  const volumeRef = useRef(volume);
+
+  // volumeRef'i her zaman güncel tut
+  useEffect(() => {
+    volumeRef.current = volume;
+  }, [volume]);
 
   // Bugünün tarihi
   const today = new Date().toLocaleDateString('tr-TR', {
@@ -187,7 +193,7 @@ export default function Podcast({ }: PodcastProps) {
 
     utterance.rate = 0.9;
     utterance.pitch = 1.0;
-    utterance.volume = volume;
+    utterance.volume = volumeRef.current;
 
     utterance.onend = () => {
       if (index < articles.length - 1) {
@@ -242,7 +248,7 @@ export default function Podcast({ }: PodcastProps) {
       `[data-article-index="${currentIndex}"]`,
     );
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
   }, [currentIndex]);
 
