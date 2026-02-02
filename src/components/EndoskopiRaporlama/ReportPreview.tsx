@@ -8,15 +8,15 @@ interface ReportPreviewProps {
   stainConfig: any;
 }
 
-export const ReportPreview: React.FC<ReportPreviewProps> = ({ 
-  biopsies, 
+export const ReportPreview: React.FC<ReportPreviewProps> = ({
+  biopsies,
   activeField,
   stainConfig
 }) => {
   const generateReportText = (): string => {
     // Create a map to track location counts
     const locationCounts: { [key: string]: number } = {};
-    
+
     // First pass to count locations
     biopsies.forEach(biopsy => {
       const locationKey = `${biopsy.location}-${biopsy.subLocation.split(',')[0].trim()}`;
@@ -31,14 +31,14 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
         // Get the main location without additional sublocations
         const mainLocation = biopsy.subLocation.split(',')[0].trim();
         const locationKey = `${biopsy.location}-${mainLocation}`;
-        
+
         // Increment current count for this location
         currentCounts[locationKey] = (currentCounts[locationKey] || 0) + 1;
-        
+
         return generateBiopsyReport(
-          biopsy, 
-          index, 
-          currentCounts[locationKey], 
+          biopsy,
+          index,
+          currentCounts[locationKey],
           locationCounts[locationKey]
         );
       })
@@ -46,16 +46,16 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
       .join('\n\n');
 
     // Check if there are any stains needed
-    const hasConfiguredStains = Object.values(stainConfig).some(stains => stains.length > 0);
-    const stomachBiopsiesNeedingHP = biopsies.filter(biopsy => 
-      biopsy.location === BiopsyLocation.Mide && 
+    const hasConfiguredStains = (Object.values(stainConfig) as any[]).some(stains => stains.length > 0);
+    const stomachBiopsiesNeedingHP = biopsies.filter(biopsy =>
+      biopsy.location === BiopsyLocation.Mide &&
       biopsy.findings.hp !== 'Yapılmadı'
     );
-    const stomachBiopsiesNeedingIM = biopsies.filter(biopsy => 
-      biopsy.location === BiopsyLocation.Mide && 
+    const stomachBiopsiesNeedingIM = biopsies.filter(biopsy =>
+      biopsy.location === BiopsyLocation.Mide &&
       biopsy.findings.intestinalMetaplasia !== 'Yapılmadı'
     );
-    
+
     if (hasConfiguredStains || stomachBiopsiesNeedingHP.length > 0 || stomachBiopsiesNeedingIM.length > 0) {
       // Group biopsies by location
       const biopsyGroups = biopsies.reduce((acc, biopsy) => {
@@ -92,7 +92,7 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
           filteredStains.forEach((stain: any) => {
             // Get all biopsy numbers for this location
             let relevantBiopsies = locationBiopsies;
-            
+
             // For stomach stains, filter based on what's actually needed
             if (location === BiopsyLocation.Mide) {
               if (stain.name === 'Warthin Starry' && stain.description.includes('Helikobakter Pilori')) {
@@ -102,7 +102,7 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
               }
             }
 
-            const biopsyNumbers = relevantBiopsies.map((b) => 
+            const biopsyNumbers = relevantBiopsies.map((b) =>
               biopsies.findIndex(bx => bx.id === b.id) + 1
             ).sort((a, b) => a - b);
 
@@ -179,7 +179,7 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
     if (biopsy.location === BiopsyLocation.Ozefagus) {
       if (biopsy.esophagusFeatures) {
         const features = biopsy.esophagusFeatures;
-        
+
         if (features.gobletCellMetaplasiaPresent && !biopsy.customDiagnosis?.includes('Goblet hücre metaplazisi vardır')) {
           const line = '     - Goblet hücre metaplazisi vardır';
           lines.push(shouldHighlight('esophagusFeature-gobletCellMetaplasiaPresent') ? `<mark>${line}</mark>` : line);
@@ -219,7 +219,7 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
       }
     } else if (biopsy.location === BiopsyLocation.Mide) {
       const hasActiveFindings = ['+', '++', '+++'].includes(biopsy.findings.inflammation) ||
-                               ['+', '++', '+++'].includes(biopsy.findings.activation);
+        ['+', '++', '+++'].includes(biopsy.findings.activation);
 
       if (hasActiveFindings) {
         Object.entries(biopsy.findings).forEach(([key, value]) => {
@@ -230,7 +230,7 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
             hp: 'HP',
             intestinalMetaplasia: 'İntestinal metaplazi'
           }[key];
-          
+
           if (label && key !== 'eosinophilCount' && value !== 'Yapılmadı') {
             const line = `     - ${label}: (${value})`;
             lines.push(shouldHighlight(`finding-${key}`) ? `<mark>${line}</mark>` : line);
@@ -242,7 +242,7 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
           const hpLine = `     - HP: (${biopsy.findings.hp})`;
           lines.push(shouldHighlight('finding-hp') ? `<mark>${hpLine}</mark>` : hpLine);
         }
-        
+
         // Only show IM if it's not "Yapılmadı"
         if (biopsy.findings.intestinalMetaplasia !== 'Yapılmadı') {
           const imLine = `     - İntestinal metaplazi: (${biopsy.findings.intestinalMetaplasia})`;
@@ -283,6 +283,10 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
       const line = `     - ${note}${note.endsWith('.') ? '' : '.'}`;
       lines.push(shouldHighlight('customNotes') ? `<mark>${line}</mark>` : line);
     });
+    if (biopsy.location === BiopsyLocation.Kolon && biopsy.ibdDca) {
+      const scoreLine = `     - IBD-DCA skoru: D${biopsy.ibdDca.d} C${biopsy.ibdDca.c} A${biopsy.ibdDca.a}`;
+      lines.push(shouldHighlight('ibdDca-d') || shouldHighlight('ibdDca-c') || shouldHighlight('ibdDca-a') ? `<mark>${scoreLine}</mark>` : scoreLine);
+    }
 
     // Add eosinophil count if present
     if (biopsy.eosinophilCount) {
@@ -325,7 +329,7 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
           Kopyala
         </button>
       </div>
-      <div 
+      <div
         className="p-4 whitespace-pre-wrap font-mono text-sm text-gray-800 bg-gray-50 min-h-[300px] max-h-[600px] overflow-y-auto"
         dangerouslySetInnerHTML={{ __html: reportText }}
       />

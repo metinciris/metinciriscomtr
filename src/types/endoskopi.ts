@@ -58,8 +58,7 @@ export const PredefinedNotes = {
         'Kript absesi vardır',
         'Kript distorsiyonu vardır',
         'Granülom yapısı izlenmemiştir',
-        'Lenfoid agregat vardır',
-        'IBD-DCA skoru: D0 C0 A0'
+        'Lenfoid agregat vardır'
     ]
 };
 
@@ -145,6 +144,11 @@ export interface Biopsy {
     };
     eosinophilCount?: string;
     customStains?: string[];
+    ibdDca?: {
+        d: number;
+        c: number;
+        a: number;
+    };
 }
 
 export const DiagnosisOptions = {

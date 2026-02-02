@@ -10,8 +10,8 @@ interface ReportGeneratorProps {
   stainConfig: any;
 }
 
-export const ReportGenerator: React.FC<ReportGeneratorProps> = ({ 
-  biopsies, 
+export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
+  biopsies,
   setBiopsies,
   stainConfig
 }) => {
@@ -26,9 +26,9 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
     const newBiopsy: Biopsy = {
       id: Date.now().toString(),
       location,
-      subLocation: location === BiopsyLocation.Ileum ? 'Terminal ileum' : 
-                  location === BiopsyLocation.Ozefagus ? 'Özofagus' :
-                  location === BiopsyLocation.Duodenum ? 'Duodenum' : '',
+      subLocation: location === BiopsyLocation.Ileum ? 'Terminal ileum' :
+        location === BiopsyLocation.Ozefagus ? 'Özofagus' :
+          location === BiopsyLocation.Duodenum ? 'Duodenum' : '',
       sequence: biopsies.length + 1,
       findings: {
         inflammation: '-',
@@ -44,9 +44,10 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
       fundicGlandPolyp: false,
       additionalFeatureText: '',
       eosinophilCount: '',
-      customDiagnosis: location === BiopsyLocation.Mide ? 'Normal görünümlü mide mukozası' : 
-                      location === BiopsyLocation.Ileum ? 'Normal görünümlü ileum mukozası' :
-                      location === BiopsyLocation.Duodenum ? 'Normal görünümlü duedonum mukozası' : undefined,
+      customDiagnosis: location === BiopsyLocation.Mide ? 'Normal görünümlü mide mukozası' :
+        location === BiopsyLocation.Ileum ? 'Normal görünümlü ileum mukozası' :
+          location === BiopsyLocation.Duodenum ? 'Normal görünümlü duedonum mukozası' :
+            location === BiopsyLocation.Kolon ? 'Normal görünümlü kolon mukozası' : undefined,
       stains: location === BiopsyLocation.Ozefagus ? {
         pasAB: true
       } : location === BiopsyLocation.Mide ? {
@@ -93,8 +94,15 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
           hyperplasticPolyp: false,
           eosinophilsPresent: false,
         }
+      }),
+      ...(location === BiopsyLocation.Kolon && {
+        ibdDca: { d: 0, c: 0, a: 0 }
       })
     };
+
+    if (location === BiopsyLocation.Kolon && !newBiopsy.subLocation) {
+      newBiopsy.subLocation = 'Kolon';
+    }
 
     setBiopsies(prev => [...prev, newBiopsy]);
     setActiveField(`${newBiopsy.id}-active`);
@@ -102,7 +110,7 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
     setTimeout(() => {
       const element = biopsyRefs.current[newBiopsy.id];
       if (element) {
-        const headerOffset = 180;
+        const headerOffset = 100; // Reduced from 180 to ensure it's visible below the sticky bar
         const elementPosition = element.getBoundingClientRect().top;
         const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
         window.scrollTo({
@@ -126,11 +134,11 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
         if (biopsy.id === updatedBiopsy.id) {
           if (biopsy.location === BiopsyLocation.Mide) {
             const hasActivation = ['+', '++', '+++'].includes(updatedBiopsy.findings.activation);
-            
-            if (!updatedBiopsy.customDiagnosis || 
-                updatedBiopsy.customDiagnosis === 'Normal görünümlü mide mukozası' ||
-                updatedBiopsy.customDiagnosis === 'Kronik gastrit' ||
-                updatedBiopsy.customDiagnosis === 'Aktivasyonlu kronik gastrit') {
+
+            if (!updatedBiopsy.customDiagnosis ||
+              updatedBiopsy.customDiagnosis === 'Normal görünümlü mide mukozası' ||
+              updatedBiopsy.customDiagnosis === 'Kronik gastrit' ||
+              updatedBiopsy.customDiagnosis === 'Aktivasyonlu kronik gastrit') {
               if (hasActivation) {
                 updatedBiopsy.customDiagnosis = 'Aktivasyonlu kronik gastrit';
               } else if (['+', '++', '+++'].includes(updatedBiopsy.findings.inflammation)) {
@@ -140,8 +148,8 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
               }
             }
           } else if (biopsy.location === BiopsyLocation.Duodenum) {
-            const mapping = DuodenumDiagnosisMappings.find(m => 
-              m.location === updatedBiopsy.subLocation && 
+            const mapping = DuodenumDiagnosisMappings.find(m =>
+              m.location === updatedBiopsy.subLocation &&
               m.diagnosis === updatedBiopsy.customDiagnosis
             );
 
@@ -159,7 +167,7 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
   const scrollToBiopsy = (id: string) => {
     const element = biopsyRefs.current[id];
     if (element) {
-      const headerOffset = 180;
+      const headerOffset = 100;
       const elementPosition = element.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
       window.scrollTo({
@@ -203,11 +211,10 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
                     scrollToBiopsy(biopsy.id);
                     setActiveField(`${biopsy.id}-active`);
                   }}
-                  className={`px-3 py-1 rounded-md text-sm font-medium whitespace-nowrap transition-colors ${
-                    activeField?.startsWith(biopsy.id)
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
+                  className={`px-3 py-1 rounded-md text-sm font-medium whitespace-nowrap transition-colors ${activeField?.startsWith(biopsy.id)
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
                 >
                   {index + 1} - {biopsy.subLocation || biopsy.location}
                 </button>
@@ -222,7 +229,7 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
           {biopsies.map((biopsy, index) => (
             <div
               key={biopsy.id}
-              ref={el => (biopsyRefs.current[biopsy.id] = el)}
+              ref={el => { biopsyRefs.current[biopsy.id] = el; }}
               className="scroll-mt-40 mb-6"
             >
               <BiopsyForm
@@ -238,11 +245,11 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
             </div>
           ))}
         </div>
-        
+
         <div className="lg:col-span-1">
           <div className="lg:sticky lg:top-40 space-y-4">
-            <ReportPreview 
-              biopsies={biopsies} 
+            <ReportPreview
+              biopsies={biopsies}
               activeField={activeField}
               stainConfig={stainConfig}
             />

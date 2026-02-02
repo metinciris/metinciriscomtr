@@ -4,11 +4,15 @@ import { Plus, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
 interface CustomNoteManagerProps {
   notes: string[];
   onChange: (notes: string[]) => void;
+  onFocus?: () => void;
+  isActive?: boolean;
 }
 
 export const CustomNoteManager: React.FC<CustomNoteManagerProps> = ({
   notes,
   onChange,
+  onFocus,
+  isActive,
 }) => {
   const [newNote, setNewNote] = useState('');
 
@@ -59,6 +63,7 @@ export const CustomNoteManager: React.FC<CustomNoteManagerProps> = ({
           type="text"
           value={newNote}
           onChange={(e) => setNewNote(e.target.value)}
+          onFocus={onFocus}
           onKeyPress={handleKeyPress}
           placeholder="Yeni not ekle..."
           className="flex-1 rounded-l-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
@@ -80,18 +85,16 @@ export const CustomNoteManager: React.FC<CustomNoteManagerProps> = ({
                 <button
                   onClick={() => moveNoteUp(index)}
                   disabled={index === 0}
-                  className={`text-gray-500 hover:text-gray-700 ${
-                    index === 0 ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
+                  className={`text-gray-500 hover:text-gray-700 ${index === 0 ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
                 >
                   <ArrowUp size={16} />
                 </button>
                 <button
                   onClick={() => moveNoteDown(index)}
                   disabled={index === notes.length - 1}
-                  className={`text-gray-500 hover:text-gray-700 ${
-                    index === notes.length - 1 ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
+                  className={`text-gray-500 hover:text-gray-700 ${index === notes.length - 1 ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
                 >
                   <ArrowDown size={16} />
                 </button>

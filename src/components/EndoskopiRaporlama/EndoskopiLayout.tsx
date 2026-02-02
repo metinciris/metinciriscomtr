@@ -1,7 +1,6 @@
 import React, { ReactNode, useState } from 'react';
-import { Microscope, RotateCcw, Settings2 } from 'lucide-react';
+import { Microscope, Settings2, Maximize } from 'lucide-react';
 import { AutoStainMenu } from './AutoStainMenu';
-import { BiopsyLocation } from '../../types/endoskopi';
 
 interface LayoutProps {
   children: ReactNode;
@@ -20,20 +19,36 @@ export const EndoskopiLayout: React.FC<LayoutProps> = ({
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
-      <header className="bg-white shadow-sm">
+      <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <Microscope className="h-8 w-8 text-blue-600 mr-3" />
-              <h1 className="text-2xl font-semibold text-gray-900">Patoloji Endoskopi Rapor Oluşturucu</h1>
+              <h1 className="text-xl md:text-2xl font-semibold text-gray-900">Patoloji Endoskopi Rapor Oluşturucu</h1>
             </div>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setIsAutoStainMenuOpen(!isAutoStainMenuOpen)}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors flex items-center gap-2"
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors flex items-center gap-2 text-sm md:text-base"
               >
                 <Settings2 className="h-4 w-4" />
-                OtoBoya
+                <span className="hidden sm:inline">OtoBoya</span>
+              </button>
+              <button
+                onClick={() => {
+                  if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen();
+                  } else {
+                    if (document.exitFullscreen) {
+                      document.exitFullscreen();
+                    }
+                  }
+                }}
+                className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-md transition-colors flex items-center gap-2 text-sm md:text-base"
+                title="Tam Ekran"
+              >
+                <Maximize className="h-4 w-4" />
+                <span className="hidden sm:inline">Tam Ekran</span>
               </button>
             </div>
           </div>

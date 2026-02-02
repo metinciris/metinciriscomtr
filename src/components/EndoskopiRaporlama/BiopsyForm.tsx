@@ -30,10 +30,10 @@ export const BiopsyForm: React.FC<BiopsyFormProps> = ({
   const [newStain, setNewStain] = useState('');
 
   const handlePredefinedNoteClick = (note: string) => {
-    onFieldFocus(`${biopsy.id}-predefinedNote`);
+    onFieldFocus(`${biopsy.id}-customNotes`);
     const notes = biopsy.customNotes || [];
     const noteIndex = notes.indexOf(note);
-    
+
     if (noteIndex === -1) {
       onUpdate({
         ...biopsy,
@@ -51,7 +51,7 @@ export const BiopsyForm: React.FC<BiopsyFormProps> = ({
 
   const handleLocationClick = (loc: string) => {
     onFieldFocus(`${biopsy.id}-location`);
-    
+
     // Handle all locations like radio buttons
     onUpdate({
       ...biopsy,
@@ -60,8 +60,8 @@ export const BiopsyForm: React.FC<BiopsyFormProps> = ({
 
     // Update diagnosis based on location if it's a Duodenum/Bulbus biopsy
     if (biopsy.location === BiopsyLocation.Duodenum) {
-      const mapping = DuodenumDiagnosisMappings.find(m => 
-        m.location === loc && 
+      const mapping = DuodenumDiagnosisMappings.find(m =>
+        m.location === loc &&
         m.diagnosis === biopsy.customDiagnosis
       );
 
@@ -77,16 +77,16 @@ export const BiopsyForm: React.FC<BiopsyFormProps> = ({
   };
 
   const handleSubLocationClick = (subLoc: string) => {
-    onFieldFocus(`${biopsy.id}-sublocation`);
+    onFieldFocus(`${biopsy.id}-subLocation`);
     const currentLocations = biopsy.subLocation.split(', ');
     let newLocations: string[];
-    
+
     if (currentLocations.includes(subLoc)) {
       newLocations = currentLocations.filter(loc => loc !== subLoc);
     } else {
       newLocations = [...currentLocations, subLoc];
     }
-    
+
     onUpdate({
       ...biopsy,
       subLocation: newLocations.join(', ').replace(/^, /, ''),
@@ -137,11 +137,11 @@ export const BiopsyForm: React.FC<BiopsyFormProps> = ({
 
   const handleDiagnosisClick = (diagnosis: string) => {
     onFieldFocus(`${biopsy.id}-diagnosis`);
-    
+
     // For Duodenum/Bulbus, handle special cases
     if (biopsy.location === BiopsyLocation.Duodenum) {
-      const mapping = DuodenumDiagnosisMappings.find(m => 
-        m.location === biopsy.subLocation && 
+      const mapping = DuodenumDiagnosisMappings.find(m =>
+        m.location === biopsy.subLocation &&
         m.diagnosis === diagnosis
       );
 
@@ -185,16 +185,15 @@ export const BiopsyForm: React.FC<BiopsyFormProps> = ({
           <div className="flex flex-wrap gap-2">
             {LocationOptions[biopsy.location].locations.map(loc => {
               const isSelected = biopsy.subLocation === loc;
-              
+
               return (
                 <button
                   key={loc}
                   onClick={() => handleLocationClick(loc)}
-                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                    isSelected
-                      ? 'bg-blue-100 text-blue-800'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
+                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${isSelected
+                    ? 'bg-blue-100 text-blue-800'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
                 >
                   {loc}
                 </button>
@@ -214,11 +213,10 @@ export const BiopsyForm: React.FC<BiopsyFormProps> = ({
                     <button
                       key={subLoc}
                       onClick={() => handleSubLocationClick(subLoc)}
-                      className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                        isSelected
-                          ? 'bg-blue-100 text-blue-800'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
+                      className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${isSelected
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
                     >
                       {subLoc}
                     </button>
@@ -346,17 +344,58 @@ export const BiopsyForm: React.FC<BiopsyFormProps> = ({
               <button
                 key={diagnosis}
                 onClick={() => handleDiagnosisClick(diagnosis)}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                  biopsy.customDiagnosis === diagnosis
-                    ? 'bg-blue-100 text-blue-800'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${biopsy.customDiagnosis === diagnosis
+                  ? 'bg-blue-100 text-blue-800'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
               >
                 {diagnosis}
               </button>
             ))}
           </div>
         </div>
+
+        {biopsy.location === BiopsyLocation.Kolon && (
+          <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+            <h4 className="text-sm font-semibold text-blue-900 mb-3 flex items-center justify-between">
+              IBD-DCA Skoru
+              <span className="text-xs font-normal text-blue-700">D: Distorsiyon, C: Cins, A: Aktivasyon</span>
+            </h4>
+            <div className="flex gap-6">
+              {(['d', 'c', 'a'] as const).map((letter) => (
+                <div key={letter} className="flex flex-col items-center gap-2">
+                  <span className="text-sm font-bold text-blue-800 uppercase">{letter}</span>
+                  <div className="flex gap-1">
+                    {[0, 1, 2].map((val) => (
+                      <button
+                        key={val}
+                        onClick={() => {
+                          onFieldFocus(`${biopsy.id}-ibdDca-${letter}`);
+                          onUpdate({
+                            ...biopsy,
+                            ibdDca: {
+                              ...(biopsy.ibdDca || { d: 0, c: 0, a: 0 }),
+                              [letter]: val
+                            }
+                          });
+                        }}
+                        className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all ${(biopsy.ibdDca?.[letter] ?? 0) === val
+                          ? 'bg-blue-600 text-white shadow-md scale-110'
+                          : 'bg-white text-blue-600 hover:bg-blue-100 border border-blue-200'
+                          }`}
+                      >
+                        {val}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 text-xs text-blue-600 italic">
+              Skor: D{(biopsy.ibdDca?.d ?? 0)} C{(biopsy.ibdDca?.c ?? 0)} A{(biopsy.ibdDca?.a ?? 0)}
+            </div>
+          </div>
+        )}
 
         <div>
           <div className="flex items-center mb-2">
@@ -389,11 +428,10 @@ export const BiopsyForm: React.FC<BiopsyFormProps> = ({
               <button
                 key={note}
                 onClick={() => handlePredefinedNoteClick(note)}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                  biopsy.customNotes?.includes(note)
-                    ? 'bg-blue-100 text-blue-800'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${biopsy.customNotes?.includes(note)
+                  ? 'bg-blue-100 text-blue-800'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
               >
                 {note}
               </button>
@@ -410,6 +448,7 @@ export const BiopsyForm: React.FC<BiopsyFormProps> = ({
               onFieldFocus(`${biopsy.id}-customNotes`);
               onUpdate({ ...biopsy, customNotes: notes });
             }}
+            onFocus={() => onFieldFocus(`${biopsy.id}-customNotes`)}
             isActive={activeField === `${biopsy.id}-customNotes`}
           />
         </div>
