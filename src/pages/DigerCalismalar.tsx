@@ -30,6 +30,14 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
             page: 'gist-raporlama',
             category: 'raporlama'
         },
+        {
+            title: "Endoskopi Raporlama",
+            subtitle: "Gastrointestinal sistem biyopsileri",
+            icon: <FileText size={40} />,
+            color: "bg-[#2980B9]",
+            page: 'endoskopi-raporlama',
+            category: 'raporlama'
+        },
         // Patoloji & Eğitim Araçları
         {
             title: "Sınav Analizi",

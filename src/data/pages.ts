@@ -38,5 +38,6 @@ export const validPages = [
     'konsensus',
     'pubmed-makale-takip',
     'avif-donusturucu',
-    'sjogren-raporlama'
+    'sjogren-raporlama',
+    'endoskopi-raporlama'
 ];
