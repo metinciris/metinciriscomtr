@@ -13,14 +13,24 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
     const [selectedCategory, setSelectedCategory] = useState('all');
 
     const items = [
+        // Raporlama Araçları
         {
-            title: "Sjogren Raporlama",
-            subtitle: "Minör tükrük bezi biyopsisi raporlama aracı",
+            title: "Sjögren Raporlama",
+            subtitle: "Minör tükrük bezi biyopsisi",
             icon: <Microscope size={40} />,
             color: "bg-indigo-600",
             page: 'sjogren-raporlama',
-            category: 'patoloji'
+            category: 'raporlama'
         },
+        {
+            title: "GİST Raporlama",
+            subtitle: "Gastrointestinal Stromal Tümör",
+            icon: <FileText size={40} />,
+            color: "bg-[#9B59B6]",
+            page: 'gist-raporlama',
+            category: 'raporlama'
+        },
+        // Patoloji & Eğitim Araçları
         {
             title: "Sınav Analizi",
             subtitle: "Sınav sonuçları ve analizleri",
@@ -43,14 +53,6 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
             icon: <FileBarChart size={40} />,
             color: "bg-[#E74C3C]",
             page: 'rcb-calculator',
-            category: 'patoloji'
-        },
-        {
-            title: "GİST Raporlama",
-            subtitle: "Gastrointestinal Stromal Tümör",
-            icon: <FileText size={40} />,
-            color: "bg-[#9B59B6]",
-            page: 'gist-raporlama',
             category: 'patoloji'
         },
         {
@@ -184,6 +186,7 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
 
     const categories = [
         { id: 'all', name: 'Tümü' },
+        { id: 'raporlama', name: 'Raporlama Araçları' },
         { id: 'patoloji', name: 'Patoloji & Eğitim' },
         { id: 'diger', name: 'Diğer Çalışmalar' }
     ];
@@ -242,16 +245,7 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {/* SJOGREN RAPORLAMA - YENİ ETİKETLİ */}
-                <MetroTile
-                    title="Sjögren Raporlama"
-                    subtitle="Minör tükrük bezi biyopsisi (Yeni)"
-                    icon={<Microscope size={40} />}
-                    color="bg-indigo-600"
-                    size="medium"
-                    onClick={() => handleNavigate('sjogren-raporlama')}
-                />
-                {filteredItems.filter(i => i.page !== 'sjogren-raporlama').map((item, idx) => (
+                {filteredItems.map((item, idx) => (
                     <MetroTile
                         key={idx}
                         title={item.title}
