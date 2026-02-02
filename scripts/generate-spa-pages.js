@@ -15,17 +15,21 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Tüm geçerli sayfalar - App.tsx'teki validPages ile senkronize tutulmalı
-const validPages = [
-    'iletisim', 'ziyaret-mesaji', 'biyopsi-sonucu', 'baktigim-biyopsiler',
-    'nobetci-eczane', 'hastane-yemek', 'ders-notlari', 'ders-programi', 'ogrenci-yemek',
-    'donem-3', 'galeri', 'portfolyo', 'sinav-analizi', 'yayinlar', 'podcast',
-    'blog', 'github', 'facebook', 'linkedin', 'diger-calismalar', 'fetus-uzunluklari',
-    'rcb-calculator', 'gist-raporlama', 'makale', 'deprem', 'svs-reader',
-    'tani-tuzaklari', 'ayin-vakasi', 'prizma-3d', 'makale-takip', 'lenf-nodu',
-    'finans', 'pubmed-trend', 'online-test-analiz', 'euro-maclar', 'konsensus',
-    'pubmed-makale-takip', 'avif-donusturucu', 'sjogren-raporlama'
-];
+// Shared page listeyi src/data/pages.ts'den oku (TypeScript dosyasını basitçe parse ediyoruz)
+const pagesFilePath = join(__dirname, '..', 'src', 'data', 'pages.ts');
+const pagesFileContent = readFileSync(pagesFilePath, 'utf8');
+
+// Array içeriğini ayıkla: [...] kısmını bulup içindeki stringleri al
+const match = pagesFileContent.match(/export const validPages = \s*\[([\s\S]*?)\];/);
+if (!match) {
+    console.error('❌ src/data/pages.ts okunamadı veya formatı hatalı!');
+    process.exit(1);
+}
+
+const validPages = match[1]
+    .split(',')
+    .map(p => p.trim().replace(/['"\s]/g, ''))
+    .filter(p => p && p !== 'home'); // home için ayrı bir klasör gerekmez, index.html zaten orada
 
 const distDir = join(__dirname, '..', 'dist');
 const indexPath = join(distDir, 'index.html');

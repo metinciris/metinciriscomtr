@@ -2,6 +2,7 @@ import React from 'react';
 import { Layout } from './components/Layout';
 import { Toaster } from 'sonner';
 import { SEO } from './components/SEO';
+import { validPages } from './data/pages';
 
 /**
  * Sayfaları lazy yükle:
@@ -148,20 +149,10 @@ const SjogrenRaporlama = React.lazy(() => import('./pages/SjogrenRaporlama'));
 export default function App() {
   const [currentPage, setCurrentPage] = React.useState('home');
 
-  // Geçerli sayfalar listesi
-  const validPages = [
-    'home', 'iletisim', 'ziyaret-mesaji', 'biyopsi-sonucu', 'baktigim-biyopsiler',
-    'nobetci-eczane', 'hastane-yemek', 'ders-notlari', 'ders-programi', 'ogrenci-yemek',
-    'donem-3', 'galeri', 'portfolyo', 'sinav-analizi', 'yayinlar', 'podcast',
-    'blog', 'github', 'facebook', 'linkedin', 'diger-calismalar', 'fetus-uzunluklari',
-    'rcb-calculator', 'gist-raporlama', 'makale', 'deprem', 'svs-reader',
-    'tani-tuzaklari', 'ayin-vakasi', 'prizma-3d', 'makale-takip', 'lenf-nodu', 'finans', 'pubmed-trend', 'online-test-analiz', 'euro-maclar', 'konsensus', 'pubmed-makale-takip', 'avif-donusturucu', 'sjogren-raporlama'
-  ];
-
   // Path'ten sayfa adını çıkar
   const getPageFromPath = (pathname: string): string => {
-    // Başındaki slash'ı kaldır
-    const path = pathname.replace(/^\//, '') || 'home';
+    // Başındaki slash'ı kaldır, sondaki slash'ı kaldır
+    const path = pathname.replace(/^\//, '').replace(/\/$/, '') || 'home';
     return validPages.includes(path) ? path : '404';
   };
 
