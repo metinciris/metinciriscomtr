@@ -55,10 +55,10 @@ export function MeetingCard({
     return (
         <div
             className={`relative overflow-hidden border-2 rounded-2xl p-5 transition-all ${isPast
-                    ? 'bg-gray-50 border-gray-200'
-                    : isToday
-                        ? 'bg-gradient-to-br from-blue-50 to-indigo-50 border-indigo-300 shadow-lg'
-                        : 'bg-white border-gray-200 hover:border-blue-300 hover:shadow-lg'
+                ? 'bg-gray-50 border-gray-200'
+                : isToday
+                    ? 'bg-gradient-to-br from-blue-50 to-indigo-50 border-indigo-300 shadow-lg'
+                    : 'bg-white border-gray-200 hover:border-blue-300 hover:shadow-lg'
                 }`}
         >
             <div className="flex flex-wrap items-center gap-2 mb-3">
@@ -197,15 +197,6 @@ export function MeetingCard({
                             <div className="w-full flex-1 rounded-2xl overflow-hidden border border-indigo-200 bg-white shadow-sm">
                                 <img src={meeting.poster_url!} alt="Toplantı afişi" className="w-full h-full object-cover" loading="lazy" />
                             </div>
-
-                            <div className="mt-4 flex items-center justify-center">
-                                <div className="inline-flex items-center justify-center px-4 py-2 bg-indigo-50 text-indigo-800 text-sm font-black rounded-xl border border-indigo-100">
-                                    <ImageIcon className="w-4 h-4 mr-2" />
-                                    Afişi Gör
-                                </div>
-                            </div>
-
-                            <div className="text-xs text-indigo-700 font-semibold mt-2 text-center opacity-80">Dokun / tıkla büyüt</div>
                         </button>
                     </div>
                 ) : (
