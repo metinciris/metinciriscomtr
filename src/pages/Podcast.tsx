@@ -28,7 +28,7 @@ const PODCAST_RANGE = 'A1:F132';
 // index.html'deki JOURNALROWS ile aynı: dergi başlık satırlarının indexleri (0-based)
 const JOURNAL_ROWS = [0, 11, 22, 33, 44, 55, 66, 77, 88, 99, 110, 121];
 
-export default function Podcast({}: PodcastProps) {
+export default function Podcast({ }: PodcastProps) {
   const [journalGroups, setJournalGroups] = useState<JournalGroup[]>([]);
   const [articles, setArticles] = useState<Article[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -167,14 +167,15 @@ export default function Podcast({}: PodcastProps) {
     }
   };
 
-  const speak = (text: string) => {
-    if (!text || !synthRef.current) return;
+  const speak = (index: number) => {
+    const article = articles[index];
+    if (!article || !synthRef.current) return;
 
     if (utteranceRef.current) {
       synthRef.current.cancel();
     }
 
-    const utterance = new SpeechSynthesisUtterance(text);
+    const utterance = new SpeechSynthesisUtterance(article.title);
     utteranceRef.current = utterance;
 
     if (selectedVoiceRef.current) {
@@ -189,8 +190,14 @@ export default function Podcast({}: PodcastProps) {
     utterance.volume = volume;
 
     utterance.onend = () => {
-      setIsPlaying(false);
-      setStatus('Hazır');
+      if (index < articles.length - 1) {
+        const nextIndex = index + 1;
+        setCurrentIndex(nextIndex);
+        speak(nextIndex);
+      } else {
+        setIsPlaying(false);
+        setStatus('Hazır');
+      }
     };
 
     utterance.onerror = () => {
@@ -205,8 +212,7 @@ export default function Podcast({}: PodcastProps) {
 
   const handlePlay = () => {
     if (!articles.length) return;
-    const article = articles[currentIndex];
-    speak(article.title);
+    speak(currentIndex);
   };
 
   const handleStop = () => {
@@ -227,9 +233,7 @@ export default function Podcast({}: PodcastProps) {
 
   const handleCardClick = (index: number) => {
     setCurrentIndex(index);
-    if (articles[index]) {
-      speak(articles[index].title);
-    }
+    speak(index);
   };
 
   // Seçili kartı merkeze kaydır
