@@ -355,47 +355,6 @@ export const BiopsyForm: React.FC<BiopsyFormProps> = ({
           </div>
         </div>
 
-        {biopsy.location === BiopsyLocation.Kolon && (
-          <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-            <h4 className="text-sm font-semibold text-blue-900 mb-3 flex items-center justify-between">
-              IBD-DCA Skoru
-              <span className="text-xs font-normal text-blue-700">D: Distorsiyon, C: Cins, A: Aktivasyon</span>
-            </h4>
-            <div className="flex gap-6">
-              {(['d', 'c', 'a'] as const).map((letter) => (
-                <div key={letter} className="flex flex-col items-center gap-2">
-                  <span className="text-sm font-bold text-blue-800 uppercase">{letter}</span>
-                  <div className="flex gap-1">
-                    {[0, 1, 2].map((val) => (
-                      <button
-                        key={val}
-                        onClick={() => {
-                          onFieldFocus(`${biopsy.id}-ibdDca-${letter}`);
-                          onUpdate({
-                            ...biopsy,
-                            ibdDca: {
-                              ...(biopsy.ibdDca || { d: 0, c: 0, a: 0 }),
-                              [letter]: val
-                            }
-                          });
-                        }}
-                        className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all ${(biopsy.ibdDca?.[letter] ?? 0) === val
-                          ? 'bg-blue-600 text-white shadow-md scale-110'
-                          : 'bg-white text-blue-600 hover:bg-blue-100 border border-blue-200'
-                          }`}
-                      >
-                        {val}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="mt-3 text-xs text-blue-600 italic">
-              Skor: D{(biopsy.ibdDca?.d ?? 0)} C{(biopsy.ibdDca?.c ?? 0)} A{(biopsy.ibdDca?.a ?? 0)}
-            </div>
-          </div>
-        )}
 
         <div>
           <div className="flex items-center mb-2">
@@ -452,6 +411,47 @@ export const BiopsyForm: React.FC<BiopsyFormProps> = ({
             isActive={activeField === `${biopsy.id}-customNotes`}
           />
         </div>
+
+        {biopsy.location === BiopsyLocation.Kolon && (
+          <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+            <h4 className="text-sm font-semibold text-blue-900 mb-3 flex items-center justify-between">
+              IBD-DCA Skoru
+              <span className="text-xs font-normal text-blue-700">D: Dağılım, C: Kronisite, A: Aktivite</span>
+            </h4>
+            <div className="flex gap-6">
+              {(['d', 'c', 'a'] as const).map((letter) => (
+                <div key={letter} className="flex flex-col items-center gap-2">
+                  <span className="text-sm font-bold text-blue-800 uppercase">
+                    {letter === 'd' ? 'D (Dağılım)' : letter === 'c' ? 'C (Kronisite)' : 'A (Aktivite)'}
+                  </span>
+                  <div className="flex gap-1">
+                    {[0, 1, 2].map((val) => (
+                      <button
+                        key={val}
+                        onClick={() => {
+                          onFieldFocus(`${biopsy.id}-ibdDca-${letter}`);
+                          onUpdate({
+                            ...biopsy,
+                            ibdDca: {
+                              ...(biopsy.ibdDca || { d: 0, c: 0, a: 0 }),
+                              [letter]: val
+                            }
+                          });
+                        }}
+                        className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all ${(biopsy.ibdDca?.[letter] ?? 0) === val
+                          ? 'bg-blue-600 text-white shadow-md scale-110'
+                          : 'bg-white text-blue-600 hover:bg-blue-100 border border-blue-200'
+                          }`}
+                      >
+                        {val}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">

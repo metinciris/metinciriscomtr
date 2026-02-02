@@ -110,7 +110,7 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
     setTimeout(() => {
       const element = biopsyRefs.current[newBiopsy.id];
       if (element) {
-        const headerOffset = 100; // Reduced from 180 to ensure it's visible below the sticky bar
+        const headerOffset = 180; // Increased to ensure the form starts below the sticky header
         const elementPosition = element.getBoundingClientRect().top;
         const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
         window.scrollTo({
@@ -167,7 +167,7 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
   const scrollToBiopsy = (id: string) => {
     const element = biopsyRefs.current[id];
     if (element) {
-      const headerOffset = 100;
+      const headerOffset = 180;
       const elementPosition = element.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
       window.scrollTo({
