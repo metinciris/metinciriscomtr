@@ -1,6 +1,7 @@
 import React from 'react';
 import { PageContainer } from '../components/PageContainer';
-import { ExternalLink, Send, Globe, Calendar, BookOpen } from 'lucide-react';
+import { ExternalLink, Send, Globe, Calendar, BookOpen, GraduationCap, Users, FileText } from 'lucide-react';
+import { RelatedPages } from '../components/RelatedPages';
 
 interface TelegramChannel {
     name: string;
@@ -294,6 +295,32 @@ export function PatolojiMakaleTakip() {
                     <span>Tüm kanallar günlük olarak güncellenmektedir</span>
                 </div>
             </div>
+
+            <RelatedPages
+                pages={[
+                    {
+                        title: "Yayınlar",
+                        subtitle: "Bilimsel yayınlar ve makaleler",
+                        page: "yayinlar",
+                        color: "bg-rose-600",
+                        icon: FileText
+                    },
+                    {
+                        title: "Portfolyo",
+                        subtitle: "Akademik özgeçmiş ve çalışma alanları",
+                        page: "portfolyo",
+                        color: "bg-purple-600",
+                        icon: GraduationCap
+                    },
+                    {
+                        title: "Konsensus",
+                        subtitle: "Patoloji konsensus toplantı takibi",
+                        page: "konsensus",
+                        color: "bg-blue-600",
+                        icon: Users
+                    }
+                ]}
+            />
         </PageContainer>
     );
 }

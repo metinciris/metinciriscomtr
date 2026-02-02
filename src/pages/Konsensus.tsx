@@ -9,7 +9,12 @@ import {
   ChevronDown,
   BookOpen,
   Loader2,
+  GraduationCap,
+  Microscope,
+  FileText,
+  Users
 } from 'lucide-react';
+import { RelatedPages } from '../components/RelatedPages';
 
 import { Meeting, MeetingFormData, IST_TZ, ORGANIZER_OPTIONS } from '../components/Konsensus/types';
 import {
@@ -680,6 +685,32 @@ export function Konsensus() {
           </div>
         </div>
       </div>
+
+      <RelatedPages
+        pages={[
+          {
+            title: "Yayınlar",
+            subtitle: "Bilimsel yayınlar ve makaleler",
+            page: "yayinlar",
+            color: "bg-rose-600",
+            icon: FileText
+          },
+          {
+            title: "Portfolyo",
+            subtitle: "Akademik özgeçmiş ve çalışma alanları",
+            page: "portfolyo",
+            color: "bg-purple-600",
+            icon: GraduationCap
+          },
+          {
+            title: "Makale Özetleri",
+            subtitle: "Günlük PubMed makale özetleri",
+            page: "makale",
+            color: "bg-indigo-600",
+            icon: FileText
+          }
+        ]}
+      />
     </div>
   );
 }

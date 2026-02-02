@@ -11,8 +11,11 @@ import {
   Users,
   BarChart3,
   ChevronDown,
-  ExternalLink
+  ExternalLink,
+  LayoutGrid,
+  Microscope
 } from 'lucide-react';
+import { RelatedPages } from '../components/RelatedPages';
 
 export function Portfolyo() {
   const [expandedSections, setExpandedSections] = React.useState<string[]>([]);
@@ -686,6 +689,32 @@ export function Portfolyo() {
           )}
         </div>
       </div>
+
+      <RelatedPages
+        pages={[
+          {
+            title: "Yayınlar",
+            subtitle: "Bilimsel yayınlar ve makaleler",
+            page: "yayinlar",
+            color: "bg-rose-600",
+            icon: FileText
+          },
+          {
+            title: "Konsensus",
+            subtitle: "Patoloji konsensus toplantı takibi",
+            page: "konsensus",
+            color: "bg-blue-600",
+            icon: Users
+          },
+          {
+            title: "Makale Özetleri",
+            subtitle: "Günlük PubMed makale özetleri",
+            page: "makale",
+            color: "bg-indigo-600",
+            icon: FileText
+          }
+        ]}
+      />
     </PageContainer>
   );
 }

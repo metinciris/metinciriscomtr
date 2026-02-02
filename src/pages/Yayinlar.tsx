@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { PageContainer } from '../components/PageContainer';
 import {
   FileText, ExternalLink, Search, BookOpen, Award, ChevronDown,
-  TrendingUp, Users, GraduationCap, Calendar, MapPin, Sparkles
+  TrendingUp, Users, GraduationCap, Calendar, MapPin, Sparkles, LayoutGrid, Microscope
 } from 'lucide-react';
+import { RelatedPages } from '../components/RelatedPages';
 
 interface Publication {
   code?: string;
@@ -478,6 +479,32 @@ export function Yayinlar() {
           </div>
         </div>
       </div>
+
+      <RelatedPages
+        pages={[
+          {
+            title: "Portfolyo",
+            subtitle: "Akademik özgeçmiş ve çalışma alanları",
+            page: "portfolyo",
+            color: "bg-purple-600",
+            icon: GraduationCap
+          },
+          {
+            title: "Konsensus",
+            subtitle: "Patoloji konsensus toplantı takibi",
+            page: "konsensus",
+            color: "bg-blue-600",
+            icon: Users
+          },
+          {
+            title: "Makale Özetleri",
+            subtitle: "Günlük PubMed makale özetleri",
+            page: "makale",
+            color: "bg-indigo-600",
+            icon: FileText
+          }
+        ]}
+      />
     </PageContainer>
   );
 }

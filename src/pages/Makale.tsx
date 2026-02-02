@@ -4,6 +4,8 @@ import { Loader2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
+import { GraduationCap, Users, FileText, Search } from 'lucide-react';
+import { RelatedPages } from '../components/RelatedPages';
 
 interface MakaleProps {
   onNavigate: (page: string) => void;
@@ -116,7 +118,6 @@ export function Makale({ onNavigate }: MakaleProps) {
         </p>
       )}
 
-      {/* Daha fazla butonu */}
       <div className="flex justify-center mt-12 pb-12">
         {hasMore ? (
           <Button
@@ -142,6 +143,32 @@ export function Makale({ onNavigate }: MakaleProps) {
           )
         )}
       </div>
+
+      <RelatedPages
+        pages={[
+          {
+            title: "Makale Takibi",
+            subtitle: "Patoloji makale takip kanalları ve uygulamaları",
+            page: "makale-takip",
+            color: "bg-blue-600",
+            icon: Search
+          },
+          {
+            title: "Yayınlar",
+            subtitle: "Bilimsel yayınlar ve makaleler",
+            page: "yayinlar",
+            color: "bg-rose-600",
+            icon: FileText
+          },
+          {
+            title: "Portfolyo",
+            subtitle: "Akademik özgeçmiş ve çalışma alanları",
+            page: "portfolyo",
+            color: "bg-purple-600",
+            icon: GraduationCap
+          }
+        ]}
+      />
     </PageContainer>
   );
 }

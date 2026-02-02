@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Copy, FileText, CheckCircle, Microscope, RotateCcw, Plus, Trash2 } from 'lucide-react';
+import { Copy, FileText, CheckCircle, Microscope, RotateCcw, Plus, Trash2, LayoutGrid } from 'lucide-react';
 import { PageContainer } from '../components/PageContainer';
 import { toast } from 'sonner';
+import { RelatedPages } from '../components/RelatedPages';
 
 interface Feature {
     id: string;
@@ -641,8 +642,8 @@ const TiiabRaporlama: React.FC = () => {
                             <button
                                 onClick={() => toggleSampleType(activeSample)}
                                 className={`px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${currentSample.type === 'thyroid'
-                                        ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
-                                        : 'bg-indigo-100 text-indigo-800 hover:bg-indigo-200'
+                                    ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
+                                    : 'bg-indigo-100 text-indigo-800 hover:bg-indigo-200'
                                     }`}
                             >
                                 {currentSample.type === 'thyroid' ? "Diğer Sitoloji'ye Çevir" : "Tiroid Sitoloji'ye Çevir"}
@@ -680,8 +681,8 @@ const TiiabRaporlama: React.FC = () => {
                                         value={currentSample.diagnosis || generateSuggestedDiagnosis()}
                                         onChange={(e) => updateDiagnosis(e.target.value)}
                                         className={`w-full md:w-auto px-6 py-3 text-sm md:text-base font-bold border-2 rounded-2xl focus:outline-none focus:ring-4 focus:ring-opacity-20 transition-all ${currentSample.type === 'thyroid'
-                                                ? getDiagnosisStyles(currentSample.diagnosis || generateSuggestedDiagnosis())
-                                                : 'border-emerald-400 bg-emerald-50 text-emerald-800 focus:ring-emerald-500'
+                                            ? getDiagnosisStyles(currentSample.diagnosis || generateSuggestedDiagnosis())
+                                            : 'border-emerald-400 bg-emerald-50 text-emerald-800 focus:ring-emerald-500'
                                             }`}
                                     >
                                         {currentDiagnoses.map(d => <option key={d} value={d}>{d}</option>)}
@@ -703,8 +704,8 @@ const TiiabRaporlama: React.FC = () => {
                                                         key={type.id}
                                                         onClick={() => updateBethesda3Type(type.id as any)}
                                                         className={`px-4 py-2 rounded-xl text-sm font-bold transition-all border-2 ${currentSample.bethesda3Type === type.id
-                                                                ? 'bg-amber-600 border-amber-600 text-white shadow-lg shadow-amber-100'
-                                                                : 'bg-white border-amber-200 text-amber-800 hover:border-amber-400'
+                                                            ? 'bg-amber-600 border-amber-600 text-white shadow-lg shadow-amber-100'
+                                                            : 'bg-white border-amber-200 text-amber-800 hover:border-amber-400'
                                                             }`}
                                                     >
                                                         {type.label}
@@ -729,12 +730,12 @@ const TiiabRaporlama: React.FC = () => {
                                                     key={f.id}
                                                     onClick={() => toggleFeature(f.id)}
                                                     className={`w-full p-3 text-left text-sm font-bold rounded-2xl transition-all border-2 ${currentSample.selectedFeatures.includes(f.id)
-                                                            ? f.malignant
-                                                                ? 'bg-rose-600 border-rose-600 text-white shadow-lg shadow-rose-100'
-                                                                : 'bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-100'
-                                                            : f.malignant
-                                                                ? 'bg-rose-50 border-rose-100 text-rose-800 hover:border-rose-300'
-                                                                : 'bg-slate-50 border-slate-100 text-slate-700 hover:border-indigo-200 hover:bg-white'
+                                                        ? f.malignant
+                                                            ? 'bg-rose-600 border-rose-600 text-white shadow-lg shadow-rose-100'
+                                                            : 'bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-100'
+                                                        : f.malignant
+                                                            ? 'bg-rose-50 border-rose-100 text-rose-800 hover:border-rose-300'
+                                                            : 'bg-slate-50 border-slate-100 text-slate-700 hover:border-indigo-200 hover:bg-white'
                                                         }`}
                                                 >
                                                     {f.text}
@@ -800,6 +801,32 @@ const TiiabRaporlama: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            <RelatedPages
+                pages={[
+                    {
+                        title: "Sjögren Raporlama",
+                        subtitle: "Minör tükrük bezi biyopsisi raporlama aracı",
+                        page: "sjogren-raporlama",
+                        color: "bg-indigo-600",
+                        icon: Microscope
+                    },
+                    {
+                        title: "GİST Raporlama",
+                        subtitle: "Gastrointestinal Stromal Tümör raporlama aracı",
+                        page: "gist-raporlama",
+                        color: "bg-purple-600",
+                        icon: FileText
+                    },
+                    {
+                        title: "Endoskopi Raporlama",
+                        subtitle: "Gastrointestinal sistem biyopsileri raporlama aracı",
+                        page: "endoskopi-raporlama",
+                        color: "bg-blue-600",
+                        icon: LayoutGrid
+                    }
+                ]}
+            />
         </PageContainer>
     );
 };

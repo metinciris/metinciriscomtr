@@ -1,7 +1,8 @@
 import React, { useMemo, useState } from "react";
-import { Copy, Check, Microscope, FileText, Info, RotateCcw, Plus, Trash2 } from "lucide-react";
+import { Copy, Check, Microscope, FileText, Info, RotateCcw, Plus, Trash2, LayoutGrid } from "lucide-react";
 import { PageContainer } from "../components/PageContainer";
 import { toast } from "sonner";
+import { RelatedPages } from "../components/RelatedPages";
 
 // --- Constants ---
 const FOKUS_OPTS = [
@@ -496,6 +497,32 @@ export default function SjogrenRaporlama() {
                     </div>
                 </div>
             </div>
+
+            <RelatedPages
+                pages={[
+                    {
+                        title: "GİST Raporlama",
+                        subtitle: "Gastrointestinal Stromal Tümör raporlama aracı",
+                        page: "gist-raporlama",
+                        color: "bg-purple-600",
+                        icon: FileText
+                    },
+                    {
+                        title: "TİİAB Raporlama",
+                        subtitle: "Tiroid İnce İğne Aspirasyon Biyopsisi raporlama aracı",
+                        page: "tiiab-raporlama",
+                        color: "bg-emerald-600",
+                        icon: Microscope
+                    },
+                    {
+                        title: "Endoskopi Raporlama",
+                        subtitle: "Gastrointestinal sistem biyopsileri raporlama aracı",
+                        page: "endoskopi-raporlama",
+                        color: "bg-blue-600",
+                        icon: LayoutGrid
+                    }
+                ]}
+            />
         </PageContainer>
     );
 }

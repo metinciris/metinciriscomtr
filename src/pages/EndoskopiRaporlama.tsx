@@ -3,6 +3,8 @@ import { PageContainer } from '../components/PageContainer';
 import { EndoskopiLayout } from '../components/EndoskopiRaporlama/EndoskopiLayout';
 import { ReportGenerator } from '../components/EndoskopiRaporlama/ReportGenerator';
 import { Biopsy, BiopsyLocation } from '../types/endoskopi';
+import { Microscope, FileText } from 'lucide-react';
+import { RelatedPages } from '../components/RelatedPages';
 
 const defaultStainConfig = {
     [BiopsyLocation.Ozefagus]: [
@@ -45,6 +47,32 @@ export function EndoskopiRaporlama() {
                     stainConfig={stainConfig}
                 />
             </EndoskopiLayout>
+
+            <RelatedPages
+                pages={[
+                    {
+                        title: "Sjögren Raporlama",
+                        subtitle: "Minör tükrük bezi biyopsisi raporlama aracı",
+                        page: "sjogren-raporlama",
+                        color: "bg-indigo-600",
+                        icon: Microscope
+                    },
+                    {
+                        title: "GİST Raporlama",
+                        subtitle: "Gastrointestinal Stromal Tümör raporlama aracı",
+                        page: "gist-raporlama",
+                        color: "bg-purple-600",
+                        icon: FileText
+                    },
+                    {
+                        title: "TİİAB Raporlama",
+                        subtitle: "Tiroid İnce İğne Aspirasyon Biyopsisi raporlama aracı",
+                        page: "tiiab-raporlama",
+                        color: "bg-emerald-600",
+                        icon: Microscope
+                    }
+                ]}
+            />
         </PageContainer>
     );
 }

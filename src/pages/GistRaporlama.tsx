@@ -1,7 +1,8 @@
 import React, { useMemo, useState } from "react";
 import { motion } from "motion/react";
-import { Copy, Check, Activity, Ruler, Microscope, FileText, Info } from "lucide-react";
+import { Copy, Check, Activity, Ruler, Microscope, FileText, Info, LayoutGrid } from "lucide-react";
 import { PageContainer } from "../components/PageContainer";
+import { RelatedPages } from "../components/RelatedPages";
 
 // --- Constants & Logic ---
 const HISTO_TIP_OPTS = [
@@ -824,6 +825,32 @@ export default function GistRaporlama() {
                     </div>
                 </div>
             </div>
+
+            <RelatedPages
+                pages={[
+                    {
+                        title: "Sjögren Raporlama",
+                        subtitle: "Minör tükrük bezi biyopsisi raporlama aracı",
+                        page: "sjogren-raporlama",
+                        color: "bg-indigo-600",
+                        icon: Microscope
+                    },
+                    {
+                        title: "TİİAB Raporlama",
+                        subtitle: "Tiroid İnce İğne Aspirasyon Biyopsisi raporlama aracı",
+                        page: "tiiab-raporlama",
+                        color: "bg-emerald-600",
+                        icon: Microscope
+                    },
+                    {
+                        title: "Endoskopi Raporlama",
+                        subtitle: "Gastrointestinal sistem biyopsileri raporlama aracı",
+                        page: "endoskopi-raporlama",
+                        color: "bg-blue-600",
+                        icon: LayoutGrid
+                    }
+                ]}
+            />
         </PageContainer>
     );
 }
