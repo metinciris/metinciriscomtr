@@ -162,7 +162,10 @@ export const BiopsyForm: React.FC<BiopsyFormProps> = ({
   };
 
   return (
-    <div className="bg-white shadow rounded-lg p-6 transition-all duration-300 border border-gray-200">
+    <div className={`bg-white shadow rounded-lg p-6 transition-all duration-300 border-2 ${activeField?.startsWith(biopsy.id)
+        ? 'border-blue-500 shadow-xl scale-[1.01]'
+        : 'border-gray-200'
+      }`}>
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-medium text-gray-900">
           Biyopsi #{index + 1} - {biopsy.location}
@@ -412,44 +415,64 @@ export const BiopsyForm: React.FC<BiopsyFormProps> = ({
           />
         </div>
 
-        {biopsy.location === BiopsyLocation.Kolon && (
+        {(biopsy.location === BiopsyLocation.Kolon || biopsy.location === BiopsyLocation.Ileum) && (
           <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-            <h4 className="text-sm font-semibold text-blue-900 mb-3 flex items-center justify-between">
-              IBD-DCA Skoru
-              <span className="text-xs font-normal text-blue-700">D: Dağılım, C: Kronisite, A: Aktivite</span>
-            </h4>
-            <div className="flex gap-6">
-              {(['d', 'c', 'a'] as const).map((letter) => (
-                <div key={letter} className="flex flex-col items-center gap-2">
-                  <span className="text-sm font-bold text-blue-800 uppercase">
-                    {letter === 'd' ? 'D (Dağılım)' : letter === 'c' ? 'C (Kronisite)' : 'A (Aktivite)'}
-                  </span>
-                  <div className="flex gap-1">
-                    {[0, 1, 2].map((val) => (
-                      <button
-                        key={val}
-                        onClick={() => {
-                          onFieldFocus(`${biopsy.id}-ibdDca-${letter}`);
-                          onUpdate({
-                            ...biopsy,
-                            ibdDca: {
-                              ...(biopsy.ibdDca || { d: 0, c: 0, a: 0 }),
-                              [letter]: val
-                            }
-                          });
-                        }}
-                        className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all ${(biopsy.ibdDca?.[letter] ?? 0) === val
-                          ? 'bg-blue-600 text-white shadow-md scale-110'
-                          : 'bg-white text-blue-600 hover:bg-blue-100 border border-blue-200'
-                          }`}
-                      >
-                        {val}
-                      </button>
-                    ))}
-                  </div>
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-sm font-semibold text-blue-900 flex items-center gap-2">
+                IBD-DCA Skoru
+                <span className="text-xs font-normal text-blue-700">D: Dağılım, C: Kronisite, A: Aktivite</span>
+              </h4>
+              <label className="flex items-center cursor-pointer">
+                <div className="relative">
+                  <input
+                    type="checkbox"
+                    className="sr-only"
+                    checked={biopsy.showIbdDca ?? true}
+                    onChange={(e) => {
+                      onFieldFocus(`${biopsy.id}-showIbdDca`);
+                      onUpdate({ ...biopsy, showIbdDca: e.target.checked });
+                    }}
+                  />
+                  <div className={`block w-10 h-6 rounded-full transition-colors ${biopsy.showIbdDca ?? true ? 'bg-blue-600' : 'bg-gray-300'}`}></div>
+                  <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${biopsy.showIbdDca ?? true ? 'translate-x-4' : ''}`}></div>
                 </div>
-              ))}
+                <span className="ml-2 text-xs font-medium text-blue-900">Raporda Göster</span>
+              </label>
             </div>
+            {(biopsy.showIbdDca ?? true) && (
+              <div className="flex gap-6">
+                {(['d', 'c', 'a'] as const).map((letter) => (
+                  <div key={letter} className="flex flex-col items-center gap-2">
+                    <span className="text-sm font-bold text-blue-800 uppercase">
+                      {letter === 'd' ? 'D (Dağılım)' : letter === 'c' ? 'C (Kronisite)' : 'A (Aktivite)'}
+                    </span>
+                    <div className="flex gap-1">
+                      {[0, 1, 2].map((val) => (
+                        <button
+                          key={val}
+                          onClick={() => {
+                            onFieldFocus(`${biopsy.id}-ibdDca-${letter}`);
+                            onUpdate({
+                              ...biopsy,
+                              ibdDca: {
+                                ...(biopsy.ibdDca || { d: 0, c: 0, a: 0 }),
+                                [letter]: val
+                              }
+                            });
+                          }}
+                          className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all ${(biopsy.ibdDca?.[letter] ?? 0) === val
+                            ? 'bg-blue-600 text-white shadow-md scale-110'
+                            : 'bg-white text-blue-600 hover:bg-blue-100 border border-blue-200'
+                            }`}
+                        >
+                          {val}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

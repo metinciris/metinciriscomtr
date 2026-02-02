@@ -149,6 +149,7 @@ export interface Biopsy {
         c: number;
         a: number;
     };
+    showIbdDca?: boolean;
 }
 
 export const DiagnosisOptions = {

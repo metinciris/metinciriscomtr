@@ -96,12 +96,19 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
         }
       }),
       ...(location === BiopsyLocation.Kolon && {
-        ibdDca: { d: 0, c: 0, a: 0 }
+        ibdDca: { d: 0, c: 0, a: 0 },
+        showIbdDca: true
+      }),
+      ...(location === BiopsyLocation.Ileum && {
+        ibdDca: { d: 0, c: 0, a: 0 },
+        showIbdDca: true
       })
     };
 
     if (location === BiopsyLocation.Kolon && !newBiopsy.subLocation) {
       newBiopsy.subLocation = 'Kolon';
+    } else if (location === BiopsyLocation.Ileum && !newBiopsy.subLocation) {
+      newBiopsy.subLocation = 'Terminal ileum';
     }
 
     setBiopsies(prev => [...prev, newBiopsy]);

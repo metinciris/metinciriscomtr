@@ -283,7 +283,8 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
       const line = `     - ${note}${note.endsWith('.') ? '' : '.'}`;
       lines.push(shouldHighlight('customNotes') ? `<mark>${line}</mark>` : line);
     });
-    if (biopsy.location === BiopsyLocation.Kolon && biopsy.ibdDca) {
+    if ((biopsy.location === BiopsyLocation.Kolon || biopsy.location === BiopsyLocation.Ileum) &&
+      biopsy.ibdDca && (biopsy.showIbdDca ?? true)) {
       const scoreLine = `     - IBD-DCA skoru: D${biopsy.ibdDca.d} C${biopsy.ibdDca.c} A${biopsy.ibdDca.a}`;
       lines.push(shouldHighlight('ibdDca-d') || shouldHighlight('ibdDca-c') || shouldHighlight('ibdDca-a') ? `<mark>${scoreLine}</mark>` : scoreLine);
     }
