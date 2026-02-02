@@ -40,6 +40,5 @@ export const validPages = [
     'avif-donusturucu',
     'sjogren-raporlama',
     'endoskopi-raporlama',
-    'tiiab-raporlama',
-    'makale-arsiv'
+    'tiiab-raporlama'
 ];

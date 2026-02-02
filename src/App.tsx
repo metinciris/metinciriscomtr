@@ -261,9 +261,6 @@ export default function App() {
         return <GistRaporlama />;
 
       case 'makale':
-        return <PubMedMakaleTakvim />;
-
-      case 'makale-arsiv':
         return <Makale onNavigate={navigate} />;
 
       case 'deprem':

@@ -128,14 +128,9 @@ const PAGE_METADATA: Record<string, { title: string; description: string; keywor
         keywords: 'GIST, gastrointestinal stromal tümör, patoloji raporlama, GIST kriterleri'
     },
     makale: {
-        title: 'PubMed Patoloji Makale Takibi | Prof Dr Metin Çiriş',
-        description: 'Her gün güncellenen PubMed patoloji makaleleri ve bilimsel akış.',
+        title: 'Günün Patoloji Makalesi | Prof Dr Metin Çiriş',
+        description: 'Her gün güncellenen PubMed patoloji makaleleri ve Türkçe özetler.',
         keywords: 'günün makalesi, patoloji literatür, PubMed, bilimsel makale'
-    },
-    'makale-arsiv': {
-        title: 'Makale Arşivi | Prof Dr Metin Çiriş',
-        description: 'Prof Dr Metin Çiriş makale arşivi, vaka yazıları ve patoloji notları.',
-        keywords: 'makale arşivi, patoloji notları, vaka yazıları'
     },
     deprem: {
         title: 'Isparta Deprem Takibi | Prof Dr Metin Çiriş',

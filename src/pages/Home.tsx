@@ -17,6 +17,7 @@ import {
   Phone,
   Headphones,
   Microscope, // 🔬
+  Calendar,
 } from 'lucide-react';
 import './Home.css';
 
@@ -467,10 +468,10 @@ export function Home({ onNavigate }: HomeProps) {
               <MetroTile
                 title="Makale Takip"
                 subtitle={makaleSubtitle}
-                icon={<FileText size={40} />}
+                icon={<Calendar size={40} />}
                 color="bg-[#16A085]"
                 size="medium"
-                onClick={() => onNavigate('makale')}
+                onClick={() => onNavigate('pubmed-makale-takip')}
               />
             </div>
           </div>
