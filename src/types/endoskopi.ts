@@ -162,6 +162,8 @@ export const DiagnosisOptions = {
     ],
     [BiopsyLocation.Mide]: [
         'Normal görünümlü mide mukozası',
+        'Normal görünümlü korpus mukozası',
+        'Normal görünümlü antrum mukozası',
         'Ödemli mide mukozası',
         'Ülseröz gastrit',
         'Eroziv gastrit',

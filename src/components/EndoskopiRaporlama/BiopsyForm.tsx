@@ -53,9 +53,27 @@ export const BiopsyForm: React.FC<BiopsyFormProps> = ({
     onFieldFocus(`${biopsy.id}-location`);
 
     // Handle all locations like radio buttons
+    let updatedDiagnosis = biopsy.customDiagnosis;
+    const genericStomachDiagnoses = [
+      'Normal görünümlü mide mukozası',
+      'Normal görünümlü korpus mukozası',
+      'Normal görünümlü antrum mukozası'
+    ];
+
+    if (biopsy.location === BiopsyLocation.Mide && (!updatedDiagnosis || genericStomachDiagnoses.includes(updatedDiagnosis))) {
+      if (loc === 'Korpus') {
+        updatedDiagnosis = 'Normal görünümlü korpus mukozası';
+      } else if (loc === 'Antrum') {
+        updatedDiagnosis = 'Normal görünümlü antrum mukozası';
+      } else if (loc === 'Mide' || loc === 'Kardiya' || loc === 'Fundus') {
+        updatedDiagnosis = 'Normal görünümlü mide mukozası';
+      }
+    }
+
     onUpdate({
       ...biopsy,
       subLocation: loc,
+      customDiagnosis: updatedDiagnosis
     });
 
     // Update diagnosis based on location if it's a Duodenum/Bulbus biopsy
@@ -163,8 +181,8 @@ export const BiopsyForm: React.FC<BiopsyFormProps> = ({
 
   return (
     <div className={`bg-white shadow rounded-lg p-6 transition-all duration-300 border-2 ${activeField?.startsWith(biopsy.id)
-        ? 'border-blue-500 shadow-xl scale-[1.01]'
-        : 'border-gray-200'
+      ? 'border-blue-500 shadow-xl scale-[1.01]'
+      : 'border-gray-200'
       }`}>
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-medium text-gray-900">
