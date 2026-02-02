@@ -4,99 +4,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>404 - Sayfa Bulunamadı | Prof Dr Metin Çiriş</title>
-    
-    <!-- Bu sayfa artık yönlendirme yapmıyor, gerçek 404 döndürüyor -->
-    <!-- Google'ın dizin sorunları bu yönlendirmelerden kaynaklanıyordu -->
+    <title>Yönlendiriliyor... | Prof Dr Metin Çiriş</title>
+
+    <!-- 
+        GitHub Pages SPA Redirect Script
+        Bu sayfa geçerli route'ları (sjogren-raporlama gibi) ana uygulamaya yönlendirir.
+        Gerçek 404 hataları için App.tsx'teki NotFound bileşeni kullanılır.
+    -->
     <meta name="robots" content="noindex, nofollow">
-    
+
+    <script>
+        // GitHub Pages SPA redirect
+        (function () {
+            var path = window.location.pathname;
+            var search = window.location.search;
+
+            // Kök dizindeyse yönlendirme yapma
+            if (path === '/' || path === '/index.html') {
+                return;
+            }
+
+            // Path'i session storage'a kaydet ve ana sayfaya yönlendir
+            // App.tsx bu path'i okuyup doğru sayfayı gösterecek
+            sessionStorage.setItem('spa-redirect-path', path + search);
+            window.location.replace('/');
+        })();
+    </script>
+
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
         body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            font-family: 'Segoe UI', system-ui, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            min-height: 100vh;
+            margin: 0;
         }
 
-        .container {
-            background: white;
-            border-radius: 20px;
-            padding: 60px 40px;
+        .loader {
             text-align: center;
-            max-width: 500px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-        }
-
-        .error-code {
-            font-size: 120px;
-            font-weight: 800;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            line-height: 1;
-            margin-bottom: 20px;
-        }
-
-        h1 {
-            color: #1e293b;
-            font-size: 24px;
-            margin-bottom: 15px;
-        }
-
-        p {
-            color: #64748b;
-            font-size: 16px;
-            line-height: 1.6;
-            margin-bottom: 30px;
-        }
-
-        .home-link {
-            display: inline-block;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            text-decoration: none;
-            padding: 14px 32px;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 16px;
-            transition: transform 0.2s, box-shadow 0.2s;
         }
 
-        .home-link:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px -5px rgba(102, 126, 234, 0.4);
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
         }
 
-        .info {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #e2e8f0;
-            color: #94a3b8;
-            font-size: 14px;
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
         }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <div class="error-code">404</div>
-        <h1>Sayfa Bulunamadı</h1>
-        <p>Aradığınız sayfa mevcut değil, taşınmış veya kaldırılmış olabilir.</p>
-        <a href="/" class="home-link">Ana Sayfaya Dön</a>
-        <div class="info">
-            Prof Dr Metin Çiriş | SDÜ Tıbbi Patoloji
-        </div>
+    <div class="loader">
+        <div class="spinner"></div>
+        <p>Yönlendiriliyor...</p>
     </div>
+
+    <!-- JavaScript çalışmazsa -->
+    <noscript>
+        <meta http-equiv="refresh" content="0;url=/">
+        <p>Anasayfaya yönlendiriliyorsunuz... <a href="/">Tıklayın</a></p>
+    </noscript>
 </body>
 
 </html>
