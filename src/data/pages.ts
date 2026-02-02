@@ -39,5 +39,6 @@ export const validPages = [
     'pubmed-makale-takip',
     'avif-donusturucu',
     'sjogren-raporlama',
-    'endoskopi-raporlama'
+    'endoskopi-raporlama',
+    'tiiab-raporlama'
 ];

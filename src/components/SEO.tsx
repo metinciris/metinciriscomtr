@@ -207,6 +207,16 @@ const PAGE_METADATA: Record<string, { title: string; description: string; keywor
         description: 'Minör tükrük bezi biyopsileri için Sjögren sendromu raporlama kriterleri ve otomatik rapor oluşturucu.',
         keywords: 'sjögren raporlama, minör tükrük bezi, patoloji raporu, fokus skoru, sjögren sendromu'
     },
+    'tiiab-raporlama': {
+        title: 'TİİAB Raporlama Aracı | Prof Dr Metin Çiriş',
+        description: 'Tiroid ince iğne aspirasyon biyopsileri (TİİAB) için Bethesda 2023 kriterlerine uygun otomatik raporlama ve tanı destek aracı.',
+        keywords: 'TİİAB raporlama, tiroid biyopsi, Bethesda 2023, patoloji raporu, tiroid ince iğne'
+    },
+    'endoskopi-raporlama': {
+        title: 'Endoskopi Raporlama Aracı | Prof Dr Metin Çiriş',
+        description: 'Gastrointestinal sistem endoskopik biyopsileri için standartlaştırılmış patoloji raporlama aracı.',
+        keywords: 'endoskopi raporlama, mide biyopsisi, kolon biyopsisi, patoloji raporu, GİS patoloji'
+    },
     '404': {
         title: 'Sayfa Bulunamadı | Prof Dr Metin Çiriş',
         description: 'Aradığınız sayfa mevcut değil.'

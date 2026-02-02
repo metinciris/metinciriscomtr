@@ -31,6 +31,14 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
             category: 'raporlama'
         },
         {
+            title: "TİİAB Raporlama",
+            subtitle: "Tiroid İnce İğne Aspirasyon Biyopsisi",
+            icon: <Microscope size={40} />,
+            color: "bg-emerald-600",
+            page: 'tiiab-raporlama',
+            category: 'raporlama'
+        },
+        {
             title: "Endoskopi Raporlama",
             subtitle: "Gastrointestinal sistem biyopsileri",
             icon: <FileText size={40} />,

@@ -146,6 +146,7 @@ const AvifConverter = React.lazy(() =>
 );
 const SjogrenRaporlama = React.lazy(() => import('./pages/SjogrenRaporlama'));
 const EndoskopiRaporlama = React.lazy(() => import('./pages/EndoskopiRaporlama'));
+const TiiabRaporlama = React.lazy(() => import('./pages/TiiabRaporlama'));
 
 export default function App() {
   const [currentPage, setCurrentPage] = React.useState('home');
@@ -309,6 +310,9 @@ export default function App() {
 
       case 'endoskopi-raporlama':
         return <EndoskopiRaporlama />;
+
+      case 'tiiab-raporlama':
+        return <TiiabRaporlama />;
 
       case '404':
         return <NotFound onNavigate={navigate} />;
