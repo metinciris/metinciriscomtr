@@ -1,7 +1,12 @@
 {
-  "date": "01.02.2026",
-  "items": [],
-  "kcal": null,
+  "date": "02.02.2026",
+  "items": [
+    "DOMATES ÇORBASI",
+    "KIYMALI TAZE FASÜLYE",
+    "TEL ŞEHRİYELİ PİRİNÇ PİLAVI",
+    "MANDALİNA"
+  ],
+  "kcal": "950",
   "source": "https://w3.sdu.edu.tr/aylik-yemek-listesi?dosya=yemekler_ogle&tur=2",
-  "updatedAt": "2026-02-01T07:52:59.246Z"
+  "updatedAt": "2026-02-02T05:48:03.590Z"
 }
