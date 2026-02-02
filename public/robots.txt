@@ -4,32 +4,21 @@
 # Tüm arama motorları için kurallar
 User-agent: *
 Allow: /
-Allow: /sitemap.xml
-
-# Belirli dizinleri engelle (güvenlik ve gereksiz tarama)
-Disallow: /data/
-Disallow: /*.json$
 
 # Sitemap konumu
 Sitemap: https://metinciris.com.tr/sitemap.xml
 
-# Crawl-delay (Türk siteler için önerilen)
-Crawl-delay: 1
-
 # Googlebot için özel kurallar
 User-agent: Googlebot
 Allow: /
-Sitemap: https://metinciris.com.tr/sitemap.xml
 
 # Bingbot için özel kurallar
 User-agent: Bingbot
 Allow: /
-Sitemap: https://metinciris.com.tr/sitemap.xml
 
 # Yandex için özel kurallar
 User-agent: Yandex
 Allow: /
-Sitemap: https://metinciris.com.tr/sitemap.xml
 
 # Host bilgisi
 Host: https://metinciris.com.tr

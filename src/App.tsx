@@ -178,17 +178,9 @@ export default function App() {
       return;
     }
 
-    // 2. Eski hash-based URL'leri destekle (geriye uyumluluk)
-    if (window.location.hash) {
-      const hash = window.location.hash.slice(1);
-      if (validPages.includes(hash)) {
-        // Hash'i path'e çevir ve yönlendir
-        const newPath = hash === 'home' ? '/' : `/${hash}`;
-        window.history.replaceState({ page: hash }, '', newPath);
-        setCurrentPage(hash);
-        return;
-      }
-    }
+    // 2. Hash tabanlı URL'ler artık desteklenmiyor - yönlendirme yok
+    // Eski hash URL'leri (#sayfa-ismi) artık geçersiz ve işlenmeyecek
+    // Bu URL'ler zaten Google indeksinde sorun yaratıyordu
 
     // 3. Normal path-based routing
     const handlePathChange = () => {
