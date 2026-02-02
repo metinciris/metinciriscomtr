@@ -97,11 +97,11 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
       }),
       ...(location === BiopsyLocation.Kolon && {
         ibdDca: { d: 0, c: 0, a: 0 },
-        showIbdDca: true
+        showIbdDca: false
       }),
       ...(location === BiopsyLocation.Ileum && {
         ibdDca: { d: 0, c: 0, a: 0 },
-        showIbdDca: true
+        showIbdDca: false
       })
     };
 

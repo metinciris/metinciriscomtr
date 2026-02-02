@@ -284,7 +284,7 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
       lines.push(shouldHighlight('customNotes') ? `<mark>${line}</mark>` : line);
     });
     if ((biopsy.location === BiopsyLocation.Kolon || biopsy.location === BiopsyLocation.Ileum) &&
-      biopsy.ibdDca && (biopsy.showIbdDca ?? true)) {
+      biopsy.ibdDca && (biopsy.showIbdDca ?? false)) {
       const scoreLine = `     - IBD-DCA skoru: D${biopsy.ibdDca.d} C${biopsy.ibdDca.c} A${biopsy.ibdDca.a}`;
       lines.push(shouldHighlight('ibdDca-d') || shouldHighlight('ibdDca-c') || shouldHighlight('ibdDca-a') ? `<mark>${scoreLine}</mark>` : scoreLine);
     }

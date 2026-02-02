@@ -445,19 +445,19 @@ export const BiopsyForm: React.FC<BiopsyFormProps> = ({
                   <input
                     type="checkbox"
                     className="sr-only"
-                    checked={biopsy.showIbdDca ?? true}
+                    checked={biopsy.showIbdDca ?? false}
                     onChange={(e) => {
                       onFieldFocus(`${biopsy.id}-showIbdDca`);
                       onUpdate({ ...biopsy, showIbdDca: e.target.checked });
                     }}
                   />
-                  <div className={`block w-10 h-6 rounded-full transition-colors ${biopsy.showIbdDca ?? true ? 'bg-blue-600' : 'bg-gray-300'}`}></div>
-                  <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${biopsy.showIbdDca ?? true ? 'translate-x-4' : ''}`}></div>
+                  <div className={`block w-10 h-6 rounded-full transition-colors ${biopsy.showIbdDca ?? false ? 'bg-blue-600' : 'bg-gray-300'}`}></div>
+                  <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${biopsy.showIbdDca ?? false ? 'translate-x-4' : ''}`}></div>
                 </div>
                 <span className="ml-2 text-xs font-medium text-blue-900">Raporda Göster</span>
               </label>
             </div>
-            {(biopsy.showIbdDca ?? true) && (
+            {(biopsy.showIbdDca ?? false) && (
               <div className="flex gap-6">
                 {(['d', 'c', 'a'] as const).map((letter) => (
                   <div key={letter} className="flex flex-col items-center gap-2">
