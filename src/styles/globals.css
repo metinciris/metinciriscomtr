@@ -133,10 +133,17 @@
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
   border: 2px solid transparent;
   transition: all 0.25s ease;
+  scroll-margin-top: 180px;
 }
 
 .podcast-article-card:hover {
   transform: translateY(-3px);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
   border-color: #3498db;
+}
+
+.podcast-article-card-active {
+  border-color: #3498db;
+  background: #f0f7ff;
+  box-shadow: 0 4px 15px rgba(52, 152, 219, 0.15);
 }

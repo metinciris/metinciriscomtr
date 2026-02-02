@@ -248,7 +248,7 @@ export default function Podcast({ }: PodcastProps) {
       `[data-article-index="${currentIndex}"]`,
     );
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, [currentIndex]);
 
