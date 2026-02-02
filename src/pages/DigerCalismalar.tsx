@@ -172,7 +172,15 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
             subtitle: "Günlük patoloji dergi makaleleri",
             icon: <Calendar size={40} />,
             style: { backgroundColor: '#3b82f6' },
-            page: 'pubmed-makale-takip',
+            page: 'makale',
+            category: 'patoloji'
+        },
+        {
+            title: "Makale Arşivi",
+            subtitle: "Eski yayınlar & notlar",
+            icon: <BookOpen size={40} />,
+            style: { backgroundColor: '#16a085' },
+            page: 'makale-arsiv',
             category: 'patoloji'
         },
         {
