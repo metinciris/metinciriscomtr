@@ -597,17 +597,17 @@ const TiiabRaporlama: React.FC = () => {
             <div className="min-h-screen bg-slate-50 pb-20">
                 {/* Header */}
                 <div className="bg-white border-b border-slate-200">
-                    <div className="max-w-7xl mx-auto px-4 py-6 md:py-8">
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                            <div className="flex items-center gap-4">
-                                <div className="p-3 bg-indigo-600 rounded-2xl shadow-lg shadow-indigo-100">
-                                    <Microscope className="w-8 h-8 text-white" />
+                    <div className="w-full mx-auto px-4 py-3 md:py-4">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-indigo-600 rounded-xl shadow-lg shadow-indigo-100">
+                                    <Microscope className="w-6 h-6 text-white" />
                                 </div>
                                 <div>
-                                    <h1 className="text-2xl md:text-3xl font-black text-slate-900 leading-tight">
+                                    <h1 className="text-xl md:text-2xl font-black text-slate-900 leading-tight">
                                         TİİAB Raporlama Sistemi
                                     </h1>
-                                    <p className="text-sm font-medium text-slate-500">
+                                    <p className="text-xs font-medium text-slate-500">
                                         Tiroid İnce İğne Aspirasyon Biyopsisi (Bethesda 2023)
                                     </p>
                                 </div>
@@ -637,7 +637,7 @@ const TiiabRaporlama: React.FC = () => {
 
                 {/* Toolbar */}
                 <div className="bg-white border-b border-slate-200 sticky top-0 z-20 shadow-sm">
-                    <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4 overflow-x-auto">
+                    <div className="w-full mx-auto px-4 py-2 flex items-center justify-between gap-3 overflow-x-auto">
                         <div className="flex items-center gap-2">
                             <button
                                 onClick={() => toggleSampleType(activeSample)}
@@ -666,16 +666,16 @@ const TiiabRaporlama: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="max-w-7xl mx-auto px-4 py-8">
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <div className="w-full mx-auto px-4 py-4">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
                         {/* Left: Features */}
-                        <div className="lg:col-span-8 space-y-8">
+                        <div className="lg:col-span-9 space-y-4">
                             {/* Tanı Seçimi */}
-                            <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden p-6 md:p-8">
-                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden p-4 md:p-6">
+                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
                                     <div>
-                                        <h3 className="text-xl font-black text-slate-900">Tanı ve Kategori</h3>
-                                        <p className="text-sm font-medium text-slate-500">Bulgulara göre otomatik önerilir</p>
+                                        <h3 className="text-lg font-black text-slate-900">Tanı ve Kategori</h3>
+                                        <p className="text-xs font-medium text-slate-500">Bulgulara göre otomatik önerilir</p>
                                     </div>
                                     <select
                                         value={currentSample.diagnosis || generateSuggestedDiagnosis()}
@@ -717,19 +717,19 @@ const TiiabRaporlama: React.FC = () => {
                             </div>
 
                             {/* Masonry-like Features Grid */}
-                            <div className="columns-1 md:columns-2 gap-6 space-y-6">
+                            <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 2xl:columns-5 gap-4 space-y-4">
                                 {currentFeatureGroups.map(group => (
-                                    <div key={group.title} className="break-inside-avoid bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
-                                        <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-600" />
+                                    <div key={group.title} className="break-inside-avoid bg-white rounded-2xl border border-slate-200 shadow-sm p-3">
+                                        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                                            <div className="w-1 h-1 rounded-full bg-indigo-600" />
                                             {group.title}
                                         </h3>
-                                        <div className="flex flex-col gap-2 mb-4">
+                                        <div className="flex flex-col gap-1.5 mb-3">
                                             {group.features.map(f => (
                                                 <button
                                                     key={f.id}
                                                     onClick={() => toggleFeature(f.id)}
-                                                    className={`w-full p-3 text-left text-sm font-bold rounded-2xl transition-all border-2 ${currentSample.selectedFeatures.includes(f.id)
+                                                    className={`w-full p-2 text-left text-[11px] font-bold rounded-xl transition-all border-2 ${currentSample.selectedFeatures.includes(f.id)
                                                         ? f.malignant
                                                             ? 'bg-rose-600 border-rose-600 text-white shadow-lg shadow-rose-100'
                                                             : 'bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-100'
@@ -747,7 +747,7 @@ const TiiabRaporlama: React.FC = () => {
                                             placeholder="Ek notlar..."
                                             value={currentSample.customInputs[group.title] || ''}
                                             onChange={(e) => updateCustomInput(group.title, e.target.value)}
-                                            className="w-full px-4 py-3 text-sm font-medium bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                                            className="w-full px-3 py-2 text-[11px] font-medium bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
                                         />
                                     </div>
                                 ))}
@@ -755,16 +755,16 @@ const TiiabRaporlama: React.FC = () => {
                         </div>
 
                         {/* Right: Preview (Sticky) */}
-                        <div className="lg:col-span-4 lg:sticky lg:top-24 h-fit">
-                            <div className="bg-white rounded-[2rem] border-2 border-slate-200 shadow-2xl shadow-indigo-100/50 overflow-hidden flex flex-col">
-                                <div className="p-6 bg-slate-900 flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <FileText className="w-6 h-6 text-indigo-400" />
-                                        <span className="font-black text-white uppercase tracking-widest text-sm">Rapor Önizleme</span>
+                        <div className="lg:col-span-3 lg:sticky lg:top-20 h-fit">
+                            <div className="bg-white rounded-2xl border-2 border-slate-200 shadow-2xl shadow-indigo-100/50 overflow-hidden flex flex-col">
+                                <div className="p-4 bg-slate-900 flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <FileText className="w-5 h-5 text-indigo-400" />
+                                        <span className="font-black text-white uppercase tracking-widest text-xs">Rapor Önizleme</span>
                                     </div>
                                     <button
                                         onClick={copyToClipboard}
-                                        className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${copiedToClipboard ? 'bg-emerald-500 text-white' : 'bg-white text-slate-900 hover:bg-indigo-400 hover:text-white'
+                                        className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all ${copiedToClipboard ? 'bg-emerald-500 text-white' : 'bg-white text-slate-900 hover:bg-indigo-400 hover:text-white'
                                             }`}
                                     >
                                         {copiedToClipboard ? 'KOPYALANDI!' : 'KOPYALA'}
@@ -772,7 +772,7 @@ const TiiabRaporlama: React.FC = () => {
                                 </div>
                                 <div
                                     ref={reportRef}
-                                    className="p-8 bg-white overflow-y-auto max-h-[60vh] md:max-h-[70vh] font-mono text-sm leading-relaxed text-slate-800"
+                                    className="p-4 bg-white overflow-y-auto max-h-[70vh] md:max-h-[80vh] font-mono text-[11px] leading-relaxed text-slate-800"
                                 >
                                     {generateReport().split('\n').map((line, i) => {
                                         const isActiveLine = line.includes(`${activeSample}-`);
@@ -787,12 +787,12 @@ const TiiabRaporlama: React.FC = () => {
                                         );
                                     })}
                                 </div>
-                                <div className="p-6 bg-slate-50 border-t border-slate-100">
+                                <div className="p-4 bg-slate-50 border-t border-slate-100">
                                     <button
                                         onClick={copyToClipboard}
-                                        className="w-full flex items-center justify-center gap-3 py-4 bg-indigo-600 text-white rounded-2xl font-black text-lg transition-all shadow-xl shadow-indigo-200 hover:scale-[1.02] active:scale-95 group"
+                                        className="w-full flex items-center justify-center gap-2 py-3 bg-indigo-600 text-white rounded-xl font-black text-base transition-all shadow-xl shadow-indigo-200 hover:scale-[1.02] active:scale-95 group"
                                     >
-                                        <Copy className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                                        <Copy className="w-4 h-4 group-hover:scale-110 transition-transform" />
                                         Raporu Kopyala
                                     </button>
                                 </div>
