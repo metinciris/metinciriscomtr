@@ -272,7 +272,7 @@ const getStructuredData = (currentPage: string, meta: { title: string; descripti
                     "department": "Tıbbi Patoloji Anabilim Dalı"
                 },
                 "url": BASE_URL,
-                "image": `${BASE_URL}/img/metinciris.jpg`,
+                "image": `${BASE_URL}/img/metinciris.avif`,
                 "sameAs": [
                     "https://www.linkedin.com/in/metinciris",
                     "https://github.com/metinciris"
