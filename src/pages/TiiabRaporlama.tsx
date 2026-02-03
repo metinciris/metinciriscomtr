@@ -190,16 +190,6 @@ const TiiabRaporlama: React.FC = () => {
             ]
         },
         {
-            title: "Kalsifikasyonlar",
-            features: [
-                { id: "dystrophic-calc", text: "Distrofik kalsifikasyon" },
-                { id: "microcalcifications", text: "Mikrokalsifikasyonlar" },
-                { id: "laminar-bodies", text: "Lameller cisimcikler" },
-                { id: "calcified-colloid", text: "Kalsifiye kolloid" },
-                { id: "psammoma", text: "Psammom cisimcikleri", malignant: true }
-            ]
-        },
-        {
             title: "Diğer Özellikler",
             features: [
                 { id: "spherules", text: "Sferüller" },
@@ -210,6 +200,16 @@ const TiiabRaporlama: React.FC = () => {
                 { id: "respiratory-epithelium", text: "Solunum epiteli" },
                 { id: "ultrasound-gel", text: "Ultrason jel artefaktı" },
                 { id: "epidermis-fragment", text: "Epidermis fragmanı" }
+            ]
+        },
+        {
+            title: "Kalsifikasyonlar",
+            features: [
+                { id: "dystrophic-calc", text: "Distrofik kalsifikasyon" },
+                { id: "microcalcifications", text: "Mikrokalsifikasyonlar" },
+                { id: "laminar-bodies", text: "Lameller cisimcikler" },
+                { id: "calcified-colloid", text: "Kalsifiye kolloid" },
+                { id: "psammoma", text: "Psammom cisimcikleri", malignant: true }
             ]
         },
         {
@@ -717,10 +717,10 @@ const TiiabRaporlama: React.FC = () => {
                             </div>
 
                             {/* Masonry-like Features Grid */}
-                            <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 2xl:columns-5 gap-4 space-y-4">
+                            <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 2xl:columns-5 3xl:columns-6 gap-4 space-y-4">
                                 {currentFeatureGroups.map(group => (
                                     <div key={group.title} className="break-inside-avoid bg-white rounded-2xl border border-slate-200 shadow-sm p-3">
-                                        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                                        <h3 className="text-[12px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-1.5">
                                             <div className="w-1 h-1 rounded-full bg-indigo-600" />
                                             {group.title}
                                         </h3>
@@ -729,7 +729,7 @@ const TiiabRaporlama: React.FC = () => {
                                                 <button
                                                     key={f.id}
                                                     onClick={() => toggleFeature(f.id)}
-                                                    className={`w-full p-2 text-left text-[11px] font-bold rounded-xl transition-all border-2 ${currentSample.selectedFeatures.includes(f.id)
+                                                    className={`w-full p-2 text-left text-[13px] font-bold rounded-xl transition-all border-2 ${currentSample.selectedFeatures.includes(f.id)
                                                         ? f.malignant
                                                             ? 'bg-rose-600 border-rose-600 text-white shadow-lg shadow-rose-100'
                                                             : 'bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-100'
@@ -747,7 +747,7 @@ const TiiabRaporlama: React.FC = () => {
                                             placeholder="Ek notlar..."
                                             value={currentSample.customInputs[group.title] || ''}
                                             onChange={(e) => updateCustomInput(group.title, e.target.value)}
-                                            className="w-full px-3 py-2 text-[11px] font-medium bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
+                                            className="w-full px-3 py-2 text-[13px] font-medium bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
                                         />
                                     </div>
                                 ))}
@@ -772,7 +772,7 @@ const TiiabRaporlama: React.FC = () => {
                                 </div>
                                 <div
                                     ref={reportRef}
-                                    className="p-4 bg-white overflow-y-auto max-h-[70vh] md:max-h-[80vh] font-mono text-[11px] leading-relaxed text-slate-800"
+                                    className="p-4 bg-white overflow-y-auto max-h-[70vh] md:max-h-[80vh] font-mono text-[13px] leading-relaxed text-slate-800"
                                 >
                                     {generateReport().split('\n').map((line, i) => {
                                         const isActiveLine = line.includes(`${activeSample}-`);
