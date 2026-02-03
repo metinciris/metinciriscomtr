@@ -22,11 +22,13 @@ interface Sample {
     customInputs: { [key: string]: string };
     diagnosis: string;
     bethesda3Type?: 'nuclear' | 'structural' | 'both' | '';
+    bethesda5Type?: string;
+    bethesda6Type?: string;
 }
 
 const TiiabRaporlama: React.FC = () => {
     const [samples, setSamples] = useState<Sample[]>([
-        { id: 1, type: 'thyroid', selectedFeatures: [], customInputs: {}, diagnosis: '', bethesda3Type: '' }
+        { id: 1, type: 'thyroid', selectedFeatures: [], customInputs: {}, diagnosis: '', bethesda3Type: '', bethesda5Type: '', bethesda6Type: '' }
     ]);
     const [activeSample, setActiveSample] = useState<number>(1);
     const [copiedToClipboard, setCopiedToClipboard] = useState(false);
@@ -154,25 +156,32 @@ const TiiabRaporlama: React.FC = () => {
             features: [
                 { id: "thin-colloid", text: "Bol ince/sulu kolloid" },
                 { id: "thick-colloid", text: "Kalın/dens kolloid" },
-                { id: "minimal-colloid", text: "Az/yok kolloid" },
-                { id: "lymphocytes", text: "Lenfositler" },
-                { id: "lymphoid-infiltrate", text: "Polimorf lenfoid infiltrat" },
-                { id: "germinal-centers", text: "Germinal merkez fragmanları" },
-                { id: "plasma-cells", text: "Plazma hücreleri" },
-                { id: "histiocytes", text: "Histiyositler/makrofajlar" },
-                { id: "hemosiderin-macrophages", text: "Hemosiderin yüklü makrofajlar" },
+                { id: "az-kolloid", text: "Az kolloid" },
+                { id: "dejenere-kolloid", text: "Dejenere kolloid" },
+                { id: "kolloid-yok", text: "Kolloid yok" },
+                { id: "lymphocytes", text: "Değişik maturasyonda lenfositler" },
+                { id: "histiocytes", text: "Köpüksü makrofajlar" },
+                { id: "hemosiderin-macrophages", text: "Hemosiderinli makrofajlar" },
                 { id: "multinuclear-giant", text: "Multinükleer dev hücreler" },
                 { id: "multinuclear-giant-cell", text: "Multinükleer dev hücre" },
+                { id: "bubble-gum", text: "Bubble-gum kolloid", malignant: true },
+                { id: "necrosis", text: "Nekroz", malignant: true },
+                { id: "mitotic-figures", text: "Mitotik figürler", malignant: true },
+                { id: "zemin-diger", text: "Diğer (Görülmedi ise seçme)" }
+            ]
+        },
+        {
+            title: "Zemin Özellikleri (Diğer)",
+            features: [
+                { id: "germinal-centers", text: "Germinal merkez fragmanları" },
+                { id: "plasma-cells", text: "Plazma hücreleri" },
                 { id: "osteoclast-giant", text: "Osteoklast benzeri dev hücreler" },
                 { id: "neutrophils", text: "Nötrofiller" },
                 { id: "eosinophils", text: "Eozinofiller" },
                 { id: "apoptosis", text: "Apoptoz" },
                 { id: "amyloid", text: "Amyloid benzeri materyal" },
                 { id: "hyaline", text: "Hyalin materyal" },
-                { id: "stromal-fragment", text: "Stromal fragman" },
-                { id: "bubble-gum", text: "Bubble-gum kolloid", malignant: true },
-                { id: "necrosis", text: "Nekroz", malignant: true },
-                { id: "mitotic-figures", text: "Mitotik figürler", malignant: true }
+                { id: "stromal-fragment", text: "Stromal fragman" }
             ]
         },
         {
@@ -192,14 +201,16 @@ const TiiabRaporlama: React.FC = () => {
         {
             title: "Diğer Özellikler",
             features: [
-                { id: "spherules", text: "Sferüller" },
                 { id: "naked-nuclei", text: "Çıplak nükleuslar" },
                 { id: "lymphoglandular", text: "Lenfoglandülar cisimcikler" },
                 { id: "fibrous-tissue", text: "Fibröz doku fragmanları" },
-                { id: "muscle-tissue", text: "Kas dokusu" },
+                { id: "muscle-tissue", text: "Çizgili kas dokusu" },
                 { id: "respiratory-epithelium", text: "Solunum epiteli" },
                 { id: "ultrasound-gel", text: "Ultrason jel artefaktı" },
-                { id: "epidermis-fragment", text: "Epidermis fragmanı" }
+                { id: "epidermis-fragment", text: "Epidermis fragmanı" },
+                { id: "sutur-lifleri", text: "Sütür lifleri" },
+                { id: "foreign-body-giant", text: "Yabancı cisim tipi dev hücreler" },
+                { id: "colloid-giant", text: "Kolloid ilişkili dev hücre" }
             ]
         },
         {
@@ -221,13 +232,14 @@ const TiiabRaporlama: React.FC = () => {
                 { id: "fibrin-thyrocytes", text: "Fibrin içinde dağınık tirositler" },
                 { id: "few-thyrocyte-groups", text: "Birkaç grup düzenli yapıda tirosit" },
                 { id: "small-round-thyrocytes", text: "Küçük yuvarlak koyu nükleuslu düzgün dizilim gösteren tirosit grupları" },
-                { id: "follicle-thyrocytes", text: "Folikül yapmış stroma ilişkili tirosit grupları" },
+                { id: "follicle-thyrocytes", text: "Folikül yapmış tirosit grupları" },
                 { id: "colloid-cb", text: "Kolloid" },
                 { id: "macrophages-cb", text: "Makrofajlar" },
                 { id: "giant-cells-suture", text: "Dev hücreler ve sütür lifleri" },
                 { id: "microfollicular-solid", text: "Mikrofolikül yapısı ve solid gelişim göstermiş tirosit grupları" },
                 { id: "oncocytic-thyrocytes", text: "Onkositik değişiklik göstermiş tirositler" },
                 { id: "papillary-thyrocytes", text: "Papiller yapı oluşturmuş tirositler" },
+                { id: "papiller-yapilar-cb", text: "Papiller yapılar" },
                 { id: "tall-cells-cb", text: "Tall hücreleri" }
             ]
         }
@@ -358,6 +370,19 @@ const TiiabRaporlama: React.FC = () => {
         "MALİGN SİTOLOJİ"
     ];
 
+    const bethesda5Options = [
+        "Papiller karsinom yönünden kuşkuludur.",
+        "Onkositik özellikler gösteren maligniteler açısından kuşkuludur.",
+        "Medüller karsinom açısından kuşkuludur."
+    ];
+
+    const bethesda6Options = [
+        "Papiller karsinom ile uyumludur.",
+        "Onkositik özellikler gösteren maligniteler ile uyumludur.",
+        "Medüller karsinom ile uyumludur.",
+        "Anaplastik karsinom ile uyumludur."
+    ];
+
     const getCurrentSample = () => {
         return samples.find(s => s.id === activeSample) || samples[0];
     };
@@ -371,7 +396,9 @@ const TiiabRaporlama: React.FC = () => {
                 selectedFeatures: [],
                 customInputs: {},
                 diagnosis: '',
-                bethesda3Type: ''
+                bethesda3Type: '',
+                bethesda5Type: '',
+                bethesda6Type: ''
             }]);
             setActiveSample(newId);
         }
@@ -380,8 +407,20 @@ const TiiabRaporlama: React.FC = () => {
     const toggleSampleType = (sampleId: number) => {
         setSamples(samples.map(sample =>
             sample.id === sampleId
-                ? { ...sample, type: sample.type === 'thyroid' ? 'other' : 'thyroid', selectedFeatures: [], customInputs: {}, diagnosis: '', bethesda3Type: '' }
+                ? { ...sample, type: sample.type === 'thyroid' ? 'other' : 'thyroid', selectedFeatures: [], customInputs: {}, diagnosis: '', bethesda3Type: '', bethesda5Type: '', bethesda6Type: '' }
                 : sample
+        ));
+    };
+
+    const updateBethesda5Type = (value: string) => {
+        setSamples(samples.map(sample =>
+            sample.id === activeSample ? { ...sample, bethesda5Type: value } : sample
+        ));
+    };
+
+    const updateBethesda6Type = (value: string) => {
+        setSamples(samples.map(sample =>
+            sample.id === activeSample ? { ...sample, bethesda6Type: value } : sample
         ));
     };
 
@@ -421,7 +460,7 @@ const TiiabRaporlama: React.FC = () => {
 
         setSamples(samples.map(sample =>
             sample.id === activeSample
-                ? { ...sample, diagnosis }
+                ? { ...sample, diagnosis, bethesda3Type: '', bethesda5Type: '', bethesda6Type: '' }
                 : sample
         ));
     };
@@ -477,7 +516,13 @@ const TiiabRaporlama: React.FC = () => {
     const getFeatureText = (featureId: string): string => {
         const allFeatures = [...thyroidFeatureGroups, ...otherFeatureGroups].flatMap(group => group.features);
         const feature = allFeatures.find(f => f.id === featureId);
-        return feature ? feature.text : featureId;
+        if (feature) {
+            if (feature.id === 'lymphocytes') return "Değişik maturasyonda lenfositler";
+            if (feature.id === 'histiocytes') return "Çok sayıda köpüksü makrofaj";
+            if (feature.id === 'hemosiderin-macrophages') return "Çok sayıda hemosiderinli makrofaj";
+            return feature.text;
+        }
+        return featureId;
     };
 
     const generateReport = (): string => {
@@ -498,11 +543,17 @@ const TiiabRaporlama: React.FC = () => {
                     diagnosis += ` (${typeMap[sample.bethesda3Type]})`;
                 }
                 report += `${sample.id}- (Örnek NO:${sample.id}) Tiroid; İnce iğne aspirasyon biyopsisi; Sıvı bazlı sitoloji: ${diagnosis}\n`;
+                if (diagnosis.includes("Kategori 5") && sample.bethesda5Type) {
+                    report += `     - ${sample.bethesda5Type}\n`;
+                }
+                if (diagnosis.includes("Kategori 6") && sample.bethesda6Type) {
+                    report += `     - ${sample.bethesda6Type}\n`;
+                }
 
                 const groups = [
                     { label: 'Yeterlilik', names: ['Örnekleme Yeterliliği'] },
                     { label: 'Yapısal ve hücresel özellikler', names: ['Hücresel Düzenleme', 'Nükleer Özellikler', 'Sitoplazmik Özellikler'] },
-                    { label: 'Diğer', names: ['Zemin Özellikleri', 'Özel Hücre Tipleri', 'Kalsifikasyonlar', 'Diğer Özellikler'] }
+                    { label: 'Diğer', names: ['Zemin Özellikleri', 'Zemin Özellikleri (Diğer)', 'Özel Hücre Tipleri', 'Kalsifikasyonlar', 'Diğer Özellikler'] }
                 ];
 
                 groups.forEach(group => {
@@ -555,13 +606,13 @@ const TiiabRaporlama: React.FC = () => {
 
     const clearAll = () => {
         if (window.confirm("Bu örnek temizlenecek?")) {
-            setSamples(samples.map(sample => sample.id === activeSample ? { ...sample, selectedFeatures: [], customInputs: {}, diagnosis: '', bethesda3Type: '' } : sample));
+            setSamples(samples.map(sample => sample.id === activeSample ? { ...sample, selectedFeatures: [], customInputs: {}, diagnosis: '', bethesda3Type: '', bethesda5Type: '', bethesda6Type: '' } : sample));
         }
     };
 
     const clearAllSamples = () => {
         if (window.confirm("Bütün örnekler temizlenecek?")) {
-            setSamples([{ id: 1, type: 'thyroid', selectedFeatures: [], customInputs: {}, diagnosis: '', bethesda3Type: '' }]);
+            setSamples([{ id: 1, type: 'thyroid', selectedFeatures: [], customInputs: {}, diagnosis: '', bethesda3Type: '', bethesda5Type: '', bethesda6Type: '' }]);
             setActiveSample(1);
         }
     };
@@ -709,6 +760,50 @@ const TiiabRaporlama: React.FC = () => {
                                                             }`}
                                                     >
                                                         {type.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                {/* Bethesda 5 Type Requirement */}
+                                {(currentSample.diagnosis === "Malignite Şüphesi (Bethesda Kategori 5)" ||
+                                    (!currentSample.diagnosis && generateSuggestedDiagnosis() === "Malignite Şüphesi (Bethesda Kategori 5)")) && (
+                                        <div className="mb-6 p-6 bg-red-50 rounded-2xl border border-red-200 animate-in fade-in slide-in-from-top-2">
+                                            <h4 className="text-sm font-black text-red-800 uppercase tracking-widest mb-4">Tanı Detayı:</h4>
+                                            <div className="flex flex-wrap gap-2">
+                                                {bethesda5Options.map(opt => (
+                                                    <button
+                                                        key={opt}
+                                                        onClick={() => updateBethesda5Type(opt)}
+                                                        className={`px-4 py-2 rounded-xl text-sm font-bold transition-all border-2 ${currentSample.bethesda5Type === opt
+                                                            ? 'bg-red-600 border-red-600 text-white shadow-lg shadow-red-100'
+                                                            : 'bg-white border-red-200 text-red-800 hover:border-red-400'
+                                                            }`}
+                                                    >
+                                                        {opt}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                {/* Bethesda 6 Type Requirement */}
+                                {(currentSample.diagnosis === "Malign (Bethesda Kategori 6)" ||
+                                    (!currentSample.diagnosis && generateSuggestedDiagnosis() === "Malign (Bethesda Kategori 6)")) && (
+                                        <div className="mb-6 p-6 bg-purple-50 rounded-2xl border border-purple-200 animate-in fade-in slide-in-from-top-2">
+                                            <h4 className="text-sm font-black text-purple-800 uppercase tracking-widest mb-4">Tanı Detayı:</h4>
+                                            <div className="flex flex-wrap gap-2">
+                                                {bethesda6Options.map(opt => (
+                                                    <button
+                                                        key={opt}
+                                                        onClick={() => updateBethesda6Type(opt)}
+                                                        className={`px-4 py-2 rounded-xl text-sm font-bold transition-all border-2 ${currentSample.bethesda6Type === opt
+                                                            ? 'bg-purple-600 border-purple-600 text-white shadow-lg shadow-purple-100'
+                                                            : 'bg-white border-purple-200 text-purple-800 hover:border-purple-400'
+                                                            }`}
+                                                    >
+                                                        {opt}
                                                     </button>
                                                 ))}
                                             </div>
