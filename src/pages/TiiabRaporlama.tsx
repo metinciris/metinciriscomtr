@@ -95,13 +95,13 @@ const TiiabRaporlama: React.FC = () => {
                 { id: "monolayer", text: "Monotabakalı/petek benzeri düzenleme" },
                 { id: "microfollicular", text: "Mikrofoliküler yapılar" },
                 { id: "macrofollicular", text: "Makrofoliküler fragmanlar" },
-                { id: "papillary-like", text: "Papiller benzeri yapılar (kor yok)" },
+                { id: "papillary-like", text: "Papiller benzeri yapılar (kor yok)", malignant: true },
                 { id: "3d-clusters", text: "3-boyutlu kümeler" },
                 { id: "trabecular", text: "Trabeküler düzenleme" },
                 { id: "isolated-cells", text: "İzole/dağınık hücreler" },
                 { id: "syncytial", text: "Sinsityal kümeler" },
-                { id: "insular", text: "İnsüler düzenleme" },
-                { id: "solid-pattern", text: "Solid patern" },
+                { id: "insular", text: "İnsüler düzenleme", malignant: true },
+                { id: "solid-pattern", text: "Solid patern", malignant: true },
                 { id: "papillary-structures", text: "Papiller yapılar (gerçek fibrovasküler kor)", malignant: true },
                 { id: "cellular-swirls", text: "Hücresel girdaplar (swirls)", malignant: true }
             ]
@@ -111,19 +111,19 @@ const TiiabRaporlama: React.FC = () => {
             features: [
                 { id: "normal-nuclei", text: "Normal boyutlu yuvarlak nükleuslar" },
                 { id: "nuclear-enlargement", text: "Nükleer büyüme" },
-                { id: "nuclear-pleomorphism", text: "Nükleer pleomorfizm" },
-                { id: "nuclear-overlapping", text: "Nükleer overlapping/crowding" },
-                { id: "nuclear-molding", text: "Nükleer molding" },
+                { id: "nuclear-pleomorphism", text: "Nükleer pleomorfizm", malignant: true },
+                { id: "nuclear-overlapping", text: "Nükleer overlapping/crowding", malignant: true },
+                { id: "nuclear-molding", text: "Nükleer molding", malignant: true },
                 { id: "granular-chromatin", text: "Granüler kromatin" },
                 { id: "hyperchromatic", text: "Hiperkromatik kromatin" },
                 { id: "prominent-nucleoli", text: "Belirgin nükleol" },
                 { id: "marginal-nucleoli", text: "Marginal nükleol" },
-                { id: "macronucleoli", text: "Makronükleol" },
+                { id: "macronucleoli", text: "Makronükleol", malignant: true },
                 { id: "binucleation", text: "Binükleasyon" },
                 { id: "multinucleation", text: "Multinükleasyon" },
-                { id: "irregular-contour", text: "Düzensiz nükleer kontur" },
-                { id: "oval-nuclei", text: "Oval/elonge nükleuslar" },
-                { id: "eccentric-nuclei", text: "Eksantrik yerleşimli nükleuslar" },
+                { id: "irregular-contour", text: "Düzensiz nükleer kontur", malignant: true },
+                { id: "oval-nuclei", text: "Oval/elonge nükleuslar", malignant: true },
+                { id: "eccentric-nuclei", text: "Eksantrik yerleşimli nükleuslar", malignant: true },
                 { id: "nuclear-grooves", text: "Nükleer groovlar (oluklar)", malignant: true },
                 { id: "nuclear-inclusions", text: "İntranükleer psödoinklüzyonlar", malignant: true },
                 { id: "ground-glass", text: "Buzlu cam kromatin (powdery)", malignant: true },
@@ -145,10 +145,20 @@ const TiiabRaporlama: React.FC = () => {
                 { id: "histiocytoid", text: "Histiositoid özellikler" },
                 { id: "hemosiderin", text: "Sitoplazmik hemosiderin" },
                 { id: "lipofuscin", text: "Sitoplazmik lipofusin" },
-                { id: "columnar", text: "Columnar hücre özellikleri" },
+                { id: "columnar", text: "Columnar hücre özellikleri", malignant: true },
                 { id: "flame-cells", text: "Flame cells" },
                 { id: "hobnail", text: "Hobnail hücreler", malignant: true },
                 { id: "tall-cell", text: "Tall cell özellikleri", malignant: true }
+            ]
+        },
+        {
+            title: "Kalsifikasyonlar",
+            features: [
+                { id: "dystrophic-calc", text: "Distrofik kalsifikasyon" },
+                { id: "microcalcifications", text: "Mikrokalsifikasyonlar", malignant: true },
+                { id: "laminar-bodies", text: "Lameller cisimcikler" },
+                { id: "calcified-colloid", text: "Kalsifiye kolloid" },
+                { id: "psammoma", text: "Psammom cisimcikleri", malignant: true }
             ]
         },
         {
@@ -179,7 +189,7 @@ const TiiabRaporlama: React.FC = () => {
                 { id: "neutrophils", text: "Nötrofiller" },
                 { id: "eosinophils", text: "Eozinofiller" },
                 { id: "apoptosis", text: "Apoptoz" },
-                { id: "amyloid", text: "Amyloid benzeri materyal" },
+                { id: "amyloid", text: "Amyloid benzeri materyal", malignant: true },
                 { id: "hyaline", text: "Hyalin materyal" },
                 { id: "stromal-fragment", text: "Stromal fragman" }
             ]
@@ -189,12 +199,12 @@ const TiiabRaporlama: React.FC = () => {
             features: [
                 { id: "cyst-lining", text: "Kist döşeyen hücreler" },
                 { id: "regenerative", text: "Rejenere/reparatif değişiklikler" },
-                { id: "squamous-metaplasia", text: "Skuamöz metaplazi" },
+                { id: "squamous-metaplasia", text: "Skuamöz metaplazi", malignant: true },
                 { id: "oncocytic-metaplasia", text: "Onkositik metaplazi" },
                 { id: "spindle-cells", text: "İğsi hücreler" },
                 { id: "epithelioid-granulomas", text: "Epiteloid granülomlar" },
-                { id: "transgressing-vessels", text: "Transgressing damarlar" },
-                { id: "small-cell", text: "Küçük hücreli patern" },
+                { id: "transgressing-vessels", text: "Transgressing damarlar", malignant: true },
+                { id: "small-cell", text: "Küçük hücreli patern", malignant: true },
                 { id: "anaplastic", text: "Anaplastik/pleomorfik hücreler", malignant: true }
             ]
         },
@@ -214,16 +224,6 @@ const TiiabRaporlama: React.FC = () => {
             ]
         },
         {
-            title: "Kalsifikasyonlar",
-            features: [
-                { id: "dystrophic-calc", text: "Distrofik kalsifikasyon" },
-                { id: "microcalcifications", text: "Mikrokalsifikasyonlar" },
-                { id: "laminar-bodies", text: "Lameller cisimcikler" },
-                { id: "calcified-colloid", text: "Kalsifiye kolloid" },
-                { id: "psammoma", text: "Psammom cisimcikleri", malignant: true }
-            ]
-        },
-        {
             title: "Hücre Bloğu",
             features: [
                 { id: "insufficient-pellet", text: "Bloklamada yeterli çökelti oluşmadı" },
@@ -238,9 +238,9 @@ const TiiabRaporlama: React.FC = () => {
                 { id: "giant-cells-suture", text: "Dev hücreler ve sütür lifleri" },
                 { id: "microfollicular-solid", text: "Mikrofolikül yapısı ve solid gelişim göstermiş tirosit grupları" },
                 { id: "oncocytic-thyrocytes", text: "Onkositik değişiklik göstermiş tirositler" },
-                { id: "papillary-thyrocytes", text: "Papiller yapı oluşturmuş tirositler" },
-                { id: "papiller-yapilar-cb", text: "Papiller yapılar" },
-                { id: "tall-cells-cb", text: "Tall hücreleri" }
+                { id: "papillary-thyrocytes", text: "Papiller yapı oluşturmuş tirositler", malignant: true },
+                { id: "papiller-yapilar-cb", text: "Papiller yapılar", malignant: true },
+                { id: "tall-cells-cb", text: "Tall hücreleri", malignant: true }
             ]
         }
     ];
