@@ -565,6 +565,8 @@ const TiiabRaporlama: React.FC = () => {
                             if (sample.customInputs[g.title]) features.push(sample.customInputs[g.title]);
                         }
                     });
+
+                    if (group.label === 'Diğer' && features.length === 0) return;
                     report += `     - ${group.label}: ${features.length > 0 ? features.join(', ') + '.' : 'Görülmedi.'}\n`;
                 });
 
