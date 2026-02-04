@@ -194,8 +194,8 @@ const PAGE_METADATA: Record<string, { title: string; description: string; keywor
     },
     'pubmed-makale-takip': {
         title: 'PubMed Patoloji Günlük Makale Takibi | Prof Dr Metin Çiriş',
-        description: 'En güncel patoloji makalelerini PubMed üzerinden takip edin. Günlük makale akışı ve özetleri.',
-        keywords: 'patoloji makale, PubMed takip, günlük patoloji, tıp literatürü'
+        description: 'Dünyaca ünlü patoloji dergilerinden en güncel makaleleri PubMed üzerinden takip edin. Günlük makale akışı, Türkçe özetler ve vaka takibi için profesyonel literatür aracı.',
+        keywords: 'patoloji makale, PubMed takip, günlük patoloji, tıp literatürü, makale özetleri, patoloji yayınları'
     },
     'avif-donusturucu': {
         title: 'AVIF Dönüştürücü | Prof Dr Metin Çiriş',

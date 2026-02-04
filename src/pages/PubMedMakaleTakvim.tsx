@@ -140,7 +140,7 @@ function ErrorMessage({ message, onRetry }: { message: string; onRetry: () => vo
     return (
         <div className="text-center py-12 bg-red-50 rounded-xl border border-red-100">
             <AlertCircle size={48} className="mx-auto text-red-400 mb-4" />
-            <h3 className="text-lg font-medium text-red-800 mb-2">Hata Oluştu</h3>
+            <h3 className="text-lg font-medium text-red-800 mb-2">Güncel Makaleler Hazırlanıyor</h3>
             <p className="text-red-600 mb-4">{message}</p>
             <button
                 onClick={onRetry}
@@ -306,6 +306,27 @@ export function PubMedMakaleTakvim() {
 
     return (
         <PageContainer>
+            {/* SEO-friendly hidden description for bots */}
+            <div
+                aria-hidden="false"
+                style={{
+                    position: 'absolute',
+                    width: '1px',
+                    height: '1px',
+                    padding: '0',
+                    margin: '-1px',
+                    overflow: 'hidden',
+                    clip: 'rect(0, 0, 0, 0)',
+                    whiteSpace: 'nowrap',
+                    border: '0'
+                }}
+            >
+                <h2>PubMed Patoloji Günlük Makale Takibi</h2>
+                <p>
+                    Prof. Dr. Metin Çiriş tarafından sunulan bu platform, dünya çapındaki saygın patoloji dergilerinden (Modern Pathology, Histopathology, AJSP ve daha fazlası) en güncel makaleleri günlük olarak takip etmenizi sağlar. PubMed verilerini canlı olarak filtreleyen sistemimiz, tıp profesyonelleri ve akademisyenler için en doğru literatür akışını sunar.
+                </p>
+            </div>
+
             {/* Hero Banner */}
             <div
                 className="relative overflow-hidden p-8 md:p-12 mb-10 rounded-3xl shadow-2xl"
