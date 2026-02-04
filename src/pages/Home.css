@@ -10,12 +10,12 @@
   flex-direction: column;
   justify-content: space-between;
   min-height: 110px;
-  cursor: pointer;
+  cursor: default;
   transition:
     background 0.6s ease,
-    box-shadow 0.2s ease,
+    box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
     filter 0.6s ease,
-    transform 0.15s ease;
+    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Hover’da hafif kaldır */
@@ -69,6 +69,7 @@
 
 /* Gece hafif ışık parlaması */
 @keyframes weather-night-glow {
+
   0%,
   100% {
     box-shadow: 0 10px 20px rgba(15, 23, 42, 0.5);
@@ -83,6 +84,7 @@
 
 /* Sis nefes efekti */
 @keyframes weather-fog-breathe {
+
   0%,
   100% {
     filter: blur(0px) brightness(1);
@@ -95,6 +97,7 @@
 
 /* Fırtınada kısa şimşek parlama */
 @keyframes weather-storm-flash {
+
   0%,
   85%,
   100% {
@@ -197,6 +200,7 @@
 
 /* Sıcaklık için hafif nabız */
 @keyframes weather-pulse {
+
   0%,
   100% {
     opacity: 1;
@@ -258,6 +262,7 @@
 
 /* Fırtınada hafif titreme */
 @keyframes weather-storm-icon {
+
   0%,
   100% {
     transform: translateY(-2px);

@@ -26,6 +26,13 @@
   --font-weight-normal: 400;
   --ring: oklch(0.708 0 0);
   --radius: 0.625rem;
+
+  /* Modern Metro Tile Variables */
+  --tile-border-radius: 1rem;
+  --tile-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --glass-bg: rgba(255, 255, 255, 0.1);
+  --glass-border: rgba(255, 255, 255, 0.2);
+  --glow-color: rgba(255, 255, 255, 0.3);
 }
 
 .dark {
@@ -50,6 +57,12 @@
   --ring: oklch(0.439 0 0);
   --font-weight-medium: 500;
   --font-weight-normal: 400;
+
+  /* Metro Tile dark mode optimizations */
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glow-color: rgba(255, 255, 255, 0.2);
+  --tile-overlay-dark: rgba(0, 0, 0, 0.3);
 }
 
 @theme inline {
@@ -89,9 +102,23 @@
     background-color: #f1f5f9;
     @apply text-foreground;
     font-family: inherit;
+    transition: background-color 0.3s ease;
   }
 
-  h1, h2, h3, h4, h5, h6, p, label, button, input {
+  body.dark {
+    background: linear-gradient(to bottom right, #0f172a, #1e293b, #334155);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  p,
+  label,
+  button,
+  input {
     color: inherit;
     font-size: inherit;
     font-weight: inherit;
@@ -146,4 +173,32 @@
   border-color: #3498db;
   background: #f0f7ff;
   box-shadow: 0 4px 15px rgba(52, 152, 219, 0.15);
+}
+
+/* Modern Metro Tile Utilities */
+.glass-effect {
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+}
+
+.glow-effect {
+  box-shadow:
+    0 0 20px var(--glow-color),
+    0 0 40px var(--glow-color);
+}
+
+.shadow-modern {
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06),
+    0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.shadow-modern-hover {
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.15),
+    0 10px 10px -5px rgba(0, 0, 0, 0.08),
+    0 0 30px rgba(255, 255, 255, 0.2);
 }
