@@ -302,7 +302,7 @@ export function EuroMaclar() {
             }
         } catch (err) {
             console.error(err);
-            setError('Veriler yüklenirken bir hata oluştu.');
+            setError('Maç Sonuçları Hazırlanıyor...');
         } finally {
             setLoading(false);
         }
@@ -336,6 +336,26 @@ export function EuroMaclar() {
 
     return (
         <PageContainer>
+            {/* SEO-friendly hidden description for bots */}
+            <div
+                aria-hidden="false"
+                style={{
+                    position: 'absolute',
+                    width: '1px',
+                    height: '1px',
+                    padding: '0',
+                    margin: '-1px',
+                    overflow: 'hidden',
+                    clip: 'rect(0, 0, 0, 0)',
+                    whiteSpace: 'nowrap',
+                    border: '0'
+                }}
+            >
+                <h2>Avrupa Kupaları Basketbol ve Voleybol Maç Sonuçları</h2>
+                <p>
+                    Fenerbahçe, Anadolu Efes, VakıfBank ve Eczacıbaşı gibi temsilcilerimizin EuroLeague, EuroCup ve CEV Şampiyonlar Ligi'ndeki güncel maç sonuçlarını ve gelecek maç programlarını takip edin. Canlı skorlar ve turnuva detayları burada.
+                </p>
+            </div>
             <div className="bg-slate-950 text-white p-8 md:p-12 mb-8 rounded-3xl shadow-2xl relative overflow-hidden border-b-4 border-yellow-400">
                 <div className="relative z-10">
                     <div className="flex items-center gap-4 mb-2">

@@ -8,11 +8,11 @@ export function NobetciEczane() {
   const now = new Date();
 
   // Türkçe tarih
-  const today = now.toLocaleDateString('tr-TR', { 
-    weekday: 'long', 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
+  const today = now.toLocaleDateString('tr-TR', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
   });
 
   // İngilizce tarih: 30 November 2025 Sunday
@@ -42,13 +42,33 @@ export function NobetciEczane() {
     return () => {
       try {
         document.body.removeChild(script);
-      } catch {}
+      } catch { }
       delete (window as any).pharmacyiFrame;
     };
   }, []);
 
   return (
     <PageContainer>
+      {/* SEO-friendly hidden description for bots */}
+      <div
+        aria-hidden="false"
+        style={{
+          position: 'absolute',
+          width: '1px',
+          height: '1px',
+          padding: '0',
+          margin: '-1px',
+          overflow: 'hidden',
+          clip: 'rect(0, 0, 0, 0)',
+          whiteSpace: 'nowrap',
+          border: '0'
+        }}
+      >
+        <h2>Isparta Nöbetçi Eczaneler ve Eczane Listesi</h2>
+        <p>
+          Isparta Merkez ve ilçelerindeki günlük nöbetçi eczanelere anında ulaşın. Eczane adresleri, telefon numaraları ve yol tarifleri ile nöbetçi listesini güncel olarak takip edin.
+        </p>
+      </div>
       <div className="bg-gradient-to-r from-[#990000] to-[#8B0000] text-white p-12 mb-8">
         <h1 className="text-white mb-4">Isparta Nöbetçi Eczane</h1>
         <p className="text-white/90">
@@ -115,7 +135,7 @@ export function NobetciEczane() {
           <div>
             <h3 className="mb-2">Önemli Bilgilendirme</h3>
             <p className="text-muted-foreground m-0">
-              Nöbetçi eczane bilgileri değişebilir. Gitmeden önce eczaneyi arayarak doğrulama 
+              Nöbetçi eczane bilgileri değişebilir. Gitmeden önce eczaneyi arayarak doğrulama
               yapmanız önerilir. Acil durumlar için 112'yi arayabilirsiniz.
             </p>
           </div>

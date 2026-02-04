@@ -300,6 +300,26 @@ export function Konsensus() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* SEO-friendly hidden description for bots */}
+      <div
+        aria-hidden="false"
+        style={{
+          position: 'absolute',
+          width: '1px',
+          height: '1px',
+          padding: '0',
+          margin: '-1px',
+          overflow: 'hidden',
+          clip: 'rect(0, 0, 0, 0)',
+          whiteSpace: 'nowrap',
+          border: '0'
+        }}
+      >
+        <h2>Patoloji Konsensus Toplantı Takibi</h2>
+        <p>
+          Tıbbi patoloji topluluklarının düzenlediği bilimsel toplantıları, vaka tartışmalarını ve konsensus oturumlarını takip edin. Toplantı tarihleri, Zoom linkleri ve arşivlenmiş oturum detaylarına erişin.
+        </p>
+      </div>
       {activePoster && <PosterLightbox url={activePoster} onClose={() => setActivePoster(null)} />}
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
@@ -346,7 +366,7 @@ export function Konsensus() {
               <SectionTitle title="Bugün" icon={<Clock className="w-6 h-6" />} />
               {loading ? (
                 <div className="flex items-center gap-2 text-gray-500 font-semibold">
-                  <Loader2 className="w-5 h-5 animate-spin" /> Yükleniyor…
+                  <Loader2 className="w-5 h-5 animate-spin" /> Toplantı Listesi Hazırlanıyor…
                 </div>
               ) : todayMeetings.length === 0 ? (
                 <div className="text-gray-400 font-semibold">Bugün için toplantı yok.</div>
@@ -376,7 +396,7 @@ export function Konsensus() {
               <SectionTitle title="Yarın" icon={<Calendar className="w-6 h-6" />} />
               {loading ? (
                 <div className="flex items-center gap-2 text-gray-500 font-semibold">
-                  <Loader2 className="w-5 h-5 animate-spin" /> Yükleniyor…
+                  <Loader2 className="w-5 h-5 animate-spin" /> Toplantı Listesi Hazırlanıyor…
                 </div>
               ) : tomorrowMeetings.length === 0 ? (
                 <div className="text-gray-400 font-semibold">Yarın için toplantı yok.</div>

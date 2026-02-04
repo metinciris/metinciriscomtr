@@ -52,6 +52,26 @@ const RobustTradingViewWidget = ({ symbol, title, height = 280 }: { symbol: stri
 export function Finans() {
     return (
         <PageContainer>
+            {/* SEO-friendly hidden description for bots */}
+            <div
+                aria-hidden="false"
+                style={{
+                    position: 'absolute',
+                    width: '1px',
+                    height: '1px',
+                    padding: '0',
+                    margin: '-1px',
+                    overflow: 'hidden',
+                    clip: 'rect(0, 0, 0, 0)',
+                    whiteSpace: 'nowrap',
+                    border: '0'
+                }}
+            >
+                <h2>Anlık Finansal Göstergeler ve Ekonomi Paneli</h2>
+                <p>
+                    Dolar/TL, Euro/TL, Gram Altın ve Ons Altın gibi kritik piyasa verilerini TradingView altyapısı ile anlık takip edin. Türkiye ekonomisine dair makro göstergeler ve piyasa analizleri tek panelde.
+                </p>
+            </div>
             {/* Üst Bilgi Paneli */}
             <div
                 className="p-12 mb-10 rounded-3xl shadow-xl border-b-8 border-indigo-900/20"

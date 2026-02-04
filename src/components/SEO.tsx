@@ -34,8 +34,8 @@ const PAGE_METADATA: Record<string, { title: string; description: string; keywor
     },
     'nobetci-eczane': {
         title: 'Isparta Nöbetçi Eczaneler | Prof Dr Metin Çiriş',
-        description: 'Isparta güncel nöbetçi eczane listesi ve adresleri.',
-        keywords: 'nöbetçi eczane, Isparta eczane, gece eczane'
+        description: 'Isparta Merkez ve tüm ilçeler için güncel nöbetçi eczane listesi. Adres, telefon ve harita bilgileriyle anlık eczane takibi.',
+        keywords: 'nöbetçi eczane, Isparta eczane, gece eczane, Isparta nöbetçi eczaneler, eczane telefon'
     },
     'hastane-yemek': {
         title: 'SDÜ Hastane Yemek Listesi | Prof Dr Metin Çiriş',
@@ -133,9 +133,9 @@ const PAGE_METADATA: Record<string, { title: string; description: string; keywor
         keywords: 'günün makalesi, patoloji literatür, PubMed, bilimsel makale'
     },
     deprem: {
-        title: 'Isparta Deprem Takibi | Prof Dr Metin Çiriş',
-        description: 'Anlık deprem verileri, Isparta ve çevresi sismik aktivite takibi.',
-        keywords: 'deprem, Isparta deprem, sismik aktivite, AFAD deprem'
+        title: 'Isparta ve Türkiye Deprem Takibi | Prof Dr Metin Çiriş',
+        description: 'Anlık deprem verileri, Isparta ve çevresi sismik aktivite takibi. AFAD verileriyle canlı sarsıntı analizi ve harita desteği.',
+        keywords: 'deprem, Isparta deprem, sismik aktivite, AFAD deprem, son depremler, deprem haritası'
     },
     'svs-reader': {
         title: 'SVS Sanal Mikroskopi | Prof Dr Metin Çiriş',
@@ -168,9 +168,9 @@ const PAGE_METADATA: Record<string, { title: string; description: string; keywor
         keywords: 'lenf nodu sayacı, makroskopi, patoloji araç, lenf nodu sayımı'
     },
     finans: {
-        title: 'Ekonomik Göstergeler | Prof Dr Metin Çiriş',
-        description: 'Canlı ekonomik veriler, döviz kurları ve Türkiye makro göstergeleri.',
-        keywords: 'ekonomik göstergeler, döviz kuru, enflasyon, faiz oranı'
+        title: 'Ekonomik Göstergeler & Finans Paneli | Prof Dr Metin Çiriş',
+        description: 'Canlı döviz kurları (Dolar, Euro), altın fiyatları ve kripto piyasa verileri. Türkiye makro ekonomik göstergeleri ve anlık piyasa takibi.',
+        keywords: 'ekonomik göstergeler, döviz kuru, enflasyon, faiz oranı, dolar tl, altın fiyatları, borsa'
     },
     'pubmed-trend': {
         title: 'PubMed Trend Analizi | Prof Dr Metin Çiriş',
@@ -184,13 +184,13 @@ const PAGE_METADATA: Record<string, { title: string; description: string; keywor
     },
     'euro-maclar': {
         title: 'Avrupa Kupaları Maç Takibi | Prof Dr Metin Çiriş',
-        description: 'Türk takımlarının Avrupa kupalarındaki basketbol ve voleybol maçlarını takip edin. Canlı skorlar ve maç programları.',
-        keywords: 'avrupa kupaları, euroleague, basketbol, voleybol, türk takımları, maç takibi'
+        description: 'Basketbol EuroLeague, EuroCup ve Voleybol CEV Şampiyonlar Ligi sonuçları. Temsilcilerimizin Avrupa sahnesindeki maç programı ve canlı skorları.',
+        keywords: 'avrupa kupaları, euroleague, basketbol, voleybol, türk takımları, maç takibi, fenerbahçe, anadolu efes, vakıfbank'
     },
     'konsensus': {
-        title: 'Patoloji Konsensus Toplantıları | Prof Dr Metin Çiriş',
-        description: 'Patoloji konsensus toplantılarını takip edin. Toplantı tarihleri, zoom/meet linkleri ve bildirim sistemi.',
-        keywords: 'patoloji konsensus, toplantı takibi, patoloji eğitim, online toplantı'
+        title: 'Patoloji Konsensus Toplantı Takibi | Prof Dr Metin Çiriş',
+        description: 'Tıbbi patoloji konsensus toplantılarını canlı takip edin. Toplantı takvimi, Zoom erişim linkleri ve vaka tartışma arşivi.',
+        keywords: 'patoloji konsensus, toplantı takibi, patoloji eğitim, online toplantı, patoloji vakaları'
     },
     'pubmed-makale-takip': {
         title: 'PubMed Patoloji Günlük Makale Takibi | Prof Dr Metin Çiriş',

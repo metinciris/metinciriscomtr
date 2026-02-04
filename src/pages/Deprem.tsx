@@ -624,32 +624,32 @@ export function Deprem() {
 
       // İlk yükleme: ses çalma yok
       if (seenIdsRef.current.size === 0) {
-      list.forEach((eq) => seenIdsRef.current.add(eq.earthquake_id));
-    } else {
-      newOnes.forEach((eq) => {
-        seenIdsRef.current.add(eq.earthquake_id);
-        if (notificationsEnabled) {
-          soundQueue.current.push(eq);
-        }
-      });
-    }
+        list.forEach((eq) => seenIdsRef.current.add(eq.earthquake_id));
+      } else {
+        newOnes.forEach((eq) => {
+          seenIdsRef.current.add(eq.earthquake_id);
+          if (notificationsEnabled) {
+            soundQueue.current.push(eq);
+          }
+        });
+      }
 
-    setEarthquakes(list);
+      setEarthquakes(list);
 
-    const dmap = new Map<string, number>();
-    for (const eq of list) {
-      const d = calculateDistance(
-        ISPARTA_COORDS.lat,
-        ISPARTA_COORDS.lng,
-        eq.geojson.coordinates[1],
-        eq.geojson.coordinates[0]
-      );
-      dmap.set(eq.earthquake_id, d);
-    }
+      const dmap = new Map<string, number>();
+      for (const eq of list) {
+        const d = calculateDistance(
+          ISPARTA_COORDS.lat,
+          ISPARTA_COORDS.lng,
+          eq.geojson.coordinates[1],
+          eq.geojson.coordinates[0]
+        );
+        dmap.set(eq.earthquake_id, d);
+      }
 
-    if (notificationsEnabled && soundQueue.current.length > 0) {
-      processSoundQueue(dmap);
-    }
+      if (notificationsEnabled && soundQueue.current.length > 0) {
+        processSoundQueue(dmap);
+      }
 
       if (notificationsEnabled && newOnes.length > 0) {
         newOnes.forEach((eq) => soundQueue.current.push(eq));
@@ -665,11 +665,11 @@ export function Deprem() {
     }
   };
 
-useEffect(() => {
-  fetchData();
-  const id = setInterval(() => fetchData(), 30000);
-  return () => clearInterval(id);
-}, [notificationsEnabled]);
+  useEffect(() => {
+    fetchData();
+    const id = setInterval(() => fetchData(), 30000);
+    return () => clearInterval(id);
+  }, [notificationsEnabled]);
 
   /* ============================================================
      12) Memo: distanceMap, alert listesi, sıralamalar
@@ -875,6 +875,26 @@ useEffect(() => {
      ============================================================ */
   return (
     <PageContainer>
+      {/* SEO-friendly hidden description for bots */}
+      <div
+        aria-hidden="false"
+        style={{
+          position: 'absolute',
+          width: '1px',
+          height: '1px',
+          padding: '0',
+          margin: '-1px',
+          overflow: 'hidden',
+          clip: 'rect(0, 0, 0, 0)',
+          whiteSpace: 'nowrap',
+          border: '0'
+        }}
+      >
+        <h2>Isparta ve Türkiye Geneli Deprem Takibi</h2>
+        <p>
+          AFAD verileri kullanılarak hazırlanan bu panelde, Isparta ve Türkiye genelindeki en güncel sismik aktiviteleri canlı olarak takip edebilirsiniz. Harita desteği, şiddet analizi ve sismik trendler ile güvenilir deprem verilerine anında ulaşın.
+        </p>
+      </div>
       <div className={PAGE_TOP_PULL}>
         {/* B) ÜST PANEL ===================================================== */}
         <div
@@ -974,7 +994,7 @@ useEffect(() => {
             <div className="flex items-start gap-3">
               <AlertTriangle className="text-red-500 flex-shrink-0 mt-1" size={24} />
               <div>
-                <p className="text-red-700 font-semibold mb-1">Veri Yükleme Hatası</p>
+                <p className="text-red-700 font-semibold mb-1">Sismik Veriler Hazırlanıyor</p>
                 <p className="text-red-600 text-sm">{error}</p>
 
                 <button
