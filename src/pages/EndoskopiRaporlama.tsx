@@ -5,6 +5,7 @@ import { ReportGenerator } from '../components/EndoskopiRaporlama/ReportGenerato
 import { Biopsy, BiopsyLocation } from '../types/endoskopi';
 import { Microscope, FileText } from 'lucide-react';
 import { RelatedPages } from '../components/RelatedPages';
+import { ReportingDisclaimer } from '../components/ReportingDisclaimer';
 
 const defaultStainConfig = {
     [BiopsyLocation.Ozefagus]: [
@@ -48,6 +49,7 @@ export function EndoskopiRaporlama() {
                 />
             </EndoskopiLayout>
 
+            <ReportingDisclaimer />
             <RelatedPages
                 pages={[
                     {

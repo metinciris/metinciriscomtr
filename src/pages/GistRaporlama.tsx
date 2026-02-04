@@ -3,6 +3,7 @@ import { motion } from "motion/react";
 import { Copy, Check, Activity, Ruler, Microscope, FileText, Info, LayoutGrid } from "lucide-react";
 import { PageContainer } from "../components/PageContainer";
 import { RelatedPages } from "../components/RelatedPages";
+import { ReportingDisclaimer } from "../components/ReportingDisclaimer";
 
 // --- Constants & Logic ---
 const HISTO_TIP_OPTS = [
@@ -825,7 +826,7 @@ export default function GistRaporlama() {
                     </div>
                 </div>
             </div>
-
+            <ReportingDisclaimer />
             <RelatedPages
                 pages={[
                     {

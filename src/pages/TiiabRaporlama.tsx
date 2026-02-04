@@ -3,6 +3,7 @@ import { Copy, FileText, CheckCircle, Microscope, RotateCcw, Plus, Trash2, Layou
 import { PageContainer } from '../components/PageContainer';
 import { toast } from 'sonner';
 import { RelatedPages } from '../components/RelatedPages';
+import { ReportingDisclaimer } from '../components/ReportingDisclaimer';
 
 interface Feature {
     id: string;
@@ -899,6 +900,7 @@ const TiiabRaporlama: React.FC = () => {
                 </div>
             </div>
 
+            <ReportingDisclaimer />
             <RelatedPages
                 pages={[
                     {

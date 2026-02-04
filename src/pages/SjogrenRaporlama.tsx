@@ -3,6 +3,7 @@ import { Copy, Check, Microscope, FileText, Info, RotateCcw, Plus, Trash2, Layou
 import { PageContainer } from "../components/PageContainer";
 import { toast } from "sonner";
 import { RelatedPages } from "../components/RelatedPages";
+import { ReportingDisclaimer } from "../components/ReportingDisclaimer";
 
 // --- Constants ---
 const FOKUS_OPTS = [
@@ -498,6 +499,7 @@ export default function SjogrenRaporlama() {
                 </div>
             </div>
 
+            <ReportingDisclaimer />
             <RelatedPages
                 pages={[
                     {
