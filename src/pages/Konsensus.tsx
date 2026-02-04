@@ -426,7 +426,7 @@ export function Konsensus() {
               <SectionTitle title="Gelecek Toplantılar" icon={<Calendar className="w-6 h-6" />} />
               {loading ? (
                 <div className="flex items-center gap-2 text-gray-500 font-semibold">
-                  <Loader2 className="w-5 h-5 animate-spin" /> Yükleniyor…
+                  <Loader2 className="w-5 h-5 animate-spin" /> Toplantı Listesi Hazırlanıyor…
                 </div>
               ) : futureMeetings.length === 0 ? (
                 <div className="text-gray-400 font-semibold">Planlanmış toplantı yok.</div>
