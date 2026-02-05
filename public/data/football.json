@@ -1,20 +1,5 @@
 [
   {
-    "id": "football-UEFAEuropaLeague-6",
-    "sport": "football",
-    "competition": "UEFA Europa League",
-    "season": "2025/26",
-    "homeTeam": "Fenerbahçe",
-    "awayTeam": "Aston Villa",
-    "startTimeUTC": "2026-01-22 17:45:00Z",
-    "startTimeLocal": "2026-01-22T20:45:00+03:00",
-    "status": "finished",
-    "scoreHome": 0,
-    "scoreAway": 1,
-    "source": "fixturedownload",
-    "lastFetchedAt": "2026-02-05T07:07:19.631Z"
-  },
-  {
     "id": "football-CL-551967",
     "sport": "football",
     "competition": "UEFA Champions League",
@@ -27,7 +12,7 @@
     "scoreHome": 2,
     "scoreAway": 0,
     "source": "football-data",
-    "lastFetchedAt": "2026-02-05T07:07:18.533Z"
+    "lastFetchedAt": "2026-02-05T18:57:57.860Z"
   },
   {
     "id": "football-UEFAEuropaLeague-7",
@@ -42,7 +27,7 @@
     "scoreHome": 1,
     "scoreAway": 1,
     "source": "fixturedownload",
-    "lastFetchedAt": "2026-02-05T07:07:19.631Z"
+    "lastFetchedAt": "2026-02-05T18:57:58.283Z"
   },
   {
     "id": "football-CL-552055",
@@ -57,6 +42,21 @@
     "scoreHome": null,
     "scoreAway": null,
     "source": "football-data",
-    "lastFetchedAt": "2026-02-05T07:07:18.533Z"
+    "lastFetchedAt": "2026-02-05T18:57:57.860Z"
+  },
+  {
+    "id": "football-UEFAEuropaLeague-8",
+    "sport": "football",
+    "competition": "UEFA Europa League",
+    "season": "2025/26",
+    "homeTeam": "Fenerbahçe",
+    "awayTeam": "Nott'm Forest",
+    "startTimeUTC": "2026-02-19 17:45:00Z",
+    "startTimeLocal": "2026-02-19T20:45:00+03:00",
+    "status": "scheduled",
+    "scoreHome": null,
+    "scoreAway": null,
+    "source": "fixturedownload",
+    "lastFetchedAt": "2026-02-05T18:57:58.283Z"
   }
 ]
