@@ -106,12 +106,28 @@ function shorten(text: string, max: number): string {
 const PODCAST_SHEET_ID = '148p3M41R52gVVjtLSF2Qh8rJvBPEWJ7SV4lgSBQYwLc';
 const PODCAST_GID = '1109640564';
 const PODCAST_RANGE = 'A1:F132';
+const CACHE_KEY_PODCAST = 'metinciris_podcast_titles';
+const CACHE_KEY_WEATHER = 'metinciris_weather_data';
+const CACHE_EXPIRY = 3600000; // 1 saat
 
 function usePodcastRotatingTitle(intervalMs: number): string {
-  const [titles, setTitles] = useState<string[]>([]);
+  const [titles, setTitles] = useState<string[]>(() => {
+    const cached = localStorage.getItem(CACHE_KEY_PODCAST);
+    if (cached) {
+      try {
+        const { data, timestamp } = JSON.parse(cached);
+        if (Date.now() - timestamp < CACHE_EXPIRY) {
+          return data;
+        }
+      } catch (e) {
+        console.error('Önbellek okuma hatası', e);
+      }
+    }
+    return [];
+  });
   const [index, setIndex] = useState(0);
 
-  // Başlıkları bir kez çek
+  // Başlıkları çek ve önbellekle
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -135,10 +151,13 @@ function usePodcastRotatingTitle(intervalMs: number): string {
         }
 
         if (collected.length > 0) {
-          // Her sayfa yüklemesinde rastgele bir başlangıç index'i
-          const startIndex = Math.floor(Math.random() * collected.length);
           setTitles(collected);
-          setIndex(startIndex);
+          localStorage.setItem(
+            CACHE_KEY_PODCAST,
+            JSON.stringify({ data: collected, timestamp: Date.now() }),
+          );
+          // Her sayfa yüklemesinde rastgele bir başlangıç index'i
+          setIndex(Math.floor(Math.random() * collected.length));
         }
       } catch (e) {
         console.error('Podcast başlıkları alınamadı', e);
@@ -263,10 +282,23 @@ export function Home({ onNavigate }: HomeProps) {
       : 'Güncel makale başlıkları';
 
   // Hava durumu (Isparta) – Open-Meteo
-  const [weather, setWeather] = useState<WeatherState>({
-    temp: null,
-    icon: '🌤️',
-    variant: 'day',
+  const [weather, setWeather] = useState<WeatherState>(() => {
+    const cached = localStorage.getItem(CACHE_KEY_WEATHER);
+    if (cached) {
+      try {
+        const { data, timestamp } = JSON.parse(cached);
+        if (Date.now() - timestamp < CACHE_EXPIRY) {
+          return data;
+        }
+      } catch (e) {
+        console.error('Hava durumu önbellek hatası', e);
+      }
+    }
+    return {
+      temp: null,
+      icon: '🌤️',
+      variant: 'day',
+    };
   });
 
   useEffect(() => {
@@ -303,11 +335,17 @@ export function Home({ onNavigate }: HomeProps) {
         const variant = getWeatherVariant(codeRaw, isDay);
         const icon = getWeatherIcon(codeRaw, isDay);
 
-        setWeather({
+        const newState = {
           temp: typeof tempRaw === 'number' ? Math.round(tempRaw) : null,
           icon,
           variant,
-        });
+        };
+
+        setWeather(newState);
+        localStorage.setItem(
+          CACHE_KEY_WEATHER,
+          JSON.stringify({ data: newState, timestamp: Date.now() }),
+        );
       })
       .catch(() => {
         // Hata olursa mevcut state kalsın

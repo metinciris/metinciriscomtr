@@ -23,8 +23,14 @@ export default defineConfig({
     outDir: 'dist',
     rollupOptions: {
       output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom'],
+          'vendor-utils': ['lucide-react', 'motion', 'clsx', 'tailwind-merge'],
+          'vendor-ui': ['sonner', 'dompurify', 'recharts'],
+        },
       },
     },
+    chunkSizeWarningLimit: 1000,
   },
   server: {
     port: 3000,

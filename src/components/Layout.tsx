@@ -34,6 +34,8 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
                   src="/img/metinciris.avif"
                   alt="Prof. Dr. Metin Çiriş"
                   className="w-full h-full object-cover"
+                  // @ts-ignore - fetchpriority is a valid but sometimes unrecognized attribute in older types
+                  fetchpriority="high"
                 />
               </div>
               <div>
