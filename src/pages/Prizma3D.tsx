@@ -19,7 +19,7 @@ export function Prizma3D() {
     const PRISM = {
         width: 380,   // front face width
         height: 280,  // front face height  
-        depth: 220,   // side depth
+        depth: 150,   // side depth (reduced from 220 to fix elongation)
     };
 
     // Isometric projection angle
@@ -53,9 +53,13 @@ export function Prizma3D() {
         lightness: number
     ) => {
         // Use subdivision technique for perspective-correct texturing
-        const subdivisions = 12; // Higher = more accurate but slower
+        const subdivisions = 20; // Higher = more accurate but slower
 
         ctx.save();
+
+        // Improve image quality
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
 
         // Clip to destination quad
         ctx.beginPath();
@@ -98,9 +102,21 @@ export function Prizma3D() {
             }
         }
 
-        // Apply lighting overlay
+        // Apply lighting overlay with a soft gradient for "softer" look
         if (lightness < 1) {
-            ctx.fillStyle = `rgba(0, 0, 0, ${1 - lightness})`;
+            const centerX = (dstPoints[0].x + dstPoints[2].x) / 2;
+            const centerY = (dstPoints[0].y + dstPoints[2].y) / 2;
+
+            // Create a subtle gradient for lighting instead of flat color
+            const overlay = ctx.createLinearGradient(
+                dstPoints[0].x, dstPoints[0].y,
+                dstPoints[2].x, dstPoints[2].y
+            );
+
+            overlay.addColorStop(0, `rgba(0, 0, 0, ${(1 - lightness) * 0.7})`);
+            overlay.addColorStop(1, `rgba(0, 0, 0, ${1 - lightness})`);
+
+            ctx.fillStyle = overlay;
             ctx.beginPath();
             ctx.moveTo(dstPoints[0].x, dstPoints[0].y);
             for (let i = 1; i < dstPoints.length; i++) {
@@ -218,16 +234,30 @@ export function Prizma3D() {
         // Right face (extends back-right in isometric)
         const rightBackBottom = { x: frontBottomRight.x + isoX, y: frontBottomRight.y - isoY };
 
-        // Draw shadow on floor
+        // Draw shadow on floor - multi-layered and blurred for software look
         ctx.save();
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.12)';
-        ctx.beginPath();
-        ctx.moveTo(frontBottomLeft.x + 25, centerY + 25);
-        ctx.lineTo(frontBottomRight.x + 25, centerY + 25);
-        ctx.lineTo(rightBackBottom.x + 25, rightBackBottom.y + 25);
-        ctx.lineTo(topBackLeft.x + 25, centerY - isoY + 25);
-        ctx.closePath();
-        ctx.fill();
+        // Inner darker shadow
+        ctx.shadowBlur = 40;
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+
+        const drawShadowPath = (offset: number) => {
+            ctx.beginPath();
+            ctx.moveTo(frontBottomLeft.x + offset, centerY + offset);
+            ctx.lineTo(frontBottomRight.x + offset, centerY + offset);
+            ctx.lineTo(rightBackBottom.x + offset, rightBackBottom.y + offset);
+            ctx.lineTo(topBackLeft.x + offset, centerY - isoY + offset);
+            ctx.closePath();
+            ctx.fill();
+        };
+
+        drawShadowPath(20);
+
+        // Outer softer shadow
+        ctx.shadowBlur = 60;
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.1)';
+        drawShadowPath(10);
+
         ctx.restore();
 
         const imgW = uploadedImage?.width || 1;
@@ -240,39 +270,33 @@ export function Prizma3D() {
             // Right face continues from front's RIGHT edge
 
             // Define how much of the image goes to each face
-            // Front gets most of the image, top and right get the "overflow"
-            const frontRatio = 0.75;  // Front face covers 75% of image width/height
-            const topDepthRatio = 0.35;  // Top face depth relative to image
-            const rightDepthRatio = 0.35; // Right face depth relative to image
+            // More natural mapping ratios
+            const frontRatio = 0.8;  // Front face covers 80% of image
+            const topRatio = 0.2;    // Top face covers remaining 20% height
+            const rightRatio = 0.2;  // Right face covers remaining 20% width
 
-            // FRONT FACE: Bottom-left portion of image (main subject area)
-            // Image coordinates: from (0, 1-frontRatio) to (frontRatio, 1)
-            // But we map it to the full front face
+            // FRONT FACE: Main section
             const frontSrc = [
-                { x: 0, y: imgH * (1 - frontRatio) },           // top-left of front = upper part of bottom section
-                { x: imgW * frontRatio, y: imgH * (1 - frontRatio) }, // top-right of front
-                { x: imgW * frontRatio, y: imgH },               // bottom-right of front
-                { x: 0, y: imgH }                                // bottom-left of front
+                { x: 0, y: imgH * topRatio },
+                { x: imgW * frontRatio, y: imgH * topRatio },
+                { x: imgW * frontRatio, y: imgH },
+                { x: 0, y: imgH }
             ];
 
-            // TOP FACE: Continues from front's top edge upward into image
-            // The front edge of top matches front's top edge
-            // The back edge extends into the upper portion of image
+            // TOP FACE: Continues from front's top
             const topSrc = [
-                { x: 0, y: imgH * (1 - frontRatio) },           // front-left (matches front top-left)
-                { x: imgW * frontRatio, y: imgH * (1 - frontRatio) }, // front-right (matches front top-right)
-                { x: imgW * frontRatio + imgW * rightDepthRatio, y: 0 }, // back-right (upper right of image)
-                { x: 0, y: 0 }                                   // back-left (upper left of image)
+                { x: 0, y: imgH * topRatio },
+                { x: imgW * frontRatio, y: imgH * topRatio },
+                { x: imgW * frontRatio, y: 0 },
+                { x: 0, y: 0 }
             ];
 
-            // RIGHT FACE: Continues from front's right edge to the right of image
-            // The front edge of right matches front's right edge
-            // The back edge extends into the right portion of image
+            // RIGHT FACE: Continues from front's right
             const rightSrc = [
-                { x: imgW * frontRatio, y: imgH * (1 - frontRatio) }, // top-front (matches front top-right)
-                { x: imgW, y: 0 },                                // top-back (top-right corner of image)
-                { x: imgW, y: imgH },                             // bottom-back (bottom-right of image)
-                { x: imgW * frontRatio, y: imgH }                 // bottom-front (matches front bottom-right)
+                { x: imgW * frontRatio, y: imgH * topRatio },
+                { x: imgW, y: 0 },
+                { x: imgW, y: imgH },
+                { x: imgW * frontRatio, y: imgH }
             ];
 
             // DESTINATION COORDINATES on canvas
