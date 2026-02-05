@@ -122,7 +122,7 @@ export function Portfolyo() {
               </div>
             </div>
             <h3 className="text-sm font-bold uppercase tracking-widest text-gray-400 mb-2">Bilimsel Atıf</h3>
-            <div className="text-5xl font-black text-gray-900 mb-3">{stats.citations}+</div>
+            <div className="text-5xl font-black text-gray-900 mb-3">{stats.citations}</div>
             <div className="text-lg font-bold text-emerald-600 mb-4 tracking-tight">Toplam Atıf</div>
             <a
               href="https://scholar.google.com.tr/citations?user=QZkewskAAAAJ&hl=tr"
@@ -146,10 +146,10 @@ export function Portfolyo() {
               </div>
             </div>
             <h3 className="text-sm font-bold uppercase tracking-widest text-gray-400 mb-2">Akademik Birikim</h3>
-            <div className="text-5xl font-black text-gray-900 mb-3">{experienceYears}+</div>
+            <div className="text-5xl font-black text-gray-900 mb-3">{experienceYears}</div>
             <div className="text-lg font-bold text-purple-600 mb-4 tracking-tight">Yıl Deneyim</div>
             <div className="flex flex-col gap-1 text-xs font-medium text-gray-500">
-              <span className="bg-purple-50 px-3 py-1 rounded-full text-purple-700">{stats.sciCount + stats.nationalCount + stats.congressCount}+ Yayın</span>
+              <span className="bg-purple-50 px-3 py-1 rounded-full text-purple-700">{stats.sciCount + stats.nationalCount + stats.congressCount} Yayın</span>
               <span className="bg-fuchsia-50 px-3 py-1 rounded-full text-fuchsia-700">3.000.000+ Preparat</span>
             </div>
           </div>
