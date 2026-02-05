@@ -412,9 +412,16 @@ export function Yayinlar() {
           <div className="space-y-4">
             {[
               { label: 'ORCID ID: 0000-0002-5619-4989', url: 'https://orcid.org/0000-0002-5619-4989' },
-              { label: 'Google Scholar', url: 'https://scholar.google.com.tr/citations?user=zEF_KLsAAAAJ&hl=tr' },
+              { label: 'Google Scholar', url: 'https://scholar.google.com.tr/citations?user=QZkewskAAAAJ&hl=tr' },
+              { label: 'LinkedIn', url: 'https://www.linkedin.com/in/patoloji/' },
+              { label: 'YÖKSİS Profil Sayfası', url: 'https://akademik.yok.gov.tr/AkademikArama/AkademisyenGorevOgrenimBilgileri?islem=0&authorId=123735' },
               { label: 'ResearchGate', url: 'https://www.researchgate.net/profile/Metin-Ciris-2' },
-              { label: 'Scopus Author ID', url: 'https://www.scopus.com/authid/detail.uri?authorId=6603213356' }
+              { label: 'Academia', url: 'https://independent.academia.edu/Metin%C3%87iri%C5%9F' },
+              { label: 'Scopus Author ID (1)', url: 'https://www.scopus.com/authid/detail.uri?authorId=6603213356' },
+              { label: 'Scopus Author ID (2)', url: 'https://www.scopus.com/authid/detail.uri?authorId=54941044700' },
+              { label: 'Scopus Author ID (3)', url: 'https://www.scopus.com/authid/detail.uri?authorId=36997058700' },
+              { label: 'ARBİS', url: 'https://arbis.tubitak.gov.tr/tr/kullanici/TBTK-0011-0530' },
+              { label: 'ResearcherID', url: 'https://www.webofscience.com/wos/author/record/ABE-7921-2020' }
             ].map((link, idx) => (
               <a
                 key={idx}
@@ -466,7 +473,7 @@ export function Yayinlar() {
               </a>
               {' '}ve{' '}
               <a
-                href="https://scholar.google.com.tr/citations?user=zEF_KLsAAAAJ&hl=tr"
+                href="https://scholar.google.com.tr/citations?user=QZkewskAAAAJ&hl=tr"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-600 hover:underline font-medium"

@@ -55,7 +55,7 @@ export function Portfolyo() {
           <h3 className="mb-2">H-Index</h3>
           <p className="text-muted-foreground mb-3">24</p>
           <a
-            href="https://scholar.google.com.tr/citations?user=zEF_KLsAAAAJ&hl=tr"
+            href="https://scholar.google.com.tr/citations?user=QZkewskAAAAJ&hl=tr"
             target="_blank"
             rel="noopener noreferrer"
             className="text-[#00A6D6] hover:underline inline-flex items-center gap-1"
@@ -71,7 +71,7 @@ export function Portfolyo() {
           <h3 className="mb-2">Atıf Sayısı</h3>
           <p className="text-muted-foreground mb-3">2000+</p>
           <a
-            href="https://scholar.google.com.tr/citations?user=zEF_KLsAAAAJ&hl=tr"
+            href="https://scholar.google.com.tr/citations?user=QZkewskAAAAJ&hl=tr"
             target="_blank"
             rel="noopener noreferrer"
             className="text-[#27AE60] hover:underline inline-flex items-center gap-1"
