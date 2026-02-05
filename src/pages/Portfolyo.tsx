@@ -13,12 +13,43 @@ import {
   ChevronDown,
   ExternalLink,
   LayoutGrid,
-  Microscope
+  Microscope,
+  BarChart as BarChartIcon
 } from 'lucide-react';
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  Cell
+} from 'recharts';
 import { RelatedPages } from '../components/RelatedPages';
 
 export function Portfolyo() {
   const [expandedSections, setExpandedSections] = React.useState<string[]>([]);
+  const [stats, setStats] = React.useState({
+    hIndex: 24,
+    citations: 2000,
+    citationHistory: [] as { year: number, count: number }[]
+  });
+
+  React.useEffect(() => {
+    fetch('/data/publications.json')
+      .then(res => res.json())
+      .then(data => {
+        if (data.stats) {
+          setStats({
+            hIndex: data.stats.hIndex,
+            citations: data.stats.citations,
+            citationHistory: data.stats.citationHistory || []
+          });
+        }
+      })
+      .catch(console.error);
+  }, []);
 
   const toggleSection = (section: string) => {
     setExpandedSections(prev =>
@@ -29,6 +60,8 @@ export function Portfolyo() {
   };
 
   const isExpanded = (section: string) => expandedSections.includes(section);
+
+  const experienceYears = new Date().getFullYear() - 1997;
 
   return (
     <PageContainer>
@@ -53,7 +86,7 @@ export function Portfolyo() {
             <TrendingUp size={40} />
           </div>
           <h3 className="mb-2">H-Index</h3>
-          <p className="text-muted-foreground mb-3">24</p>
+          <p className="text-muted-foreground mb-3">{stats.hIndex}</p>
           <a
             href="https://scholar.google.com.tr/citations?user=QZkewskAAAAJ&hl=tr"
             target="_blank"
@@ -69,7 +102,7 @@ export function Portfolyo() {
             <FileText size={40} />
           </div>
           <h3 className="mb-2">Atıf Sayısı</h3>
-          <p className="text-muted-foreground mb-3">2000+</p>
+          <p className="text-muted-foreground mb-3">{stats.citations}+</p>
           <a
             href="https://scholar.google.com.tr/citations?user=QZkewskAAAAJ&hl=tr"
             target="_blank"
@@ -85,13 +118,76 @@ export function Portfolyo() {
             <BarChart3 size={40} />
           </div>
           <h3 className="mb-2">Deneyim</h3>
-          <p className="text-muted-foreground">
-            20+ yıl üniversite<br />
+          <div className="text-muted-foreground">
+            {experienceYears}+ yıl üniversite<br />
             200+ yayın<br />
-            2.000.000+ preparat
-          </p>
+            {stats.citations}+ Atıf<br />
+            3.000.000+ preparat
+          </div>
         </div>
       </div>
+
+      {/* Atıf Grafiği */}
+      {stats.citationHistory.length > 0 && (
+        <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 mb-8 overflow-hidden">
+          <div className="flex items-center gap-3 mb-8">
+            <div className="bg-blue-100 p-2 rounded-xl text-blue-600">
+              <BarChartIcon size={24} />
+            </div>
+            <h2 className="m-0 text-2xl font-bold text-gray-800">Yıllara Göre Atıf Dağılımı</h2>
+          </div>
+
+          <div className="h-[300px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={stats.citationHistory} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                <XAxis
+                  dataKey="year"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: '#94a3b8', fontSize: 12 }}
+                  dy={10}
+                />
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: '#94a3b8', fontSize: 12 }}
+                />
+                <Tooltip
+                  cursor={{ fill: '#f8fafc' }}
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      return (
+                        <div className="bg-white p-3 shadow-xl border border-gray-100 rounded-xl">
+                          <p className="text-sm font-bold text-gray-800 mb-1">{payload[0].payload.year}</p>
+                          <p className="text-sm text-blue-600 font-medium">{payload[0].value} Atıf</p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Bar
+                  dataKey="count"
+                  radius={[6, 6, 0, 0]}
+                  barSize={Math.max(10, 400 / stats.citationHistory.length)}
+                >
+                  {stats.citationHistory.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={index === stats.citationHistory.length - 1 ? '#2563eb' : '#3b82f6'}
+                      fillOpacity={0.8 + (index / stats.citationHistory.length) * 0.2}
+                    />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <p className="text-center text-xs text-muted-foreground mt-4 italic">
+            * Google Scholar verileri temel alınmıştır.
+          </p>
+        </div>
+      )}
 
       {/* Uzmanlık Alanları */}
       <div className="mb-8">
