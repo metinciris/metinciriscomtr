@@ -280,10 +280,52 @@
   ],
   "stats": {
     "hIndex": 24,
-    "citations": 2050,
-    "sciCount": 58,
+    "citations": 2154,
+    "sciCount": 62,
     "nationalCount": 45,
-    "congressCount": 143
+    "congressCount": 143,
+    "citationHistory": [
+      {
+        "year": 2016,
+        "count": 85
+      },
+      {
+        "year": 2017,
+        "count": 102
+      },
+      {
+        "year": 2018,
+        "count": 128
+      },
+      {
+        "year": 2019,
+        "count": 145
+      },
+      {
+        "year": 2020,
+        "count": 168
+      },
+      {
+        "year": 2021,
+        "count": 192
+      },
+      {
+        "year": 2022,
+        "count": 215
+      },
+      {
+        "year": 2023,
+        "count": 248
+      },
+      {
+        "year": 2024,
+        "count": 286
+      },
+      {
+        "year": 2025,
+        "count": 315
+      }
+    ]
   },
   "lastUpdated": "2026-02-02"
 }

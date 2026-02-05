@@ -85,113 +85,161 @@ export function Portfolyo() {
         </div>
       </div>
 
-      {/* Akademik Metrikler */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white rounded-2xl p-8 text-center shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-100">
-          <div className="bg-gradient-to-br from-blue-500 to-cyan-600 w-20 h-20 rounded-2xl flex items-center justify-center text-white mx-auto mb-4 shadow-lg">
-            <TrendingUp size={40} />
+      {/* Akademik Metrikler - Premium Design */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+        {/* H-Index Card */}
+        <div className="group relative overflow-hidden rounded-3xl bg-white p-1 border border-gray-100 shadow-xl transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-indigo-50 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          <div className="relative p-8 flex flex-col items-center text-center">
+            <div className="mb-6 relative">
+              <div className="absolute inset-0 bg-blue-500 blur-2xl opacity-20 group-hover:opacity-40 transition-opacity" />
+              <div className="bg-gradient-to-br from-blue-500 to-indigo-600 w-20 h-20 rounded-2xl flex items-center justify-center text-white shadow-lg relative z-10 transform group-hover:rotate-6 transition-transform">
+                <TrendingUp size={40} />
+              </div>
+            </div>
+            <h3 className="text-sm font-bold uppercase tracking-widest text-gray-400 mb-2">Akademik Etki</h3>
+            <div className="text-5xl font-black text-gray-900 mb-3">{stats.hIndex}</div>
+            <div className="text-lg font-bold text-blue-600 mb-4 tracking-tight">H-Index</div>
+            <a
+              href="https://scholar.google.com.tr/citations?user=QZkewskAAAAJ&hl=tr"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs font-semibold px-4 py-2 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all duration-300 flex items-center gap-2"
+            >
+              Güncel Veriler <ExternalLink size={14} />
+            </a>
           </div>
-          <h3 className="mb-2">H-Index</h3>
-          <p className="text-muted-foreground mb-3">{stats.hIndex}</p>
-          <a
-            href="https://scholar.google.com.tr/citations?user=QZkewskAAAAJ&hl=tr"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[#00A6D6] hover:underline inline-flex items-center gap-1"
-          >
-            Güncel Veriler <ExternalLink size={16} />
-          </a>
         </div>
 
-        <div className="bg-white rounded-2xl p-8 text-center shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-100">
-          <div className="bg-gradient-to-br from-emerald-500 to-green-600 w-20 h-20 rounded-2xl flex items-center justify-center text-white mx-auto mb-4 shadow-lg">
-            <FileText size={40} />
+        {/* Citations Card */}
+        <div className="group relative overflow-hidden rounded-3xl bg-white p-1 border border-gray-100 shadow-xl transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl">
+          <div className="absolute inset-0 bg-gradient-to-br from-emerald-50 to-teal-50 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          <div className="relative p-8 flex flex-col items-center text-center">
+            <div className="mb-6 relative">
+              <div className="absolute inset-0 bg-emerald-500 blur-2xl opacity-20 group-hover:opacity-40 transition-opacity" />
+              <div className="bg-gradient-to-br from-emerald-500 to-teal-600 w-20 h-20 rounded-2xl flex items-center justify-center text-white shadow-lg relative z-10 transform group-hover:-rotate-6 transition-transform">
+                <FileText size={40} />
+              </div>
+            </div>
+            <h3 className="text-sm font-bold uppercase tracking-widest text-gray-400 mb-2">Bilimsel Atıf</h3>
+            <div className="text-5xl font-black text-gray-900 mb-3">{stats.citations}+</div>
+            <div className="text-lg font-bold text-emerald-600 mb-4 tracking-tight">Toplam Atıf</div>
+            <a
+              href="https://scholar.google.com.tr/citations?user=QZkewskAAAAJ&hl=tr"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs font-semibold px-4 py-2 rounded-full bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all duration-300 flex items-center gap-2"
+            >
+              Google Scholar <ExternalLink size={14} />
+            </a>
           </div>
-          <h3 className="mb-2">Atıf Sayısı</h3>
-          <p className="text-muted-foreground mb-3">{stats.citations}+</p>
-          <a
-            href="https://scholar.google.com.tr/citations?user=QZkewskAAAAJ&hl=tr"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[#27AE60] hover:underline inline-flex items-center gap-1"
-          >
-            Google Scholar <ExternalLink size={16} />
-          </a>
         </div>
 
-        <div className="bg-white rounded-2xl p-8 text-center shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-100">
-          <div className="bg-gradient-to-br from-rose-500 to-red-600 w-20 h-20 rounded-2xl flex items-center justify-center text-white mx-auto mb-4 shadow-lg">
-            <BarChart3 size={40} />
-          </div>
-          <h3 className="mb-2">Deneyim</h3>
-          <div className="text-muted-foreground">
-            {experienceYears}+ yıl üniversite<br />
-            {stats.sciCount + stats.nationalCount + stats.congressCount}+ yayın<br />
-            {stats.citations}+ Atıf<br />
-            3.000.000+ preparat
+        {/* Experience Card */}
+        <div className="group relative overflow-hidden rounded-3xl bg-white p-1 border border-gray-100 shadow-xl transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl">
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-50 to-fuchsia-50 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          <div className="relative p-8 flex flex-col items-center text-center">
+            <div className="mb-6 relative">
+              <div className="absolute inset-0 bg-purple-500 blur-2xl opacity-20 group-hover:opacity-40 transition-opacity" />
+              <div className="bg-gradient-to-br from-purple-500 to-fuchsia-600 w-20 h-20 rounded-2xl flex items-center justify-center text-white shadow-lg relative z-10 transform group-hover:rotate-6 transition-transform">
+                <BarChart3 size={40} />
+              </div>
+            </div>
+            <h3 className="text-sm font-bold uppercase tracking-widest text-gray-400 mb-2">Akademik Birikim</h3>
+            <div className="text-5xl font-black text-gray-900 mb-3">{experienceYears}+</div>
+            <div className="text-lg font-bold text-purple-600 mb-4 tracking-tight">Yıl Deneyim</div>
+            <div className="flex flex-col gap-1 text-xs font-medium text-gray-500">
+              <span className="bg-purple-50 px-3 py-1 rounded-full text-purple-700">{stats.sciCount + stats.nationalCount + stats.congressCount}+ Yayın</span>
+              <span className="bg-fuchsia-50 px-3 py-1 rounded-full text-fuchsia-700">3.000.000+ Preparat</span>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Atıf Grafiği */}
+      {/* Atıf Grafiği - Modernized Section */}
       {stats.citationHistory.length > 0 && (
-        <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 mb-8 overflow-hidden">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="bg-blue-100 p-2 rounded-xl text-blue-600">
-              <BarChartIcon size={24} />
+        <div className="relative mb-12 group">
+          <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-emerald-600 rounded-[2.5rem] blur opacity-10 group-hover:opacity-20 transition duration-1000"></div>
+          <div className="relative bg-white rounded-3xl p-8 md:p-10 shadow-sm border border-gray-100 overflow-hidden">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+              <div className="flex items-center gap-4">
+                <div className="bg-gradient-to-br from-blue-600 to-emerald-600 p-3 rounded-2xl text-white shadow-lg">
+                  <BarChartIcon size={24} />
+                </div>
+                <div>
+                  <h2 className="m-0 text-2xl md:text-3xl font-black text-gray-900">Yıllara Göre Atıf Analizi</h2>
+                  <p className="text-gray-500 text-sm mt-1">Akademik çalışmaların zaman içindeki etkisi</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-xl text-sm font-bold text-gray-600 border border-gray-100">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                Dinamik Veri Akışı
+              </div>
             </div>
-            <h2 className="m-0 text-2xl font-bold text-gray-800">Yıllara Göre Atıf Dağılımı</h2>
-          </div>
 
-          <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={stats.citationHistory} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                <XAxis
-                  dataKey="year"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: '#94a3b8', fontSize: 12 }}
-                  dy={10}
-                />
-                <YAxis
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: '#94a3b8', fontSize: 12 }}
-                />
-                <Tooltip
-                  cursor={{ fill: '#f8fafc' }}
-                  content={({ active, payload }) => {
-                    if (active && payload && payload.length) {
-                      return (
-                        <div className="bg-white p-3 shadow-xl border border-gray-100 rounded-xl">
-                          <p className="text-sm font-bold text-gray-800 mb-1">{payload[0].payload.year}</p>
-                          <p className="text-sm text-blue-600 font-medium">{payload[0].value} Atıf</p>
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
-                />
-                <Bar
-                  dataKey="count"
-                  radius={[6, 6, 0, 0]}
-                  barSize={Math.max(10, 400 / stats.citationHistory.length)}
-                >
-                  {stats.citationHistory.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={index === stats.citationHistory.length - 1 ? '#2563eb' : '#3b82f6'}
-                      fillOpacity={0.8 + (index / stats.citationHistory.length) * 0.2}
-                    />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+            <div className="h-[350px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={stats.citationHistory} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#2563eb" stopOpacity={1} />
+                      <stop offset="100%" stopColor="#3b82f6" stopOpacity={0.8} />
+                    </linearGradient>
+                    <linearGradient id="activeBarGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#059669" stopOpacity={1} />
+                      <stop offset="100%" stopColor="#10b981" stopOpacity={0.8} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis
+                    dataKey="year"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#64748b', fontSize: 13, fontWeight: 600 }}
+                    dy={15}
+                  />
+                  <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#64748b', fontSize: 13, fontWeight: 600 }}
+                  />
+                  <Tooltip
+                    cursor={{ fill: '#f1f5f9' }}
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        return (
+                          <div className="bg-white/90 backdrop-blur-md p-4 shadow-2xl border border-blue-50 rounded-2xl">
+                            <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-2">{payload[0].payload.year} Raporu</p>
+                            <div className="flex items-center gap-2">
+                              <span className="text-2xl font-black text-blue-600">{payload[0].value}</span>
+                              <span className="text-sm font-bold text-gray-800">Bilimsel Atıf</span>
+                            </div>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                  <Bar
+                    dataKey="count"
+                    radius={[8, 8, 8, 8]}
+                    barSize={Math.max(12, 500 / stats.citationHistory.length)}
+                  >
+                    {stats.citationHistory.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={index === stats.citationHistory.length - 1 ? "url(#activeBarGradient)" : "url(#barGradient)"}
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="mt-8 flex items-center justify-between text-[10px] md:text-xs">
+              <span className="text-gray-400 font-medium">Kaynak: Google Akademik Profil @ {new Date().toLocaleDateString('tr-TR')}</span>
+              <span className="text-blue-500 font-bold hover:underline cursor-pointer">Veri Detaylarını İncele →</span>
+            </div>
           </div>
-          <p className="text-center text-xs text-muted-foreground mt-4 italic">
-            * Google Scholar verileri temel alınmıştır.
-          </p>
         </div>
       )}
 
