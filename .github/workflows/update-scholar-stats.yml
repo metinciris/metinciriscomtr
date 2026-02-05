@@ -1,0 +1,35 @@
+name: Weekly Google Scholar Stats Update
+
+on:
+  schedule:
+    # Her Pazar gece yarısı (Pazar 00:00)
+    - cron: '0 0 * * 0'
+  workflow_dispatch:
+    # Manuel tetiklemeye izin ver
+
+jobs:
+  update-stats:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Update Google Scholar Stats
+        run: node scripts/update-scholar-stats.js
+        
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add public/data/publications.json
+          git diff --staged --quiet || git commit -m "Google Scholar istatistikleri ve atıf grafiği güncellendi"
+          git push

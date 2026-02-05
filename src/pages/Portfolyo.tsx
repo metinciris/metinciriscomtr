@@ -33,6 +33,9 @@ export function Portfolyo() {
   const [stats, setStats] = React.useState({
     hIndex: 24,
     citations: 2000,
+    sciCount: 58,
+    nationalCount: 45,
+    congressCount: 143,
     citationHistory: [] as { year: number, count: number }[]
   });
 
@@ -44,6 +47,9 @@ export function Portfolyo() {
           setStats({
             hIndex: data.stats.hIndex,
             citations: data.stats.citations,
+            sciCount: data.stats.sciCount || 58,
+            nationalCount: data.stats.nationalCount || 45,
+            congressCount: data.stats.congressCount || 143,
             citationHistory: data.stats.citationHistory || []
           });
         }
@@ -120,7 +126,7 @@ export function Portfolyo() {
           <h3 className="mb-2">Deneyim</h3>
           <div className="text-muted-foreground">
             {experienceYears}+ yıl üniversite<br />
-            200+ yayın<br />
+            {stats.sciCount + stats.nationalCount + stats.congressCount}+ yayın<br />
             {stats.citations}+ Atıf<br />
             3.000.000+ preparat
           </div>

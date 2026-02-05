@@ -80,10 +80,16 @@ async function updateScholarStats() {
         data.stats.citations = totalCitations;
         data.stats.hIndex = hIndex;
         data.stats.citationHistory = citationHistory;
+
+        // Yayın sayılarını da dizilerin uzunluğuna göre güncelle (Tam dinamik)
+        data.stats.sciCount = data.sciPublications ? data.sciPublications.length : data.stats.sciCount;
+        data.stats.nationalCount = data.nationalPublications ? data.nationalPublications.length : data.stats.nationalCount;
+        data.stats.congressCount = data.scientificParticipations ? data.scientificParticipations.length : data.stats.congressCount;
+
         data.lastUpdated = new Date().toISOString().split('T')[0];
 
         fs.writeFileSync(PUBLICATIONS_FILE, JSON.stringify(data, null, 2), 'utf8');
-        console.log('\npublications.json güncellendi.');
+        console.log('\npublications.json güncellendi (İstatistikler ve yayın sayıları senkronize edildi).');
 
     } catch (error) {
         console.error('\nHata:', error.message);
