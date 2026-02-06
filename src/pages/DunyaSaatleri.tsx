@@ -29,9 +29,30 @@ const SORTED_CITIES = [...CITIES].sort((a, b) => a.offset - b.offset);
 export function DunyaSaatleri() {
     const [currentTime, setCurrentTime] = useState(moment());
     const [selectedCities, setSelectedCities] = useState<string[]>(['istanbul']);
-    const [meetingTime, setMeetingTime] = useState(moment().format('YYYY-MM-DDTHH:mm'));
+    const [meetingDate, setMeetingDate] = useState(moment().format('YYYY-MM-DD'));
+    const [meetingHour, setMeetingHour] = useState('20:00');
     const [meetingCity, setMeetingCity] = useState('istanbul');
+    const [meetingName, setMeetingName] = useState('');
+    const [meetingDuration, setMeetingDuration] = useState(60);
     const [copied, setCopied] = useState(false);
+
+    // Preset time options (every 30 min)
+    const PRESET_TIMES = [
+        '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
+        '12:00', '12:30', '13:00', '13:30', '14:00', '14:30',
+        '15:00', '15:30', '16:00', '16:30', '17:00', '17:30',
+        '18:00', '18:30', '19:00', '19:30', '20:00', '20:30',
+        '21:00', '21:30', '22:00'
+    ];
+
+    // Duration options
+    const DURATION_OPTIONS = [
+        { value: 30, label: '30 dk' },
+        { value: 45, label: '45 dk' },
+        { value: 60, label: '1 saat' },
+        { value: 90, label: '1.5 saat' },
+        { value: 120, label: '2 saat' }
+    ];
 
     // Update current time every second
     useEffect(() => {
@@ -56,21 +77,25 @@ export function DunyaSaatleri() {
         );
     };
 
+    // Get combined meeting datetime
+    const getMeetingMoment = () => {
+        const sourceTz = CITIES.find(c => c.id === meetingCity)?.timezone || 'Europe/Istanbul';
+        return moment.tz(`${meetingDate}T${meetingHour}`, sourceTz);
+    };
+
     // Get time in a specific timezone for meeting
     const getMeetingTimeInTimezone = (timezone: string) => {
-        const sourceTz = CITIES.find(c => c.id === meetingCity)?.timezone || 'Europe/Istanbul';
-        const meetingMoment = moment.tz(meetingTime, sourceTz);
-        return meetingMoment.clone().tz(timezone);
+        return getMeetingMoment().clone().tz(timezone);
     };
 
     // Generate WhatsApp share text
     const generateShareText = () => {
-        const sourceTz = CITIES.find(c => c.id === meetingCity)?.timezone || 'Europe/Istanbul';
-        const meetingMoment = moment.tz(meetingTime, sourceTz);
+        const meetingMoment = getMeetingMoment();
         const sourceCity = CITIES.find(c => c.id === meetingCity);
 
-        let text = `📅 *Toplantı Zamanı*\n`;
+        let text = `📅 *${meetingName || 'Toplantı'}*\n`;
         text += `━━━━━━━━━━━━━━━━━━\n`;
+        text += `⏱️ Süre: ${DURATION_OPTIONS.find(d => d.value === meetingDuration)?.label || `${meetingDuration} dk`}\n\n`;
         text += `🏠 ${sourceCity?.name}: ${meetingMoment.format('DD MMM YYYY HH:mm')} _(yerel saat)_\n\n`;
         text += `🌍 *Diğer Şehirler:*\n`;
 
@@ -247,25 +272,40 @@ export function DunyaSaatleri() {
                         <h2 className="text-xl font-bold text-white">Toplantı Oluştur</h2>
                     </div>
 
-                    <div className="p-6 space-y-6">
-                        {/* Meeting Settings */}
+                    <div className="p-6 space-y-5">
+                        {/* Meeting Name */}
+                        <div>
+                            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+                                <Users className="w-4 h-4 text-amber-500" />
+                                Toplantı Adı
+                            </label>
+                            <input
+                                type="text"
+                                value={meetingName}
+                                onChange={(e) => setMeetingName(e.target.value)}
+                                placeholder="Örn: Haftalık Ekip Toplantısı"
+                                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all font-medium"
+                            />
+                        </div>
+
+                        {/* Date & City Row */}
                         <div className="grid md:grid-cols-2 gap-4">
                             <div>
                                 <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
                                     <Calendar className="w-4 h-4 text-amber-500" />
-                                    Tarih ve Saat
+                                    Tarih
                                 </label>
                                 <input
-                                    type="datetime-local"
-                                    value={meetingTime}
-                                    onChange={(e) => setMeetingTime(e.target.value)}
+                                    type="date"
+                                    value={meetingDate}
+                                    onChange={(e) => setMeetingDate(e.target.value)}
                                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all font-medium"
                                 />
                             </div>
                             <div>
                                 <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
                                     <Globe className="w-4 h-4 text-amber-500" />
-                                    Yerel Saat (Toplantı Şehri)
+                                    Toplantı Şehri
                                 </label>
                                 <select
                                     value={meetingCity}
@@ -282,6 +322,56 @@ export function DunyaSaatleri() {
                                         <option key={city.id} value={city.id}>{city.name}, {city.country}</option>
                                     ))}
                                 </select>
+                            </div>
+                        </div>
+
+                        {/* Time Selection with Presets */}
+                        <div>
+                            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+                                <Clock className="w-4 h-4 text-amber-500" />
+                                Saat
+                            </label>
+                            <div className="flex flex-wrap gap-2 mb-3">
+                                {PRESET_TIMES.map(time => (
+                                    <button
+                                        key={time}
+                                        onClick={() => setMeetingHour(time)}
+                                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${meetingHour === time
+                                                ? 'bg-amber-500 text-white shadow-md'
+                                                : 'bg-gray-100 text-gray-600 hover:bg-amber-100 hover:text-amber-700'
+                                            }`}
+                                    >
+                                        {time}
+                                    </button>
+                                ))}
+                            </div>
+                            <input
+                                type="time"
+                                value={meetingHour}
+                                onChange={(e) => setMeetingHour(e.target.value)}
+                                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all font-medium text-sm"
+                            />
+                        </div>
+
+                        {/* Duration */}
+                        <div>
+                            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+                                <Clock className="w-4 h-4 text-amber-500" />
+                                Süre
+                            </label>
+                            <div className="flex flex-wrap gap-2">
+                                {DURATION_OPTIONS.map(opt => (
+                                    <button
+                                        key={opt.value}
+                                        onClick={() => setMeetingDuration(opt.value)}
+                                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${meetingDuration === opt.value
+                                                ? 'bg-amber-500 text-white shadow-md'
+                                                : 'bg-gray-100 text-gray-600 hover:bg-amber-100 hover:text-amber-700'
+                                            }`}
+                                    >
+                                        {opt.label}
+                                    </button>
+                                ))}
                             </div>
                         </div>
 
@@ -417,7 +507,7 @@ export function DunyaSaatleri() {
                         <h2 className="text-xl font-bold text-white">Anlık Şehir Saatleri</h2>
                     </div>
 
-                    <div className="divide-y divide-gray-100 max-h-[600px] overflow-y-auto">
+                    <div className="divide-y divide-gray-100">
                         {SORTED_CITIES.map(city => {
                             const cityTime = currentTime.clone().tz(city.timezone);
                             const isDay = isDaytime(city.timezone);
