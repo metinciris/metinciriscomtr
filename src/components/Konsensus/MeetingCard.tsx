@@ -70,12 +70,12 @@ export function MeetingCard({
     return (
         <div
             className={`relative overflow-hidden border-2 rounded-2xl p-5 transition-all ${isActuallyPast
-                ? 'bg-gray-50 border-gray-200 opacity-80'
+                ? 'bg-gray-50 border-gray-300 opacity-80'
                 : isLive
-                    ? 'bg-gradient-to-br from-green-50 to-blue-50 border-green-500 shadow-xl ring-2 ring-green-500/20'
+                    ? 'bg-gradient-to-br from-green-50 to-blue-50 border-green-600 shadow-xl ring-2 ring-green-600/20'
                     : isUpcoming
-                        ? 'bg-gradient-to-br from-blue-50 to-indigo-50 border-indigo-300 shadow-lg'
-                        : 'bg-white border-gray-200 hover:border-blue-300 hover:shadow-lg'
+                        ? 'bg-gradient-to-br from-blue-50 to-indigo-50 border-indigo-400 shadow-lg'
+                        : 'bg-white border-gray-300 hover:border-blue-400 hover:shadow-lg'
                 }`}
         >
             {isLive && (
