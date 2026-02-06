@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { PageContainer } from '../components/PageContainer';
 import { RelatedPages } from '../components/RelatedPages';
 import { Globe, Clock, Sun, Moon, Plus, X, Calendar, Users, Check, Share2, Search } from 'lucide-react';
@@ -74,6 +74,21 @@ export function DunyaSaatleri() {
     const [copied, setCopied] = useState(false);
     const [citySearch, setCitySearch] = useState('');
     const [showCityDropdown, setShowCityDropdown] = useState(false);
+    const timelineRef = useRef<HTMLDivElement>(null);
+
+    // Scroll to Istanbul on mount
+    useEffect(() => {
+        if (timelineRef.current) {
+            const istanbulIndex = SORTED_CITIES.findIndex(c => c.id === 'istanbul');
+            if (istanbulIndex >= 0) {
+                const scrollWidth = timelineRef.current.scrollWidth;
+                const clientWidth = timelineRef.current.clientWidth;
+                const istanbulPosition = (istanbulIndex / (SORTED_CITIES.length - 1)) * scrollWidth;
+                const scrollTo = istanbulPosition - (clientWidth / 2);
+                timelineRef.current.scrollLeft = Math.max(0, scrollTo);
+            }
+        }
+    }, []);
 
     // Duration options (expanded)
     const DURATION_OPTIONS = [
@@ -215,7 +230,7 @@ export function DunyaSaatleri() {
             </div>
 
             {/* Timezone Bar */}
-            <div className="bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 rounded-2xl p-6 mb-8 shadow-2xl border border-slate-700 overflow-x-auto">
+            <div ref={timelineRef} className="bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 rounded-2xl p-6 mb-8 shadow-2xl border border-slate-700 overflow-x-auto">
                 {/* Timeline with Cities */}
                 <div className="min-w-[800px]">
                     {/* Top Row Cities (even index) */}
@@ -236,9 +251,9 @@ export function DunyaSaatleri() {
                                 >
                                     {/* City Name - Vertical */}
                                     <div
-                                        className={`text-[10px] font-semibold whitespace-nowrap mb-1 transition-all ${isSelected ? 'text-amber-400' : 'text-slate-400 group-hover:text-white'
+                                        className={`text-xs font-bold whitespace-nowrap mb-1 transition-all ${isSelected ? 'text-amber-400' : 'text-slate-300 group-hover:text-white'
                                             }`}
-                                        style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', transform: 'rotate(180deg)', maxHeight: '50px', overflow: 'hidden' }}
+                                        style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', transform: 'rotate(180deg)', maxHeight: '60px', overflow: 'hidden' }}
                                     >
                                         {city.name}
                                     </div>
@@ -296,9 +311,9 @@ export function DunyaSaatleri() {
                                     </div>
                                     {/* City Name - Vertical */}
                                     <div
-                                        className={`text-[10px] font-semibold whitespace-nowrap mt-1 transition-all ${isSelected ? 'text-amber-400' : 'text-slate-400 group-hover:text-white'
+                                        className={`text-xs font-bold whitespace-nowrap mt-1 transition-all ${isSelected ? 'text-amber-400' : 'text-slate-300 group-hover:text-white'
                                             }`}
-                                        style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', maxHeight: '50px', overflow: 'hidden' }}
+                                        style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', maxHeight: '60px', overflow: 'hidden' }}
                                     >
                                         {city.name}
                                     </div>
