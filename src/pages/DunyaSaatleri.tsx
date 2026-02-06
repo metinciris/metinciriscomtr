@@ -234,7 +234,7 @@ export function DunyaSaatleri() {
                 {/* Timeline with Cities */}
                 <div className="min-w-[800px]">
                     {/* Top Row Cities (even index) */}
-                    <div className="relative h-16 mb-2">
+                    <div className="relative h-24 mb-2">
                         {SORTED_CITIES.filter((_, i) => i % 2 === 0).map((city) => {
                             const originalIndex = SORTED_CITIES.findIndex(c => c.id === city.id);
                             const isSelected = selectedCities.includes(city.id);
