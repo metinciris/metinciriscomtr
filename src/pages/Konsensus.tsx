@@ -22,8 +22,10 @@ import {
   normalizeId,
   dateKeyInTz,
   parseYMD,
-  shareWhatsApp
+  shareWhatsApp,
+  getMeetingStatus
 } from '../components/Konsensus/utils';
+
 
 import { MeetingCard } from '../components/Konsensus/MeetingCard';
 import { AdminPanel } from '../components/Konsensus/AdminPanel';
@@ -176,8 +178,28 @@ export function Konsensus() {
       else if (m.date === tomorrowKey) to.push(m);
       else fu.push(m);
     }
+
+    // Sort today's meetings: Live > Upcoming > Past
+    t.sort((a, b) => {
+      const statusA = getMeetingStatus(a, now);
+      const statusB = getMeetingStatus(b, now);
+
+      const score = (s: any) => {
+        if (s.isLive) return 0;
+        if (s.isUpcoming) return 1;
+        return 2;
+      };
+
+      const scoreA = score(statusA);
+      const scoreB = score(statusB);
+
+      if (scoreA !== scoreB) return scoreA - scoreB;
+      return (a.time || '').localeCompare(b.time || '');
+    });
+
     return { todayMeetings: t, tomorrowMeetings: to, futureMeetings: fu, pastMeetings: pa.reverse() };
-  }, [filteredMeetings, nowKey]);
+  }, [filteredMeetings, nowKey, now]);
+
 
   const groupStats = useMemo(() => {
     const stats: Record<string, number> = {};

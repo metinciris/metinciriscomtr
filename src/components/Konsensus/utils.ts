@@ -144,6 +144,34 @@ export function downloadIcs(m: Meeting) {
     URL.revokeObjectURL(url);
 }
 
+export function getMeetingStatus(m: Meeting, now: Date) {
+    const todayKey = dateKeyInTz(now, IST_TZ);
+    if (m.date !== todayKey) return { isLive: false, isUpcoming: false, isPastToday: m.date < todayKey };
+
+    const duration = Math.max(15, m.duration ?? 60);
+    const [hh, mm] = (m.time || '20:00').split(':').map(Number);
+    const meetingStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hh, mm, 0, 0);
+    const meetingEnd = new Date(meetingStart.getTime() + duration * 60000);
+
+    const isLive = now >= meetingStart && now <= meetingEnd;
+    const isUpcoming = now < meetingStart;
+    const isPastToday = now > meetingEnd;
+
+    return { isLive, isUpcoming, isPastToday, meetingStart };
+}
+
+export function getCountdownString(meetingStart: Date, now: Date): string {
+    const diffMs = meetingStart.getTime() - now.getTime();
+    if (diffMs <= 0) return '';
+
+    const diffMin = Math.round(diffMs / 60000);
+    if (diffMin <= 5) return `BAŞLIYOR (Son ${diffMin} dk)`;
+
+    const h = Math.floor(diffMin / 60);
+    const min = diffMin % 60;
+    return h > 0 ? `${h} saat ${min} dk kaldı` : `${min} dk kaldı`;
+}
+
 export function isMobileDevice() {
     if (typeof navigator === 'undefined') return false;
     return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
@@ -166,7 +194,8 @@ export function shareWhatsApp(m: Meeting) {
         bell: '\u{1F514}',
     };
 
-    const todayKey = dateKeyInTz(new Date(), IST_TZ);
+    const now = new Date();
+    const todayKey = dateKeyInTz(now, IST_TZ);
 
     const { y, m: mo, d } = parseYMD(todayKey);
     const base = new Date(Date.UTC(y, mo - 1, d, 12, 0, 0));
@@ -178,23 +207,18 @@ export function shareWhatsApp(m: Meeting) {
     let headerLine = '';
 
     if (m.date === todayKey) {
-        const now = new Date();
-        const [hh, mm] = (m.time || '20:00').split(':').map(Number);
-        const meetingStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hh, mm, 0, 0);
-        const meetingEnd = new Date(meetingStart.getTime() + duration * 60000);
+        const status = getMeetingStatus(m, now);
 
-        if (now >= meetingStart && now <= meetingEnd) {
-            const liveMin = Math.floor((now.getTime() - meetingStart.getTime()) / 60000);
+        if (status.isLive && status.meetingStart) {
+            const liveMin = Math.floor((now.getTime() - status.meetingStart.getTime()) / 60000);
             headerLine = `${EMOJI.live} *ŞU ANDA CANLI* — ${liveMin} dk oldu\n\n`;
-        } else if (now < meetingStart) {
-            const diffMin = Math.round((meetingStart.getTime() - now.getTime()) / 60000);
+        } else if (status.isUpcoming && status.meetingStart) {
+            const diffMin = Math.round((status.meetingStart.getTime() - now.getTime()) / 60000);
             if (diffMin <= 5) {
                 headerLine = `${EMOJI.bell} *SON ${diffMin} DK!* ${EMOJI.alarm}\n\n`;
             } else {
-                const h = Math.floor(diffMin / 60);
-                const min = diffMin % 60;
-                const remain = h > 0 ? `${h} saat ${min} dk` : `${min} dk`;
-                headerLine = `🔴 *BUGÜN* ${EMOJI.alarm} *${remain} kaldı*\n\n`;
+                const remain = getCountdownString(status.meetingStart, now);
+                headerLine = `🔴 *BUGÜN* ${EMOJI.alarm} *${remain}*\n\n`;
             }
         } else {
             headerLine = `🔴 *BUGÜN* — (toplantı bitti)\n\n`;
@@ -234,3 +258,6 @@ export function shareWhatsApp(m: Meeting) {
 
     window.open(url, '_blank');
 }
+
+
+
