@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { PageContainer } from '../components/PageContainer';
 import { RelatedPages } from '../components/RelatedPages';
-import { Globe, Clock, Sun, Moon, Plus, X, Calendar, Users, Copy, Check, Share2 } from 'lucide-react';
+import { Globe, Clock, Sun, Moon, Plus, X, Calendar, Users, Check, Share2, Search } from 'lucide-react';
 import moment from 'moment-timezone';
 
 interface City {
@@ -13,14 +13,49 @@ interface City {
 }
 
 const CITIES: City[] = [
+    // Americas
     { id: 'la', name: 'Los Angeles', timezone: 'America/Los_Angeles', offset: -8, country: 'ABD' },
+    { id: 'sf', name: 'San Francisco', timezone: 'America/Los_Angeles', offset: -8, country: 'ABD' },
+    { id: 'denver', name: 'Denver', timezone: 'America/Denver', offset: -7, country: 'ABD' },
+    { id: 'chicago', name: 'Chicago', timezone: 'America/Chicago', offset: -6, country: 'ABD' },
+    { id: 'houston', name: 'Houston', timezone: 'America/Chicago', offset: -6, country: 'ABD' },
     { id: 'ny', name: 'New York', timezone: 'America/New_York', offset: -5, country: 'ABD' },
+    { id: 'toronto', name: 'Toronto', timezone: 'America/Toronto', offset: -5, country: 'Kanada' },
+    { id: 'saopaulo', name: 'São Paulo', timezone: 'America/Sao_Paulo', offset: -3, country: 'Brezilya' },
+    { id: 'buenosaires', name: 'Buenos Aires', timezone: 'America/Argentina/Buenos_Aires', offset: -3, country: 'Arjantin' },
+    // Europe
     { id: 'london', name: 'Londra', timezone: 'Europe/London', offset: 0, country: 'İngiltere' },
+    { id: 'dublin', name: 'Dublin', timezone: 'Europe/Dublin', offset: 0, country: 'İrlanda' },
+    { id: 'lisbon', name: 'Lizbon', timezone: 'Europe/Lisbon', offset: 0, country: 'Portekiz' },
     { id: 'paris', name: 'Paris', timezone: 'Europe/Paris', offset: 1, country: 'Fransa' },
     { id: 'berlin', name: 'Berlin', timezone: 'Europe/Berlin', offset: 1, country: 'Almanya' },
+    { id: 'amsterdam', name: 'Amsterdam', timezone: 'Europe/Amsterdam', offset: 1, country: 'Hollanda' },
+    { id: 'madrid', name: 'Madrid', timezone: 'Europe/Madrid', offset: 1, country: 'İspanya' },
+    { id: 'rome', name: 'Roma', timezone: 'Europe/Rome', offset: 1, country: 'İtalya' },
+    { id: 'zurich', name: 'Zürih', timezone: 'Europe/Zurich', offset: 1, country: 'İsviçre' },
+    { id: 'vienna', name: 'Viyana', timezone: 'Europe/Vienna', offset: 1, country: 'Avusturya' },
+    { id: 'warsaw', name: 'Varşova', timezone: 'Europe/Warsaw', offset: 1, country: 'Polonya' },
+    { id: 'athens', name: 'Atina', timezone: 'Europe/Athens', offset: 2, country: 'Yunanistan' },
+    { id: 'bucharest', name: 'Bükreş', timezone: 'Europe/Bucharest', offset: 2, country: 'Romanya' },
+    { id: 'helsinki', name: 'Helsinki', timezone: 'Europe/Helsinki', offset: 2, country: 'Finlandiya' },
     { id: 'istanbul', name: 'İstanbul', timezone: 'Europe/Istanbul', offset: 3, country: 'Türkiye' },
+    { id: 'ankara', name: 'Ankara', timezone: 'Europe/Istanbul', offset: 3, country: 'Türkiye' },
     { id: 'moscow', name: 'Moskova', timezone: 'Europe/Moscow', offset: 3, country: 'Rusya' },
+    // Middle East & Africa
     { id: 'dubai', name: 'Dubai', timezone: 'Asia/Dubai', offset: 4, country: 'BAE' },
+    { id: 'riyadh', name: 'Riyad', timezone: 'Asia/Riyadh', offset: 3, country: 'Suudi Arabistan' },
+    { id: 'cairo', name: 'Kahire', timezone: 'Africa/Cairo', offset: 2, country: 'Mısır' },
+    { id: 'johannesburg', name: 'Johannesburg', timezone: 'Africa/Johannesburg', offset: 2, country: 'Güney Afrika' },
+    // Asia & Pacific
+    { id: 'mumbai', name: 'Mumbai', timezone: 'Asia/Kolkata', offset: 5.5, country: 'Hindistan' },
+    { id: 'delhi', name: 'Delhi', timezone: 'Asia/Kolkata', offset: 5.5, country: 'Hindistan' },
+    { id: 'singapore', name: 'Singapur', timezone: 'Asia/Singapore', offset: 8, country: 'Singapur' },
+    { id: 'hongkong', name: 'Hong Kong', timezone: 'Asia/Hong_Kong', offset: 8, country: 'Çin' },
+    { id: 'beijing', name: 'Pekin', timezone: 'Asia/Shanghai', offset: 8, country: 'Çin' },
+    { id: 'seoul', name: 'Seul', timezone: 'Asia/Seoul', offset: 9, country: 'Güney Kore' },
+    { id: 'tokyo', name: 'Tokyo', timezone: 'Asia/Tokyo', offset: 9, country: 'Japonya' },
+    { id: 'sydney', name: 'Sidney', timezone: 'Australia/Sydney', offset: 11, country: 'Avustralya' },
+    { id: 'auckland', name: 'Auckland', timezone: 'Pacific/Auckland', offset: 13, country: 'Yeni Zelanda' },
 ];
 
 // Sort cities by UTC offset for the bar display
@@ -30,29 +65,37 @@ export function DunyaSaatleri() {
     const [currentTime, setCurrentTime] = useState(moment());
     const [selectedCities, setSelectedCities] = useState<string[]>(['istanbul']);
     const [meetingDate, setMeetingDate] = useState(moment().format('YYYY-MM-DD'));
-    const [meetingHour, setMeetingHour] = useState('20:00');
+    const [meetingStartTime, setMeetingStartTime] = useState('20:00');
+    const [meetingEndTime, setMeetingEndTime] = useState('21:00');
+    const [useEndTime, setUseEndTime] = useState(false);
     const [meetingCity, setMeetingCity] = useState('istanbul');
     const [meetingName, setMeetingName] = useState('');
     const [meetingDuration, setMeetingDuration] = useState(60);
     const [copied, setCopied] = useState(false);
+    const [citySearch, setCitySearch] = useState('');
+    const [showCityDropdown, setShowCityDropdown] = useState(false);
 
-    // Preset time options (every 30 min)
-    const PRESET_TIMES = [
-        '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
-        '12:00', '12:30', '13:00', '13:30', '14:00', '14:30',
-        '15:00', '15:30', '16:00', '16:30', '17:00', '17:30',
-        '18:00', '18:30', '19:00', '19:30', '20:00', '20:30',
-        '21:00', '21:30', '22:00'
-    ];
-
-    // Duration options
+    // Duration options (expanded)
     const DURATION_OPTIONS = [
         { value: 30, label: '30 dk' },
         { value: 45, label: '45 dk' },
         { value: 60, label: '1 saat' },
         { value: 90, label: '1.5 saat' },
-        { value: 120, label: '2 saat' }
+        { value: 120, label: '2 saat' },
+        { value: 180, label: '3 saat' },
+        { value: 240, label: '4 saat' },
+        { value: 480, label: '8 saat' }
     ];
+
+    // Filter cities for search
+    const filteredCities = useMemo(() => {
+        if (!citySearch.trim()) return CITIES.filter(c => !selectedCities.includes(c.id));
+        const search = citySearch.toLowerCase();
+        return CITIES.filter(c =>
+            !selectedCities.includes(c.id) &&
+            (c.name.toLowerCase().includes(search) || c.country.toLowerCase().includes(search))
+        );
+    }, [citySearch, selectedCities]);
 
     // Update current time every second
     useEffect(() => {
@@ -80,7 +123,25 @@ export function DunyaSaatleri() {
     // Get combined meeting datetime
     const getMeetingMoment = () => {
         const sourceTz = CITIES.find(c => c.id === meetingCity)?.timezone || 'Europe/Istanbul';
-        return moment.tz(`${meetingDate}T${meetingHour}`, sourceTz);
+        return moment.tz(`${meetingDate}T${meetingStartTime}`, sourceTz);
+    };
+
+    // Calculate duration from start/end times
+    const getEffectiveDuration = () => {
+        if (!useEndTime) return meetingDuration;
+        const start = moment(meetingStartTime, 'HH:mm');
+        const end = moment(meetingEndTime, 'HH:mm');
+        let diff = end.diff(start, 'minutes');
+        if (diff < 0) diff += 24 * 60; // Handle overnight
+        return diff;
+    };
+
+    // Format duration for display
+    const formatDuration = (mins: number) => {
+        if (mins < 60) return `${mins} dk`;
+        const hours = Math.floor(mins / 60);
+        const remaining = mins % 60;
+        return remaining > 0 ? `${hours} saat ${remaining} dk` : `${hours} saat`;
     };
 
     // Get time in a specific timezone for meeting
@@ -92,11 +153,12 @@ export function DunyaSaatleri() {
     const generateShareText = () => {
         const meetingMoment = getMeetingMoment();
         const sourceCity = CITIES.find(c => c.id === meetingCity);
+        const duration = getEffectiveDuration();
 
         let text = `📅 *${meetingName || 'Toplantı'}*\n`;
         text += `━━━━━━━━━━━━━━━━━━\n`;
-        text += `⏱️ Süre: ${DURATION_OPTIONS.find(d => d.value === meetingDuration)?.label || `${meetingDuration} dk`}\n\n`;
-        text += `🏠 ${sourceCity?.name}: ${meetingMoment.format('DD MMM YYYY HH:mm')} _(yerel saat)_\n\n`;
+        text += `⏱️ Süre: ${formatDuration(duration)}\n\n`;
+        text += `🏠 ${sourceCity?.name}: ${meetingMoment.format('DD MMM YYYY HH:mm')}${useEndTime ? ` - ${meetingEndTime}` : ''} _(yerel saat)_\n\n`;
         text += `🌍 *Diğer Şehirler:*\n`;
 
         CITIES.filter(city => selectedCities.includes(city.id) && city.id !== meetingCity).forEach(city => {
@@ -325,55 +387,70 @@ export function DunyaSaatleri() {
                             </div>
                         </div>
 
-                        {/* Time Selection with Presets */}
+                        {/* Time Selection - Simplified */}
                         <div>
-                            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
-                                <Clock className="w-4 h-4 text-amber-500" />
-                                Saat
-                            </label>
-                            <div className="flex flex-wrap gap-2 mb-3">
-                                {PRESET_TIMES.map(time => (
-                                    <button
-                                        key={time}
-                                        onClick={() => setMeetingHour(time)}
-                                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${meetingHour === time
-                                                ? 'bg-amber-500 text-white shadow-md'
-                                                : 'bg-gray-100 text-gray-600 hover:bg-amber-100 hover:text-amber-700'
-                                            }`}
-                                    >
-                                        {time}
-                                    </button>
-                                ))}
+                            <div className="flex items-center justify-between mb-2">
+                                <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                                    <Clock className="w-4 h-4 text-amber-500" />
+                                    Saat
+                                </label>
+                                <label className="flex items-center gap-2 text-sm cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={useEndTime}
+                                        onChange={(e) => setUseEndTime(e.target.checked)}
+                                        className="w-4 h-4 rounded border-gray-300 text-amber-500 focus:ring-amber-500"
+                                    />
+                                    <span className="text-gray-600">Başlangıç-Bitiş</span>
+                                </label>
                             </div>
-                            <input
-                                type="time"
-                                value={meetingHour}
-                                onChange={(e) => setMeetingHour(e.target.value)}
-                                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all font-medium text-sm"
-                            />
+                            <div className={`grid gap-3 ${useEndTime ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                                <div>
+                                    <label className="text-xs text-gray-500 mb-1 block">{useEndTime ? 'Başlangıç' : 'Saat'}</label>
+                                    <input
+                                        type="time"
+                                        value={meetingStartTime}
+                                        onChange={(e) => setMeetingStartTime(e.target.value)}
+                                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all font-medium"
+                                    />
+                                </div>
+                                {useEndTime && (
+                                    <div>
+                                        <label className="text-xs text-gray-500 mb-1 block">Bitiş</label>
+                                        <input
+                                            type="time"
+                                            value={meetingEndTime}
+                                            onChange={(e) => setMeetingEndTime(e.target.value)}
+                                            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all font-medium"
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                            {useEndTime && (
+                                <div className="mt-2 text-sm text-amber-600 font-medium">
+                                    Toplam: {formatDuration(getEffectiveDuration())}
+                                </div>
+                            )}
                         </div>
 
-                        {/* Duration */}
-                        <div>
-                            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
-                                <Clock className="w-4 h-4 text-amber-500" />
-                                Süre
-                            </label>
-                            <div className="flex flex-wrap gap-2">
-                                {DURATION_OPTIONS.map(opt => (
-                                    <button
-                                        key={opt.value}
-                                        onClick={() => setMeetingDuration(opt.value)}
-                                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${meetingDuration === opt.value
-                                                ? 'bg-amber-500 text-white shadow-md'
-                                                : 'bg-gray-100 text-gray-600 hover:bg-amber-100 hover:text-amber-700'
-                                            }`}
-                                    >
-                                        {opt.label}
-                                    </button>
-                                ))}
+                        {/* Duration - Only show if not using end time */}
+                        {!useEndTime && (
+                            <div>
+                                <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+                                    <Clock className="w-4 h-4 text-amber-500" />
+                                    Süre
+                                </label>
+                                <select
+                                    value={meetingDuration}
+                                    onChange={(e) => setMeetingDuration(parseInt(e.target.value))}
+                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-800 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all font-medium"
+                                >
+                                    {DURATION_OPTIONS.map(opt => (
+                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                    ))}
+                                </select>
                             </div>
-                        </div>
+                        )}
 
                         {/* Meeting Times List */}
                         <div>
@@ -451,20 +528,45 @@ export function DunyaSaatleri() {
                                             );
                                         })}
 
-                                    {/* Add City Button */}
+                                    {/* Add City - Search Dropdown */}
                                     {CITIES.filter(c => !selectedCities.includes(c.id)).length > 0 && (
-                                        <button
-                                            onClick={() => {
-                                                const availableCities = CITIES.filter(c => !selectedCities.includes(c.id));
-                                                if (availableCities.length > 0) {
-                                                    toggleCity(availableCities[0].id);
-                                                }
-                                            }}
-                                            className="w-full flex items-center justify-center gap-2 p-4 border-2 border-dashed border-gray-200 rounded-xl text-gray-400 hover:border-amber-300 hover:text-amber-500 hover:bg-amber-50/50 transition-all"
-                                        >
-                                            <Plus className="w-5 h-5" />
-                                            <span className="font-medium">Şehir Ekle</span>
-                                        </button>
+                                        <div className="relative">
+                                            <div className="flex items-center gap-2 p-3 bg-gray-50 border border-gray-200 rounded-xl">
+                                                <Search className="w-5 h-5 text-gray-400" />
+                                                <input
+                                                    type="text"
+                                                    value={citySearch}
+                                                    onChange={(e) => {
+                                                        setCitySearch(e.target.value);
+                                                        setShowCityDropdown(true);
+                                                    }}
+                                                    onFocus={() => setShowCityDropdown(true)}
+                                                    placeholder="Şehir ara ve ekle..."
+                                                    className="flex-1 bg-transparent border-none outline-none text-gray-700 placeholder-gray-400"
+                                                />
+                                            </div>
+                                            {showCityDropdown && filteredCities.length > 0 && (
+                                                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+                                                    {filteredCities.slice(0, 10).map(city => (
+                                                        <button
+                                                            key={city.id}
+                                                            onClick={() => {
+                                                                toggleCity(city.id);
+                                                                setCitySearch('');
+                                                                setShowCityDropdown(false);
+                                                            }}
+                                                            className="w-full flex items-center justify-between px-4 py-3 hover:bg-amber-50 transition-colors text-left"
+                                                        >
+                                                            <div>
+                                                                <div className="font-medium text-gray-800">{city.name}</div>
+                                                                <div className="text-xs text-gray-500">{city.country} • UTC{city.offset >= 0 ? '+' : ''}{city.offset}</div>
+                                                            </div>
+                                                            <Plus className="w-5 h-5 text-amber-500" />
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
                                     )}
                                 </div>
                             ) : (
