@@ -756,11 +756,11 @@ export function Konsensus() {
       <RelatedPages
         pages={[
           {
-            title: "Yayınlar",
-            subtitle: "Bilimsel yayınlar ve makaleler",
-            page: "yayinlar",
-            color: "bg-rose-600",
-            icon: FileText
+            title: "Dünya Saatleri",
+            subtitle: "Zaman dilimi ve toplantı planlayıcı",
+            page: "dunya-saatleri",
+            color: "bg-slate-800",
+            icon: Users
           },
           {
             title: "Portfolyo",

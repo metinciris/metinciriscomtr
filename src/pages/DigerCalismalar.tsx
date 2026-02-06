@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { PageContainer } from '../components/PageContainer';
 import { MetroTile } from '../components/MetroTile';
-import { FileBarChart, Activity, FileText, AlertCircle, Microscope, Box, BookOpen, Calculator, TrendingUp, Trophy, Users, Search, Briefcase, Calendar, Image } from 'lucide-react';
+import { FileBarChart, Activity, FileText, AlertCircle, Microscope, Box, BookOpen, Calculator, TrendingUp, Trophy, Users, Search, Briefcase, Calendar, Image, Globe } from 'lucide-react';
 
 
 interface DigerCalismalarProps {
@@ -189,6 +189,14 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
             icon: <Image size={40} />,
             style: { backgroundColor: '#059669' },
             page: 'avif-donusturucu',
+            category: 'diger'
+        },
+        {
+            title: "Dünya Saatleri",
+            subtitle: "Zaman dilimi ve toplantı planlayıcı",
+            icon: <Globe size={40} />,
+            style: { backgroundColor: '#1e3a5f' },
+            page: 'dunya-saatleri',
             category: 'diger'
         },
     ];

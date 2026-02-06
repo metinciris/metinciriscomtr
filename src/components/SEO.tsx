@@ -217,6 +217,11 @@ const PAGE_METADATA: Record<string, { title: string; description: string; keywor
         description: 'Gastrointestinal sistem endoskopik biyopsileri için standartlaştırılmış patoloji raporlama aracı.',
         keywords: 'endoskopi raporlama, mide biyopsisi, kolon biyopsisi, patoloji raporu, GİS patoloji'
     },
+    'dunya-saatleri': {
+        title: 'Dünya Saatleri | Prof Dr Metin Çiriş',
+        description: 'Dünya saat dilimleri haritası ve toplantı zamanlama aracı. Avrupa ve Amerika şehirlerinin anlık saatleri, gece/gündüz görselleştirmesi.',
+        keywords: 'dünya saatleri, saat dilimleri, toplantı planlama, timezone, world clock'
+    },
     '404': {
         title: 'Sayfa Bulunamadı | Prof Dr Metin Çiriş',
         description: 'Aradığınız sayfa mevcut değil.'
