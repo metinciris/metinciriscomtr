@@ -28,6 +28,7 @@ import {
 
 
 import { MeetingCard } from '../components/Konsensus/MeetingCard';
+import { MonthlyCalendar } from '../components/Konsensus/MonthlyCalendar';
 import { AdminPanel } from '../components/Konsensus/AdminPanel';
 import { NotificationsCard } from '../components/Konsensus/NotificationsCard';
 import { PosterLightbox } from '../components/Konsensus/PosterLightbox';
@@ -320,6 +321,24 @@ export function Konsensus() {
     showToast('Düzenleme modu aktif', 'info');
   }, [nowKey]);
 
+  const handleDayClick = useCallback((dateKey: string) => {
+    // Find the first meeting on this day
+    const m = meetings.find(meeting => meeting.date === dateKey);
+    if (!m) return;
+
+    if (dateKey < nowKey) {
+      if (!showPast) setShowPast(true);
+      // Give state a moment to update
+      setTimeout(() => {
+        const el = document.getElementById(`meeting-${normalizeId(m.id)}`);
+        el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
+    } else {
+      const el = document.getElementById(`meeting-${normalizeId(m.id)}`);
+      el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [meetings, nowKey, showPast]);
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* SEO-friendly hidden description for bots */}
@@ -395,20 +414,21 @@ export function Konsensus() {
               ) : (
                 <div className="space-y-4">
                   {todayMeetings.map((m) => (
-                    <MeetingCard
-                      key={normalizeId(m.id)}
-                      meeting={m}
-                      nowKey={nowKey}
-                      isAdmin={isAdmin}
-                      isPast={false}
-                      onEdit={handleEdit}
-                      onDelete={handleDelete}
-                      onPosterClick={setActivePoster}
-                      onOrganizerClick={(org) => {
-                        setSelectedOrganizer(org);
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                      }}
-                    />
+                    <div key={normalizeId(m.id)} id={`meeting-${normalizeId(m.id)}`}>
+                      <MeetingCard
+                        meeting={m}
+                        nowKey={nowKey}
+                        isAdmin={isAdmin}
+                        isPast={false}
+                        onEdit={handleEdit}
+                        onDelete={handleDelete}
+                        onPosterClick={setActivePoster}
+                        onOrganizerClick={(org) => {
+                          setSelectedOrganizer(org);
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                      />
+                    </div>
                   ))}
                 </div>
               )}
@@ -425,20 +445,21 @@ export function Konsensus() {
               ) : (
                 <div className="space-y-4">
                   {tomorrowMeetings.map((m) => (
-                    <MeetingCard
-                      key={normalizeId(m.id)}
-                      meeting={m}
-                      nowKey={nowKey}
-                      isAdmin={isAdmin}
-                      isPast={false}
-                      onEdit={handleEdit}
-                      onDelete={handleDelete}
-                      onPosterClick={setActivePoster}
-                      onOrganizerClick={(org) => {
-                        setSelectedOrganizer(org);
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                      }}
-                    />
+                    <div key={normalizeId(m.id)} id={`meeting-${normalizeId(m.id)}`}>
+                      <MeetingCard
+                        meeting={m}
+                        nowKey={nowKey}
+                        isAdmin={isAdmin}
+                        isPast={false}
+                        onEdit={handleEdit}
+                        onDelete={handleDelete}
+                        onPosterClick={setActivePoster}
+                        onOrganizerClick={(org) => {
+                          setSelectedOrganizer(org);
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                      />
+                    </div>
                   ))}
                 </div>
               )}
@@ -455,20 +476,21 @@ export function Konsensus() {
               ) : (
                 <div className="space-y-4">
                   {futureMeetings.map((m) => (
-                    <MeetingCard
-                      key={normalizeId(m.id)}
-                      meeting={m}
-                      nowKey={nowKey}
-                      isAdmin={isAdmin}
-                      isPast={false}
-                      onEdit={handleEdit}
-                      onDelete={handleDelete}
-                      onPosterClick={setActivePoster}
-                      onOrganizerClick={(org) => {
-                        setSelectedOrganizer(org);
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                      }}
-                    />
+                    <div key={normalizeId(m.id)} id={`meeting-${normalizeId(m.id)}`}>
+                      <MeetingCard
+                        meeting={m}
+                        nowKey={nowKey}
+                        isAdmin={isAdmin}
+                        isPast={false}
+                        onEdit={handleEdit}
+                        onDelete={handleDelete}
+                        onPosterClick={setActivePoster}
+                        onOrganizerClick={(org) => {
+                          setSelectedOrganizer(org);
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                      />
+                    </div>
                   ))}
                 </div>
               )}
@@ -494,20 +516,21 @@ export function Konsensus() {
                   ) : (
                     <>
                       {(showAllPast ? pastMeetings : pastMeetings.slice(0, 5)).map((m) => (
-                        <MeetingCard
-                          key={normalizeId(m.id)}
-                          meeting={m}
-                          nowKey={nowKey}
-                          isAdmin={isAdmin}
-                          isPast={true}
-                          onEdit={handleEdit}
-                          onDelete={handleDelete}
-                          onPosterClick={setActivePoster}
-                          onOrganizerClick={(org) => {
-                            setSelectedOrganizer(org);
-                            window.scrollTo({ top: 0, behavior: 'smooth' });
-                          }}
-                        />
+                        <div key={normalizeId(m.id)} id={`meeting-${normalizeId(m.id)}`}>
+                          <MeetingCard
+                            meeting={m}
+                            nowKey={nowKey}
+                            isAdmin={isAdmin}
+                            isPast={true}
+                            onEdit={handleEdit}
+                            onDelete={handleDelete}
+                            onPosterClick={setActivePoster}
+                            onOrganizerClick={(org) => {
+                              setSelectedOrganizer(org);
+                              window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }}
+                          />
+                        </div>
                       ))}
                       {pastMeetings.length > 5 && (
                         <div className="pt-2 flex flex-col items-center">
@@ -530,6 +553,8 @@ export function Konsensus() {
             <div className="hidden lg:block">
               <NotificationsCard pushEnabled={pushEnabled} pushLoading={pushLoading} togglePush={togglePush} />
             </div>
+
+            <MonthlyCalendar meetings={meetings} onDayClick={handleDayClick} />
 
             <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100 overflow-hidden relative">
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-400 to-orange-500" />

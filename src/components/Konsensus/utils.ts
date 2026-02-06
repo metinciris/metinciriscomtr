@@ -160,6 +160,22 @@ export function getMeetingStatus(m: Meeting, now: Date) {
     return { isLive, isUpcoming, isPastToday, meetingStart };
 }
 
+export const MONTH_NAMES = [
+    'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
+    'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'
+];
+
+export function getDaysInMonth(year: number, month: number) {
+    return new Date(year, month + 1, 0).getDate();
+}
+
+export function getFirstDayOfMonth(year: number, month: number) {
+    // 0: Pazar, 1: Pazartesi, ...
+    // Bizim için 1: Pazartesi, ..., 0: Pazar (Pazartesi ile başlasın)
+    const day = new Date(year, month, 1).getDay();
+    return day === 0 ? 6 : day - 1;
+}
+
 export function getCountdownString(meetingStart: Date, now: Date): string {
     const diffMs = meetingStart.getTime() - now.getTime();
     if (diffMs <= 0) return '';
