@@ -215,93 +215,97 @@ export function DunyaSaatleri() {
             </div>
 
             {/* Timezone Bar */}
-            <div className="bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 rounded-2xl p-6 mb-8 shadow-2xl border border-slate-700">
-                {/* UTC Scale */}
-                <div className="flex items-center justify-between mb-3 px-2 text-xs text-slate-500 font-mono">
-                    <span>UTC-8</span>
-                    <span>UTC-5</span>
-                    <span>UTC±0</span>
-                    <span>UTC+1</span>
-                    <span>UTC+3</span>
-                    <span>UTC+4</span>
-                </div>
+            <div className="bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 rounded-2xl p-6 mb-8 shadow-2xl border border-slate-700 overflow-x-auto">
+                {/* Timeline with Cities */}
+                <div className="min-w-[800px]">
+                    {/* Top Row Cities (even index) */}
+                    <div className="relative h-16 mb-2">
+                        {SORTED_CITIES.filter((_, i) => i % 2 === 0).map((city) => {
+                            const originalIndex = SORTED_CITIES.findIndex(c => c.id === city.id);
+                            const isSelected = selectedCities.includes(city.id);
+                            const cityTime = currentTime.clone().tz(city.timezone);
+                            const isDay = isDaytime(city.timezone);
+                            const position = (originalIndex / (SORTED_CITIES.length - 1)) * 100;
 
-                {/* Timeline Bar */}
-                <div className="relative h-3 bg-gradient-to-r from-slate-700 via-blue-600 to-amber-500 rounded-full mb-2 overflow-hidden">
-                    {/* Glow effect */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-                </div>
-
-                {/* City Points Row */}
-                <div className="relative h-20 mb-2">
-                    {SORTED_CITIES.map((city, index) => {
-                        const isSelected = selectedCities.includes(city.id);
-                        const cityTime = currentTime.clone().tz(city.timezone);
-                        const isDay = isDaytime(city.timezone);
-                        const position = (index / (SORTED_CITIES.length - 1)) * 100;
-
-                        return (
-                            <div
-                                key={city.id}
-                                className="absolute transform -translate-x-1/2 cursor-pointer group transition-all duration-300"
-                                style={{ left: `${position}%` }}
-                                onClick={() => toggleCity(city.id)}
-                            >
-                                {/* Connector Line */}
-                                <div className={`w-0.5 h-4 mx-auto transition-all duration-300 ${isSelected ? 'bg-amber-400' : 'bg-slate-600'
-                                    }`} />
-
-                                {/* City Dot */}
-                                <div className={`relative w-5 h-5 mx-auto rounded-full transition-all duration-300 flex items-center justify-center ${isSelected
-                                    ? 'bg-amber-400 shadow-lg shadow-amber-400/50 scale-125'
-                                    : isDay
-                                        ? 'bg-blue-400 group-hover:bg-blue-300'
-                                        : 'bg-slate-500 group-hover:bg-slate-400'
-                                    }`}>
-                                    {isDay ? (
-                                        <Sun className="w-3 h-3 text-white" />
-                                    ) : (
-                                        <Moon className="w-3 h-3 text-white" />
-                                    )}
-                                </div>
-
-                                {/* Time Display */}
-                                <div className={`text-center mt-2 transition-all duration-300 ${isSelected ? 'opacity-100' : 'opacity-70 group-hover:opacity-100'
-                                    }`}>
-                                    <div className={`text-sm font-bold tabular-nums ${isSelected ? 'text-amber-400' : 'text-white'
-                                        }`}>
+                            return (
+                                <div
+                                    key={city.id}
+                                    className="absolute transform -translate-x-1/2 cursor-pointer group flex flex-col items-center"
+                                    style={{ left: `${position}%` }}
+                                    onClick={() => toggleCity(city.id)}
+                                >
+                                    {/* City Name - Vertical */}
+                                    <div
+                                        className={`text-[10px] font-semibold whitespace-nowrap mb-1 transition-all ${isSelected ? 'text-amber-400' : 'text-slate-400 group-hover:text-white'
+                                            }`}
+                                        style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', transform: 'rotate(180deg)', maxHeight: '50px', overflow: 'hidden' }}
+                                    >
+                                        {city.name}
+                                    </div>
+                                    {/* Time */}
+                                    <div className={`text-xs font-bold tabular-nums ${isSelected ? 'text-amber-400' : 'text-white'}`}>
                                         {cityTime.format('HH:mm')}
                                     </div>
+                                    {/* Dot */}
+                                    <div className={`w-4 h-4 rounded-full flex items-center justify-center mt-1 transition-all ${isSelected
+                                        ? 'bg-amber-400 shadow-md shadow-amber-400/50'
+                                        : isDay ? 'bg-blue-400' : 'bg-slate-500'
+                                        }`}>
+                                        {isDay ? <Sun className="w-2.5 h-2.5 text-white" /> : <Moon className="w-2.5 h-2.5 text-white" />}
+                                    </div>
+                                    {/* Connector */}
+                                    <div className={`w-0.5 h-3 ${isSelected ? 'bg-amber-400' : 'bg-slate-600'}`} />
                                 </div>
-                            </div>
-                        );
-                    })}
-                </div>
+                            );
+                        })}
+                    </div>
 
-                {/* City Names Row */}
-                <div className="relative h-12">
-                    {SORTED_CITIES.map((city, index) => {
-                        const isSelected = selectedCities.includes(city.id);
-                        const position = (index / (SORTED_CITIES.length - 1)) * 100;
+                    {/* Timeline Bar */}
+                    <div className="relative h-3 bg-gradient-to-r from-slate-700 via-blue-600 to-amber-500 rounded-full overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                    </div>
 
-                        return (
-                            <div
-                                key={city.id}
-                                className="absolute transform -translate-x-1/2 text-center cursor-pointer"
-                                style={{ left: `${position}%`, width: '80px' }}
-                                onClick={() => toggleCity(city.id)}
-                            >
-                                <div className={`text-xs font-semibold transition-all duration-300 ${isSelected ? 'text-amber-400' : 'text-slate-300'
-                                    }`}>
-                                    {city.name}
+                    {/* Bottom Row Cities (odd index) */}
+                    <div className="relative h-16 mt-2">
+                        {SORTED_CITIES.filter((_, i) => i % 2 === 1).map((city) => {
+                            const originalIndex = SORTED_CITIES.findIndex(c => c.id === city.id);
+                            const isSelected = selectedCities.includes(city.id);
+                            const cityTime = currentTime.clone().tz(city.timezone);
+                            const isDay = isDaytime(city.timezone);
+                            const position = (originalIndex / (SORTED_CITIES.length - 1)) * 100;
+
+                            return (
+                                <div
+                                    key={city.id}
+                                    className="absolute transform -translate-x-1/2 cursor-pointer group flex flex-col items-center"
+                                    style={{ left: `${position}%` }}
+                                    onClick={() => toggleCity(city.id)}
+                                >
+                                    {/* Connector */}
+                                    <div className={`w-0.5 h-3 ${isSelected ? 'bg-amber-400' : 'bg-slate-600'}`} />
+                                    {/* Dot */}
+                                    <div className={`w-4 h-4 rounded-full flex items-center justify-center mt-0 transition-all ${isSelected
+                                        ? 'bg-amber-400 shadow-md shadow-amber-400/50'
+                                        : isDay ? 'bg-blue-400' : 'bg-slate-500'
+                                        }`}>
+                                        {isDay ? <Sun className="w-2.5 h-2.5 text-white" /> : <Moon className="w-2.5 h-2.5 text-white" />}
+                                    </div>
+                                    {/* Time */}
+                                    <div className={`text-xs font-bold tabular-nums mt-1 ${isSelected ? 'text-amber-400' : 'text-white'}`}>
+                                        {cityTime.format('HH:mm')}
+                                    </div>
+                                    {/* City Name - Vertical */}
+                                    <div
+                                        className={`text-[10px] font-semibold whitespace-nowrap mt-1 transition-all ${isSelected ? 'text-amber-400' : 'text-slate-400 group-hover:text-white'
+                                            }`}
+                                        style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', maxHeight: '50px', overflow: 'hidden' }}
+                                    >
+                                        {city.name}
+                                    </div>
                                 </div>
-                                <div className={`text-[10px] transition-all duration-300 ${isSelected ? 'text-amber-400/70' : 'text-slate-500'
-                                    }`}>
-                                    {city.country}
-                                </div>
-                            </div>
-                        );
-                    })}
+                            );
+                        })}
+                    </div>
                 </div>
 
                 {/* Legend */}
@@ -541,7 +545,7 @@ export function DunyaSaatleri() {
                                                         setShowCityDropdown(true);
                                                     }}
                                                     onFocus={() => setShowCityDropdown(true)}
-                                                    placeholder="Şehir ara ve ekle..."
+                                                    placeholder="Şehir ara veya yandan ekle..."
                                                     className="flex-1 bg-transparent border-none outline-none text-gray-700 placeholder-gray-400"
                                                 />
                                             </div>
