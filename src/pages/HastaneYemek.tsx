@@ -80,37 +80,43 @@ const normalizeCsvRows = (rawText: string) => {
 
 const fetchData = useCallback(async () => {
   setIsLoading(true);
-  try {
-    const res = await fetch('/hastane-menu.json', { cache: 'no-store' });
 
-    if (!res.ok) {
-      throw new Error(`hastane-menu.json HTTP ${res.status}`);
-    }
+  // 8 saniye sonra vazgeç (sonsuz loading biter)
+  const controller = new AbortController();
+  const t = setTimeout(() => controller.abort(), 8000);
+
+  try {
+    const url = `${window.location.origin}/hastane-menu.json?v=${Date.now()}`;
+    const res = await fetch(url, { signal: controller.signal, cache: "no-store" });
+
+    if (!res.ok) throw new Error(`Menu JSON HTTP ${res.status}`);
 
     const data = await res.json();
 
     setSheetData({
-      lunchStats: data.lunchStats || '',
+      lunchStats: data.lunchStats || "",
       lunchMenu: Array.isArray(data.lunchMenu) ? data.lunchMenu : [],
-      dinnerStats: data.dinnerStats || '',
+      dinnerStats: data.dinnerStats || "",
       dinnerMenu: Array.isArray(data.dinnerMenu) ? data.dinnerMenu : [],
-      aiDaily: data.aiDaily || '',
-      aiMonthly: data.aiMonthly || '',
+      aiDaily: data.aiDaily || "",
+      aiMonthly: data.aiMonthly || "",
     });
   } catch (e) {
-    console.error('Menu JSON fetch error:', e);
+    // JSON gelmezse bile sayfa açılır: boş menü yerine "veri alınamadı" göster
     setSheetData({
-      lunchStats: '',
+      lunchStats: "Menü verisi alınamadı.",
       lunchMenu: [],
-      dinnerStats: '',
+      dinnerStats: "Menü verisi alınamadı.",
       dinnerMenu: [],
-      aiDaily: '',
-      aiMonthly: '',
+      aiDaily: "",
+      aiMonthly: "",
     });
   } finally {
+    clearTimeout(t);
     setIsLoading(false);
   }
 }, []);
+
 
 
 
