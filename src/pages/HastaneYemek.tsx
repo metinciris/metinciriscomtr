@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { PageContainer } from '../components/PageContainer';
-import { Star, Sparkles, Utensils, Moon, Coffee, MessageSquare, Info, Calendar, ChevronRight } from 'lucide-react';
+import { Star, Cloud, Thermometer, Wind, Sparkles, Utensils, Moon, Coffee, Heart, MessageSquare, Info, ExternalLink, Calendar, ChevronRight } from 'lucide-react';
 import { StarExplosion } from '../components/StarExplosion';
 import { StudentLunchMenu } from '../components/StudentLunchMenu';
 import { toast } from 'sonner';
@@ -12,19 +12,9 @@ declare global {
 }
 
 const SHEET_ID = '1dxvTCpd-Yegvh7Zy1QkHC_hIwv9Zrwtld3FASVlMrzw';
-const GID = '663023417';
 const WAIT_TIME = 900; // 15 dakika
 
 type MealType = 'lunch' | 'dinner';
-
-type SheetData = {
-  lunchStats: string;
-  lunchMenu: string[];
-  dinnerStats: string;
-  dinnerMenu: string[];
-  aiDaily: string;      // A13
-  aiMonthly: string;    // A14 (boş değilse gösterilecek)
-};
 
 export function HastaneYemek() {
   const [lunchRating, setLunchRating] = useState(0);
@@ -42,9 +32,6 @@ export function HastaneYemek() {
   const [showLunchExplosion, setShowLunchExplosion] = useState(false);
   const [showDinnerExplosion, setShowDinnerExplosion] = useState(false);
 
-  const [sheetData, setSheetData] = useState<SheetData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
   // Helper to clean HTML from Google Sheet cells
   const cleanHtml = (html: string) => {
     if (!html) return '';
@@ -59,49 +46,77 @@ export function HastaneYemek() {
     weekday: 'long',
   });
 
-  /**
-   * CSV çıktı bazen hücre içinde newline taşıyor (A7'deki gibi).
-   * out:csv bunu satır gibi bölebiliyor -> indeks kayıyor.
-   * Bu normalize: newline'ı tek satıra indirip, satırları güvenli hale getirir.
-   */
-// CSV satırlarını güvenli diziye çevir
-const normalizeCsvRows = (rawText: string) => {
-  const rows = rawText
-    .replace(/\r/g, '')
-    .split('\n')
-    .map(r => r.trim())
-    .map(row => row.replace(/^"|"$/g, '').replace(/""/g, '"'));
+  const [sheetData, setSheetData] = useState<{
+    weather: string;
+    lunchStats: string;
+    lunchMenu: string[];
+    dinnerStats: string;
+    dinnerMenu: string[];
+    summary: string;
+    monthlySummary: string;
+  } | null>(null);
 
-  // Bazı gviz çıktılarında başlık olabiliyor
-  const first = (rows[0] ?? '').trim().toLowerCase();
-  const looksLikeHeader = first === 'a' || first === 'column a';
-  return looksLikeHeader ? rows.slice(1) : rows;
-};
+  const [isLoading, setIsLoading] = useState(true);
 
-const fetchData = useCallback(async () => {
-  setIsLoading(true);
-  try {
-    const res = await fetch(`${window.location.origin}/hastane-menu.json?v=${Date.now()}`, { cache: "no-store" });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
+  const fetchData = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=663023417`);
+      const text = await response.text();
 
-    setSheetData({
-      lunchStats: data.lunchStats || "",
-      lunchMenu: Array.isArray(data.lunchMenu) ? data.lunchMenu : [],
-      dinnerStats: data.dinnerStats || "",
-      dinnerMenu: Array.isArray(data.dinnerMenu) ? data.dinnerMenu : [],
-      aiDaily: "",     // artık kullanmıyorsan boş bırak
-      aiMonthly: "",   // artık kullanmıyorsan boş bırak
-    });
-  } finally {
-    setIsLoading(false);
-  }
-}, []);
+      // Basic CSV parser for single-column Google Sheets export
+      const rows = text.split('\n').map(row => {
+        // Cleaning quotes from CSV export
+        return row.replace(/^"|"$/g, '').replace(/""/g, '"').trim();
+      });
 
+      setSheetData({
+        weather: rows[0] || '',
+        lunchStats: rows[2] || '',
+        lunchMenu: [rows[3], rows[4], rows[5]].filter(Boolean),
+        dinnerStats: rows[7] || '',
+        dinnerMenu: [rows[8], rows[9], rows[10]].filter(Boolean),
+        summary: rows[12] || '',
+        monthlySummary: rows[13] || ''
+      });
+    } catch (error) {
+      console.error('Veri çekme hatası:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
+  useEffect(() => {
+    fetchData();
+    // Auto refresh every 5 minutes
+    const interval = setInterval(fetchData, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [fetchData]);
 
+  // LocalStorage'dan daha önce oy kullanmış mı kontrol et
+  useEffect(() => {
+    const now = Math.floor(Date.now() / 1000);
 
+    const lunchTimestampRaw = localStorage.getItem('votedTimestampOgle');
+    if (lunchTimestampRaw) {
+      const ts = parseInt(lunchTimestampRaw, 10);
+      const diff = now - ts;
+      if (diff < WAIT_TIME) {
+        setLunchSubmitted(true);
+        setLunchCountdown(WAIT_TIME - diff);
+      }
+    }
 
+    const dinnerTimestampRaw = localStorage.getItem('votedTimestampAksam');
+    if (dinnerTimestampRaw) {
+      const ts = parseInt(dinnerTimestampRaw, 10);
+      const diff = now - ts;
+      if (diff < WAIT_TIME) {
+        setDinnerSubmitted(true);
+        setDinnerCountdown(WAIT_TIME - diff);
+      }
+    }
+  }, []);
 
   // Geri sayım sayacı
   useEffect(() => {
@@ -179,9 +194,11 @@ const fetchData = useCallback(async () => {
 
       toast.success('Değerlendirmeniz alındı. Teşekkürler!');
 
+      // Oylama sonrası tabloyu yenile (Google Sheets'in güncellenmesi için kısa bir gecikme)
       setTimeout(() => {
         fetchData();
       }, 1500);
+
     } catch (error) {
       console.error('Form gönderimi hatası:', error);
       toast.error('Bir hata oluştu. Lütfen tekrar deneyin.');
@@ -226,25 +243,50 @@ const fetchData = useCallback(async () => {
   return (
     <div className="min-h-screen bg-slate-50">
       <PageContainer>
+        {/* SEO-friendly hidden content */}
         <div className="sr-only" aria-hidden="false">
           <h1>SDÜ Hastane Yemek Listesi - Süleyman Demirel Üniversitesi Hastanesi Günlük Menü</h1>
-          <p>Isparta Süleyman Demirel Üniversitesi (SDÜ) Araştırma ve Uygulama Hastanesi günlük yemek menüsü.</p>
+          <p>Isparta Süleyman Demirel Üniversitesi (SDÜ) Araştırma ve Uygulama Hastanesi günlük yemek menüsü. Metin Çiriş tarafından hazırlanan güncel yemekhane portalı.</p>
         </div>
 
-        {/* ✅ Kompakt Sticky Header */}
-        <div className="sticky top-3 z-40 mb-5">
-          <div className="bg-white/80 backdrop-blur-md border border-slate-200 rounded-2xl px-4 py-3 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="font-black text-slate-800 whitespace-nowrap">
-                SDÜ Hastane Menüsü
+        {/* Header Section */}
+        <div className="relative overflow-hidden bg-gradient-to-br from-[#303f9f] to-[#1976d2] rounded-3xl p-8 md:p-12 mb-8 text-white shadow-xl">
+          <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8">
+            <div className="text-center md:text-left">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-bold uppercase tracking-wider mb-4 border border-white/10">
+                <Sparkles size={14} />
+                <span>Modern Yemekhane Portalı</span>
               </div>
-              <div className="flex-1 text-center font-black text-slate-700 truncate">
-                Bugün {formattedDate}
-              </div>
-              <div className="w-6" aria-hidden="true" />
+              <h1 className="text-4xl md:text-5xl font-black mb-4 tracking-tight">SDÜ Hastane Menüsü</h1>
+              <p className="text-lg opacity-90 font-medium">
+                Resmi olmayan, yapay zeka destekli menü ve değerlendirme platformu.
+              </p>
+            </div>
+            <div className="shrink-0 bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/20 text-center">
+              <div className="text-sm uppercase tracking-widest opacity-80 mb-1 font-bold">Bugünün Tarihi</div>
+              <div className="text-2xl font-black italic">{formattedDate.split(' ')[0]} {formattedDate.split(' ')[1]}</div>
+              <div className="text-sm opacity-80 mt-1">{formattedDate.split(' ').slice(2).join(' ')}</div>
             </div>
           </div>
+          {/* Decorative elements */}
+          <div className="absolute -top-24 -right-24 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-[#3f51b5]/30 rounded-full blur-3xl"></div>
         </div>
+
+        {/* AI Weather/Greeting Section */}
+        {sheetData?.weather && (
+          <div className="mb-8 bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100 relative overflow-hidden group">
+            <div className="absolute top-0 left-0 w-2 h-full bg-indigo-500"></div>
+            <div className="flex flex-col md:flex-row items-center gap-6">
+              <div className="shrink-0 w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-500 group-hover:scale-110 transition-transform duration-500">
+                <Cloud size={32} />
+              </div>
+              <div className="text-slate-600 leading-relaxed italic font-medium">
+                "{cleanHtml(sheetData.weather)}"
+              </div>
+            </div>
+          </div>
+        )}
 
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4">
@@ -271,8 +313,8 @@ const fetchData = useCallback(async () => {
                 <div className="space-y-4 flex-grow">
                   {sheetData?.lunchMenu.map((item, idx) => (
                     <div key={idx} className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100 group hover:bg-white hover:border-amber-200 hover:shadow-sm transition-all duration-300">
-                      <div className="w-10 h-10 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center shrink-0 group-hover:translate-x-1 transition-transform border border-orange-200">
-                        <ChevronRight size={20} />
+                      <div className="w-10 h-10 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center shrink-0 group-hover:rotate-12 transition-transform border border-orange-200">
+                        <Heart size={20} className="fill-current" />
                       </div>
                       <span className="text-slate-800 font-bold text-lg text-left leading-tight">{cleanHtml(item)}</span>
                     </div>
@@ -322,8 +364,8 @@ const fetchData = useCallback(async () => {
                 <div className="space-y-4 flex-grow">
                   {sheetData?.dinnerMenu.map((item, idx) => (
                     <div key={idx} className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100 group hover:bg-white hover:border-indigo-200 hover:shadow-sm transition-all duration-300">
-                      <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0 group-hover:translate-x-1 transition-transform border border-indigo-200">
-                        <ChevronRight size={20} />
+                      <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0 group-hover:rotate-12 transition-transform border border-indigo-200">
+                        <Heart size={20} className="fill-current" />
                       </div>
                       <span className="text-slate-800 font-bold text-lg text-left leading-tight">{cleanHtml(item)}</span>
                     </div>
@@ -357,10 +399,10 @@ const fetchData = useCallback(async () => {
           </div>
         )}
 
-        {/* ✅ AI Analysis Sections */}
+        {/* AI Analysis Sections */}
         {!isLoading && sheetData && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-            {sheetData.aiDaily && cleanHtml(sheetData.aiDaily) !== '' && (
+            {sheetData.summary && (
               <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 relative group overflow-hidden">
                 <div className="absolute top-0 right-0 p-4 text-emerald-100 opacity-20 group-hover:opacity-40 transition-opacity">
                   <Sparkles size={80} />
@@ -372,12 +414,12 @@ const fetchData = useCallback(async () => {
                   Yapay Zeka Değerlendirmesi
                 </h2>
                 <div className="text-slate-600 leading-relaxed font-medium relative z-10">
-                  {cleanHtml(sheetData.aiDaily)}
+                  {cleanHtml(sheetData.summary)}
                 </div>
               </div>
             )}
 
-            {sheetData.aiMonthly && cleanHtml(sheetData.aiMonthly) !== '' && (
+            {sheetData.monthlySummary && (
               <div className="bg-slate-900 rounded-3xl p-8 shadow-xl text-white relative group">
                 <div className="absolute top-0 right-0 p-4 text-white/5">
                   <Coffee size={80} />
@@ -386,17 +428,15 @@ const fetchData = useCallback(async () => {
                   <div className="w-8 h-8 rounded-lg bg-white/10 text-white flex items-center justify-center">
                     <Sparkles size={18} />
                   </div>
-                  Aylık Yapay Zeka Menü Değerlendirmesi
+                  Yapay Zeka Özeti
                 </h2>
-                <div
-                  className="text-slate-300 leading-relaxed font-medium"
-                  dangerouslySetInnerHTML={{ __html: sheetData.aiMonthly }}
-                />
+                <div className="text-slate-300 leading-relaxed font-medium" dangerouslySetInnerHTML={{ __html: sheetData.monthlySummary }} />
               </div>
             )}
           </div>
         )}
 
+        {/* Student Menu Integration */}
         <div className="mt-12">
           <div className="flex items-center gap-4 mb-6">
             <div className="h-px flex-grow bg-slate-200"></div>
@@ -406,6 +446,7 @@ const fetchData = useCallback(async () => {
           <StudentLunchMenu />
         </div>
 
+        {/* Disclaimer Footer - At the very bottom */}
         <div className="mt-12 mb-8 bg-slate-200/50 backdrop-blur-sm rounded-3xl p-6 text-center text-slate-500 text-xs font-bold flex flex-col items-center gap-2">
           <div className="flex items-center gap-2">
             <Info size={14} />
