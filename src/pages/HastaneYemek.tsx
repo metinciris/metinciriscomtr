@@ -94,95 +94,71 @@ export function HastaneYemek() {
     return finalRows;
   };
 
-  const fetchData = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      // ✅ Sadece A1:A14 çek -> sabit indeks garantisi
-      const url =
-        `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?` +
-        `tqx=out:csv&gid=${GID}&range=A1:A14`;
+const fetchData = useCallback(async () => {
+  setIsLoading(true);
+  try {
+    // ✅ JSON gviz (CSV yerine)
+    const url =
+      `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?` +
+      `tqx=out:json&gid=${GID}&range=A1:A14`;
 
-      const response = await fetch(url, { cache: 'no-store' });
-      const text = await response.text();
+    const res = await fetch(url, { cache: 'no-store' });
+    const raw = await res.text();
 
-      const rows = normalizeCsvRows(text);
+    // Google gviz json cevabı: "google.visualization.Query.setResponse({...});"
+    const jsonText = raw
+      .replace(/^[\s\S]*setResponse\(/, '')
+      .replace(/\);\s*$/, '');
 
-      // ✅ 14 satıra tamamla (Google bazen sondaki boşları kırpabilir)
-      while (rows.length < 14) rows.push('');
+    const data = JSON.parse(jsonText);
 
-      // A(row): 1-based sheet row -> 0-based array index
-      const A = (row: number) => rows[row - 1] || '';
+    // A1:A14 tek kolon -> table.rows[i].c[0].v
+    const rows: string[] = (data?.table?.rows ?? []).map((r: any) => {
+      const cell = r?.c?.[0];
+      return (cell?.v ?? '').toString();
+    });
 
-      // ✅ Sabit eşleme (senin dump’a göre)
-      // A1: hava durumu -> kullanmıyoruz
-      // A2: Öğle başlık -> kullanmıyoruz
-      // A3: lunchStats
-      // A4-6: lunch menu
-      // A7: Akşam başlık -> kullanmıyoruz
-      // A8: dinnerStats
-      // A9-11: dinner menu
-      // A12: ddd -> ignore
-      // A13: AI daily (yıllık + AI aynı hücreyse istersen sonra ayrıştırırız)
-      // A14: AI monthly
+    // 14 satıra tamamla
+    while (rows.length < 14) rows.push('');
 
-      const lunchStats = A(3);
-      const lunchMenu = [A(4), A(5), A(6)]
-        .map(s => (s ?? '').toString().trim())
-        .filter(s => cleanHtml(s) !== '');
+    const A = (row: number) => rows[row - 1] || '';
 
-      const dinnerStats = A(8);
-      const dinnerMenu = [A(9), A(10), A(11)]
-        .map(s => (s ?? '').toString().trim())
-        .filter(s => cleanHtml(s) !== '');
+    const lunchStats = A(3);
+    const lunchMenu = [A(4), A(5), A(6)]
+      .map(s => (s ?? '').toString().trim())
+      .filter(s => cleanHtml(s) !== '');
 
-      const aiDaily = A(13);
-      const aiMonthly = A(14);
+    const dinnerStats = A(8);
+    const dinnerMenu = [A(9), A(10), A(11)]
+      .map(s => (s ?? '').toString().trim())
+      .filter(s => cleanHtml(s) !== '');
 
-      setSheetData({
-        lunchStats: lunchStats || '',
-        lunchMenu,
-        dinnerStats: dinnerStats || '',
-        dinnerMenu,
-        aiDaily: aiDaily || '',
-        aiMonthly: aiMonthly || '',
-      });
-    } catch (error) {
-      console.error('Veri çekme hatası:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+    const aiDaily = A(13);
+    const aiMonthly = A(14);
 
-  useEffect(() => {
-    fetchData();
-    const interval = setInterval(fetchData, 5 * 60 * 1000);
-    return () => clearInterval(interval);
-  }, [fetchData]);
+    setSheetData({
+      lunchStats: lunchStats || '',
+      lunchMenu,
+      dinnerStats: dinnerStats || '',
+      dinnerMenu,
+      aiDaily: aiDaily || '',
+      aiMonthly: aiMonthly || '',
+    });
+  } catch (e) {
+    console.error('Veri çekme hatası:', e);
+    setSheetData({
+      lunchStats: '',
+      lunchMenu: [],
+      dinnerStats: '',
+      dinnerMenu: [],
+      aiDaily: '',
+      aiMonthly: '',
+    });
+  } finally {
+    setIsLoading(false);
+  }
+}, []);
 
-  // LocalStorage'dan daha önce oy kullanmış mı kontrol et
-  useEffect(() => {
-    const now = Math.floor(Date.now() / 1000);
-
-    const lunchTimestampRaw = localStorage.getItem('votedTimestampOgle');
-    if (lunchTimestampRaw) {
-      const ts = parseInt(lunchTimestampRaw, 10);
-      const diff = now - ts;
-      if (diff < WAIT_TIME) {
-        setLunchSubmitted(true);
-        setLunchCountdown(WAIT_TIME - diff);
-      }
-    }
-
-    const dinnerTimestampRaw = localStorage.getItem('votedTimestampAksam');
-    if (dinnerTimestampRaw) {
-      const ts = parseInt(dinnerTimestampRaw, 10);
-      const diff = now - ts;
-      if (diff < WAIT_TIME) {
-        setDinnerSubmitted(true);
-        setDinnerCountdown(WAIT_TIME - diff);
-      }
-    }
-  }, []);
 
   // Geri sayım sayacı
   useEffect(() => {
