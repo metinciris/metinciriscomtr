@@ -263,7 +263,7 @@ export function HastaneYemek() {
               </p>
             </div>
             <div className="shrink-0 bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/20 text-center">
-              <div className="text-sm uppercase tracking-widest opacity-80 mb-1 font-bold">Bugünün Tarihi</div>
+              <div className="text-sm uppercase tracking-widest opacity-80 mb-1 font-bold">Bugün</div>
               <div className="text-2xl font-black italic">{formattedDate.split(' ')[0]} {formattedDate.split(' ')[1]}</div>
               <div className="text-sm opacity-80 mt-1">{formattedDate.split(' ').slice(2).join(' ')}</div>
             </div>
