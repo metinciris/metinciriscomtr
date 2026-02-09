@@ -64,92 +64,61 @@ export function HastaneYemek() {
    * out:csv bunu satır gibi bölebiliyor -> indeks kayıyor.
    * Bu normalize: newline'ı tek satıra indirip, satırları güvenli hale getirir.
    */
-  const normalizeCsvRows = (rawText: string) => {
-    // 1) CR temizle
-    let t = rawText.replace(/\r/g, '');
+// CSV satırlarını güvenli diziye çevir
+const normalizeCsvRows = (rawText: string) => {
+  const rows = rawText
+    .replace(/\r/g, '')
+    .split('\n')
+    .map(r => r.trim())
+    .map(row => row.replace(/^"|"$/g, '').replace(/""/g, '"'));
 
-    // 2) Hücre içi newline'ları tek satıra indir:
-    // CSV'de quoted alan içinde newline olabiliyor. Biz hızlı/pratik yaklaşım:
-    // " ... \n ..." patternlerini yakalayıp boşlukla değiştiriyoruz.
-    // Bu proje için yeterince sağlam; çünkü tek kolon (A) çekiyoruz.
-    t = t.replace(/"\n/g, '" '); // quote kapanmadan gelen newline
-    t = t.replace(/\n"/g, ' "'); // quote açılmadan önceki newline
-    t = t.replace(/\n{2,}/g, '\n'); // fazla boş satırları sadeleştir
-
-    // 3) Satırları böl
-    const rawRows = t.split('\n').map(r => r.trim());
-
-    // 4) Dış quote’ları temizle + escaped quote düzelt
-    const rows = rawRows.map(row =>
-      row.replace(/^"|"$/g, '').replace(/""/g, '"').trim()
-    );
-
-    // 5) Bazı gviz csv çıktılarında ilk satır başlık olabiliyor
-    const first = (rows[0] ?? '').trim();
-    const looksLikeHeader =
-      first === 'A' || first === 'a' || first === 'Column A' || first === 'column a';
-
-    const finalRows = looksLikeHeader ? rows.slice(1) : rows;
-
-    return finalRows;
-  };
+  // Bazı gviz çıktılarında başlık olabiliyor
+  const first = (rows[0] ?? '').trim().toLowerCase();
+  const looksLikeHeader = first === 'a' || first === 'column a';
+  return looksLikeHeader ? rows.slice(1) : rows;
+};
 
 const fetchData = useCallback(async () => {
   setIsLoading(true);
   try {
-    // ✅ Values API: A1:A14 tek kolon
+    // ✅ Sadece A1:A12 çekiyoruz
     const url =
       `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?` +
-      `tqx=out:json&gid=${GID}&range=A1:A14`;
+      `tqx=out:csv&gid=663023417&range=A1:A12`;
 
-    const res = await fetch(url, { cache: 'no-store' });
-    const raw = await res.text();
+    const response = await fetch(url, { cache: 'no-store' });
+    const text = await response.text();
 
-    // gviz response wrapper temizle
-    const jsonText = raw
-      .replace(/^[\s\S]*setResponse\(/, '')
-      .replace(/\);\s*$/, '');
+    const rows = normalizeCsvRows(text);
 
-    const data = JSON.parse(jsonText);
+    // ✅ 12 satıra tamamla (son satır boş olabilir)
+    while (rows.length < 12) rows.push('');
 
-    const rows: string[] = (data?.table?.rows ?? []).map((r: any) => {
-      const cell = r?.c?.[0];
-      // v bazen null olur
-      return (cell?.v ?? '').toString();
-    });
-
-    while (rows.length < 14) rows.push('');
-
-    const A = (row: number) => rows[row - 1] || '';
-
-    const lunchStats = A(3);
-    const lunchMenu = [A(4), A(5), A(6)]
-      .map(s => (s ?? '').toString().trim())
-      .filter(s => cleanHtml(s) !== '');
-
-    const dinnerStats = A(8);
-    const dinnerMenu = [A(9), A(10), A(11)]
-      .map(s => (s ?? '').toString().trim())
-      .filter(s => cleanHtml(s) !== '');
-
-    const aiDaily = A(13);
-    const aiMonthly = A(14);
-
-    // ✅ Debug: console’da kesin gör
-    console.log('A1..A14 rows:', rows);
-    console.log('lunchMenu:', lunchMenu, 'dinnerMenu:', dinnerMenu);
+    const A = (row: number) => (rows[row - 1] || '').toString();
 
     setSheetData({
-      lunchStats,
-      lunchMenu,
-      dinnerStats,
-      dinnerMenu,
-      aiDaily,
-      aiMonthly,
+      // A2
+      lunchStats: A(2),
+      // A3-A5
+      lunchMenu: [A(3), A(4), A(5)]
+        .map(s => s.trim())
+        .filter(s => s !== ''),
+
+      // A7
+      dinnerStats: A(7),
+      // A8-A10
+      dinnerMenu: [A(8), A(9), A(10)]
+        .map(s => s.trim())
+        .filter(s => s !== ''),
+
+      // A11
+      aiDaily: A(11),
+
+      // A12 (ilk hafta dolu, diğer günler boş)
+      aiMonthly: A(12),
     });
-  } catch (e) {
-    console.error('fetchData error:', e);
-    // hata olsa bile loading’den çık
+  } catch (error) {
+    console.error('Veri çekme hatası:', error);
     setSheetData({
       lunchStats: '',
       lunchMenu: [],
