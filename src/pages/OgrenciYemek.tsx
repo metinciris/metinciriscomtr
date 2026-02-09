@@ -139,7 +139,7 @@ export function OgrenciYemek() {
       // Actually, I'll stick to what was in the file if it looks like SDÜ form.
       // The previous file had entry.1343444217.
 
-      formData.append(type === 'lunch' ? 'entry.1343444217' : 'entry.2065365518', value.toString());
+      formData.append(type === 'lunch' ? 'entry.2023260417' : 'entry.1469403457', value.toString());
 
       await fetch(FORM_URL, {
         method: 'POST',
