@@ -81,56 +81,32 @@ const normalizeCsvRows = (rawText: string) => {
 const fetchData = useCallback(async () => {
   setIsLoading(true);
   try {
-    // ✅ Sadece A1:A12 çekiyoruz
-    const url =
-      `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?` +
-      `tqx=out:csv&gid=663023417&range=A1:A12`;
-
-    const response = await fetch(url, { cache: 'no-store' });
-    const text = await response.text();
-
-    const rows = normalizeCsvRows(text);
-
-    // ✅ 12 satıra tamamla (son satır boş olabilir)
-    while (rows.length < 12) rows.push('');
-
-    const A = (row: number) => (rows[row - 1] || '').toString();
+    const res = await fetch("/hastane-menu.json", { cache: "no-store" });
+    const data = await res.json();
 
     setSheetData({
-      // A2
-      lunchStats: A(2),
-      // A3-A5
-      lunchMenu: [A(3), A(4), A(5)]
-        .map(s => s.trim())
-        .filter(s => s !== ''),
-
-      // A7
-      dinnerStats: A(7),
-      // A8-A10
-      dinnerMenu: [A(8), A(9), A(10)]
-        .map(s => s.trim())
-        .filter(s => s !== ''),
-
-      // A11
-      aiDaily: A(11),
-
-      // A12 (ilk hafta dolu, diğer günler boş)
-      aiMonthly: A(12),
+      lunchStats: data.lunchStats || "",
+      lunchMenu: data.lunchMenu || [],
+      dinnerStats: data.dinnerStats || "",
+      dinnerMenu: data.dinnerMenu || [],
+      aiDaily: data.aiDaily || "",
+      aiMonthly: data.aiMonthly || "",
     });
-  } catch (error) {
-    console.error('Veri çekme hatası:', error);
+  } catch (e) {
+    console.error(e);
     setSheetData({
-      lunchStats: '',
+      lunchStats: "",
       lunchMenu: [],
-      dinnerStats: '',
+      dinnerStats: "",
       dinnerMenu: [],
-      aiDaily: '',
-      aiMonthly: '',
+      aiDaily: "",
+      aiMonthly: "",
     });
   } finally {
     setIsLoading(false);
   }
 }, []);
+
 
 
 
