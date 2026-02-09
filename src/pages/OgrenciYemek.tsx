@@ -314,26 +314,35 @@ export function OgrenciYemek() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {menu.slice(0, 10).map((item, idx) => (
-                      <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex flex-col">
-                            <span className="text-sm font-bold text-slate-700">{item.date}</span>
-                            <span className="text-xs text-slate-400">{item.day}</span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="text-sm text-slate-600 line-clamp-2">
-                            {item.lunchMenu}
-                          </div>
-                          {item.dinnerMenu && item.dinnerMenu !== item.lunchMenu && (
-                            <div className="text-xs text-indigo-500 mt-1 font-medium">
-                              Akşam: {item.dinnerMenu}
+                    {menu
+                      .filter(item => {
+                        const [d, m, y] = item.date.split('.').map(Number);
+                        const itemDate = new Date(y, m - 1, d);
+                        const now = new Date();
+                        const todayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                        return itemDate > todayDate;
+                      })
+                      .slice(0, 10)
+                      .map((item, idx) => (
+                        <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex flex-col">
+                              <span className="text-sm font-bold text-slate-700">{item.date}</span>
+                              <span className="text-xs text-slate-400">{item.day}</span>
                             </div>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="text-sm text-slate-600 line-clamp-2">
+                              {item.lunchMenu}
+                            </div>
+                            {item.dinnerMenu && item.dinnerMenu !== item.lunchMenu && (
+                              <div className="text-xs text-indigo-500 mt-1 font-medium">
+                                Akşam: {item.dinnerMenu}
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
                   </tbody>
                 </table>
               </div>
