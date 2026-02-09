@@ -1,8 +1,9 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { PageContainer } from '../components/PageContainer';
-import { Star } from 'lucide-react';
+import { Star, Cloud, Thermometer, Wind, Sparkles, Utensils, Moon, Coffee, Heart, MessageSquare, Info, ExternalLink, Calendar, ChevronRight } from 'lucide-react';
 import { StarExplosion } from '../components/StarExplosion';
 import { StudentLunchMenu } from '../components/StudentLunchMenu';
+import { toast } from 'sonner';
 
 declare global {
   interface Window {
@@ -31,9 +32,11 @@ export function HastaneYemek() {
   const [showLunchExplosion, setShowLunchExplosion] = useState(false);
   const [showDinnerExplosion, setShowDinnerExplosion] = useState(false);
 
-  const lunchTableRef = useRef<HTMLDivElement>(null);
-  const dinnerTableRef = useRef<HTMLDivElement>(null);
-  const footerTableRef = useRef<HTMLDivElement>(null);
+  // Helper to clean HTML from Google Sheet cells
+  const cleanHtml = (html: string) => {
+    if (!html) return '';
+    return html.replace(/<[^>]*>/g, '').trim();
+  };
 
   const today = new Date();
   const formattedDate = today.toLocaleDateString('tr-TR', {
@@ -43,75 +46,52 @@ export function HastaneYemek() {
     weekday: 'long',
   });
 
-  const drawTable = useCallback(
-    (element: HTMLDivElement | null, range: string, timestamp: number) => {
-      if (!element || !window.google) return;
+  const [sheetData, setSheetData] = useState<{
+    weather: string;
+    lunchStats: string;
+    lunchMenu: string[];
+    dinnerStats: string;
+    dinnerMenu: string[];
+    summary: string;
+    monthlySummary: string;
+  } | null>(null);
 
-      const query = new window.google.visualization.Query(
-        `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?range=${range}&t=${timestamp}`
-      );
+  const [isLoading, setIsLoading] = useState(true);
 
-      query.send((response: any) => {
-        if (response.isError()) {
-          console.error('Veri alınamadı:', response.getMessage());
-          return;
-        }
+  const fetchData = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=663023417`);
+      const text = await response.text();
 
-        const data = response.getDataTable();
-        const table = new window.google.visualization.Table(element);
-
-        table.draw(data, {
-          showRowNumber: false,
-          width: '100%',
-          height: '100%',
-          fontSize: 16,
-          allowHtml: true,
-          alternatingRowStyle: false,
-          page: 'disable',
-          sort: 'disable',
-        });
-
-        // Hücreleri biraz sıkılaştır
-        setTimeout(() => {
-          const cells = element.querySelectorAll('td, th');
-          cells.forEach((cell) => {
-            const el = cell as HTMLElement;
-            el.style.padding = '6px 8px';
-            el.style.fontSize = '14px';
-            el.style.textAlign = 'left';
-          });
-        }, 100);
+      // Basic CSV parser for single-column Google Sheets export
+      const rows = text.split('\n').map(row => {
+        // Cleaning quotes from CSV export
+        return row.replace(/^"|"$/g, '').replace(/""/g, '"').trim();
       });
-    },
-    []
-  );
 
-  const drawAllTables = useCallback(() => {
-    const timestamp = Date.now();
-    // Öğle: A3:A6, Akşam: A8:A11, Özet: A13:A14
-    drawTable(lunchTableRef.current, 'A3:A6', timestamp);
-    drawTable(dinnerTableRef.current, 'A8:A11', timestamp);
-    drawTable(footerTableRef.current, 'A13:A14', timestamp);
-  }, [drawTable]);
+      setSheetData({
+        weather: rows[0] || '',
+        lunchStats: rows[2] || '',
+        lunchMenu: [rows[3], rows[4], rows[5]].filter(Boolean),
+        dinnerStats: rows[7] || '',
+        dinnerMenu: [rows[8], rows[9], rows[10]].filter(Boolean),
+        summary: rows[12] || '',
+        monthlySummary: rows[13] || ''
+      });
+    } catch (error) {
+      console.error('Veri çekme hatası:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
-  // Google Charts yükleme
   useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://www.gstatic.com/charts/loader.js';
-    script.async = true;
-    script.onload = () => {
-      if (!window.google) return;
-      window.google.charts.load('current', { packages: ['table'] });
-      window.google.charts.setOnLoadCallback(drawAllTables);
-    };
-    document.body.appendChild(script);
-
-    return () => {
-      if (document.body.contains(script)) {
-        document.body.removeChild(script);
-      }
-    };
-  }, [drawAllTables]);
+    fetchData();
+    // Auto refresh every 5 minutes
+    const interval = setInterval(fetchData, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [fetchData]);
 
   // LocalStorage'dan daha önce oy kullanmış mı kontrol et
   useEffect(() => {
@@ -212,13 +192,16 @@ export function HastaneYemek() {
         setShowDinnerExplosion(true);
       }
 
+      toast.success('Değerlendirmeniz alındı. Teşekkürler!');
+
       // Oylama sonrası tabloyu yenile (Google Sheets'in güncellenmesi için kısa bir gecikme)
       setTimeout(() => {
-        drawAllTables();
-      }, 1000);
+        fetchData();
+      }, 1500);
 
     } catch (error) {
       console.error('Form gönderimi hatası:', error);
+      toast.error('Bir hata oluştu. Lütfen tekrar deneyin.');
     }
   };
 
@@ -230,7 +213,7 @@ export function HastaneYemek() {
     disabled: boolean
   ) => {
     return (
-      <div className="flex justify-center gap-2 my-3">
+      <div className="flex justify-center gap-3 my-4">
         {[1, 2, 3, 4, 5].map((value) => {
           const active = (hovered || rating) >= value;
           return (
@@ -240,15 +223,15 @@ export function HastaneYemek() {
               onClick={() => !disabled && setRating(value)}
               onMouseEnter={() => !disabled && setHovered(value)}
               onMouseLeave={() => !disabled && setHovered(0)}
-              className="p-1"
+              className="group relative p-1 transition-transform active:scale-75"
               aria-label={`${value} yıldız`}
             >
               <Star
-                size={26}
-                className="transition-transform"
-                fill={active ? '#FFD700' : 'transparent'}
-                stroke={active ? '#FBBF24' : '#D1D5DB'}
-                strokeWidth={2}
+                size={34}
+                className={`transition-all duration-300 ${active ? 'scale-110 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]' : 'scale-100'}`}
+                fill={active ? '#FBBF24' : 'transparent'}
+                stroke={active ? '#F59E0B' : '#CBD5E1'}
+                strokeWidth={active ? 2.5 : 2}
               />
             </button>
           );
@@ -258,157 +241,222 @@ export function HastaneYemek() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f4f4f4]">
+    <div className="min-h-screen bg-slate-50">
       <PageContainer>
-        {/* SEO-friendly hidden content for search engines */}
+        {/* SEO-friendly hidden content */}
         <div className="sr-only" aria-hidden="false">
           <h1>SDÜ Hastane Yemek Listesi - Süleyman Demirel Üniversitesi Hastanesi Günlük Menü</h1>
-          <p>
-            Isparta Süleyman Demirel Üniversitesi (SDÜ) Araştırma ve Uygulama Hastanesi günlük yemek menüsü.
-            SDÜ hastane yemek listesi, öğle ve akşam yemeği tarifesi burada anlık olarak güncellenmektedir.
-            Prof. Dr. Metin Çiriş tarafından hazırlanan bu sayfa, SDÜ Tıp Fakültesi Hastanesi personel ve
-            ziyaretçileri için güncel menü bilgisi sunmaktadır. Yemek puanlama sistemi ile menüleri
-            değerlendirebilir, diğer kullanıcıların oylarını görebilirsiniz.
-            SDÜ yemekhane menüsü her gün otomatik güncellenir.
-          </p>
-          <ul>
-            <li>SDÜ hastane yemek</li>
-            <li>SDÜ hastane yemek listesi</li>
-            <li>Süleyman Demirel Üniversitesi Hastanesi yemek menüsü</li>
-            <li>Isparta hastane yemekhane</li>
-            <li>SDÜ Tıp Fakültesi yemek</li>
-            <li>Metin Çiriş yemek</li>
-          </ul>
+          <p>Isparta Süleyman Demirel Üniversitesi (SDÜ) Araştırma ve Uygulama Hastanesi günlük yemek menüsü. Metin Çiriş tarafından hazırlanan güncel yemekhane portalı.</p>
         </div>
 
-        {/* Tarih ve başlık */}
-        <div className="mb-6 rounded-xl bg-white border border-gray-200 px-4 py-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-          <div className="text-sm sm:text-base text-gray-800 font-medium">
-            📅 {formattedDate}
+        {/* Header Section */}
+        <div className="relative overflow-hidden bg-gradient-to-br from-[#303f9f] to-[#1976d2] rounded-3xl p-8 md:p-12 mb-8 text-white shadow-xl">
+          <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8">
+            <div className="text-center md:text-left">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-bold uppercase tracking-wider mb-4 border border-white/10">
+                <Sparkles size={14} />
+                <span>Modern Yemekhane Portalı</span>
+              </div>
+              <h1 className="text-4xl md:text-5xl font-black mb-4 tracking-tight">SDÜ Hastane Menüsü</h1>
+              <p className="text-lg opacity-90 font-medium">
+                Resmi olmayan, yapay zeka destekli menü ve değerlendirme platformu.
+              </p>
+            </div>
+            <div className="shrink-0 bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/20 text-center">
+              <div className="text-sm uppercase tracking-widest opacity-80 mb-1 font-bold">Bugünün Tarihi</div>
+              <div className="text-2xl font-black italic">{formattedDate.split(' ')[0]} {formattedDate.split(' ')[1]}</div>
+              <div className="text-sm opacity-80 mt-1">{formattedDate.split(' ').slice(2).join(' ')}</div>
+            </div>
           </div>
-          <div className="text-xs sm:text-sm text-gray-600">
-            SDÜ Hastanesi · Bugünkü Yemek Menüsü
-          </div>
+          {/* Decorative elements */}
+          <div className="absolute -top-24 -right-24 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-[#3f51b5]/30 rounded-full blur-3xl"></div>
         </div>
 
-        {/* Öğle yemeği */}
-        <div className="bg-white rounded-xl p-5 mb-6 shadow-md border border-[#f9e79f]">
-          <h2 className="text-lg sm:text-xl font-semibold text-center mb-4 text-gray-800">
-            ༻ Öğle Yemeği Menüsü ༺
-          </h2>
-          <div
-            ref={lunchTableRef}
-            className="mb-4 text-sm sm:text-base leading-relaxed"
-          />
+        {/* AI Weather/Greeting Section */}
+        {sheetData?.weather && (
+          <div className="mb-8 bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100 relative overflow-hidden group">
+            <div className="absolute top-0 left-0 w-2 h-full bg-indigo-500"></div>
+            <div className="flex flex-col md:flex-row items-center gap-6">
+              <div className="shrink-0 w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-500 group-hover:scale-110 transition-transform duration-500">
+                <Cloud size={32} />
+              </div>
+              <div className="text-slate-600 leading-relaxed italic font-medium">
+                "{cleanHtml(sheetData.weather)}"
+              </div>
+            </div>
+          </div>
+        )}
 
-          <div className="pt-4 border-t border-[#f9e79f]/60">
-            {renderStars(
-              lunchRating,
-              setLunchRating,
-              hoveredLunchStar,
-              setHoveredLunchStar,
-              lunchSubmitted
-            )}
-
-            <div className="flex justify-center min-h-[48px] relative">
-              <StarExplosion
-                active={showLunchExplosion}
-                onComplete={() => setShowLunchExplosion(false)}
-              />
-              {!lunchSubmitted ? (
-                <button
-                  onClick={() => handleSubmit('lunch')}
-                  disabled={lunchRating === 0}
-                  className="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-[#FFDB31] text-gray-900 text-sm sm:text-base font-semibold shadow hover:shadow-md transition-all disabled:opacity-60 disabled:cursor-not-allowed"
-                >
-                  <Star size={18} fill="#000" />
-                  Öğle menüsünü oyla
-                </button>
-              ) : (
-                <div className="px-4 py-2 rounded-lg bg-white border border-amber-200 text-amber-700 text-xs sm:text-sm font-medium">
-                  {formatCountdown(lunchCountdown)}
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-4">
+            <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-slate-500 font-bold animate-pulse">Menü yükleniyor...</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            {/* Lunch Card */}
+            <div className="flex flex-col h-full bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-md transition-shadow">
+              <div className="bg-gradient-to-r from-amber-400 to-amber-500 p-6 text-white">
+                <div className="flex justify-between items-center mb-2">
+                  <Utensils size={24} className="opacity-80" />
+                  <span className="text-xs font-bold uppercase tracking-widest bg-black/10 px-2 py-1 rounded">ÖĞLE</span>
                 </div>
-              )}
+                <h2 className="text-2xl font-black italic">Öğle Yemeği Menüsü</h2>
+                {sheetData?.lunchStats && (
+                  <div className="mt-3 text-sm font-bold bg-white/20 p-2 rounded-lg inline-block">
+                    {cleanHtml(sheetData.lunchStats)}
+                  </div>
+                )}
+              </div>
+              <div className="p-8 flex-grow">
+                <div className="space-y-4">
+                  {sheetData?.lunchMenu.map((item, idx) => (
+                    <div key={idx} className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100 group hover:bg-white hover:border-amber-200 hover:shadow-sm transition-all duration-300">
+                      <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0 group-hover:rotate-12 transition-transform">
+                        <Heart size={20} className="fill-current" />
+                      </div>
+                      <span className="text-slate-700 font-bold text-lg">{cleanHtml(item)}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-8 pt-8 border-t border-slate-100 text-center">
+                  <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-4">MENÜYÜ DEĞERLENDİR</h3>
+                  {renderStars(lunchRating, setLunchRating, hoveredLunchStar, setHoveredLunchStar, lunchSubmitted)}
+                  <div className="mt-4 relative min-h-[48px] flex justify-center">
+                    <StarExplosion active={showLunchExplosion} onComplete={() => setShowLunchExplosion(false)} />
+                    {!lunchSubmitted ? (
+                      <button
+                        onClick={() => handleSubmit('lunch')}
+                        disabled={lunchRating === 0}
+                        className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-black shadow-lg shadow-amber-200 transition-all active:scale-95 disabled:opacity-50"
+                      >
+                        <Star size={20} fill="currentColor" />
+                        <span>PUANIMI GÖNDER</span>
+                      </button>
+                    ) : (
+                      <div className="w-full px-6 py-3 rounded-2xl bg-slate-100 text-slate-500 font-bold flex items-center justify-center gap-2">
+                        <Calendar size={18} />
+                        {formatCountdown(lunchCountdown)}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
 
-            {lunchSubmitted && lunchCountdown === WAIT_TIME && (
-              <p className="text-center text-emerald-600 text-sm font-semibold mt-3">
-                ✓ Oyunuz kaydedildi! 😊
-              </p>
-            )}
-          </div>
-        </div>
-
-        {/* Akşam yemeği */}
-        <div className="bg-white rounded-xl p-5 mb-6 shadow-md border border-[#a9d4f5]">
-          <h2 className="text-lg sm:text-xl font-semibold text-center mb-4 text-gray-800">
-            ༻ Akşam Yemeği Menüsü ༺
-          </h2>
-          <div
-            ref={dinnerTableRef}
-            className="mb-4 text-sm sm:text-base leading-relaxed"
-          />
-
-          <div className="pt-4 border-t border-[#a9d4f5]/60">
-            {renderStars(
-              dinnerRating,
-              setDinnerRating,
-              hoveredDinnerStar,
-              setHoveredDinnerStar,
-              dinnerSubmitted
-            )}
-
-            <div className="flex justify-center min-h-[48px] relative">
-              <StarExplosion
-                active={showDinnerExplosion}
-                onComplete={() => setShowDinnerExplosion(false)}
-              />
-              {!dinnerSubmitted ? (
-                <button
-                  onClick={() => handleSubmit('dinner')}
-                  disabled={dinnerRating === 0}
-                  className="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-[#FFDB31] text-gray-900 text-sm sm:text-base font-semibold shadow hover:shadow-md transition-all disabled:opacity-60 disabled:cursor-not-allowed"
-                >
-                  <Star size={18} fill="#000" />
-                  Akşam menüsünü oyla
-                </button>
-              ) : (
-                <div className="px-4 py-2 rounded-lg bg-white border border-sky-200 text-sky-700 text-xs sm:text-sm font-medium">
-                  {formatCountdown(dinnerCountdown)}
+            {/* Dinner Card */}
+            <div className="flex flex-col h-full bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-md transition-shadow">
+              <div className="bg-gradient-to-r from-indigo-500 to-indigo-600 p-6 text-white">
+                <div className="flex justify-between items-center mb-2">
+                  <Moon size={24} className="opacity-80" />
+                  <span className="text-xs font-bold uppercase tracking-widest bg-black/10 px-2 py-1 rounded">AKŞAM</span>
                 </div>
-              )}
-            </div>
+                <h2 className="text-2xl font-black italic">Akşam Yemeği Menüsü</h2>
+                {sheetData?.dinnerStats && (
+                  <div className="mt-3 text-sm font-bold bg-white/20 p-2 rounded-lg inline-block">
+                    {cleanHtml(sheetData.dinnerStats)}
+                  </div>
+                )}
+              </div>
+              <div className="p-8 flex-grow">
+                <div className="space-y-4">
+                  {sheetData?.dinnerMenu.map((item, idx) => (
+                    <div key={idx} className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100 group hover:bg-white hover:border-indigo-200 hover:shadow-sm transition-all duration-300">
+                      <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0 group-hover:rotate-12 transition-transform">
+                        <Heart size={20} className="fill-current" />
+                      </div>
+                      <span className="text-slate-700 font-bold text-lg">{cleanHtml(item)}</span>
+                    </div>
+                  ))}
+                </div>
 
-            {dinnerSubmitted && dinnerCountdown === WAIT_TIME && (
-              <p className="text-center text-emerald-600 text-sm font-semibold mt-3">
-                ✓ Oyunuz kaydedildi! 😊
-              </p>
+                <div className="mt-8 pt-8 border-t border-slate-100 text-center">
+                  <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-4">MENÜYÜ DEĞERLENDİR</h3>
+                  {renderStars(dinnerRating, setDinnerRating, hoveredDinnerStar, setHoveredDinnerStar, dinnerSubmitted)}
+                  <div className="mt-4 relative min-h-[48px] flex justify-center">
+                    <StarExplosion active={showDinnerExplosion} onComplete={() => setShowDinnerExplosion(false)} />
+                    {!dinnerSubmitted ? (
+                      <button
+                        onClick={() => handleSubmit('dinner')}
+                        disabled={dinnerRating === 0}
+                        className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-indigo-500 hover:bg-indigo-600 text-white font-black shadow-lg shadow-indigo-200 transition-all active:scale-95 disabled:opacity-50"
+                      >
+                        <Star size={20} fill="currentColor" />
+                        <span>PUANIMI GÖNDER</span>
+                      </button>
+                    ) : (
+                      <div className="w-full px-6 py-3 rounded-2xl bg-slate-100 text-slate-500 font-bold flex items-center justify-center gap-2">
+                        <Calendar size={18} />
+                        {formatCountdown(dinnerCountdown)}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* AI Analysis Sections */}
+        {!isLoading && sheetData && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+            {sheetData.summary && (
+              <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 relative group overflow-hidden">
+                <div className="absolute top-0 right-0 p-4 text-emerald-100 opacity-20 group-hover:opacity-40 transition-opacity">
+                  <Sparkles size={80} />
+                </div>
+                <h2 className="text-xl font-black text-slate-800 mb-4 flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                    <MessageSquare size={18} />
+                  </div>
+                  Yapay Zeka Değerlendirmesi
+                </h2>
+                <div className="text-slate-600 leading-relaxed font-medium relative z-10">
+                  {cleanHtml(sheetData.summary)}
+                </div>
+              </div>
             )}
+
+            {sheetData.monthlySummary && (
+              <div className="bg-slate-900 rounded-3xl p-8 shadow-xl text-white relative group">
+                <div className="absolute top-0 right-0 p-4 text-white/5">
+                  <Coffee size={80} />
+                </div>
+                <h2 className="text-xl font-black mb-4 flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-white/10 text-white flex items-center justify-center">
+                    <Calendar size={18} />
+                  </div>
+                  Aylık Mutfak Özeti
+                </h2>
+                <div className="text-slate-300 leading-relaxed font-medium" dangerouslySetInnerHTML={{ __html: sheetData.monthlySummary }} />
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Disclaimer Footer */}
+        <div className="bg-slate-200/50 backdrop-blur-sm rounded-3xl p-6 text-center text-slate-500 text-xs font-bold flex flex-col items-center gap-2">
+          <div className="flex items-center gap-2">
+            <Info size={14} />
+            <span>Feragatname & Bilgilendirme</span>
+          </div>
+          <p>Bu platform tamamen eğlence ve kişisel proje amaçlıdır. Veriler resmi SDÜ kaynakları ile farklılık gösterebilir.</p>
+          <div className="mt-2 text-[10px] opacity-70">
+            © {new Date().getFullYear()} Metin Çiriş Portalı · Tüm Hakları Saklıdır
           </div>
         </div>
 
-        {/* Genel reyting özeti */}
-        <div className="bg-white rounded-xl p-5 mb-6 shadow-md border border-gray-200">
-          <h2 className="text-base sm:text-lg font-semibold text-gray-800 mb-3">
-            Genel Reyting Özeti
-          </h2>
-          <div
-            ref={footerTableRef}
-            className="text-sm sm:text-base leading-relaxed"
-          />
-          <p className="mt-2 text-xs text-gray-500">
-            Bu özet, ziyaretçilerin yıldız oylamalarından otomatik hesaplanır.
-          </p>
+        {/* Student Menu Integration */}
+        <div className="mt-12">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="h-px flex-grow bg-slate-200"></div>
+            <h2 className="text-slate-400 font-black uppercase tracking-widest text-sm">Ayrıca Göz Atın</h2>
+            <div className="h-px flex-grow bg-slate-200"></div>
+          </div>
+          <StudentLunchMenu />
         </div>
-
-        {/* Bilgilendirme */}
-        <div className="bg-[#FFF7ED] border border-[#FED7AA] rounded-xl p-4 text-xs sm:text-sm text-gray-700 mb-6">
-          ⚠️ Bu sayfadaki bilgiler eğlence amaçlıdır; her zaman gerçeği birebir
-          yansıtmayabilir.
-        </div>
-
-        {/* Öğrenci yemek menüsü (Dinamik) */}
-        <StudentLunchMenu />
       </PageContainer>
     </div>
   );
