@@ -200,7 +200,7 @@ export function OgrenciYemek() {
           <div className="text-center md:text-left">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">Günün Menüsü</h1>
             <p className="text-lg opacity-90 max-w-xl">
-              Isparta Şehir Hastanesi ve SDÜ Öğrenci Yemekhanesi günlük yemek listeleri ve değerlendirme sistemi.
+              SDÜ Öğrenci Yemek Menüsü.
             </p>
           </div>
           <div className="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/20 min-w-[200px]">
@@ -404,11 +404,19 @@ export function OgrenciYemek() {
               href="https://askidayemek.sdu.edu.tr/"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-between w-full bg-white/10 hover:bg-white/20 border border-white/10 p-4 rounded-xl transition-all group"
+              className="flex items-center justify-between w-full bg-white/10 hover:bg-white/20 border border-white/10 p-4 rounded-xl transition-all group mb-4"
             >
               <span className="font-bold">Sisteme Giriş Yap</span>
               <ExternalLink size={20} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
             </a>
+
+            <button
+              onClick={() => window.location.href = '/hastane-yemek'}
+              className="flex items-center justify-between w-full bg-indigo-500 hover:bg-indigo-600 border border-indigo-400 p-4 rounded-xl transition-all group"
+            >
+              <span className="font-bold text-white">SDÜ Hastane Yemek Menüsü</span>
+              <ExternalLink size={20} className="text-white group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+            </button>
           </div>
         </div>
       </div>
