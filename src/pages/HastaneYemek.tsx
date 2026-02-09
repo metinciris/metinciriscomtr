@@ -260,6 +260,27 @@ export function HastaneYemek() {
   return (
     <div className="min-h-screen bg-[#f4f4f4]">
       <PageContainer>
+        {/* SEO-friendly hidden content for search engines */}
+        <div className="sr-only" aria-hidden="false">
+          <h1>SDÜ Hastane Yemek Listesi - Süleyman Demirel Üniversitesi Hastanesi Günlük Menü</h1>
+          <p>
+            Isparta Süleyman Demirel Üniversitesi (SDÜ) Araştırma ve Uygulama Hastanesi günlük yemek menüsü.
+            SDÜ hastane yemek listesi, öğle ve akşam yemeği tarifesi burada anlık olarak güncellenmektedir.
+            Prof. Dr. Metin Çiriş tarafından hazırlanan bu sayfa, SDÜ Tıp Fakültesi Hastanesi personel ve
+            ziyaretçileri için güncel menü bilgisi sunmaktadır. Yemek puanlama sistemi ile menüleri
+            değerlendirebilir, diğer kullanıcıların oylarını görebilirsiniz.
+            SDÜ yemekhane menüsü her gün otomatik güncellenir.
+          </p>
+          <ul>
+            <li>SDÜ hastane yemek</li>
+            <li>SDÜ hastane yemek listesi</li>
+            <li>Süleyman Demirel Üniversitesi Hastanesi yemek menüsü</li>
+            <li>Isparta hastane yemekhane</li>
+            <li>SDÜ Tıp Fakültesi yemek</li>
+            <li>Metin Çiriş yemek</li>
+          </ul>
+        </div>
+
         {/* Tarih ve başlık */}
         <div className="mb-6 rounded-xl bg-white border border-gray-200 px-4 py-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
           <div className="text-sm sm:text-base text-gray-800 font-medium">

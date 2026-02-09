@@ -38,9 +38,9 @@ const PAGE_METADATA: Record<string, { title: string; description: string; keywor
         keywords: 'nöbetçi eczane, Isparta eczane, gece eczane, Isparta nöbetçi eczaneler, eczane telefon'
     },
     'hastane-yemek': {
-        title: 'SDÜ Hastane Yemek Listesi | Prof Dr Metin Çiriş',
-        description: 'Süleyman Demirel Üniversitesi Hastanesi günlük yemek menüsü.',
-        keywords: 'hastane yemek, SDÜ yemekhane, günlük menü'
+        title: 'SDÜ Hastane Yemek Listesi - Bugünkü Öğle ve Akşam Menüsü | Metin Çiriş',
+        description: 'SDÜ hastane yemek listesi - Süleyman Demirel Üniversitesi Hastanesi günlük öğle ve akşam yemeği menüsü. Anlık güncellenen yemek tarifesi, kalori bilgileri ve kullanıcı puanlaması. Isparta SDÜ Tıp Fakültesi yemekhane menüsü.',
+        keywords: 'sdü hastane yemek, sdü hastane yemek listesi, metin çiriş yemek, metin ciriş, süleyman demirel üniversitesi hastane yemek, isparta hastane yemek menüsü, sdu hastane yemek, sdü yemekhane, hastane günlük menü, sdu tip fakultesi yemek, sdü araştırma hastanesi yemek'
     },
     'ders-notlari': {
         title: 'Patoloji Ders Notları | Prof Dr Metin Çiriş',
