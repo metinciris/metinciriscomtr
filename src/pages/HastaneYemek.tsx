@@ -81,31 +81,37 @@ const normalizeCsvRows = (rawText: string) => {
 const fetchData = useCallback(async () => {
   setIsLoading(true);
   try {
-    const res = await fetch("/hastane-menu.json", { cache: "no-store" });
+    const res = await fetch('/hastane-menu.json', { cache: 'no-store' });
+
+    if (!res.ok) {
+      throw new Error(`hastane-menu.json HTTP ${res.status}`);
+    }
+
     const data = await res.json();
 
     setSheetData({
-      lunchStats: data.lunchStats || "",
-      lunchMenu: data.lunchMenu || [],
-      dinnerStats: data.dinnerStats || "",
-      dinnerMenu: data.dinnerMenu || [],
-      aiDaily: data.aiDaily || "",
-      aiMonthly: data.aiMonthly || "",
+      lunchStats: data.lunchStats || '',
+      lunchMenu: Array.isArray(data.lunchMenu) ? data.lunchMenu : [],
+      dinnerStats: data.dinnerStats || '',
+      dinnerMenu: Array.isArray(data.dinnerMenu) ? data.dinnerMenu : [],
+      aiDaily: data.aiDaily || '',
+      aiMonthly: data.aiMonthly || '',
     });
   } catch (e) {
-    console.error(e);
+    console.error('Menu JSON fetch error:', e);
     setSheetData({
-      lunchStats: "",
+      lunchStats: '',
       lunchMenu: [],
-      dinnerStats: "",
+      dinnerStats: '',
       dinnerMenu: [],
-      aiDaily: "",
-      aiMonthly: "",
+      aiDaily: '',
+      aiMonthly: '',
     });
   } finally {
     setIsLoading(false);
   }
 }, []);
+
 
 
 
