@@ -12,9 +12,19 @@ declare global {
 }
 
 const SHEET_ID = '1dxvTCpd-Yegvh7Zy1QkHC_hIwv9Zrwtld3FASVlMrzw';
+const GID = '663023417';
 const WAIT_TIME = 900; // 15 dakika
 
 type MealType = 'lunch' | 'dinner';
+
+type SheetData = {
+  lunchStats: string;
+  lunchMenu: string[];
+  dinnerStats: string;
+  dinnerMenu: string[];
+  aiDaily: string;      // A13
+  aiMonthly: string;    // A14 (boş değilse gösterilecek)
+};
 
 export function HastaneYemek() {
   const [lunchRating, setLunchRating] = useState(0);
@@ -32,6 +42,9 @@ export function HastaneYemek() {
   const [showLunchExplosion, setShowLunchExplosion] = useState(false);
   const [showDinnerExplosion, setShowDinnerExplosion] = useState(false);
 
+  const [sheetData, setSheetData] = useState<SheetData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
   // Helper to clean HTML from Google Sheet cells
   const cleanHtml = (html: string) => {
     if (!html) return '';
@@ -46,63 +59,92 @@ export function HastaneYemek() {
     weekday: 'long',
   });
 
-  const [sheetData, setSheetData] = useState<{
-    lunchStats: string;
-    lunchMenu: string[];
-    dinnerStats: string;
-    dinnerMenu: string[];
-    aiDaily: string;      // A13
-    aiMonthly: string;    // A14 (boş değilse gösterilecek)
-  } | null>(null);
-
-  const [isLoading, setIsLoading] = useState(true);
-
-  // CSV satırlarını "A1..An" gibi hücre numarasıyla güvenli map etmek için helper
+  /**
+   * CSV çıktı bazen hücre içinde newline taşıyor (A7'deki gibi).
+   * out:csv bunu satır gibi bölebiliyor -> indeks kayıyor.
+   * Bu normalize: newline'ı tek satıra indirip, satırları güvenli hale getirir.
+   */
   const normalizeCsvRows = (rawText: string) => {
-    // satırları al
-    const rawRows = rawText
-      .split('\n')
-      .map(r => r.replace(/\r/g, '').trim())
-      .filter(r => r.length > 0 || r === ''); // boş satırı tamamen yok etmeyelim (indeks kaydırmasın)
+    // 1) CR temizle
+    let t = rawText.replace(/\r/g, '');
 
-    // her satırdan dıştaki quote’ları temizle
-    const rows = rawRows.map(row => row.replace(/^"|"$/g, '').replace(/""/g, '"').trim());
+    // 2) Hücre içi newline'ları tek satıra indir:
+    // CSV'de quoted alan içinde newline olabiliyor. Biz hızlı/pratik yaklaşım:
+    // " ... \n ..." patternlerini yakalayıp boşlukla değiştiriyoruz.
+    // Bu proje için yeterince sağlam; çünkü tek kolon (A) çekiyoruz.
+    t = t.replace(/"\n/g, '" '); // quote kapanmadan gelen newline
+    t = t.replace(/\n"/g, ' "'); // quote açılmadan önceki newline
+    t = t.replace(/\n{2,}/g, '\n'); // fazla boş satırları sadeleştir
 
-    // Bazı gviz csv çıktılarında ilk satır başlık olabiliyor (örn: "A")
-    // Bu olursa bütün indeksler kayıyor → otomatik ayıkla
+    // 3) Satırları böl
+    const rawRows = t.split('\n').map(r => r.trim());
+
+    // 4) Dış quote’ları temizle + escaped quote düzelt
+    const rows = rawRows.map(row =>
+      row.replace(/^"|"$/g, '').replace(/""/g, '"').trim()
+    );
+
+    // 5) Bazı gviz csv çıktılarında ilk satır başlık olabiliyor
     const first = (rows[0] ?? '').trim();
-    const looksLikeHeader = first === 'A' || first === 'a' || first === 'Column A' || first === 'column a';
-    return looksLikeHeader ? rows.slice(1) : rows;
+    const looksLikeHeader =
+      first === 'A' || first === 'a' || first === 'Column A' || first === 'column a';
+
+    const finalRows = looksLikeHeader ? rows.slice(1) : rows;
+
+    return finalRows;
   };
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=663023417`);
+      // ✅ Sadece A1:A14 çek -> sabit indeks garantisi
+      const url =
+        `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?` +
+        `tqx=out:csv&gid=${GID}&range=A1:A14`;
+
+      const response = await fetch(url, { cache: 'no-store' });
       const text = await response.text();
 
       const rows = normalizeCsvRows(text);
 
+      // ✅ 14 satıra tamamla (Google bazen sondaki boşları kırpabilir)
+      while (rows.length < 14) rows.push('');
+
       // A(row): 1-based sheet row -> 0-based array index
       const A = (row: number) => rows[row - 1] || '';
 
-      // İSTENEN EŞLEME
-      // A1 hava durumu -> tamamen kaldırıldı
-      // A2: öğle başlık (UI’da zaten sabit, burada sadece stats/menu alıyoruz)
+      // ✅ Sabit eşleme (senin dump’a göre)
+      // A1: hava durumu -> kullanmıyoruz
+      // A2: Öğle başlık -> kullanmıyoruz
       // A3: lunchStats
       // A4-6: lunch menu
-      // A8: dinnerStats (A7 başlık, A8 stats)
-      // A9-11: dinner menu (kayma düzeltildi)
-      // A13: AI daily
-      // A14: AI monthly (boş değilse göster)
+      // A7: Akşam başlık -> kullanmıyoruz
+      // A8: dinnerStats
+      // A9-11: dinner menu
+      // A12: ddd -> ignore
+      // A13: AI daily (yıllık + AI aynı hücreyse istersen sonra ayrıştırırız)
+      // A14: AI monthly
+
+      const lunchStats = A(3);
+      const lunchMenu = [A(4), A(5), A(6)]
+        .map(s => (s ?? '').toString().trim())
+        .filter(s => cleanHtml(s) !== '');
+
+      const dinnerStats = A(8);
+      const dinnerMenu = [A(9), A(10), A(11)]
+        .map(s => (s ?? '').toString().trim())
+        .filter(s => cleanHtml(s) !== '');
+
+      const aiDaily = A(13);
+      const aiMonthly = A(14);
 
       setSheetData({
-        lunchStats: A(3) || '',
-        lunchMenu: [A(4), A(5), A(6)].filter(Boolean),
-        dinnerStats: A(8) || '',
-        dinnerMenu: [A(9), A(10), A(11)].filter(Boolean),
-        aiDaily: A(13) || '',
-        aiMonthly: A(14) || '',
+        lunchStats: lunchStats || '',
+        lunchMenu,
+        dinnerStats: dinnerStats || '',
+        dinnerMenu,
+        aiDaily: aiDaily || '',
+        aiMonthly: aiMonthly || '',
       });
     } catch (error) {
       console.error('Veri çekme hatası:', error);
@@ -113,7 +155,6 @@ export function HastaneYemek() {
 
   useEffect(() => {
     fetchData();
-    // Auto refresh every 5 minutes
     const interval = setInterval(fetchData, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, [fetchData]);
@@ -219,11 +260,9 @@ export function HastaneYemek() {
 
       toast.success('Değerlendirmeniz alındı. Teşekkürler!');
 
-      // Oylama sonrası tabloyu yenile
       setTimeout(() => {
         fetchData();
       }, 1500);
-
     } catch (error) {
       console.error('Form gönderimi hatası:', error);
       toast.error('Bir hata oluştu. Lütfen tekrar deneyin.');
@@ -268,13 +307,12 @@ export function HastaneYemek() {
   return (
     <div className="min-h-screen bg-slate-50">
       <PageContainer>
-        {/* SEO-friendly hidden content */}
         <div className="sr-only" aria-hidden="false">
           <h1>SDÜ Hastane Yemek Listesi - Süleyman Demirel Üniversitesi Hastanesi Günlük Menü</h1>
           <p>Isparta Süleyman Demirel Üniversitesi (SDÜ) Araştırma ve Uygulama Hastanesi günlük yemek menüsü.</p>
         </div>
 
-        {/* ✅ Kompakt Sticky Header (büyük hero kaldırıldı) */}
+        {/* ✅ Kompakt Sticky Header */}
         <div className="sticky top-3 z-40 mb-5">
           <div className="bg-white/80 backdrop-blur-md border border-slate-200 rounded-2xl px-4 py-3 shadow-sm">
             <div className="flex items-center gap-3">
@@ -282,7 +320,6 @@ export function HastaneYemek() {
                 SDÜ Hastane Menüsü
               </div>
               <div className="flex-1 text-center font-black text-slate-700 truncate">
-                {/* ✅ Bugünün Tarihi yerine Bugün */}
                 Bugün {formattedDate}
               </div>
               <div className="w-6" aria-hidden="true" />
@@ -315,7 +352,6 @@ export function HastaneYemek() {
                 <div className="space-y-4 flex-grow">
                   {sheetData?.lunchMenu.map((item, idx) => (
                     <div key={idx} className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100 group hover:bg-white hover:border-amber-200 hover:shadow-sm transition-all duration-300">
-                      {/* ✅ Kalp kaldırıldı */}
                       <div className="w-10 h-10 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center shrink-0 group-hover:translate-x-1 transition-transform border border-orange-200">
                         <ChevronRight size={20} />
                       </div>
@@ -367,7 +403,6 @@ export function HastaneYemek() {
                 <div className="space-y-4 flex-grow">
                   {sheetData?.dinnerMenu.map((item, idx) => (
                     <div key={idx} className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100 group hover:bg-white hover:border-indigo-200 hover:shadow-sm transition-all duration-300">
-                      {/* ✅ Kalp kaldırıldı */}
                       <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0 group-hover:translate-x-1 transition-transform border border-indigo-200">
                         <ChevronRight size={20} />
                       </div>
@@ -406,8 +441,7 @@ export function HastaneYemek() {
         {/* ✅ AI Analysis Sections */}
         {!isLoading && sheetData && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-            {/* ✅ Yapay Zeka Değerlendirmesi = A13 */}
-            {sheetData.aiDaily && (
+            {sheetData.aiDaily && cleanHtml(sheetData.aiDaily) !== '' && (
               <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 relative group overflow-hidden">
                 <div className="absolute top-0 right-0 p-4 text-emerald-100 opacity-20 group-hover:opacity-40 transition-opacity">
                   <Sparkles size={80} />
@@ -424,7 +458,6 @@ export function HastaneYemek() {
               </div>
             )}
 
-            {/* ✅ A14 boş değilse: Aylık yapay zeka menü değerlendirmesi */}
             {sheetData.aiMonthly && cleanHtml(sheetData.aiMonthly) !== '' && (
               <div className="bg-slate-900 rounded-3xl p-8 shadow-xl text-white relative group">
                 <div className="absolute top-0 right-0 p-4 text-white/5">
@@ -445,10 +478,6 @@ export function HastaneYemek() {
           </div>
         )}
 
-        {/* ✅ Yapay Zeka Özeti kaldırıldı */}
-        {/* ✅ Hava durumu (A1) bölümü kaldırıldı */}
-
-        {/* Student Menu Integration */}
         <div className="mt-12">
           <div className="flex items-center gap-4 mb-6">
             <div className="h-px flex-grow bg-slate-200"></div>
@@ -458,7 +487,6 @@ export function HastaneYemek() {
           <StudentLunchMenu />
         </div>
 
-        {/* Disclaimer Footer - At the very bottom */}
         <div className="mt-12 mb-8 bg-slate-200/50 backdrop-blur-sm rounded-3xl p-6 text-center text-slate-500 text-xs font-bold flex flex-col items-center gap-2">
           <div className="flex items-center gap-2">
             <Info size={14} />
