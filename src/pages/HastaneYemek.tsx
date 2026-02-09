@@ -97,7 +97,7 @@ export function HastaneYemek() {
 const fetchData = useCallback(async () => {
   setIsLoading(true);
   try {
-    // ✅ JSON gviz (CSV yerine)
+    // ✅ Values API: A1:A14 tek kolon
     const url =
       `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?` +
       `tqx=out:json&gid=${GID}&range=A1:A14`;
@@ -105,20 +105,19 @@ const fetchData = useCallback(async () => {
     const res = await fetch(url, { cache: 'no-store' });
     const raw = await res.text();
 
-    // Google gviz json cevabı: "google.visualization.Query.setResponse({...});"
+    // gviz response wrapper temizle
     const jsonText = raw
       .replace(/^[\s\S]*setResponse\(/, '')
       .replace(/\);\s*$/, '');
 
     const data = JSON.parse(jsonText);
 
-    // A1:A14 tek kolon -> table.rows[i].c[0].v
     const rows: string[] = (data?.table?.rows ?? []).map((r: any) => {
       const cell = r?.c?.[0];
+      // v bazen null olur
       return (cell?.v ?? '').toString();
     });
 
-    // 14 satıra tamamla
     while (rows.length < 14) rows.push('');
 
     const A = (row: number) => rows[row - 1] || '';
@@ -136,16 +135,21 @@ const fetchData = useCallback(async () => {
     const aiDaily = A(13);
     const aiMonthly = A(14);
 
+    // ✅ Debug: console’da kesin gör
+    console.log('A1..A14 rows:', rows);
+    console.log('lunchMenu:', lunchMenu, 'dinnerMenu:', dinnerMenu);
+
     setSheetData({
-      lunchStats: lunchStats || '',
+      lunchStats,
       lunchMenu,
-      dinnerStats: dinnerStats || '',
+      dinnerStats,
       dinnerMenu,
-      aiDaily: aiDaily || '',
-      aiMonthly: aiMonthly || '',
+      aiDaily,
+      aiMonthly,
     });
   } catch (e) {
-    console.error('Veri çekme hatası:', e);
+    console.error('fetchData error:', e);
+    // hata olsa bile loading’den çık
     setSheetData({
       lunchStats: '',
       lunchMenu: [],
@@ -158,6 +162,7 @@ const fetchData = useCallback(async () => {
     setIsLoading(false);
   }
 }, []);
+
 
 
   // Geri sayım sayacı
