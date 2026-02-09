@@ -169,8 +169,11 @@ export function OgrenciYemek() {
   const showDinnerRating = !!todayMenu?.dinnerMenu;
 
   const StarRating = ({ value, hovered, onHover, onRate, label }: any) => (
-    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-      <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">{label}</h3>
+    <div className="bg-white p-6 rounded-2xl shadow-md border-2 border-slate-100 hover:border-[#16A085]/20 transition-colors">
+      <h3 className="text-sm font-bold text-[#16A085] uppercase tracking-wide mb-4 flex items-center gap-2">
+        <Star size={16} className="fill-current" />
+        {label}
+      </h3>
       <div className="flex gap-2 mb-4">
         {[1, 2, 3, 4, 5].map((s) => (
           <button
@@ -343,7 +346,7 @@ export function OgrenciYemek() {
             <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
               <h2 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
                 <CheckCircle2 size={20} className="text-[#16A085]" />
-                Mevcut Puanlamalar
+                Bugünün Reytingi
               </h2>
               <div className="space-y-6">
                 <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100">
@@ -387,7 +390,7 @@ export function OgrenciYemek() {
 
             {/* Rating Forms - Moved to main content */}
 
-            {/* External Links */}
+            {/* Askıda Yemek */}
             <div className="bg-slate-900 rounded-3xl p-8 text-white shadow-xl">
               <h2 className="text-xl font-bold mb-4">Askıda Yemek</h2>
               <p className="text-slate-400 text-sm mb-6 leading-relaxed">
@@ -397,18 +400,25 @@ export function OgrenciYemek() {
                 href="https://askidayemek.sdu.edu.tr/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-between w-full bg-white/10 hover:bg-white/20 border border-white/10 p-4 rounded-xl transition-all group mb-4"
+                className="flex items-center justify-between w-full bg-white/10 hover:bg-white/20 border border-white/10 p-4 rounded-xl transition-all group"
               >
                 <span className="font-bold">Sisteme Giriş Yap</span>
                 <ExternalLink size={20} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
               </a>
+            </div>
 
+            {/* Hastane Yemek Menüsü - Separate Section */}
+            <div className="bg-indigo-600 rounded-3xl p-8 text-white shadow-xl">
+              <h2 className="text-xl font-bold mb-4 italic">SDÜ Hastane Menüsü</h2>
+              <p className="text-indigo-100 text-sm mb-6 leading-relaxed">
+                Isparta Şehir Hastanesi güncel yemek menüsüne buradan ulaşabilirsiniz.
+              </p>
               <button
                 onClick={() => window.location.href = '/hastane-yemek'}
-                className="flex items-center justify-between w-full bg-indigo-500 hover:bg-indigo-600 border border-indigo-400 p-4 rounded-xl transition-all group"
+                className="flex items-center justify-between w-full bg-white text-indigo-600 hover:bg-indigo-50 p-4 rounded-xl transition-all group font-bold"
               >
-                <span className="font-bold text-white">SDÜ Hastane Yemek Menüsü</span>
-                <ExternalLink size={20} className="text-white group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                <span>Hemen Görüntüle</span>
+                <ExternalLink size={20} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
               </button>
             </div>
           </div>
