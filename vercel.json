@@ -1,4 +1,10 @@
 {
+    "rewrites": [
+        {
+            "source": "/((?!assets|img|data|api).*)",
+            "destination": "/index.html"
+        }
+    ],
     "headers": [
         {
             "source": "/assets/(.*)",

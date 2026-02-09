@@ -1,0 +1,4 @@
+# Netlify SPA Fallback
+# Serve index.html for all routes (except static assets)
+# This is critical for SEO - prevents 404 errors on direct URL access
+/*    /index.html   200
