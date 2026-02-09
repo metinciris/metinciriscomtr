@@ -53,7 +53,7 @@ export function StudentLunchMenu() {
                     <Utensils size={20} />
                 </div>
                 <h2 className="text-base sm:text-lg font-semibold text-gray-800">
-                    🎓 Öğrenci Öğle Menüsü (SDÜ)
+                    🎓 Öğrenci Öğle Menüsü (SDÜ) - {new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', weekday: 'long' })}
                 </h2>
             </div>
 

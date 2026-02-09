@@ -297,26 +297,26 @@ export function HastaneYemek() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
             {/* Lunch Card */}
             <div className="flex flex-col h-full bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-md transition-shadow">
-              <div className="bg-gradient-to-r from-amber-400 to-amber-500 p-6 text-white">
+              <div className="bg-[#ff9800] p-6 text-white">
                 <div className="flex justify-between items-center mb-2">
-                  <Utensils size={24} className="opacity-80" />
-                  <span className="text-xs font-bold uppercase tracking-widest bg-black/10 px-2 py-1 rounded">ÖĞLE</span>
+                  <Utensils size={24} className="opacity-90" />
+                  <span className="text-xs font-bold uppercase tracking-widest bg-black/20 px-2 py-1 rounded">ÖĞLE</span>
                 </div>
                 <h2 className="text-2xl font-black italic">Öğle Yemeği Menüsü</h2>
                 {sheetData?.lunchStats && (
-                  <div className="mt-3 text-sm font-bold bg-white/20 p-2 rounded-lg inline-block">
+                  <div className="mt-3 text-sm font-bold bg-white/30 p-3 rounded-xl inline-block text-white border border-white/20">
                     {cleanHtml(sheetData.lunchStats)}
                   </div>
                 )}
               </div>
-              <div className="p-8 flex-grow">
-                <div className="space-y-4">
+              <div className="p-8 flex flex-col flex-grow">
+                <div className="space-y-4 flex-grow">
                   {sheetData?.lunchMenu.map((item, idx) => (
                     <div key={idx} className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100 group hover:bg-white hover:border-amber-200 hover:shadow-sm transition-all duration-300">
-                      <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0 group-hover:rotate-12 transition-transform">
+                      <div className="w-10 h-10 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center shrink-0 group-hover:rotate-12 transition-transform border border-orange-200">
                         <Heart size={20} className="fill-current" />
                       </div>
-                      <span className="text-slate-700 font-bold text-lg">{cleanHtml(item)}</span>
+                      <span className="text-slate-800 font-bold text-lg text-left leading-tight">{cleanHtml(item)}</span>
                     </div>
                   ))}
                 </div>
@@ -330,10 +330,10 @@ export function HastaneYemek() {
                       <button
                         onClick={() => handleSubmit('lunch')}
                         disabled={lunchRating === 0}
-                        className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-black shadow-lg shadow-amber-200 transition-all active:scale-95 disabled:opacity-50"
+                        className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-2xl bg-[#ff9800] hover:bg-[#f57c00] text-white font-black shadow-lg shadow-orange-100 transition-all active:scale-95 disabled:opacity-50"
                       >
                         <Star size={20} fill="currentColor" />
-                        <span>PUANIMI GÖNDER</span>
+                        <span>REYTINGIMI GÖNDER</span>
                       </button>
                     ) : (
                       <div className="w-full px-6 py-3 rounded-2xl bg-slate-100 text-slate-500 font-bold flex items-center justify-center gap-2">
@@ -348,26 +348,26 @@ export function HastaneYemek() {
 
             {/* Dinner Card */}
             <div className="flex flex-col h-full bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-md transition-shadow">
-              <div className="bg-gradient-to-r from-indigo-500 to-indigo-600 p-6 text-white">
+              <div className="bg-[#673ab7] p-6 text-white">
                 <div className="flex justify-between items-center mb-2">
-                  <Moon size={24} className="opacity-80" />
+                  <Moon size={24} className="opacity-90" />
                   <span className="text-xs font-bold uppercase tracking-widest bg-black/10 px-2 py-1 rounded">AKŞAM</span>
                 </div>
                 <h2 className="text-2xl font-black italic">Akşam Yemeği Menüsü</h2>
                 {sheetData?.dinnerStats && (
-                  <div className="mt-3 text-sm font-bold bg-white/20 p-2 rounded-lg inline-block">
+                  <div className="mt-3 text-sm font-bold bg-white/30 p-3 rounded-xl inline-block text-white border border-white/20">
                     {cleanHtml(sheetData.dinnerStats)}
                   </div>
                 )}
               </div>
-              <div className="p-8 flex-grow">
-                <div className="space-y-4">
+              <div className="p-8 flex flex-col flex-grow">
+                <div className="space-y-4 flex-grow">
                   {sheetData?.dinnerMenu.map((item, idx) => (
                     <div key={idx} className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100 group hover:bg-white hover:border-indigo-200 hover:shadow-sm transition-all duration-300">
-                      <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0 group-hover:rotate-12 transition-transform">
+                      <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0 group-hover:rotate-12 transition-transform border border-indigo-200">
                         <Heart size={20} className="fill-current" />
                       </div>
-                      <span className="text-slate-700 font-bold text-lg">{cleanHtml(item)}</span>
+                      <span className="text-slate-800 font-bold text-lg text-left leading-tight">{cleanHtml(item)}</span>
                     </div>
                   ))}
                 </div>
@@ -381,10 +381,10 @@ export function HastaneYemek() {
                       <button
                         onClick={() => handleSubmit('dinner')}
                         disabled={dinnerRating === 0}
-                        className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-indigo-500 hover:bg-indigo-600 text-white font-black shadow-lg shadow-indigo-200 transition-all active:scale-95 disabled:opacity-50"
+                        className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-2xl bg-[#673ab7] hover:bg-[#5e35b1] text-white font-black shadow-lg shadow-indigo-100 transition-all active:scale-95 disabled:opacity-50"
                       >
                         <Star size={20} fill="currentColor" />
-                        <span>PUANIMI GÖNDER</span>
+                        <span>REYTINGIMI GÖNDER</span>
                       </button>
                     ) : (
                       <div className="w-full px-6 py-3 rounded-2xl bg-slate-100 text-slate-500 font-bold flex items-center justify-center gap-2">
@@ -426,27 +426,15 @@ export function HastaneYemek() {
                 </div>
                 <h2 className="text-xl font-black mb-4 flex items-center gap-2">
                   <div className="w-8 h-8 rounded-lg bg-white/10 text-white flex items-center justify-center">
-                    <Calendar size={18} />
+                    <Sparkles size={18} />
                   </div>
-                  Aylık Mutfak Özeti
+                  Yapay Zeka Özeti
                 </h2>
                 <div className="text-slate-300 leading-relaxed font-medium" dangerouslySetInnerHTML={{ __html: sheetData.monthlySummary }} />
               </div>
             )}
           </div>
         )}
-
-        {/* Disclaimer Footer */}
-        <div className="bg-slate-200/50 backdrop-blur-sm rounded-3xl p-6 text-center text-slate-500 text-xs font-bold flex flex-col items-center gap-2">
-          <div className="flex items-center gap-2">
-            <Info size={14} />
-            <span>Feragatname & Bilgilendirme</span>
-          </div>
-          <p>Bu platform tamamen eğlence ve kişisel proje amaçlıdır. Veriler resmi SDÜ kaynakları ile farklılık gösterebilir.</p>
-          <div className="mt-2 text-[10px] opacity-70">
-            © {new Date().getFullYear()} Metin Çiriş Portalı · Tüm Hakları Saklıdır
-          </div>
-        </div>
 
         {/* Student Menu Integration */}
         <div className="mt-12">
@@ -456,6 +444,18 @@ export function HastaneYemek() {
             <div className="h-px flex-grow bg-slate-200"></div>
           </div>
           <StudentLunchMenu />
+        </div>
+
+        {/* Disclaimer Footer - At the very bottom */}
+        <div className="mt-12 mb-8 bg-slate-200/50 backdrop-blur-sm rounded-3xl p-6 text-center text-slate-500 text-xs font-bold flex flex-col items-center gap-2">
+          <div className="flex items-center gap-2">
+            <Info size={14} />
+            <span>Feragatname & Bilgilendirme</span>
+          </div>
+          <p>Bu platform tamamen eğlence ve kişisel proje amaçlıdır. Veriler resmi SDÜ kaynakları ile farklılık gösterebilir.</p>
+          <div className="mt-2 text-[10px] opacity-70">
+            © 2026 Metin Çiriş Portalı · Tüm Hakları Saklıdır
+          </div>
         </div>
       </PageContainer>
     </div>
