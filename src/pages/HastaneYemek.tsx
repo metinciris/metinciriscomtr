@@ -250,22 +250,12 @@ export function HastaneYemek() {
         </div>
 
         {/* Header Section */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-[#303f9f] to-[#1976d2] rounded-3xl p-8 md:p-12 mb-8 text-white shadow-xl">
-          <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8">
-            <div className="text-center md:text-left">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-bold uppercase tracking-wider mb-4 border border-white/10">
-                <Sparkles size={14} />
-                <span>Modern Yemekhane Portalı</span>
-              </div>
-              <h1 className="text-4xl md:text-5xl font-black mb-4 tracking-tight">SDÜ Hastane Menüsü</h1>
-              <p className="text-lg opacity-90 font-medium">
-                Resmi olmayan, yapay zeka destekli menü ve değerlendirme platformu.
-              </p>
-            </div>
-            <div className="shrink-0 bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/20 text-center">
-              <div className="text-sm uppercase tracking-widest opacity-80 mb-1 font-bold">Bugün</div>
-              <div className="text-2xl font-black italic">{formattedDate.split(' ')[0]} {formattedDate.split(' ')[1]}</div>
-              <div className="text-sm opacity-80 mt-1">{formattedDate.split(' ').slice(2).join(' ')}</div>
+        <div className="relative overflow-hidden bg-gradient-to-br from-[#303f9f] to-[#1976d2] rounded-3xl p-8 md:p-12 mb-8 text-white shadow-xl text-center">
+          <div className="relative z-10 flex flex-col items-center">
+            <h1 className="text-2xl md:text-5xl font-black mb-4 tracking-tight">SDÜ Hastane Menüsü</h1>
+            <div className="flex flex-col items-center">
+              <div className="text-sm uppercase tracking-widest opacity-80 mb-1 font-bold italic">Bugün</div>
+              <div className="text-xl md:text-2xl font-black italic">{formattedDate.split(' ')[0]} {formattedDate.split(' ')[1]} {formattedDate.split(' ').slice(2).join(' ')}</div>
             </div>
           </div>
           {/* Decorative elements */}
@@ -297,14 +287,14 @@ export function HastaneYemek() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
             {/* Lunch Card */}
             <div className="flex flex-col h-full bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-md transition-shadow">
-              <div className="bg-[#ff9800] p-6 text-white">
+              <div className="bg-[#e65100] p-6 text-white text-center">
                 <div className="flex justify-between items-center mb-2">
                   <Utensils size={24} className="opacity-90" />
                   <span className="text-xs font-bold uppercase tracking-widest bg-black/20 px-2 py-1 rounded">ÖĞLE</span>
                 </div>
                 <h2 className="text-2xl font-black italic">Öğle Yemeği Menüsü</h2>
                 {sheetData?.lunchStats && (
-                  <div className="mt-3 text-sm font-bold bg-white/30 p-3 rounded-xl inline-block text-white border border-white/20">
+                  <div className="mt-3 text-sm font-bold bg-white/20 p-3 rounded-xl inline-block text-white border border-white/30 backdrop-blur-sm">
                     {cleanHtml(sheetData.lunchStats)}
                   </div>
                 )}
@@ -330,7 +320,7 @@ export function HastaneYemek() {
                       <button
                         onClick={() => handleSubmit('lunch')}
                         disabled={lunchRating === 0}
-                        className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-2xl bg-[#ff9800] hover:bg-[#f57c00] text-white font-black shadow-lg shadow-orange-100 transition-all active:scale-95 disabled:opacity-50"
+                        className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-2xl bg-[#e65100] hover:bg-[#ef6c00] text-white font-black shadow-lg shadow-orange-100 transition-all active:scale-95 disabled:opacity-50"
                       >
                         <Star size={20} fill="currentColor" />
                         <span>REYTINGIMI GÖNDER</span>
@@ -348,7 +338,7 @@ export function HastaneYemek() {
 
             {/* Dinner Card */}
             <div className="flex flex-col h-full bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-md transition-shadow">
-              <div className="bg-[#673ab7] p-6 text-white">
+              <div className="bg-[#673ab7] p-6 text-white text-center">
                 <div className="flex justify-between items-center mb-2">
                   <Moon size={24} className="opacity-90" />
                   <span className="text-xs font-bold uppercase tracking-widest bg-black/10 px-2 py-1 rounded">AKŞAM</span>
@@ -440,10 +430,20 @@ export function HastaneYemek() {
         <div className="mt-12">
           <div className="flex items-center gap-4 mb-6">
             <div className="h-px flex-grow bg-slate-200"></div>
-            <h2 className="text-slate-400 font-black uppercase tracking-widest text-sm">Ayrıca Göz Atın</h2>
+            <h2 className="text-slate-400 font-black uppercase tracking-widest text-sm text-center">Ayrıca Göz Atın</h2>
             <div className="h-px flex-grow bg-slate-200"></div>
           </div>
           <StudentLunchMenu />
+
+          <div className="flex justify-center mt-6">
+            <button
+              onClick={() => window.location.href = '/ogrenci-yemek'}
+              className="group flex items-center gap-2 px-6 py-3 bg-white border-2 border-[#16A085] text-[#16A085] rounded-2xl font-black hover:bg-[#16A085] hover:text-white transition-all shadow-sm"
+            >
+              <span>Tüm Öğrenci Menüleri</span>
+              <ExternalLink size={18} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+            </button>
+          </div>
         </div>
 
         {/* Disclaimer Footer - At the very bottom */}

@@ -435,7 +435,18 @@ export function OgrenciYemek() {
       </PageContainer>
 
       <div className="mt-12 pt-8 border-t border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+          {/* Navigation to Hospital Menu */}
+          <div className="flex justify-center mb-12">
+            <button
+              onClick={() => window.location.href = '/hastane-yemek'}
+              className="group flex items-center gap-2 px-6 py-3 bg-white border-2 border-indigo-600 text-indigo-600 rounded-2xl font-black hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
+            >
+              <span>SDÜ Hastane Yemek Menüsü</span>
+              <ExternalLink size={18} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+            </button>
+          </div>
+
           <div className="flex flex-col md:flex-row justify-between items-center gap-6 text-slate-400 text-sm">
             <div className="flex items-center gap-4 bg-slate-50 px-4 py-2 rounded-full border border-slate-100">
               <span className="font-semibold text-slate-500">Son Güncelleme:</span>

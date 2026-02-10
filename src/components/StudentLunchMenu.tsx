@@ -10,38 +10,74 @@ interface MenuData {
 }
 
 export function StudentLunchMenu() {
-    const [menu, setMenu] = useState<MenuData | null>(null);
+    const [menu, setMenu] = useState<{ items: string[], kcal: string | null } | null>(null);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        fetch(`/data/ogrenci-ogle-menu.json?t=${Date.now()}`)
-            .then((res) => {
-                if (!res.ok) throw new Error('Menu not found');
-                return res.json();
-            })
-            .then((data: MenuData) => {
-                // Only show if it's today's menu and items exist
-                const now = new Date();
-                const todayStr = new Intl.DateTimeFormat('tr-TR', {
-                    timeZone: 'Europe/Istanbul',
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                }).format(now).replace(/\//g, '.');
+    const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1rXB81K4CkGT1wrtRGOnqVVRZB8g5GxpvP4TqAXu4BSE/export?format=csv&gid=711889518';
 
-                if (data.date === todayStr && data.items && data.items.length > 0) {
-                    setMenu(data);
+    const parseCSV = (csv: string) => {
+        const rows: string[][] = [];
+        let currentRow: string[] = [];
+        let currentCell = '';
+        let inQuotes = false;
+
+        for (let i = 0; i < csv.length; i++) {
+            const char = csv[i];
+            const nextChar = csv[i + 1];
+
+            if (char === '"') {
+                if (inQuotes && nextChar === '"') {
+                    currentCell += '"';
+                    i++;
+                } else {
+                    inQuotes = !inQuotes;
+                }
+            } else if (char === ',' && !inQuotes) {
+                currentRow.push(currentCell.trim());
+                currentCell = '';
+            } else if ((char === '\n' || char === '\r') && !inQuotes) {
+                if (char === '\r' && nextChar === '\n') i++;
+                currentRow.push(currentCell.trim());
+                rows.push(currentRow);
+                currentRow = [];
+                currentCell = '';
+            } else {
+                currentCell += char;
+            }
+        }
+        if (currentCell) currentRow.push(currentCell.trim());
+        if (currentRow.length > 0) rows.push(currentRow);
+        return rows;
+    };
+
+    useEffect(() => {
+        const fetchMenu = async () => {
+            setLoading(true);
+            try {
+                const response = await fetch(SHEET_URL);
+                const csv = await response.text();
+                const rows = parseCSV(csv);
+
+                const today = new Date().toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                const todayRow = rows.find(r => r[0] === today);
+
+                if (todayRow && todayRow[2]) {
+                    setMenu({
+                        items: todayRow[2].split('\n').filter(Boolean),
+                        kcal: todayRow[3] || null
+                    });
                 } else {
                     setMenu(null);
                 }
-            })
-            .catch((err) => {
-                console.error('Error fetching student menu:', err);
+            } catch (error) {
+                console.error('Error fetching student menu:', error);
                 setMenu(null);
-            })
-            .finally(() => {
+            } finally {
                 setLoading(false);
-            });
+            }
+        };
+
+        fetchMenu();
     }, []);
 
     if (loading || !menu) return null;
@@ -72,10 +108,10 @@ export function StudentLunchMenu() {
 
             <div className="flex items-center justify-between pt-3 border-t border-gray-100">
                 <span className="text-[10px] text-gray-400">
-                    Güncelleme: {new Date(menu.updatedAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                    Kaynak: SDÜ Yemekhane
                 </span>
                 <a
-                    href={menu.source}
+                    href="https://yemekhane.sdu.edu.tr/tr/yemek-listesi.html"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-xs text-blue-600 hover:underline"
