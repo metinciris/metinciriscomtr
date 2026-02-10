@@ -420,7 +420,7 @@ export function OgrenciYemek() {
             <div className="bg-indigo-600 rounded-3xl p-8 text-white shadow-xl">
               <h2 className="text-xl font-bold mb-4 italic">SDÜ Hastane Menüsü</h2>
               <p className="text-indigo-100 text-sm mb-6 leading-relaxed">
-                Isparta Şehir Hastanesi güncel yemek menüsüne buradan ulaşabilirsiniz.
+                SDÜ Hastane Menüsü güncel yemek menüsüne buradan ulaşabilirsiniz.
               </p>
               <button
                 onClick={() => window.location.href = '/hastane-yemek'}
