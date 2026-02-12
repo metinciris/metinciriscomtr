@@ -1,20 +1,5 @@
 [
   {
-    "id": "football-CL-551967",
-    "sport": "football",
-    "competition": "UEFA Champions League",
-    "season": "2025/26",
-    "homeTeam": "Manchester City FC",
-    "awayTeam": "Galatasaray SK",
-    "startTimeUTC": "2026-01-28T20:00:00Z",
-    "startTimeLocal": "2026-01-28T23:00:00+03:00",
-    "status": "finished",
-    "scoreHome": 2,
-    "scoreAway": 0,
-    "source": "football-data",
-    "lastFetchedAt": "2026-02-11T19:11:34.096Z"
-  },
-  {
     "id": "football-UEFAEuropaLeague-7",
     "sport": "football",
     "competition": "UEFA Europa League",
@@ -27,7 +12,7 @@
     "scoreHome": 1,
     "scoreAway": 1,
     "source": "fixturedownload",
-    "lastFetchedAt": "2026-02-11T19:11:34.509Z"
+    "lastFetchedAt": "2026-02-12T07:10:07.876Z"
   },
   {
     "id": "football-CL-552055",
@@ -42,7 +27,7 @@
     "scoreHome": null,
     "scoreAway": null,
     "source": "football-data",
-    "lastFetchedAt": "2026-02-11T19:11:34.096Z"
+    "lastFetchedAt": "2026-02-12T07:10:07.468Z"
   },
   {
     "id": "football-UEFAEuropaLeague-8",
@@ -57,6 +42,21 @@
     "scoreHome": null,
     "scoreAway": null,
     "source": "fixturedownload",
-    "lastFetchedAt": "2026-02-11T19:11:34.510Z"
+    "lastFetchedAt": "2026-02-12T07:10:07.876Z"
+  },
+  {
+    "id": "football-CL-552063",
+    "sport": "football",
+    "competition": "UEFA Champions League",
+    "season": "2025/26",
+    "homeTeam": "Juventus FC",
+    "awayTeam": "Galatasaray SK",
+    "startTimeUTC": "2026-02-25T20:00:00Z",
+    "startTimeLocal": "2026-02-25T23:00:00+03:00",
+    "status": "scheduled",
+    "scoreHome": null,
+    "scoreAway": null,
+    "source": "football-data",
+    "lastFetchedAt": "2026-02-12T07:10:07.468Z"
   }
 ]
