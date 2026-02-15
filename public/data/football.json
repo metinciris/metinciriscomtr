@@ -12,7 +12,7 @@
     "scoreHome": null,
     "scoreAway": null,
     "source": "football-data",
-    "lastFetchedAt": "2026-02-14T18:43:45.772Z"
+    "lastFetchedAt": "2026-02-15T06:58:21.680Z"
   },
   {
     "id": "football-UEFAEuropaLeague-8",
@@ -27,7 +27,7 @@
     "scoreHome": null,
     "scoreAway": null,
     "source": "fixturedownload",
-    "lastFetchedAt": "2026-02-14T18:43:46.733Z"
+    "lastFetchedAt": "2026-02-15T06:58:22.059Z"
   },
   {
     "id": "football-CL-552063",
@@ -42,7 +42,7 @@
     "scoreHome": null,
     "scoreAway": null,
     "source": "football-data",
-    "lastFetchedAt": "2026-02-14T18:43:45.772Z"
+    "lastFetchedAt": "2026-02-15T06:58:21.681Z"
   },
   {
     "id": "football-UEFAEuropaLeague-9",
@@ -57,6 +57,6 @@
     "scoreHome": null,
     "scoreAway": null,
     "source": "fixturedownload",
-    "lastFetchedAt": "2026-02-14T18:43:46.733Z"
+    "lastFetchedAt": "2026-02-15T06:58:22.059Z"
   }
 ]
