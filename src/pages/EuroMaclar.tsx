@@ -201,7 +201,7 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, highlight }) => {
                     <div className="flex-1 flex flex-col items-center text-center">
                         <div className="w-10 h-10 flex items-center justify-center bg-slate-50 rounded-lg p-1 mb-1">
                             {match.homeTeamBadge ? (
-                                <img src={match.homeTeamBadge} alt="" className="w-8 h-8 object-contain" />
+                                <img src={match.homeTeamBadge} alt={match.homeTeam} className="w-8 h-8 object-contain" loading="lazy" />
                             ) : (
                                 <Trophy size={16} className="text-slate-300" />
                             )}
@@ -228,7 +228,7 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, highlight }) => {
                     <div className="flex-1 flex flex-col items-center text-center">
                         <div className="w-10 h-10 flex items-center justify-center bg-slate-50 rounded-lg p-1 mb-1">
                             {match.awayTeamBadge ? (
-                                <img src={match.awayTeamBadge} alt="" className="w-8 h-8 object-contain" />
+                                <img src={match.awayTeamBadge} alt={match.awayTeam} className="w-8 h-8 object-contain" loading="lazy" />
                             ) : (
                                 <Trophy size={16} className="text-slate-300" />
                             )}

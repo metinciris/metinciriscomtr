@@ -152,8 +152,15 @@ const DunyaSaatleri = React.lazy(() =>
   import('./pages/DunyaSaatleri').then((m) => ({ default: m.DunyaSaatleri })),
 );
 
+import { trackPageView } from './utils/analytics';
+
 export default function App() {
   const [currentPage, setCurrentPage] = React.useState('home');
+
+  // Sayfa değiştikçe analytics gönder
+  React.useEffect(() => {
+    trackPageView(currentPage);
+  }, [currentPage]);
 
   // Path'ten sayfa adını çıkar
   const getPageFromPath = (pathname: string): string => {
@@ -337,8 +344,15 @@ export default function App() {
         <ErrorBoundary>
           <React.Suspense
             fallback={
-              <div className="p-8 text-center text-slate-600">
-                Yükleniyor…
+              <div className="p-8 space-y-4 animate-pulse" role="status" aria-label="Sayfa yükleniyor">
+                <div className="h-8 bg-slate-200 rounded-lg w-1/3 mx-auto" />
+                <div className="h-4 bg-slate-200 rounded w-2/3 mx-auto" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                  <div className="h-32 bg-slate-200 rounded-xl" />
+                  <div className="h-32 bg-slate-200 rounded-xl" />
+                </div>
+                <div className="h-4 bg-slate-200 rounded w-1/2 mx-auto" />
+                <span className="sr-only">Yükleniyor…</span>
               </div>
             }
           >

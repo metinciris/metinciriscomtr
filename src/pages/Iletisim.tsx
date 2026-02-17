@@ -1,6 +1,8 @@
 import React from 'react';
 import { PageContainer } from '../components/PageContainer';
 import { Mail, Phone, Building2, ExternalLink, MapPin, MessageSquare, Linkedin } from 'lucide-react';
+import { trackClick } from '../utils/analytics';
+
 
 export function Iletisim() {
   // Bot korumalı e-posta adresleri
@@ -29,6 +31,9 @@ export function Iletisim() {
                 alt="Prof. Dr. Metin Çiriş"
                 className="rounded-lg shadow-md"
                 style={{ width: '300px', height: '423px', objectFit: 'cover' }}
+                width={300}
+                height={423}
+                loading="lazy"
               />
             </div>
             <div className="text-center">
@@ -75,10 +80,18 @@ export function Iletisim() {
                 <div>
                   <h3 className="text-white mb-3">Telefon</h3>
                   <p className="text-white/90">
-                    <a href="tel:+905051590" className="hover:text-white transition-colors block mb-1">
+                    <a
+                      href="tel:+905051590"
+                      onClick={() => trackClick('Phone: GSM')}
+                      className="hover:text-white transition-colors block mb-1"
+                    >
                       Cep: 505 519 90**
                     </a>
-                    <a href="tel:+902462119292" className="hover:text-white transition-colors block">
+                    <a
+                      href="tel:+902462119292"
+                      onClick={() => trackClick('Phone: Office')}
+                      className="hover:text-white transition-colors block"
+                    >
                       Oda: (246) 211 92 92
                     </a>
                   </p>
@@ -97,6 +110,7 @@ export function Iletisim() {
                   <p className="text-white/90">
                     <a
                       href={`mailto:${email1}`}
+                      onClick={() => trackClick('Email: Primary')}
                       className="hover:text-white transition-colors block mb-1"
                     >
                       {email1}
@@ -104,6 +118,7 @@ export function Iletisim() {
                     <span className="text-white/70 text-sm">(tercih edin)</span>
                     <a
                       href={`mailto:${email2}`}
+                      onClick={() => trackClick('Email: University')}
                       className="hover:text-white transition-colors block mt-2"
                     >
                       {email2}
@@ -131,6 +146,7 @@ export function Iletisim() {
                     href="https://www.linkedin.com/in/patoloji/"
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() => trackClick('Social: LinkedIn')}
                     className="hover:text-white/80 transition-colors inline-flex items-center gap-2"
                   >
                     linkedin.com/in/patoloji
@@ -154,6 +170,7 @@ export function Iletisim() {
                     href="https://fb.com/patoloji"
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() => trackClick('Social: Facebook')}
                     className="hover:text-white/80 transition-colors inline-flex items-center gap-2"
                   >
                     fb.com/patoloji

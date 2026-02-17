@@ -41,8 +41,9 @@ export function AyinVakasi() {
                     <div className="relative bg-gray-200 flex items-center justify-center overflow-hidden group">
                         <img
                             src={currentCase.imagePlaceholder}
-                            alt="Case Preview"
+                            alt="Ayın vakası mikroskop görüntüsü"
                             className="w-full h-auto max-h-[600px] object-contain transition-transform duration-700 group-hover:scale-105"
+                            loading="lazy"
                         />
                         {/* Overlay Removed */}
                     </div>

@@ -26,6 +26,7 @@ export default defineConfig({
         manualChunks: {
           'vendor-react': ['react', 'react-dom'],
           'vendor-motion': ['motion'],
+          'vendor-recharts': ['recharts'],
         },
       },
     },
