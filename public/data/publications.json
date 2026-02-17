@@ -280,43 +280,50 @@
   ],
   "stats": {
     "hIndex": 25,
-    "i10Index": 40,
-    "citations": 2079,
+    "citations": 2088,
     "sciCount": 62,
     "nationalCount": 45,
     "congressCount": 143,
     "citationHistory": [
       {
-        "year": 2019,
-        "count": 121
-      },
-      {
-        "year": 2020,
-        "count": 126
-      },
-      {
-        "year": 2021,
-        "count": 157
-      },
-      {
-        "year": 2022,
-        "count": 124
-      },
-      {
-        "year": 2023,
+        "year": 2016,
         "count": 116
       },
       {
-        "year": 2024,
+        "year": 2017,
+        "count": 102
+      },
+      {
+        "year": 2018,
+        "count": 95
+      },
+      {
+        "year": 2019,
+        "count": 123
+      },
+      {
+        "year": 2020,
         "count": 125
       },
       {
-        "year": 2025,
-        "count": 129
+        "year": 2021,
+        "count": 158
       },
       {
-        "year": 2026,
-        "count": 12
+        "year": 2022,
+        "count": 125
+      },
+      {
+        "year": 2023,
+        "count": 119
+      },
+      {
+        "year": 2024,
+        "count": 120
+      },
+      {
+        "year": 2025,
+        "count": 128
       }
     ]
   },

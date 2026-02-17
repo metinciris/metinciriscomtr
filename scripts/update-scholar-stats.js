@@ -13,7 +13,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const PUBLICATIONS_FILE = path.join(__dirname, '..', 'public', 'data', 'publications.json');
-const SCHOLAR_URL = 'https://scholar.google.com.tr/citations?user=QZkewskAAAAJ&hl=tr';
+const SCHOLAR_URL = 'https://scholar.google.com/citations?user=QZkewskAAAAJ&hl=tr';
 
 async function updateScholarStats() {
     try {
