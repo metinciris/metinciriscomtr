@@ -3,6 +3,7 @@ import { Layout } from './components/Layout';
 import { Toaster } from 'sonner';
 import { SEO } from './components/SEO';
 import { validPages } from './data/pages';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 /**
  * Sayfaları lazy yükle:
@@ -333,15 +334,17 @@ export default function App() {
     <>
       <SEO currentPage={currentPage} />
       <Layout currentPage={currentPage} onNavigate={navigate}>
-        <React.Suspense
-          fallback={
-            <div className="p-8 text-center text-slate-600">
-              Yükleniyor…
-            </div>
-          }
-        >
-          {renderPage()}
-        </React.Suspense>
+        <ErrorBoundary>
+          <React.Suspense
+            fallback={
+              <div className="p-8 text-center text-slate-600">
+                Yükleniyor…
+              </div>
+            }
+          >
+            {renderPage()}
+          </React.Suspense>
+        </ErrorBoundary>
       </Layout>
       <Toaster position="top-right" />
     </>

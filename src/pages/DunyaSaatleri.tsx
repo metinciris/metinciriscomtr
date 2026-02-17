@@ -2,7 +2,83 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { PageContainer } from '../components/PageContainer';
 import { RelatedPages } from '../components/RelatedPages';
 import { Globe, Clock, Sun, Moon, Plus, X, Calendar, Users, Check, Share2, Search } from 'lucide-react';
-import moment from 'moment-timezone';
+
+// ─── Intl helpers (replaces moment-timezone, saves ~793KB) ───────────
+
+/** Get numeric hour (0-23) in a timezone */
+function getHourInTz(date: Date, tz: string): number {
+    const h = new Intl.DateTimeFormat('en-US', { timeZone: tz, hour: 'numeric', hour12: false }).format(date);
+    return parseInt(h) % 24;
+}
+
+/** Format as HH:mm */
+function fmtHHMM(date: Date, tz: string): string {
+    return new Intl.DateTimeFormat('tr-TR', { timeZone: tz, hour: '2-digit', minute: '2-digit', hour12: false }).format(date);
+}
+
+/** Format as HH:mm:ss */
+function fmtHHMMSS(date: Date, tz: string): string {
+    return new Intl.DateTimeFormat('tr-TR', { timeZone: tz, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(date);
+}
+
+/** Format as DD MMM */
+function fmtDDMMM(date: Date, tz: string): string {
+    return new Intl.DateTimeFormat('tr-TR', { timeZone: tz, day: '2-digit', month: 'short' }).format(date);
+}
+
+/** Format as DD MMM YYYY HH:mm */
+function fmtFull(date: Date, tz: string): string {
+    return new Intl.DateTimeFormat('tr-TR', {
+        timeZone: tz, day: '2-digit', month: 'short', year: 'numeric',
+        hour: '2-digit', minute: '2-digit', hour12: false,
+    }).format(date);
+}
+
+/** Format as DD MMM YYYY */
+function fmtDDMMMYYYY(date: Date, tz: string): string {
+    return new Intl.DateTimeFormat('tr-TR', {
+        timeZone: tz, day: '2-digit', month: 'short', year: 'numeric',
+    }).format(date);
+}
+
+/** Create a Date representing a local date+time in a given timezone */
+function createDateInTz(dateStr: string, timeStr: string, timezone: string): Date {
+    // Use a reference point to calculate the UTC offset of the timezone
+    const ref = new Date(`${dateStr}T12:00:00Z`);
+    const parts = new Intl.DateTimeFormat('en-US', {
+        timeZone: timezone,
+        year: 'numeric', month: 'numeric', day: 'numeric',
+        hour: 'numeric', minute: 'numeric', second: 'numeric',
+        hour12: false,
+    }).formatToParts(ref);
+    const g = (t: string) => parseInt(parts.find(p => p.type === t)?.value || '0');
+    const tzAsUtc = Date.UTC(g('year'), g('month') - 1, g('day'), g('hour') % 24, g('minute'), 0);
+    const offsetMs = ref.getTime() - tzAsUtc;
+
+    const [h, m] = timeStr.split(':').map(Number);
+    const [y, mo, d] = dateStr.split('-').map(Number);
+    return new Date(Date.UTC(y, mo - 1, d, h, m, 0) + offsetMs);
+}
+
+/** Calculate difference in displayed calendar days between two timezones for the same instant */
+function dayDiffBetweenTz(date: Date, sourceTz: string, targetTz: string): number {
+    const dayVal = (tz: string) => {
+        const p = new Intl.DateTimeFormat('en-US', {
+            timeZone: tz, year: 'numeric', month: 'numeric', day: 'numeric',
+        }).formatToParts(date);
+        const g = (t: string) => parseInt(p.find(pp => pp.type === t)?.value || '0');
+        return new Date(g('year'), g('month') - 1, g('day')).getTime();
+    };
+    return Math.round((dayVal(targetTz) - dayVal(sourceTz)) / 86400000);
+}
+
+/** Today as YYYY-MM-DD */
+function todayStr(): string {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+// ─── City data ───────────────────────────────────────────────────────
 
 interface City {
     id: string;
@@ -61,10 +137,12 @@ const CITIES: City[] = [
 // Sort cities by UTC offset for the bar display
 const SORTED_CITIES = [...CITIES].sort((a, b) => a.offset - b.offset);
 
+// ─── Component ───────────────────────────────────────────────────────
+
 export function DunyaSaatleri() {
-    const [currentTime, setCurrentTime] = useState(moment());
+    const [currentTime, setCurrentTime] = useState(new Date());
     const [selectedCities, setSelectedCities] = useState<string[]>(['istanbul']);
-    const [meetingDate, setMeetingDate] = useState(moment().format('YYYY-MM-DD'));
+    const [meetingDate, setMeetingDate] = useState(todayStr());
     const [meetingStartTime, setMeetingStartTime] = useState('20:00');
     const [meetingEndTime, setMeetingEndTime] = useState('21:00');
     const [useEndTime, setUseEndTime] = useState(false);
@@ -115,14 +193,14 @@ export function DunyaSaatleri() {
     // Update current time every second
     useEffect(() => {
         const interval = setInterval(() => {
-            setCurrentTime(moment());
+            setCurrentTime(new Date());
         }, 1000);
         return () => clearInterval(interval);
     }, []);
 
     // Check if it's daytime in a timezone
-    const isDaytime = useCallback((timezone: string, time: moment.Moment = currentTime) => {
-        const localHour = time.clone().tz(timezone).hour();
+    const isDaytime = useCallback((timezone: string, time: Date = currentTime) => {
+        const localHour = getHourInTz(time, timezone);
         return localHour >= 6 && localHour < 20;
     }, [currentTime]);
 
@@ -135,18 +213,18 @@ export function DunyaSaatleri() {
         );
     };
 
-    // Get combined meeting datetime
-    const getMeetingMoment = () => {
+    // Get meeting date as UTC Date
+    const getMeetingDate = () => {
         const sourceTz = CITIES.find(c => c.id === meetingCity)?.timezone || 'Europe/Istanbul';
-        return moment.tz(`${meetingDate}T${meetingStartTime}`, sourceTz);
+        return createDateInTz(meetingDate, meetingStartTime, sourceTz);
     };
 
     // Calculate duration from start/end times
     const getEffectiveDuration = () => {
         if (!useEndTime) return meetingDuration;
-        const start = moment(meetingStartTime, 'HH:mm');
-        const end = moment(meetingEndTime, 'HH:mm');
-        let diff = end.diff(start, 'minutes');
+        const [sh, sm] = meetingStartTime.split(':').map(Number);
+        const [eh, em] = meetingEndTime.split(':').map(Number);
+        let diff = (eh * 60 + em) - (sh * 60 + sm);
         if (diff < 0) diff += 24 * 60; // Handle overnight
         return diff;
     };
@@ -159,28 +237,23 @@ export function DunyaSaatleri() {
         return remaining > 0 ? `${hours} saat ${remaining} dk` : `${hours} saat`;
     };
 
-    // Get time in a specific timezone for meeting
-    const getMeetingTimeInTimezone = (timezone: string) => {
-        return getMeetingMoment().clone().tz(timezone);
-    };
-
     // Generate WhatsApp share text
     const generateShareText = () => {
-        const meetingMoment = getMeetingMoment();
+        const meetingMoment = getMeetingDate();
         const sourceCity = CITIES.find(c => c.id === meetingCity);
+        const sourceTz = sourceCity?.timezone || 'Europe/Istanbul';
         const duration = getEffectiveDuration();
 
         let text = `📅 *${meetingName || 'Toplantı'}*\n`;
         text += `━━━━━━━━━━━━━━━━━━\n`;
         text += `⏱️ Süre: ${formatDuration(duration)}\n\n`;
-        text += `🏠 ${sourceCity?.name}: ${meetingMoment.format('DD MMM YYYY HH:mm')}${useEndTime ? ` - ${meetingEndTime}` : ''} _(yerel saat)_\n\n`;
+        text += `🏠 ${sourceCity?.name}: ${fmtFull(meetingMoment, sourceTz)}${useEndTime ? ` - ${meetingEndTime}` : ''} _(yerel saat)_\n\n`;
         text += `🌍 *Diğer Şehirler:*\n`;
 
         CITIES.filter(city => selectedCities.includes(city.id) && city.id !== meetingCity).forEach(city => {
-            const cityTime = getMeetingTimeInTimezone(city.timezone);
-            const dayDiff = cityTime.diff(meetingMoment, 'days');
+            const dayDiff = dayDiffBetweenTz(meetingMoment, sourceTz, city.timezone);
             const dayNote = dayDiff !== 0 ? ` _(${dayDiff > 0 ? '+' : ''}${dayDiff} gün)_` : '';
-            text += `• ${city.name}: ${cityTime.format('HH:mm')}${dayNote}\n`;
+            text += `• ${city.name}: ${fmtHHMM(meetingMoment, city.timezone)}${dayNote}\n`;
         });
 
         text += `\n━━━━━━━━━━━━━━━━━━`;
@@ -197,10 +270,6 @@ export function DunyaSaatleri() {
             console.error('Kopyalama başarısız:', err);
         }
     };
-
-    // Format time display
-    const formatTime = (m: moment.Moment) => m.format('HH:mm:ss');
-    const formatDate = (m: moment.Moment) => m.format('DD MMM');
 
     return (
         <PageContainer>
@@ -238,7 +307,6 @@ export function DunyaSaatleri() {
                         {SORTED_CITIES.filter((_, i) => i % 2 === 0).map((city) => {
                             const originalIndex = SORTED_CITIES.findIndex(c => c.id === city.id);
                             const isSelected = selectedCities.includes(city.id);
-                            const cityTime = currentTime.clone().tz(city.timezone);
                             const isDay = isDaytime(city.timezone);
                             const position = (originalIndex / (SORTED_CITIES.length - 1)) * 100;
 
@@ -259,7 +327,7 @@ export function DunyaSaatleri() {
                                     </div>
                                     {/* Time */}
                                     <div className={`text-xs font-bold tabular-nums ${isSelected ? 'text-amber-400' : 'text-white'}`}>
-                                        {cityTime.format('HH:mm')}
+                                        {fmtHHMM(currentTime, city.timezone)}
                                     </div>
                                     {/* Dot */}
                                     <div className={`w-4 h-4 rounded-full flex items-center justify-center mt-1 transition-all ${isSelected
@@ -285,7 +353,6 @@ export function DunyaSaatleri() {
                         {SORTED_CITIES.filter((_, i) => i % 2 === 1).map((city) => {
                             const originalIndex = SORTED_CITIES.findIndex(c => c.id === city.id);
                             const isSelected = selectedCities.includes(city.id);
-                            const cityTime = currentTime.clone().tz(city.timezone);
                             const isDay = isDaytime(city.timezone);
                             const position = (originalIndex / (SORTED_CITIES.length - 1)) * 100;
 
@@ -307,7 +374,7 @@ export function DunyaSaatleri() {
                                     </div>
                                     {/* Time */}
                                     <div className={`text-xs font-bold tabular-nums mt-1 ${isSelected ? 'text-amber-400' : 'text-white'}`}>
-                                        {cityTime.format('HH:mm')}
+                                        {fmtHHMM(currentTime, city.timezone)}
                                     </div>
                                     {/* City Name - Vertical */}
                                     <div
@@ -488,7 +555,7 @@ export function DunyaSaatleri() {
                                             return a.offset - b.offset;
                                         })
                                         .map(city => {
-                                            const meetingMoment = getMeetingTimeInTimezone(city.timezone);
+                                            const meetingMoment = getMeetingDate();
                                             const isDay = isDaytime(city.timezone, meetingMoment);
                                             const isMeetingCity = city.id === meetingCity;
 
@@ -525,10 +592,10 @@ export function DunyaSaatleri() {
                                                         <div className="text-right">
                                                             <div className={`text-xl font-bold tabular-nums ${isMeetingCity ? 'text-amber-600' : 'text-gray-800'
                                                                 }`}>
-                                                                {meetingMoment.format('HH:mm')}
+                                                                {fmtHHMM(meetingMoment, city.timezone)}
                                                             </div>
                                                             <div className="text-xs text-gray-500">
-                                                                {meetingMoment.format('DD MMM YYYY')}
+                                                                {fmtDDMMMYYYY(meetingMoment, city.timezone)}
                                                             </div>
                                                         </div>
                                                         {!isMeetingCity && (
@@ -630,7 +697,6 @@ export function DunyaSaatleri() {
 
                     <div className="divide-y divide-gray-100">
                         {SORTED_CITIES.map(city => {
-                            const cityTime = currentTime.clone().tz(city.timezone);
                             const isDay = isDaytime(city.timezone);
                             const isSelected = selectedCities.includes(city.id);
 
@@ -666,9 +732,9 @@ export function DunyaSaatleri() {
                                         </div>
                                         <div className="text-right">
                                             <div className={`text-2xl font-bold tabular-nums ${isSelected ? 'text-amber-600' : 'text-gray-800'}`}>
-                                                {formatTime(cityTime)}
+                                                {fmtHHMMSS(currentTime, city.timezone)}
                                             </div>
-                                            <div className="text-sm text-gray-500">{formatDate(cityTime)}</div>
+                                            <div className="text-sm text-gray-500">{fmtDDMMM(currentTime, city.timezone)}</div>
                                         </div>
                                     </div>
                                 </div>
