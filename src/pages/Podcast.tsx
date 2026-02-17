@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { PageContainer } from '../components/PageContainer';
 import { Play, Square, Volume2 } from 'lucide-react';
+import '../styles/Podcast.css';
 
 interface PodcastProps {
   onNavigate: (page: string) => void; // App ile uyum için; bu sayfada kullanmıyoruz

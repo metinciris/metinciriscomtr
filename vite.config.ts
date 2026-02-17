@@ -23,6 +23,11 @@ export default defineConfig({
     outDir: 'dist',
     rollupOptions: {
       output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom'],
+          'vendor-motion': ['motion'],
+          'vendor-moment': ['moment-timezone'],
+        },
       },
     },
   },

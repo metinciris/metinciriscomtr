@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { PageContainer } from '../components/PageContainer';
 import { MetroTile } from '../components/MetroTile';
-import { motion } from 'motion/react';
 import {
   MessageSquare,
   FileText,
@@ -17,243 +16,35 @@ import {
   Github,
   Phone,
   Headphones,
-  Microscope, // 🔬
+  Microscope,
   Calendar,
 } from 'lucide-react';
+import { useRotatingText } from '../hooks/useRotatingText';
+import { useWeather } from '../hooks/useWeather';
+import { usePodcastTitle } from '../hooks/usePodcastTitle';
+import {
+  TIP_SUBTITLES,
+  ILETISIM_SUBTITLES,
+  DIS_SUBTITLES,
+  ECZA_SUBTITLES,
+  BLOG_SUBTITLES,
+  GALERI_SUBTITLES,
+  MAKALE_SUBTITLES,
+  HASTANE_YEMEK_SUBTITLES,
+  YAYIN_SUBTITLES,
+  PORTFOLYO_SUBTITLES,
+  DIGER_SUBTITLES,
+} from '../data/homeSubtitles';
 import './Home.css';
 
 interface HomeProps {
   onNavigate: (page: string) => void;
 }
 
-/* --- KISA, TEK SATIRLIK DÖNEN AÇIKLAMALAR --- */
-
-// Öğrenci
-const TIP_SUBTITLES = ['Ders slaytları', 'Özet notlar', 'Güncel müfredat'];
-const ILETISIM_SUBTITLES = [
-  'Prof. Dr. Metin Çiriş',
-  'Adres',
-  'E-posta',
-  'Sosyal medya',
-  'LinkedIn iletişim',
-];
-const DIS_SUBTITLES = ['Slaytlar', 'Ders materyali'];
-const ECZA_SUBTITLES = ['Slaytlar', 'Ders materyali'];
-const BLOG_SUBTITLES = ['Vaka yazıları', 'Yazılım & eğitim', 'Güncel notlar'];
-const GALERI_SUBTITLES = [
-  'Sanal mikroskop',
-  'Histopatoloji vakaları',
-  'Dijital slide arşivi',
-];
-
-// Makale Takip karosu için
-const MAKALE_SUBTITLES = [
-  'Günlük makale',
-  'Sadece patoloji',
-  'PubMed linkleri ile',
-  'Günlük uğrayın',
-];
-
-// 🔹 SDÜ Hastane Yemek karosu için dönen alt yazılar
-const HASTANE_YEMEK_SUBTITLES = [
-  'SDÜ tıp yemek',
-  'Hastane yemek',
-  'Bugün yemek',
-  'Bugünün menüsü',
-  'Öğlen menüsü',
-  'Akşam menüsü',
-];
-
-// Akademik
-const YAYIN_SUBTITLES = [
-  'Makale listesi',
-  'PubMed bağlantıları',
-  'Güncel yayınlar',
-];
-const PORTFOLYO_SUBTITLES = [
-  'Kısaca ben',
-  'Uzmanlıklarım',
-  'Baktığım biyopsiler',
-  'Akademik geçmiş',
-];
-const DIGER_SUBTITLES = ['Raporlama', 'Patoloji için'];
-
-/* --- KISA DÖNEN METİN HOOK'U --- */
-function useRotatingText(texts: string[], intervalMs: number): string {
-  const [index, setIndex] = useState(0);
-
-  useEffect(() => {
-    if (!texts || texts.length <= 1) return;
-
-    const id = window.setInterval(() => {
-      setIndex((prev) => (prev + 1) % texts.length);
-    }, intervalMs);
-
-    return () => window.clearInterval(id);
-  }, [texts, intervalMs]);
-
-  return texts[index] ?? '';
-}
-
-/* Küçük yardımcı: yazıyı tek satırda tutmak için kısaltma */
+/** Küçük yardımcı: yazıyı tek satırda tutmak için kısaltma */
 function shorten(text: string, max: number): string {
   if (!text) return '';
   return text.length <= max ? text : text.slice(0, max - 3) + '...';
-}
-
-/* --- PODCAST KAROSU İÇİN SHEET'TEN BAŞLIK ÇEKEN HOOK --- */
-
-const PODCAST_SHEET_ID = '148p3M41R52gVVjtLSF2Qh8rJvBPEWJ7SV4lgSBQYwLc';
-const PODCAST_GID = '1109640564';
-const PODCAST_RANGE = 'A1:F132';
-const CACHE_KEY_PODCAST = 'metinciris_podcast_titles';
-const CACHE_KEY_WEATHER = 'metinciris_weather_data';
-const CACHE_EXPIRY = 3600000; // 1 saat
-
-function usePodcastRotatingTitle(intervalMs: number): string {
-  const [titles, setTitles] = useState<string[]>(() => {
-    const cached = localStorage.getItem(CACHE_KEY_PODCAST);
-    if (cached) {
-      try {
-        const { data, timestamp } = JSON.parse(cached);
-        if (Date.now() - timestamp < CACHE_EXPIRY) {
-          return data;
-        }
-      } catch (e) {
-        console.error('Önbellek okuma hatası', e);
-      }
-    }
-    return [];
-  });
-  const [index, setIndex] = useState(0);
-
-  // Başlıkları çek ve önbellekle
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const url = `https://docs.google.com/spreadsheets/d/${PODCAST_SHEET_ID}/gviz/tq?tqx=out:json&gid=${PODCAST_GID}&range=${PODCAST_RANGE}`;
-        const res = await fetch(url);
-        const text = await res.text();
-        const jsonText = text.substring(
-          text.indexOf('(') + 1,
-          text.lastIndexOf(')'),
-        );
-        const data = JSON.parse(jsonText);
-
-        const collected: string[] = [];
-        if (data.table && data.table.rows) {
-          data.table.rows.forEach((row: any) => {
-            const title = row.c[0]?.v?.toString().trim();
-            if (title) {
-              collected.push(title);
-            }
-          });
-        }
-
-        if (collected.length > 0) {
-          setTitles(collected);
-          localStorage.setItem(
-            CACHE_KEY_PODCAST,
-            JSON.stringify({ data: collected, timestamp: Date.now() }),
-          );
-          // Her sayfa yüklemesinde rastgele bir başlangıç index'i
-          setIndex(Math.floor(Math.random() * collected.length));
-        }
-      } catch (e) {
-        console.error('Podcast başlıkları alınamadı', e);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  // 10 sn'de bir sonraki başlığa geç
-  useEffect(() => {
-    if (!titles.length) return;
-    const id = window.setInterval(() => {
-      setIndex((prev) => (prev + 1) % titles.length);
-    }, intervalMs);
-
-    return () => window.clearInterval(id);
-  }, [titles, intervalMs]);
-
-  if (!titles.length) return '';
-  return titles[index] ?? '';
-}
-
-/* --- HAVA DURUMU TİP VE YARDIMCI FONKSİYONLAR --- */
-
-type WeatherVariant =
-  | 'day'
-  | 'night'
-  | 'rain'
-  | 'storm'
-  | 'snow'
-  | 'fog'
-  | 'cloudy';
-
-type WeatherState = {
-  temp: number | null;
-  icon: string;
-  variant: WeatherVariant;
-};
-
-// Kod + gündüz/gece bilgisinden tema seç
-function getWeatherVariant(code?: number, isDay?: boolean): WeatherVariant {
-  if (code === undefined || code === null) return isDay ? 'day' : 'night';
-
-  if (code === 45 || code === 48) return 'fog'; // sis
-
-  if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) {
-    // yağmur / sağanak / donan yağmur
-    return 'rain';
-  }
-
-  if ((code >= 71 && code <= 77) || (code >= 85 && code <= 86)) {
-    // kar / kar sağanağı
-    return 'snow';
-  }
-
-  if (code >= 95) {
-    // gök gürültülü fırtına
-    return 'storm';
-  }
-
-  if (!isDay) return 'night';
-  if (code === 3) return 'cloudy';
-
-  return 'day';
-}
-
-// Open-Meteo weather_code + is_day -> emoji
-function getWeatherIcon(code?: number, isDay?: boolean): string {
-  if (code === undefined || code === null) {
-    return isDay ? '🌤️' : '🌙';
-  }
-
-  // gece ikonları
-  if (!isDay) {
-    if (code === 0 || code === 1 || code === 2) return '🌙';
-    if (code === 3) return '☁️';
-  }
-
-  if (code === 0) return '☀️';
-  if (code === 1 || code === 2) return '🌤️';
-  if (code === 3) return '☁️';
-  if (code === 45 || code === 48) return '🌫️';
-
-  if (code >= 51 && code <= 55) return '🌦️'; // hafif yağmur
-  if (code >= 56 && code <= 57) return '🌧️'; // donan çise
-  if (code >= 61 && code <= 65) return '🌧️'; // yağmur
-  if (code >= 66 && code <= 67) return '🌧️'; // donan yağmur
-
-  if (code >= 71 && code <= 77) return '❄️'; // kar
-  if (code >= 80 && code <= 82) return '🌦️'; // sağanak
-  if (code >= 85 && code <= 86) return '🌨️'; // kar sağanağı
-
-  if (code >= 95 && code <= 99) return '⛈️'; // gök gürültülü
-
-  return isDay ? '🌤️' : '🌙';
 }
 
 export function Home({ onNavigate }: HomeProps) {
@@ -265,92 +56,20 @@ export function Home({ onNavigate }: HomeProps) {
   const blogSubtitle = useRotatingText(BLOG_SUBTITLES, 4000);
   const galeriSubtitle = useRotatingText(GALERI_SUBTITLES, 4000);
   const makaleSubtitle = useRotatingText(MAKALE_SUBTITLES, 4000);
-  const hastaneYemekSubtitle = useRotatingText(
-    HASTANE_YEMEK_SUBTITLES,
-    4000,
-  );
-
+  const hastaneYemekSubtitle = useRotatingText(HASTANE_YEMEK_SUBTITLES, 4000);
   const yayinSubtitle = useRotatingText(YAYIN_SUBTITLES, 4000);
   const portfolyoSubtitle = useRotatingText(PORTFOLYO_SUBTITLES, 4000);
   const digerSubtitle = useRotatingText(DIGER_SUBTITLES, 4000);
 
   // Podcast karosu için canlı başlık
-  const podcastDynamicTitle = usePodcastRotatingTitle(10000);
+  const podcastDynamicTitle = usePodcastTitle(10000);
   const podcastSubtitle =
     podcastDynamicTitle && podcastDynamicTitle.trim().length > 0
       ? shorten(podcastDynamicTitle, 80)
       : 'Güncel makale başlıkları';
 
   // Hava durumu (Isparta) – Open-Meteo
-  const [weather, setWeather] = useState<WeatherState>(() => {
-    const cached = localStorage.getItem(CACHE_KEY_WEATHER);
-    if (cached) {
-      try {
-        const { data, timestamp } = JSON.parse(cached);
-        if (Date.now() - timestamp < CACHE_EXPIRY) {
-          return data;
-        }
-      } catch (e) {
-        console.error('Hava durumu önbellek hatası', e);
-      }
-    }
-    return {
-      temp: null,
-      icon: '🌤️',
-      variant: 'day',
-    };
-  });
-
-  useEffect(() => {
-    const lat = 37.76; // Isparta civarı
-    const lon = 30.55;
-
-    const url =
-      `https://api.open-meteo.com/v1/forecast` +
-      `?latitude=${lat}&longitude=${lon}` +
-      `&current=temperature_2m,weather_code,is_day` +
-      `&timezone=Europe%2FIstanbul`;
-
-    fetch(url)
-      .then((res) => res.json())
-      .then((data) => {
-        const current = data.current || data.current_weather;
-        if (!current) return;
-
-        const tempRaw =
-          typeof current.temperature_2m === 'number'
-            ? current.temperature_2m
-            : current.temperature;
-
-        const codeRaw =
-          typeof current.weather_code === 'number'
-            ? current.weather_code
-            : current.weathercode;
-
-        const isDay =
-          current.is_day === 1 ||
-          current.is_day === true ||
-          current.is_day === '1';
-
-        const variant = getWeatherVariant(codeRaw, isDay);
-        const icon = getWeatherIcon(codeRaw, isDay);
-
-        const newState = {
-          temp: typeof tempRaw === 'number' ? Math.round(tempRaw) : null,
-          icon,
-          variant,
-        };
-
-        setWeather(newState);
-        localStorage.setItem(
-          CACHE_KEY_WEATHER,
-          JSON.stringify({ data: newState, timestamp: Date.now() }),
-        );
-      })
-      .catch(() => {
-        // Hata olursa mevcut state kalsın
-      });
-  }, []);
+  const weather = useWeather();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 transition-colors duration-300">
@@ -480,7 +199,7 @@ export function Home({ onNavigate }: HomeProps) {
                 onClick={() => onNavigate('ders-programi')}
               />
 
-              {/* Haftanın Vakası - YENİ */}
+              {/* Ayın Vakası */}
               <MetroTile
                 title="Ayın Vakası"
                 subtitle="Kendinizi test edin"
@@ -491,9 +210,7 @@ export function Home({ onNavigate }: HomeProps) {
                 onClick={() => onNavigate('ayin-vakasi')}
               />
 
-              {/* Blog karosu kaldırıldı -> Diğer Çalışmalar'a taşındı */}
-
-              {/* Slide Galeri – mikroskop ikonu */}
+              {/* Slide Galeri */}
               <MetroTile
                 title="Slide Galeri"
                 subtitle={galeriSubtitle}
@@ -503,7 +220,7 @@ export function Home({ onNavigate }: HomeProps) {
                 onClick={() => onNavigate('galeri')}
               />
 
-              {/* Makale Takip karosu */}
+              {/* Makale Takip */}
               <MetroTile
                 title="Makale Takip"
                 subtitle={makaleSubtitle}
@@ -539,7 +256,7 @@ export function Home({ onNavigate }: HomeProps) {
                 onClick={() => onNavigate('portfolyo')}
               />
 
-              {/* PROFİL yerine PODCAST karosu */}
+              {/* Podcast karosu */}
               <MetroTile
                 title="Patoloji Podcast"
                 subtitle={podcastSubtitle}

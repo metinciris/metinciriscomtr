@@ -30,39 +30,6 @@
   /* Modern Metro Tile Variables */
   --tile-border-radius: 1rem;
   --tile-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  --glass-bg: rgba(255, 255, 255, 0.1);
-  --glass-border: rgba(255, 255, 255, 0.2);
-  --glow-color: rgba(255, 255, 255, 0.3);
-}
-
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.145 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.145 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
-  --ring: oklch(0.439 0 0);
-  --font-weight-medium: 500;
-  --font-weight-normal: 400;
-
-  /* Metro Tile dark mode optimizations */
-  --glass-bg: rgba(255, 255, 255, 0.05);
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --glow-color: rgba(255, 255, 255, 0.2);
-  --tile-overlay-dark: rgba(0, 0, 0, 0.3);
 }
 
 @theme inline {
@@ -102,11 +69,6 @@
     background-color: #f1f5f9;
     @apply text-foreground;
     font-family: inherit;
-    transition: background-color 0.3s ease;
-  }
-
-  body.dark {
-    background: linear-gradient(to bottom right, #0f172a, #1e293b, #334155);
   }
 
   h1,
@@ -125,80 +87,4 @@
     line-height: inherit;
     margin: 0;
   }
-}
-
-/* Podcast Component Styles */
-.podcast-html-content p {
-  margin: 4px 0;
-}
-
-.podcast-html-content b {
-  display: block;
-  margin-top: 12px;
-}
-
-.podcast-journal-title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #2c3e50;
-  margin-bottom: 1rem;
-  padding: 0.75rem 1rem;
-  background: #ffffff;
-  border-radius: 0.75rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-  border-left: 4px solid #3498db;
-}
-
-.podcast-article-card {
-  background: #ffffff;
-  border-radius: 1rem;
-  padding: 1rem 1.25rem;
-  cursor: pointer;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
-  border: 2px solid transparent;
-  transition: all 0.25s ease;
-  scroll-margin-top: 180px;
-}
-
-.podcast-article-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-  border-color: #3498db;
-}
-
-.podcast-article-card-active {
-  border-color: #3498db;
-  background: #f0f7ff;
-  box-shadow: 0 4px 15px rgba(52, 152, 219, 0.15);
-}
-
-/* Modern Metro Tile Utilities */
-.glass-effect {
-  background: var(--glass-bg);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid var(--glass-border);
-}
-
-.glow-effect {
-  box-shadow:
-    0 0 20px var(--glow-color),
-    0 0 40px var(--glow-color);
-}
-
-.shadow-modern {
-  box-shadow:
-    0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -1px rgba(0, 0, 0, 0.06),
-    0 10px 15px -3px rgba(0, 0, 0, 0.1);
-}
-
-.shadow-modern-hover {
-  box-shadow:
-    0 20px 25px -5px rgba(0, 0, 0, 0.15),
-    0 10px 10px -5px rgba(0, 0, 0, 0.08),
-    0 0 30px rgba(255, 255, 255, 0.2);
 }

@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import DOMPurify from 'dompurify';
 import { PageContainer } from '../components/PageContainer';
 import { Star, Cloud, Thermometer, Wind, Sparkles, Utensils, Moon, Coffee, Heart, MessageSquare, Info, ExternalLink, Calendar, ChevronRight } from 'lucide-react';
 import { StarExplosion } from '../components/StarExplosion';
@@ -420,7 +421,7 @@ export function HastaneYemek() {
                   </div>
                   Yapay Zeka Özeti
                 </h2>
-                <div className="text-slate-300 leading-relaxed font-medium" dangerouslySetInnerHTML={{ __html: sheetData.monthlySummary }} />
+                <div className="text-slate-300 leading-relaxed font-medium" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(sheetData.monthlySummary) }} />
               </div>
             )}
           </div>
