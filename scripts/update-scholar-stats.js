@@ -50,9 +50,12 @@ async function updateScholarStats() {
         // matches[0] = Toplam Atıf (All)
         // matches[1] = 2019'dan beri Atıf
         // matches[2] = Toplam h-endeksi (All)
+        // matches[3] = 2019'dan beri h-endeksi
+        // matches[4] = Toplam i10-endeksi (All)
 
         const totalCitations = parseInt(matches[0][1], 10);
         const hIndex = parseInt(matches[2][1], 10);
+        const i10Index = matches[4] ? parseInt(matches[4][1], 10) : 0;
 
         // Atıf Geçmişi Grafiği (Years and Counts)
         // <span class="gsc_g_t" style="right:40px;left:auto">2024</span>
@@ -68,6 +71,7 @@ async function updateScholarStats() {
         console.log(`\nBaşarılı!`);
         console.log(`Atıf Sayısı: ${totalCitations}`);
         console.log(`h-endeksi: ${hIndex}`);
+        console.log(`i10-endeksi: ${i10Index}`);
         console.log(`Grafik Verisi: ${citationHistory.length} yıl bulundu.`);
 
         // publications.json dosyasını oku ve güncelle
@@ -79,6 +83,7 @@ async function updateScholarStats() {
         // Sadece değişen alanları güncelle
         data.stats.citations = totalCitations;
         data.stats.hIndex = hIndex;
+        data.stats.i10Index = i10Index;
         data.stats.citationHistory = citationHistory;
 
         // Yayın sayılarını da dizilerin uzunluğuna göre güncelle (Tam dinamik)

@@ -280,23 +280,12 @@
   ],
   "stats": {
     "hIndex": 25,
+    "i10Index": 40,
     "citations": 2079,
     "sciCount": 62,
     "nationalCount": 45,
     "congressCount": 143,
     "citationHistory": [
-      {
-        "year": 2016,
-        "count": 85
-      },
-      {
-        "year": 2017,
-        "count": 102
-      },
-      {
-        "year": 2018,
-        "count": 128
-      },
       {
         "year": 2019,
         "count": 121
