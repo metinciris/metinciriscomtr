@@ -8,11 +8,11 @@
     "awayTeam": "Juventus FC",
     "startTimeUTC": "2026-02-17T17:45:00Z",
     "startTimeLocal": "2026-02-17T20:45:00+03:00",
-    "status": "scheduled",
-    "scoreHome": 2,
+    "status": "finished",
+    "scoreHome": 5,
     "scoreAway": 2,
     "source": "football-data",
-    "lastFetchedAt": "2026-02-17T19:05:20.921Z"
+    "lastFetchedAt": "2026-02-18T07:09:19.878Z"
   },
   {
     "id": "football-UEFAEuropaLeague-8",
@@ -27,7 +27,7 @@
     "scoreHome": null,
     "scoreAway": null,
     "source": "fixturedownload",
-    "lastFetchedAt": "2026-02-17T19:05:21.882Z"
+    "lastFetchedAt": "2026-02-18T07:09:20.885Z"
   },
   {
     "id": "football-CL-552063",
@@ -42,7 +42,7 @@
     "scoreHome": null,
     "scoreAway": null,
     "source": "football-data",
-    "lastFetchedAt": "2026-02-17T19:05:20.921Z"
+    "lastFetchedAt": "2026-02-18T07:09:19.878Z"
   },
   {
     "id": "football-UEFAEuropaLeague-9",
@@ -57,6 +57,6 @@
     "scoreHome": null,
     "scoreAway": null,
     "source": "fixturedownload",
-    "lastFetchedAt": "2026-02-17T19:05:21.882Z"
+    "lastFetchedAt": "2026-02-18T07:09:20.885Z"
   }
 ]
