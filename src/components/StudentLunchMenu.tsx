@@ -75,18 +75,23 @@ export function StudentLunchMenu() {
                 const csv = await response.text();
                 const rows = parseCSV(csv);
 
-                // Identify Columns Dynamically
-                const headerRowIndex = rows.findIndex(r => r.some(cell => cell.toLowerCase().includes('tarih')));
+                // Identify Columns Dynamically with locale-agnostic matching
+                const headerRowIndex = rows.findIndex(r => r.some(cell =>
+                    cell.toLocaleLowerCase('en-US').includes('tarih')
+                ));
+
                 if (headerRowIndex === -1) {
+                    console.log('StudentLunchMenu debug - rows:', rows.slice(0, 5));
                     setMenu(null);
                     setHasData(false);
                     return;
                 }
 
                 const headerRow = rows[headerRowIndex];
-                const findCol = (terms: string[]) => headerRow.findIndex(cell =>
-                    terms.some(term => cell.toLowerCase().includes(term.toLowerCase()))
-                );
+                const findCol = (terms: string[]) => headerRow.findIndex(cell => {
+                    const cleanCell = cell.toLocaleLowerCase('en-US').trim();
+                    return terms.some(term => cleanCell.includes(term.toLocaleLowerCase('en-US')));
+                });
 
                 const colIdx = {
                     date: findCol(['tarih']),

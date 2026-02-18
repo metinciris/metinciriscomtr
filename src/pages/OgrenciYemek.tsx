@@ -100,13 +100,22 @@ export function OgrenciYemek() {
     if (currentRow.length > 0) rows.push(currentRow);
 
     // 2. Identify Header & Columns Dynamically
-    const headerRowIndex = rows.findIndex(r => r.some(cell => cell.toLowerCase().includes('tarih')));
-    if (headerRowIndex === -1) return { stats: null, menu: [] };
+    // Use toLocaleLowerCase('en-US') to avoid Turkish I/İ bug (Tarih -> tarıh mismatch)
+    const headerRowIndex = rows.findIndex(r => r.some(cell =>
+      cell.toLocaleLowerCase('en-US').includes('tarih')
+    ));
+
+    if (headerRowIndex === -1) {
+      console.log('Parsed Rows for Debug:', rows.slice(0, 10));
+      console.error('CSV Parsing Error: Header row (Tarih) not found.');
+      return { stats: null, menu: [] };
+    }
 
     const headerRow = rows[headerRowIndex];
-    const findCol = (terms: string[]) => headerRow.findIndex(cell =>
-      terms.some(term => cell.toLowerCase().includes(term.toLowerCase()))
-    );
+    const findCol = (terms: string[]) => headerRow.findIndex(cell => {
+      const cleanCell = cell.toLocaleLowerCase('en-US').trim();
+      return terms.some(term => cleanCell.includes(term.toLocaleLowerCase('en-US')));
+    });
 
     const colIdx = {
       date: findCol(['tarih']),
