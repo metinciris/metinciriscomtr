@@ -41,6 +41,5 @@ export const validPages = [
     'sjogren-raporlama',
     'endoskopi-raporlama',
     'tiiab-raporlama',
-    'dunya-saatleri',
-    'menu-debug'
+    'dunya-saatleri'
 ];

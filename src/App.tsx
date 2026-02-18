@@ -151,9 +151,6 @@ const TiiabRaporlama = React.lazy(() => import('./pages/TiiabRaporlama'));
 const DunyaSaatleri = React.lazy(() =>
   import('./pages/DunyaSaatleri').then((m) => ({ default: m.DunyaSaatleri })),
 );
-const MenuDebug = React.lazy(() =>
-  import('./pages/MenuDebug').then((m) => ({ default: m.MenuDebug })),
-);
 
 import { trackPageView } from './utils/analytics';
 
@@ -328,8 +325,6 @@ export default function App() {
       case 'tiiab-raporlama':
         return <TiiabRaporlama />;
 
-      case 'menu-debug':
-        return <MenuDebug />;
       case 'dunya-saatleri':
         return <DunyaSaatleri />;
 
