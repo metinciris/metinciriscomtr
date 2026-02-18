@@ -36,7 +36,9 @@ export function OgrenciYemek() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await fetch(SHEET_URL);
+      // Cache buster added to URL to ensure fresh data
+      const cacheBuster = `&t=${Date.now()}`;
+      const response = await fetch(SHEET_URL + cacheBuster);
       const csv = await response.text();
       const parsed = parseCSV(csv);
       setStats(parsed.stats);
@@ -64,9 +66,12 @@ export function OgrenciYemek() {
     let currentCell = '';
     let inQuotes = false;
 
-    for (let i = 0; i < csv.length; i++) {
-      const char = csv[i];
-      const nextChar = csv[i + 1];
+    // Remove BOM if present
+    const cleanCSV = csv.replace(/^\uFEFF/, '');
+
+    for (let i = 0; i < cleanCSV.length; i++) {
+      const char = cleanCSV[i];
+      const nextChar = cleanCSV[i + 1];
 
       if (char === '"') {
         if (inQuotes && nextChar === '"') {
@@ -91,11 +96,12 @@ export function OgrenciYemek() {
     if (currentCell) currentRow.push(currentCell.trim());
     if (currentRow.length > 0) rows.push(currentRow);
 
-    const headerRowIndex = rows.findIndex(r => r.includes('Tarih') || r.includes('Gün'));
+    // BOM-safe header detection: Check if any cell in the row contains "Tarih"
+    const headerRowIndex = rows.findIndex(r => r.some(cell => cell.includes('Tarih')));
     const headerRow = headerRowIndex !== -1 ? rows[headerRowIndex] : [];
 
     // Fallback: If no header found, assume it starts after empty rows
-    const dataStartIndex = headerRowIndex !== -1 ? headerRowIndex + 1 : rows.findIndex(r => r[0] && r[0].includes('.'));
+    const dataStartIndex = headerRowIndex !== -1 ? headerRowIndex + 1 : rows.findIndex(r => r[0] && /\d/.test(r[0]));
 
     const stats = {
       updated: (headerRowIndex > 0 ? rows[0]?.[1] : '') || '',
@@ -108,14 +114,14 @@ export function OgrenciYemek() {
     const menuItems: MenuItem[] = [];
     for (let i = dataStartIndex; i < rows.length; i++) {
       const r = rows[i];
-      if (r.length < 2 || !r[0] || !r[0].includes('.')) continue;
+      if (r.length < 2 || !r[0] || !/\d/.test(r[0])) continue;
       menuItems.push({
-        date: r[0],
-        day: r[1],
-        lunchMenu: r[2]?.replace(/\n/g, ', '),
-        lunchKcal: r[3],
-        dinnerMenu: r[4]?.replace(/\n/g, ', '),
-        dinnerKcal: r[5]
+        date: r[0].trim(),
+        day: r[1]?.trim() || '',
+        lunchMenu: r[2]?.replace(/\n/g, ', ').trim() || '',
+        lunchKcal: r[3]?.trim() || '',
+        dinnerMenu: r[4]?.replace(/\n/g, ', ').trim() || '',
+        dinnerKcal: r[5]?.trim() || ''
       });
     }
 
@@ -175,8 +181,11 @@ export function OgrenciYemek() {
     return `${day}.${month}.${year}`;
   };
 
+  // Flexible Date Matching: Only compare numbers to avoid hidden characters or different separators
+  const normalizeDate = (d: string) => d.replace(/\D/g, '');
   const today = formatDate(new Date());
-  const todayMenu = menu.find(m => m.date === today);
+  const normalizedToday = normalizeDate(today);
+  const todayMenu = menu.find(m => normalizeDate(m.date) === normalizedToday);
 
   const showLunchRating = !!todayMenu?.lunchMenu;
   const showDinnerRating = !!todayMenu?.dinnerMenu;
