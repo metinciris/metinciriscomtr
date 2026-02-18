@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import DOMPurify from 'dompurify';
 import { PageContainer } from '../components/PageContainer';
 import { Star, Cloud, Thermometer, Wind, Sparkles, Utensils, Moon, Coffee, Heart, MessageSquare, Info, ExternalLink, Calendar, ChevronRight } from 'lucide-react';
@@ -251,7 +252,12 @@ export function HastaneYemek() {
         </div>
 
         {/* Header Section */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-[#303f9f] to-[#1976d2] rounded-3xl p-8 md:p-12 mb-8 text-white shadow-xl text-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+          className="relative overflow-hidden bg-gradient-to-br from-[#303f9f] to-[#1976d2] rounded-3xl p-8 md:p-12 mb-8 text-white shadow-xl text-center"
+        >
           <div className="relative z-10 flex flex-col items-center">
             <h1 className="text-2xl md:text-5xl font-black mb-4 tracking-tight">SDÜ Hastane Menüsü</h1>
             <div className="flex flex-col items-center">
@@ -262,11 +268,16 @@ export function HastaneYemek() {
           {/* Decorative elements */}
           <div className="absolute -top-24 -right-24 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
           <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-[#3f51b5]/30 rounded-full blur-3xl"></div>
-        </div>
+        </motion.div>
 
         {/* AI Weather/Greeting Section */}
         {sheetData?.weather && (
-          <div className="mb-8 bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100 relative overflow-hidden group">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="mb-8 bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100 relative overflow-hidden group"
+          >
             <div className="absolute top-0 left-0 w-2 h-full bg-indigo-500"></div>
             <div className="flex flex-col md:flex-row items-center gap-6">
               <div className="shrink-0 w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-500 group-hover:scale-110 transition-transform duration-500">
@@ -276,7 +287,7 @@ export function HastaneYemek() {
                 "{cleanHtml(sheetData.weather)}"
               </div>
             </div>
-          </div>
+          </motion.div>
         )}
 
         {isLoading ? (
@@ -287,7 +298,13 @@ export function HastaneYemek() {
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
             {/* Lunch Card */}
-            <div className="flex flex-col h-full bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-md transition-shadow">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
+              whileHover={{ y: -5 }}
+              className="flex flex-col h-full bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-md transition-all duration-300"
+            >
               <div className="bg-[#e65100] p-6 text-white text-center">
                 <div className="flex justify-between items-center mb-2">
                   <Utensils size={24} className="opacity-90" />
@@ -335,10 +352,16 @@ export function HastaneYemek() {
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
             {/* Dinner Card */}
-            <div className="flex flex-col h-full bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-md transition-shadow">
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.4 }}
+              whileHover={{ y: -5 }}
+              className="flex flex-col h-full bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-md transition-all duration-300"
+            >
               <div className="bg-[#673ab7] p-6 text-white text-center">
                 <div className="flex justify-between items-center mb-2">
                   <Moon size={24} className="opacity-90" />
@@ -386,7 +409,7 @@ export function HastaneYemek() {
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
         )}
 

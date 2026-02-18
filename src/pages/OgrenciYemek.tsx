@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { PageContainer } from '../components/PageContainer';
+import { motion, AnimatePresence } from 'motion/react';
 import { Utensils, Star, ExternalLink, Calendar, Clock, RefreshCw, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { StarExplosion } from '../components/StarExplosion';
 
 interface MenuStats {
   updated: string;
@@ -21,14 +23,16 @@ interface MenuItem {
 }
 
 export function OgrenciYemek() {
-  const [stats, setStats] = React.useState<MenuStats | null>(null);
-  const [menu, setMenu] = React.useState<MenuItem[]>([]);
-  const [loading, setLoading] = React.useState(true);
-  const [ratingLunch, setRatingLunch] = React.useState(0);
-  const [ratingDinner, setRatingDinner] = React.useState(0);
-  const [hoveredLunch, setHoveredLunch] = React.useState(0);
-  const [hoveredDinner, setHoveredDinner] = React.useState(0);
-  const [cooldown, setCooldown] = React.useState<{ [key: string]: number }>({});
+  const [stats, setStats] = useState<MenuStats | null>(null);
+  const [menu, setMenu] = useState<MenuItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [ratingLunch, setRatingLunch] = useState(0);
+  const [ratingDinner, setRatingDinner] = useState(0);
+  const [hoveredLunch, setHoveredLunch] = useState(0);
+  const [hoveredDinner, setHoveredDinner] = useState(0);
+  const [cooldown, setCooldown] = useState<{ [key: string]: number }>({});
+  const [showLunchExplosion, setShowLunchExplosion] = useState(false);
+  const [showDinnerExplosion, setShowDinnerExplosion] = useState(false);
 
   const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1rXB81K4CkGT1wrtRGOnqVVRZB8g5GxpvP4TqAXu4BSE/gviz/tq?tqx=out:csv&gid=711889518';
   const FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSfGI7KHuI88wiAmawaEPMsqsGRJXRwNXRnVAAj__ZDmaCrZRw/formResponse';
@@ -53,7 +57,7 @@ export function OgrenciYemek() {
     }
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     fetchData();
     // Load cooldown from localStorage
     const savedCooldown = localStorage.getItem('yemek_cooldown');
@@ -196,8 +200,13 @@ export function OgrenciYemek() {
       setCooldown(newCooldown);
       localStorage.setItem('yemek_cooldown', JSON.stringify(newCooldown));
 
-      if (type === 'lunch') setRatingLunch(value);
-      else setRatingDinner(value);
+      if (type === 'lunch') {
+        setRatingLunch(value);
+        setShowLunchExplosion(true);
+      } else {
+        setRatingDinner(value);
+        setShowDinnerExplosion(true);
+      }
 
       toast.success('Değerlendirmeniz alındı. Teşekkürler!');
       // Refresh data to show updated stats (might take a few seconds in Google Sheets)
@@ -223,56 +232,73 @@ export function OgrenciYemek() {
   const showLunchRating = !!todayMenu?.lunchMenu;
   const showDinnerRating = !!todayMenu?.dinnerMenu;
 
-  const StarRating = ({ value, hovered, onHover, onRate, label }: any) => (
-    <div className="bg-white p-6 rounded-2xl shadow-md border-2 border-slate-100 hover:border-[#16A085]/20 transition-colors">
+  const StarRating = ({ value, hovered, onHover, onRate, label, explosionActive, onExplosionComplete }: any) => (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -5 }}
+      className="bg-white p-6 rounded-2xl shadow-md border-2 border-slate-100 hover:border-[#16A085]/20 transition-all duration-300 relative overflow-hidden"
+    >
       <h3 className="text-sm font-bold text-[#16A085] uppercase tracking-wide mb-4 flex items-center gap-2">
         <Star size={16} className="fill-current" />
         {label}
       </h3>
-      <div className="flex gap-2 mb-4">
+      <div className="flex gap-2 mb-4 relative">
+        <StarExplosion active={explosionActive} onComplete={onExplosionComplete} />
         {[1, 2, 3, 4, 5].map((s) => (
           <button
             key={s}
             onMouseEnter={() => onHover(s)}
             onMouseLeave={() => onHover(0)}
             onClick={() => onRate(s)}
-            className="transition-transform active:scale-95 hover:scale-110"
+            className="transition-transform active:scale-75 hover:scale-110 z-10"
           >
             <Star
               size={32}
               fill={(hovered || value) >= s ? '#F59E0B' : 'none'}
               color={(hovered || value) >= s ? '#F59E0B' : '#CBD5E1'}
+              className="transition-colors duration-200"
             />
           </button>
         ))}
       </div>
       <p className="text-xs text-slate-400">Her 10 dakikada bir oy verebilirsiniz.</p>
-    </div>
+    </motion.div>
   );
 
   return (
     <>
       <PageContainer>
         {/* Header */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-[#16A085] to-[#27AE60] rounded-3xl p-8 md:p-12 mb-8 text-white text-center md:text-left">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+          className="relative overflow-hidden bg-gradient-to-br from-[#16A085] to-[#27AE60] rounded-3xl p-8 md:p-12 mb-8 text-white text-center md:text-left"
+        >
           <div className="relative z-10">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">Günün Menüsü</h1>
-            <p className="text-lg opacity-90">
-              SDÜ Öğrenci Yemek Menüsü.
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight">Günün Menüsü</h1>
+            <p className="text-lg opacity-90 max-w-2xl">
+              SDÜ Öğrenci Yemek Menüsü. Güncel ve sağlıklı tercihler için takipte kalın.
             </p>
           </div>
           {/* Background Decals */}
           <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
-        </div>
+        </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content: Menu */}
           <div className="lg:col-span-2 space-y-8">
             {/* Today's Menu Highlight */}
-            <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 overflow-hidden border border-slate-100">
-              <div className="bg-slate-50 p-6 border-b border-slate-100 flex justify-between items-center">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+              className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 overflow-hidden border border-slate-100 group"
+            >
+              <div className="bg-slate-50 p-6 border-b border-slate-100 flex justify-between items-center group-hover:bg-slate-100 transition-colors">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-[#16A085] rounded-xl flex items-center justify-center text-white">
+                  <div className="w-10 h-10 bg-[#16A085] rounded-xl flex items-center justify-center text-white group-hover:rotate-6 transition-transform">
                     <Utensils size={20} />
                   </div>
                   <div>
@@ -304,7 +330,7 @@ export function OgrenciYemek() {
                           <span className="px-3 py-1 bg-amber-100 text-amber-700 text-xs font-bold rounded-full uppercase tracking-wider">Öğle Yemeği</span>
                           <span className="text-sm text-slate-400 font-mono">{todayMenu.lunchKcal} kcal</span>
                         </div>
-                        <div className="text-lg leading-relaxed text-slate-700 font-medium bg-slate-50 p-6 rounded-2xl border border-dashed border-slate-200">
+                        <div className="text-lg leading-relaxed text-slate-700 font-medium bg-slate-50 p-6 rounded-2xl border border-dashed border-slate-200 group-hover:border-amber-200 transition-colors">
                           {todayMenu.lunchMenu || 'Menü bilgisi girilmemiş.'}
                         </div>
                       </div>
@@ -316,7 +342,7 @@ export function OgrenciYemek() {
                             <span className="px-3 py-1 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-full uppercase tracking-wider">Akşam Yemeği</span>
                             <span className="text-sm text-slate-400 font-mono">{todayMenu.dinnerKcal} kcal</span>
                           </div>
-                          <div className="text-lg leading-relaxed text-slate-700 font-medium bg-slate-50 p-6 rounded-2xl border border-dashed border-slate-200">
+                          <div className="text-lg leading-relaxed text-slate-700 font-medium bg-slate-50 p-6 rounded-2xl border border-dashed border-slate-200 group-hover:border-indigo-200 transition-colors">
                             {todayMenu.dinnerMenu}
                           </div>
                         </div>
@@ -331,7 +357,7 @@ export function OgrenciYemek() {
                   </div>
                 )}
               </div>
-            </div>
+            </motion.div>
 
             {/* Rating Forms - Moved here after today's menu */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -342,6 +368,8 @@ export function OgrenciYemek() {
                   hovered={hoveredLunch}
                   onHover={setHoveredLunch}
                   onRate={(v: number) => handleRate('lunch', v)}
+                  explosionActive={showLunchExplosion}
+                  onExplosionComplete={() => setShowLunchExplosion(false)}
                 />
               )}
               {showDinnerRating && (
@@ -351,142 +379,144 @@ export function OgrenciYemek() {
                   hovered={hoveredDinner}
                   onHover={setHoveredDinner}
                   onRate={(v: number) => handleRate('dinner', v)}
+                  explosionActive={showDinnerExplosion}
+                  onComplete={() => setShowDinnerExplosion(false)}
                 />
               )}
             </div>
+          </div>
 
-            {/* Weekly List */}
-            <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-              <div className="p-6 border-b border-slate-100">
-                <h2 className="text-lg font-bold text-slate-800">Gelecek Menüler</h2>
+          {/* Weekly List */}
+          <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+            <div className="p-6 border-b border-slate-100">
+              <h2 className="text-lg font-bold text-slate-800">Gelecek Menüler</h2>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-slate-50">
+                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Tarih</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Günün Menüsü</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {menu
+                    .filter(item => {
+                      const parts = item.date.split(/[./-]/);
+                      if (parts.length < 3) return false;
+                      const [d, m, y] = parts.map(Number);
+                      const itemDate = new Date(y, m - 1, d);
+                      const now = new Date();
+                      const todayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                      return itemDate > todayDate;
+                    })
+                    .slice(0, 10)
+                    .map((item, idx) => (
+                      <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex flex-col">
+                            <span className="text-sm font-bold text-slate-700">{item.date}</span>
+                            <span className="text-xs text-slate-400">{item.day}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="text-sm text-slate-600 line-clamp-2">
+                            {item.lunchMenu}
+                          </div>
+                          {item.dinnerMenu && item.dinnerMenu !== item.lunchMenu && (
+                            <div className="text-xs text-indigo-500 mt-1 font-medium">
+                              Akşam: {item.dinnerMenu}
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        {/* Sidebar: Stats & Rating */}
+        <div className="space-y-8">
+          {/* Stats Bar */}
+          <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+            <h2 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
+              <CheckCircle2 size={20} className="text-[#16A085]" />
+              Bugünün Reytingi
+            </h2>
+            <div className="space-y-6">
+              <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100">
+                <div className="flex justify-between items-end mb-2">
+                  <span className="text-sm font-bold text-amber-800 uppercase tracking-wider">Öğle</span>
+                  <div className="flex items-center gap-1 text-amber-600">
+                    <span className="text-2xl font-bold font-mono">{stats?.lunchAvg || '0'}</span>
+                    <Star size={18} fill="currentColor" />
+                  </div>
+                </div>
+                <div className="w-full h-2 bg-amber-200 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-amber-500 transition-all duration-1000"
+                    style={{ width: `${(Number(stats?.lunchAvg) / 5) * 100}%` }}
+                  />
+                </div>
               </div>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="bg-slate-50">
-                      <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Tarih</th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Günün Menüsü</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {menu
-                      .filter(item => {
-                        const parts = item.date.split(/[./-]/);
-                        if (parts.length < 3) return false;
-                        const [d, m, y] = parts.map(Number);
-                        const itemDate = new Date(y, m - 1, d);
-                        const now = new Date();
-                        const todayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-                        return itemDate > todayDate;
-                      })
-                      .slice(0, 10)
-                      .map((item, idx) => (
-                        <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex flex-col">
-                              <span className="text-sm font-bold text-slate-700">{item.date}</span>
-                              <span className="text-xs text-slate-400">{item.day}</span>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="text-sm text-slate-600 line-clamp-2">
-                              {item.lunchMenu}
-                            </div>
-                            {item.dinnerMenu && item.dinnerMenu !== item.lunchMenu && (
-                              <div className="text-xs text-indigo-500 mt-1 font-medium">
-                                Akşam: {item.dinnerMenu}
-                              </div>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                  </tbody>
-                </table>
+
+              <div className="p-4 bg-indigo-50 rounded-2xl border border-indigo-100">
+                <div className="flex justify-between items-end mb-2">
+                  <span className="text-sm font-bold text-indigo-800 uppercase tracking-wider">Akşam</span>
+                  <div className="flex items-center gap-1 text-indigo-600">
+                    <span className="text-2xl font-bold font-mono">{stats?.dinnerAvg || '0'}</span>
+                    <Star size={18} fill="currentColor" />
+                  </div>
+                </div>
+                <div className="w-full h-2 bg-indigo-200 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-indigo-500 transition-all duration-1000"
+                    style={{ width: `${(Number(stats?.dinnerAvg) / 5) * 100}%` }}
+                  />
+                </div>
+              </div>
+
+              <div className="text-center pt-4 border-t border-slate-100">
+                <div className="text-sm text-slate-400">Toplam Katılım</div>
+                <div className="text-3xl font-black text-slate-800 font-mono">{stats?.totalVotes || '0'}</div>
               </div>
             </div>
           </div>
 
-          {/* Sidebar: Stats & Rating */}
-          <div className="space-y-8">
-            {/* Stats Bar */}
-            <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
-              <h2 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
-                <CheckCircle2 size={20} className="text-[#16A085]" />
-                Bugünün Reytingi
-              </h2>
-              <div className="space-y-6">
-                <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100">
-                  <div className="flex justify-between items-end mb-2">
-                    <span className="text-sm font-bold text-amber-800 uppercase tracking-wider">Öğle</span>
-                    <div className="flex items-center gap-1 text-amber-600">
-                      <span className="text-2xl font-bold font-mono">{stats?.lunchAvg || '0'}</span>
-                      <Star size={18} fill="currentColor" />
-                    </div>
-                  </div>
-                  <div className="w-full h-2 bg-amber-200 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-amber-500 transition-all duration-1000"
-                      style={{ width: `${(Number(stats?.lunchAvg) / 5) * 100}%` }}
-                    />
-                  </div>
-                </div>
+          {/* Rating Forms - Moved to main content */}
 
-                <div className="p-4 bg-indigo-50 rounded-2xl border border-indigo-100">
-                  <div className="flex justify-between items-end mb-2">
-                    <span className="text-sm font-bold text-indigo-800 uppercase tracking-wider">Akşam</span>
-                    <div className="flex items-center gap-1 text-indigo-600">
-                      <span className="text-2xl font-bold font-mono">{stats?.dinnerAvg || '0'}</span>
-                      <Star size={18} fill="currentColor" />
-                    </div>
-                  </div>
-                  <div className="w-full h-2 bg-indigo-200 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-indigo-500 transition-all duration-1000"
-                      style={{ width: `${(Number(stats?.dinnerAvg) / 5) * 100}%` }}
-                    />
-                  </div>
-                </div>
+          {/* Askıda Yemek */}
+          <div className="bg-slate-900 rounded-3xl p-8 text-white shadow-xl">
+            <h2 className="text-xl font-bold mb-4">Askıda Yemek</h2>
+            <p className="text-slate-400 text-sm mb-6 leading-relaxed">
+              Öğrenci arkadaşlarınıza destek misiniz? Paylaşmanın tadı bir başka.
+            </p>
+            <a
+              href="https://askidayemek.sdu.edu.tr/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-between w-full bg-white/10 hover:bg-white/20 border border-white/10 p-4 rounded-xl transition-all group"
+            >
+              <span className="font-bold">Sisteme Giriş Yap</span>
+              <ExternalLink size={20} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+            </a>
+          </div>
 
-                <div className="text-center pt-4 border-t border-slate-100">
-                  <div className="text-sm text-slate-400">Toplam Katılım</div>
-                  <div className="text-3xl font-black text-slate-800 font-mono">{stats?.totalVotes || '0'}</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Rating Forms - Moved to main content */}
-
-            {/* Askıda Yemek */}
-            <div className="bg-slate-900 rounded-3xl p-8 text-white shadow-xl">
-              <h2 className="text-xl font-bold mb-4">Askıda Yemek</h2>
-              <p className="text-slate-400 text-sm mb-6 leading-relaxed">
-                Öğrenci arkadaşlarınıza destek misiniz? Paylaşmanın tadı bir başka.
-              </p>
-              <a
-                href="https://askidayemek.sdu.edu.tr/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-between w-full bg-white/10 hover:bg-white/20 border border-white/10 p-4 rounded-xl transition-all group"
-              >
-                <span className="font-bold">Sisteme Giriş Yap</span>
-                <ExternalLink size={20} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-              </a>
-            </div>
-
-            {/* Hastane Yemek Menüsü - Separate Section */}
-            <div className="bg-indigo-600 rounded-3xl p-8 text-white shadow-xl">
-              <h2 className="text-xl font-bold mb-4 italic">SDÜ Hastane Menüsü</h2>
-              <p className="text-indigo-100 text-sm mb-6 leading-relaxed">
-                SDÜ Hastane Menüsü güncel yemek menüsüne buradan ulaşabilirsiniz.
-              </p>
-              <button
-                onClick={() => window.location.href = '/hastane-yemek'}
-                className="flex items-center justify-between w-full bg-white text-indigo-600 hover:bg-indigo-50 p-4 rounded-xl transition-all group font-bold"
-              >
-                <span>Hemen Görüntüle</span>
-                <ExternalLink size={20} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-              </button>
-            </div>
+          {/* Hastane Yemek Menüsü - Separate Section */}
+          <div className="bg-indigo-600 rounded-3xl p-8 text-white shadow-xl">
+            <h2 className="text-xl font-bold mb-4 italic">SDÜ Hastane Menüsü</h2>
+            <p className="text-indigo-100 text-sm mb-6 leading-relaxed">
+              SDÜ Hastane Menüsü güncel yemek menüsüne buradan ulaşabilirsiniz.
+            </p>
+            <button
+              onClick={() => window.location.href = '/hastane-yemek'}
+              className="flex items-center justify-between w-full bg-white text-indigo-600 hover:bg-indigo-50 p-4 rounded-xl transition-all group font-bold"
+            >
+              <span>Hemen Görüntüle</span>
+              <ExternalLink size={20} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+            </button>
           </div>
         </div>
       </PageContainer>
