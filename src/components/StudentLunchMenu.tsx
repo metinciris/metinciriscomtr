@@ -12,8 +12,16 @@ interface MenuData {
 export function StudentLunchMenu() {
     const [menu, setMenu] = useState<{ items: string[], kcal: string | null } | null>(null);
     const [loading, setLoading] = useState(true);
+    const [hasData, setHasData] = useState(true);
 
     const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1rXB81K4CkGT1wrtRGOnqVVRZB8g5GxpvP4TqAXu4BSE/export?format=csv&gid=711889518';
+
+    const formatDate = (date: Date) => {
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}.${month}.${year}`;
+    };
 
     const parseCSV = (csv: string) => {
         const rows: string[][] = [];
@@ -53,12 +61,13 @@ export function StudentLunchMenu() {
     useEffect(() => {
         const fetchMenu = async () => {
             setLoading(true);
+            setHasData(true);
             try {
                 const response = await fetch(SHEET_URL);
                 const csv = await response.text();
                 const rows = parseCSV(csv);
 
-                const today = new Date().toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                const today = formatDate(new Date());
                 const todayRow = rows.find(r => r[0] === today);
 
                 if (todayRow && todayRow[2]) {
@@ -68,10 +77,12 @@ export function StudentLunchMenu() {
                     });
                 } else {
                     setMenu(null);
+                    setHasData(false);
                 }
             } catch (error) {
                 console.error('Error fetching student menu:', error);
                 setMenu(null);
+                setHasData(false);
             } finally {
                 setLoading(false);
             }
@@ -80,7 +91,25 @@ export function StudentLunchMenu() {
         fetchMenu();
     }, []);
 
-    if (loading || !menu) return null;
+    if (loading) return null;
+
+    if (!hasData || !menu) {
+        return (
+            <div className="bg-white rounded-xl p-5 shadow-md border border-slate-200 mb-6">
+                <div className="flex items-center gap-2 mb-3">
+                    <div className="p-2 bg-slate-100 rounded-lg text-slate-500">
+                        <Utensils size={20} />
+                    </div>
+                    <h2 className="text-base sm:text-lg font-semibold text-gray-800">
+                        🎓 Öğrenci Öğle Menüsü (SDÜ) - {new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', weekday: 'long' })}
+                    </h2>
+                </div>
+                <div className="py-4 text-center bg-slate-50 rounded-lg border border-dashed border-slate-200">
+                    <p className="text-sm text-gray-500 italic">Bugün için menü bilgisi henüz girilmemiş.</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="bg-white rounded-xl p-5 shadow-md border border-[#98FB98] mb-6">
