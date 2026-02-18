@@ -24,13 +24,16 @@ export function StudentLunchMenu() {
     };
 
     const parseCSV = (csv: string) => {
+        // 1. Detect Separator
+        const cleanCSV = csv.replace(/^\uFEFF/, '');
+        const commaCount = (cleanCSV.match(/,/g) || []).length;
+        const semicolonCount = (cleanCSV.match(/;/g) || []).length;
+        const separator = semicolonCount > commaCount ? ';' : ',';
+
         const rows: string[][] = [];
         let currentRow: string[] = [];
         let currentCell = '';
         let inQuotes = false;
-
-        // Remove BOM if present
-        const cleanCSV = csv.replace(/^\uFEFF/, '');
 
         for (let i = 0; i < cleanCSV.length; i++) {
             const char = cleanCSV[i];
@@ -43,7 +46,7 @@ export function StudentLunchMenu() {
                 } else {
                     inQuotes = !inQuotes;
                 }
-            } else if (char === ',' && !inQuotes) {
+            } else if (char === separator && !inQuotes) {
                 currentRow.push(currentCell.trim());
                 currentCell = '';
             } else if ((char === '\n' || char === '\r') && !inQuotes) {
@@ -68,32 +71,46 @@ export function StudentLunchMenu() {
             try {
                 // Cache buster added to URL
                 const cacheBuster = `&t=${Date.now()}`;
-                console.log('Fetching menu from:', SHEET_URL + cacheBuster);
                 const response = await fetch(SHEET_URL + cacheBuster);
                 const csv = await response.text();
-                console.log('CSV fetched:', csv.substring(0, 200) + '...'); // Log first 200 chars
                 const rows = parseCSV(csv);
-                console.log('Parsed CSV rows:', rows.slice(0, 5)); // Log first 5 rows
+
+                // Identify Columns Dynamically
+                const headerRowIndex = rows.findIndex(r => r.some(cell => cell.toLowerCase().includes('tarih')));
+                if (headerRowIndex === -1) {
+                    setMenu(null);
+                    setHasData(false);
+                    return;
+                }
+
+                const headerRow = rows[headerRowIndex];
+                const findCol = (terms: string[]) => headerRow.findIndex(cell =>
+                    terms.some(term => cell.toLowerCase().includes(term.toLowerCase()))
+                );
+
+                const colIdx = {
+                    date: findCol(['tarih']),
+                    lunchMenu: findCol(['öğle menü', 'öğle menüsü']),
+                    lunchKcal: findCol(['öğle kcal'])
+                };
 
                 const normalizeDate = (d: string) => d.replace(/\D/g, '');
                 const todayNumeric = normalizeDate(formatDate(new Date()));
-                console.log('Today numeric date:', todayNumeric);
 
-                // Find today's row using numeric-only date matching
-                const todayRow = rows.find(r => {
-                    if (r[0]) {
-                        const rowDateNumeric = normalizeDate(r[0]);
-                        // console.log(`Comparing row date ${r[0]} (${rowDateNumeric}) with today ${todayNumeric}`);
+                // Find today's row using numeric-only date matching on the correct column
+                const todayRow = rows.find((r, idx) => {
+                    if (idx <= headerRowIndex) return false;
+                    if (r[colIdx.date]) {
+                        const rowDateNumeric = normalizeDate(r[colIdx.date]);
                         return rowDateNumeric === todayNumeric;
                     }
                     return false;
                 });
 
-                if (todayRow && todayRow[2]) {
-                    console.log('Found today\'s menu:', todayRow);
+                if (todayRow && colIdx.lunchMenu !== -1 && todayRow[colIdx.lunchMenu]) {
                     setMenu({
-                        items: todayRow[2].split('\n').filter(Boolean),
-                        kcal: todayRow[3] || null
+                        items: todayRow[colIdx.lunchMenu].split('\n').filter(Boolean),
+                        kcal: colIdx.lunchKcal !== -1 ? todayRow[colIdx.lunchKcal] || null : null
                     });
                 } else {
                     setMenu(null);

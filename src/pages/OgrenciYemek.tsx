@@ -61,13 +61,16 @@ export function OgrenciYemek() {
   }, []);
 
   const parseCSV = (csv: string) => {
+    // 1. Detect Separator (comma vs semicolon)
+    const cleanCSV = csv.replace(/^\uFEFF/, '');
+    const commaCount = (cleanCSV.match(/,/g) || []).length;
+    const semicolonCount = (cleanCSV.match(/;/g) || []).length;
+    const separator = semicolonCount > commaCount ? ';' : ',';
+
     const rows: string[][] = [];
     let currentRow: string[] = [];
     let currentCell = '';
     let inQuotes = false;
-
-    // Remove BOM if present
-    const cleanCSV = csv.replace(/^\uFEFF/, '');
 
     for (let i = 0; i < cleanCSV.length; i++) {
       const char = cleanCSV[i];
@@ -80,7 +83,7 @@ export function OgrenciYemek() {
         } else {
           inQuotes = !inQuotes;
         }
-      } else if (char === ',' && !inQuotes) {
+      } else if (char === separator && !inQuotes) {
         currentRow.push(currentCell.trim());
         currentCell = '';
       } else if ((char === '\n' || char === '\r') && !inQuotes) {
@@ -96,12 +99,23 @@ export function OgrenciYemek() {
     if (currentCell) currentRow.push(currentCell.trim());
     if (currentRow.length > 0) rows.push(currentRow);
 
-    // BOM-safe header detection: Check if any cell in the row contains "Tarih"
-    const headerRowIndex = rows.findIndex(r => r.some(cell => cell.includes('Tarih')));
-    const headerRow = headerRowIndex !== -1 ? rows[headerRowIndex] : [];
+    // 2. Identify Header & Columns Dynamically
+    const headerRowIndex = rows.findIndex(r => r.some(cell => cell.toLowerCase().includes('tarih')));
+    if (headerRowIndex === -1) return { stats: null, menu: [] };
 
-    // Fallback: If no header found, assume it starts after empty rows
-    const dataStartIndex = headerRowIndex !== -1 ? headerRowIndex + 1 : rows.findIndex(r => r[0] && /\d/.test(r[0]));
+    const headerRow = rows[headerRowIndex];
+    const findCol = (terms: string[]) => headerRow.findIndex(cell =>
+      terms.some(term => cell.toLowerCase().includes(term.toLowerCase()))
+    );
+
+    const colIdx = {
+      date: findCol(['tarih']),
+      day: findCol(['gün']),
+      lunchMenu: findCol(['öğle menü', 'öğle menüsü']),
+      lunchKcal: findCol(['öğle kcal']),
+      dinnerMenu: findCol(['akşam menü', 'akşam menüsü']),
+      dinnerKcal: findCol(['akşam kcal'])
+    };
 
     const stats = {
       updated: (headerRowIndex > 0 ? rows[0]?.[1] : '') || '',
@@ -112,16 +126,17 @@ export function OgrenciYemek() {
     };
 
     const menuItems: MenuItem[] = [];
-    for (let i = dataStartIndex; i < rows.length; i++) {
+    for (let i = headerRowIndex + 1; i < rows.length; i++) {
       const r = rows[i];
-      if (r.length < 2 || !r[0] || !/\d/.test(r[0])) continue;
+      if (!r[colIdx.date] || !/\d/.test(r[colIdx.date])) continue;
+
       menuItems.push({
-        date: r[0].trim(),
-        day: r[1]?.trim() || '',
-        lunchMenu: r[2]?.replace(/\n/g, ', ').trim() || '',
-        lunchKcal: r[3]?.trim() || '',
-        dinnerMenu: r[4]?.replace(/\n/g, ', ').trim() || '',
-        dinnerKcal: r[5]?.trim() || ''
+        date: r[colIdx.date].trim(),
+        day: colIdx.day !== -1 ? r[colIdx.day]?.trim() || '' : '',
+        lunchMenu: colIdx.lunchMenu !== -1 ? (r[colIdx.lunchMenu]?.replace(/\n/g, ', ').trim() || '') : '',
+        lunchKcal: colIdx.lunchKcal !== -1 ? r[colIdx.lunchKcal]?.trim() || '' : '',
+        dinnerMenu: colIdx.dinnerMenu !== -1 ? (r[colIdx.dinnerMenu]?.replace(/\n/g, ', ').trim() || '') : '',
+        dinnerKcal: colIdx.dinnerKcal !== -1 ? r[colIdx.dinnerKcal]?.trim() || '' : ''
       });
     }
 
@@ -338,7 +353,9 @@ export function OgrenciYemek() {
                   <tbody className="divide-y divide-slate-100">
                     {menu
                       .filter(item => {
-                        const [d, m, y] = item.date.split('.').map(Number);
+                        const parts = item.date.split(/[./-]/);
+                        if (parts.length < 3) return false;
+                        const [d, m, y] = parts.map(Number);
                         const itemDate = new Date(y, m - 1, d);
                         const now = new Date();
                         const todayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
