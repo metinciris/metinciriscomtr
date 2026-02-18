@@ -14,7 +14,7 @@ export function StudentLunchMenu() {
     const [loading, setLoading] = useState(true);
     const [hasData, setHasData] = useState(true);
 
-    const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1rXB81K4CkGT1wrtRGOnqVVRZB8g5GxpvP4TqAXu4BSE/export?format=csv&gid=711889518';
+    const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1rXB81K4CkGT1wrtRGOnqVVRZB8g5GxpvP4TqAXu4BSE/gviz/tq?tqx=out:csv&gid=711889518';
 
     const formatDate = (date: Date) => {
         const day = String(date.getDate()).padStart(2, '0');
@@ -69,30 +69,37 @@ export function StudentLunchMenu() {
             setLoading(true);
             setHasData(true);
             try {
-                // Cache buster added to URL
-                const cacheBuster = `&t=${Date.now()}`;
-                const response = await fetch(SHEET_URL + cacheBuster);
+                const response = await fetch(SHEET_URL);
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const csv = await response.text();
                 const rows = parseCSV(csv);
 
                 // Identify Columns Dynamically with locale-agnostic matching
-                const headerRowIndex = rows.findIndex(r => r.some(cell =>
-                    cell.toLocaleLowerCase('en-US').includes('tarih')
-                ));
+                // Ultra-flexible: Find any row that looks like a header (contains Tarih, Gün, or Menü)
+                const headerRowIndex = rows.findIndex(r => r.some(cell => {
+                    const c = cell.toLocaleLowerCase('en-US');
+                    return c.includes('tarih') || c.includes('gün') || c.includes('menü');
+                }));
 
                 if (headerRowIndex === -1) {
-                    console.log('StudentLunchMenu debug - rows:', rows.slice(0, 5));
                     setMenu(null);
                     setHasData(false);
                     return;
                 }
 
                 const headerRow = rows[headerRowIndex];
-                const findCol = (terms: string[]) => headerRow.findIndex(cell => {
-                    const cleanCell = cell.toLocaleLowerCase('en-US').trim();
-                    return terms.some(term => cleanCell.includes(term.toLocaleLowerCase('en-US')));
-                });
+                const findCol = (terms: string[]) => {
+                    const found = headerRow.findIndex(cell => {
+                        const cleanCell = cell.toLocaleLowerCase('en-US').trim();
+                        return terms.some(term => cleanCell.includes(term.toLocaleLowerCase('en-US')));
+                    });
+                    // Fallback for Date: Often the first column even if label is missing
+                    if (found === -1 && terms.includes('tarih')) {
+                        const firstColWithDate = rows.findIndex((r, idx) => idx > headerRowIndex && r[0] && /\d{2}[./-]\d{2}/.test(r[0]));
+                        return firstColWithDate !== -1 ? 0 : -1;
+                    }
+                    return found;
+                };
 
                 const colIdx = {
                     date: findCol(['tarih']),

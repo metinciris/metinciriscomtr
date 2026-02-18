@@ -30,18 +30,19 @@ export function OgrenciYemek() {
   const [hoveredDinner, setHoveredDinner] = React.useState(0);
   const [cooldown, setCooldown] = React.useState<{ [key: string]: number }>({});
 
-  const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1rXB81K4CkGT1wrtRGOnqVVRZB8g5GxpvP4TqAXu4BSE/export?format=csv&gid=711889518';
+  const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1rXB81K4CkGT1wrtRGOnqVVRZB8g5GxpvP4TqAXu4BSE/gviz/tq?tqx=out:csv&gid=711889518';
   const FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSfGI7KHuI88wiAmawaEPMsqsGRJXRwNXRnVAAj__ZDmaCrZRw/formResponse';
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Cache buster added to URL to ensure fresh data
-      const cacheBuster = `&t=${Date.now()}`;
-      const response = await fetch(SHEET_URL + cacheBuster);
+      const response = await fetch(SHEET_URL);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const csv = await response.text();
       const parsed = parseCSV(csv);
+      if (parsed.menu.length === 0) {
+        throw new Error('Veri ayrıştırma hatası: Tablo başlığı veya tarih sütunu bulunamadı.');
+      }
       setStats(parsed.stats);
       setMenu(parsed.menu);
     } catch (error) {
@@ -101,22 +102,29 @@ export function OgrenciYemek() {
     if (currentRow.length > 0) rows.push(currentRow);
 
     // 2. Identify Header & Columns Dynamically
-    // Use toLocaleLowerCase('en-US') to avoid Turkish I/İ bug (Tarih -> tarıh mismatch)
-    const headerRowIndex = rows.findIndex(r => r.some(cell =>
-      cell.toLocaleLowerCase('en-US').includes('tarih')
-    ));
+    // Ultra-flexible: Find any row that looks like a header (contains Tarih, Gün, or Menü)
+    const headerRowIndex = rows.findIndex(r => r.some(cell => {
+      const c = cell.toLocaleLowerCase('en-US');
+      return c.includes('tarih') || c.includes('gün') || c.includes('menü');
+    }));
 
     if (headerRowIndex === -1) {
-      console.log('Parsed Rows for Debug:', rows.slice(0, 10));
-      console.error('CSV Parsing Error: Header row (Tarih) not found.');
       return { stats: null, menu: [] };
     }
 
     const headerRow = rows[headerRowIndex];
-    const findCol = (terms: string[]) => headerRow.findIndex(cell => {
-      const cleanCell = cell.toLocaleLowerCase('en-US').trim();
-      return terms.some(term => cleanCell.includes(term.toLocaleLowerCase('en-US')));
-    });
+    const findCol = (terms: string[]) => {
+      const found = headerRow.findIndex(cell => {
+        const cleanCell = cell.toLocaleLowerCase('en-US').trim();
+        return terms.some(term => cleanCell.includes(term.toLocaleLowerCase('en-US')));
+      });
+      // Fallback for Date: Often the first column even if label is missing
+      if (found === -1 && terms.includes('tarih')) {
+        const firstColWithDate = rows.findIndex((r, idx) => idx > headerRowIndex && r[0] && /\d{2}[./-]\d{2}/.test(r[0]));
+        return firstColWithDate !== -1 ? 0 : -1;
+      }
+      return found;
+    };
 
     const colIdx = {
       date: findCol(['tarih']),
