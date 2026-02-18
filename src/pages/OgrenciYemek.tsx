@@ -39,13 +39,14 @@ export function OgrenciYemek() {
       // Cache buster added to URL to ensure fresh data
       const cacheBuster = `&t=${Date.now()}`;
       const response = await fetch(SHEET_URL + cacheBuster);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const csv = await response.text();
       const parsed = parseCSV(csv);
       setStats(parsed.stats);
       setMenu(parsed.menu);
     } catch (error) {
       console.error('Data fetch error:', error);
-      toast.error('Veriler güncellenemedi.');
+      toast.error(`Veriler güncellenemedi: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`);
     } finally {
       setLoading(false);
     }

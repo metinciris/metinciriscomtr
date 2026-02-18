@@ -72,6 +72,7 @@ export function StudentLunchMenu() {
                 // Cache buster added to URL
                 const cacheBuster = `&t=${Date.now()}`;
                 const response = await fetch(SHEET_URL + cacheBuster);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const csv = await response.text();
                 const rows = parseCSV(csv);
 
