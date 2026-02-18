@@ -91,18 +91,24 @@ export function OgrenciYemek() {
     if (currentCell) currentRow.push(currentCell.trim());
     if (currentRow.length > 0) rows.push(currentRow);
 
+    const headerRowIndex = rows.findIndex(r => r.includes('Tarih') || r.includes('Gün'));
+    const headerRow = headerRowIndex !== -1 ? rows[headerRowIndex] : [];
+
+    // Fallback: If no header found, assume it starts after empty rows
+    const dataStartIndex = headerRowIndex !== -1 ? headerRowIndex + 1 : rows.findIndex(r => r[0] && r[0].includes('.'));
+
     const stats = {
-      updated: rows[0]?.[1] || '',
-      time: rows[1]?.[1] || '',
-      totalVotes: rows[2]?.[1] || '',
-      lunchAvg: rows[3]?.[1] || '',
-      dinnerAvg: rows[4]?.[1] || '',
+      updated: (headerRowIndex > 0 ? rows[0]?.[1] : '') || '',
+      time: (headerRowIndex > 1 ? rows[1]?.[1] : '') || '',
+      totalVotes: (headerRowIndex > 2 ? rows[2]?.[1] : '') || '',
+      lunchAvg: (headerRowIndex > 3 ? rows[3]?.[1] : '') || '',
+      dinnerAvg: (headerRowIndex > 4 ? rows[4]?.[1] : '') || '',
     };
 
     const menuItems: MenuItem[] = [];
-    for (let i = 7; i < rows.length; i++) {
+    for (let i = dataStartIndex; i < rows.length; i++) {
       const r = rows[i];
-      if (r.length < 2 || !r[0]) continue;
+      if (r.length < 2 || !r[0] || !r[0].includes('.')) continue;
       menuItems.push({
         date: r[0],
         day: r[1],

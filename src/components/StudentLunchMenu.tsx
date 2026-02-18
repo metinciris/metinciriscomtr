@@ -68,6 +68,8 @@ export function StudentLunchMenu() {
                 const rows = parseCSV(csv);
 
                 const today = formatDate(new Date());
+
+                // Simplified loop to find today's row, skipping empty rows and headers
                 const todayRow = rows.find(r => r[0] === today);
 
                 if (todayRow && todayRow[2]) {
