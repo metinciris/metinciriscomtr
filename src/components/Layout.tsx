@@ -1,5 +1,6 @@
 import React from 'react';
-import { Menu, Home, User, BookOpen, ChevronUp, ChevronRight } from 'lucide-react';
+import { Menu, Home, User, BookOpen, ChevronUp, ChevronRight, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -153,28 +154,53 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
             </button>
           </div>
 
-          {/* Mobile Navigation */}
-          {mobileMenuOpen && (
-            <nav className="md:hidden pb-4" aria-label="Mobil navigasyon">
-              {navItems.map((item) => (
+          {/* Mobile Navigation Overlay */}
+          <AnimatePresence>
+            {mobileMenuOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.2 }}
+                className="fixed inset-0 z-[100] bg-[#1e1e1e]/95 backdrop-blur-xl flex flex-col pt-24 px-6"
+              >
+                {/* Close Button at top-right */}
                 <button
-                  key={item.path}
-                  onClick={() => {
-                    onNavigate(item.path);
-                    setMobileMenuOpen(false);
-                  }}
-                  aria-current={currentPage === item.path ? 'page' : undefined}
-                  className={`w-full px-4 py-3 flex items-center space-x-2 transition-colors ${currentPage === item.path
-                    ? 'bg-[#0078D4] text-white'
-                    : 'text-white/80 hover:bg-white/10'
-                    }`}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="absolute top-6 right-4 p-2 text-white/80 hover:text-white bg-white/10 rounded-full"
+                  aria-label="Menüyü kapat"
                 >
-                  <item.icon size={18} aria-hidden="true" />
-                  <span>{item.name}</span>
+                  <X size={32} />
                 </button>
-              ))}
-            </nav>
-          )}
+
+                <nav className="flex flex-col space-y-6" aria-label="Mobil navigasyon">
+                  {navItems.map((item, index) => (
+                    <motion.button
+                      key={item.path}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.1 + index * 0.1 }}
+                      onClick={() => {
+                        onNavigate(item.path);
+                        setMobileMenuOpen(false);
+                      }}
+                      className={`text-2xl font-medium flex items-center space-x-4 p-4 rounded-xl transition-all ${currentPage === item.path
+                          ? 'bg-blue-600/20 text-[#0078D4]'
+                          : 'text-white/80 hover:text-white hover:bg-white/5'
+                        }`}
+                    >
+                      <item.icon size={28} />
+                      <span>{item.name}</span>
+                    </motion.button>
+                  ))}
+                </nav>
+
+                <div className="mt-auto mb-12 text-center text-white/40 text-sm">
+                  <p>© {currentYear} Prof Dr Metin Çiriş</p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </header>
 
