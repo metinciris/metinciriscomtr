@@ -87,7 +87,7 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
       </a>
 
       {/* Header */}
-      <header className="bg-[#1e1e1e] text-white sticky top-0 z-50 shadow-lg" role="banner">
+      <header className="bg-[#1e1e1e]/80 backdrop-blur-md text-white sticky top-0 z-50 shadow-lg border-b border-white/5 transition-colors duration-300" role="banner">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-20 md:h-16">
             {/* Logo + isim */}
@@ -227,8 +227,8 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
         onClick={scrollToTop}
         aria-label="Sayfanın başına dön"
         className={`fixed bottom-6 right-6 z-40 p-3 rounded-full bg-[#1e1e1e] text-white shadow-lg hover:bg-[#333] hover:scale-110 active:scale-95 transition-all duration-300 ${showScrollTop
-            ? 'opacity-100 translate-y-0'
-            : 'opacity-0 translate-y-4 pointer-events-none'
+          ? 'opacity-100 translate-y-0'
+          : 'opacity-0 translate-y-4 pointer-events-none'
           }`}
       >
         <ChevronUp size={22} aria-hidden="true" />

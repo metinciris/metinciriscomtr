@@ -1,6 +1,7 @@
 import React from 'react';
 import { PageContainer } from '../components/PageContainer';
 import { MetroTile } from '../components/MetroTile';
+import { motion } from 'motion/react';
 import {
   MessageSquare,
   FileText,
@@ -74,7 +75,20 @@ export function Home({ onNavigate }: HomeProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 transition-colors duration-300">
       <PageContainer>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-10">
+        <motion.div
+          className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-10"
+          initial="hidden"
+          animate="visible"
+          variants={{
+            hidden: { opacity: 0 },
+            visible: {
+              opacity: 1,
+              transition: {
+                staggerChildren: 0.1
+              }
+            }
+          }}
+        >
           {/* HASTA Bölümü */}
           <div>
             <h2 className="mb-1 text-2xl font-bold">Hasta</h2>
@@ -300,7 +314,7 @@ export function Home({ onNavigate }: HomeProps) {
               />
             </div>
           </div>
-        </div>
+        </motion.div>
       </PageContainer>
     </div>
   );
