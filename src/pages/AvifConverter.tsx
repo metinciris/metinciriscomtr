@@ -45,6 +45,7 @@ export function AvifConverter() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isDragging, setIsDragging] = useState(false);
     const [isEngineReady, setIsEngineReady] = useState(false);
+    const [engineError, setEngineError] = useState<string | null>(null);
 
     // Fixed quality setting from user's example
     const QUALITY = 40;
@@ -53,10 +54,25 @@ export function AvifConverter() {
     useEffect(() => {
         const loadEngine = async () => {
             try {
-                await init();
+                // Force single-thread mode and use stable public paths for WASM
+                await init({
+                    threads: false, // Disable multithreading to avoid SharedArrayBuffer/header issues
+                    locateFile: (path: string) => {
+                        if (path.endsWith('avif_enc.wasm')) return '/wasm/avif/avif_enc.wasm';
+                        if (path.endsWith('avif_enc_mt.wasm')) return '/wasm/avif/avif_enc_mt.wasm';
+                        if (path.endsWith('avif_dec.wasm')) return '/wasm/avif/avif_dec.wasm';
+                        if (path.endsWith('avif_enc_mt.worker.mjs')) return '/wasm/avif/avif_enc_mt.worker.mjs';
+                        if (path.endsWith('avif_enc_mt.js')) return '/wasm/avif/avif_enc_mt.js';
+                        if (path.endsWith('avif_enc.js')) return '/wasm/avif/avif_enc.js';
+                        if (path.endsWith('avif_dec.js')) return '/wasm/avif/avif_dec.js';
+                        return path;
+                    }
+                });
                 setIsEngineReady(true);
-            } catch (err) {
+            } catch (err: any) {
                 console.error('Failed to initialize AVIF engine:', err);
+                const errorMessage = err?.message || String(err);
+                setEngineError(`AVIF motoru başlatılamadı: ${errorMessage}`);
             }
         };
         loadEngine();
@@ -227,7 +243,12 @@ export function AvifConverter() {
                                     Gizlilik: Resimleriniz asla sunucuya yüklenmez, her şey tarayıcınızda işlenir.
                                 </span>
                             </div>
-                            {!isEngineReady && (
+                            {engineError ? (
+                                <div className="flex items-center gap-2 text-red-300 text-xs font-medium bg-red-500/10 px-3 py-1.5 rounded-xl border border-red-500/20">
+                                    <AlertCircle className="w-3 h-3" />
+                                    {engineError}
+                                </div>
+                            ) : !isEngineReady && (
                                 <div className="flex items-center gap-2 text-emerald-300 text-xs font-medium">
                                     <Loader2 className="w-3 h-3 animate-spin" />
                                     AVIF Motoru hazırlanıyor...
