@@ -63,7 +63,12 @@ export function usePodcastTitle(intervalMs: number): string {
             }
         };
 
-        fetchData();
+        // Sayfa yüklendikten biraz sonra çek (Main thread'i rahatlat)
+        const timeoutId = setTimeout(() => {
+            fetchData();
+        }, 3000);
+
+        return () => clearTimeout(timeoutId);
     }, []);
 
     // Belirli aralıklarla sonraki başlığa geç

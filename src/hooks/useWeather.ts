@@ -108,45 +108,50 @@ export function useWeather(): WeatherState {
             `&current=temperature_2m,weather_code,is_day` +
             `&timezone=Europe%2FIstanbul`;
 
-        fetch(url)
-            .then((res) => res.json())
-            .then((data) => {
-                const current = data.current || data.current_weather;
-                if (!current) return;
+        // Sayfa açılışını hızlandırmak için 2 saniye gecikmeli çek
+        const timeoutId = setTimeout(() => {
+            fetch(url)
+                .then((res) => res.json())
+                .then((data) => {
+                    const current = data.current || data.current_weather;
+                    if (!current) return;
 
-                const tempRaw =
-                    typeof current.temperature_2m === 'number'
-                        ? current.temperature_2m
-                        : current.temperature;
+                    const tempRaw =
+                        typeof current.temperature_2m === 'number'
+                            ? current.temperature_2m
+                            : current.temperature;
 
-                const codeRaw =
-                    typeof current.weather_code === 'number'
-                        ? current.weather_code
-                        : current.weathercode;
+                    const codeRaw =
+                        typeof current.weather_code === 'number'
+                            ? current.weather_code
+                            : current.weathercode;
 
-                const isDay =
-                    current.is_day === 1 ||
-                    current.is_day === true ||
-                    current.is_day === '1';
+                    const isDay =
+                        current.is_day === 1 ||
+                        current.is_day === true ||
+                        current.is_day === '1';
 
-                const variant = getWeatherVariant(codeRaw, isDay);
-                const icon = getWeatherIcon(codeRaw, isDay);
+                    const variant = getWeatherVariant(codeRaw, isDay);
+                    const icon = getWeatherIcon(codeRaw, isDay);
 
-                const newState: WeatherState = {
-                    temp: typeof tempRaw === 'number' ? Math.round(tempRaw) : null,
-                    icon,
-                    variant,
-                };
+                    const newState: WeatherState = {
+                        temp: typeof tempRaw === 'number' ? Math.round(tempRaw) : null,
+                        icon,
+                        variant,
+                    };
 
-                setWeather(newState);
-                localStorage.setItem(
-                    CACHE_KEY_WEATHER,
-                    JSON.stringify({ data: newState, timestamp: Date.now() }),
-                );
-            })
-            .catch(() => {
-                // Hata olursa mevcut state kalsın
-            });
+                    setWeather(newState);
+                    localStorage.setItem(
+                        CACHE_KEY_WEATHER,
+                        JSON.stringify({ data: newState, timestamp: Date.now() }),
+                    );
+                })
+                .catch(() => {
+                    // Hata olursa mevcut state kalsın
+                });
+        }, 2000);
+
+        return () => clearTimeout(timeoutId);
     }, []);
 
     return weather;
