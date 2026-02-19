@@ -7,19 +7,20 @@ export function AyinVakasi() {
     const [isRevealed, setIsRevealed] = useState(false);
 
     // Mock Data - Case 22
+    // Mock Data - Case 26 (Amiloid Guatr)
     const currentCase = {
-        id: 'case-22',
+        id: 'case-26',
         title: 'Ayın Vakası',
-        history: 'Tümör ve tümör olmayan tiroid dokusunda çok sayıda psammoma cisimciği görülüyor.',
-        imagePlaceholder: 'https://metinciris.github.io/gallery-22/thumbnail.jpg',
-        diagnosis: 'Diffüz Sklerozan Papiller Tiroid Karsinomu',
-        description: `Aslında Papiller Tiroid Karsinomunun Diffüz Sklerozan Varyantına (DSV) bakıyor olabilirsiniz.
-    Bu nadir fakat kendine özgü alt tip şunlarla karakterizedir:
-     🔹 Yaygın psammoma cisimcikleri
-     🔹 Yoğun fibrozis
-     🔹 Belirgin lenfositik infiltrasyon
-     🔹 PTC'nin klasik nükleer özellikleri, sıklıkla silik ve diffüz`,
-        slideUrl: 'https://metinciris.github.io/gallery-22/',
+        history: 'Papiller tiroid karsinomu şüphesi nedeniyle bir patoloji konsültasyonu istenmiştir.',
+        imagePlaceholder: 'https://metinciris.github.io/galeri/26/thumbnail.jpg',
+        diagnosis: 'Amiloid Guatr',
+        description: `Histolojik görünüm normal tiroid dokusundan belirgin şekilde farklıdır. Tiroid folikülleri belirgin atrofik bir patern göstermektedir.
+        
+Dr. Kıvanç Kozan'a dijital tarama için teşekkürler.`,
+        slides: [
+            { label: 'H&E', url: 'https://metinciris.github.io/galeri/26/' },
+            { label: 'Kongo Red', url: 'https://metinciris.github.io/galeri/27/' }
+        ]
     };
 
     return (
@@ -69,17 +70,20 @@ export function AyinVakasi() {
                             {/* Action Buttons - Metro Style: Flat, Bold, Sharp */}
                             <div className="flex flex-col md:flex-row gap-6 w-full md:w-auto justify-center items-stretch">
                                 {/* Sanal Mikroskop Button - Metro Blue */}
-                                <a
-                                    href={currentCase.slideUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center justify-center px-8 py-5 font-bold text-lg transition-all shadow-md active:scale-95 w-full md:w-auto min-w-[320px]"
-                                    style={{ backgroundColor: '#0072C6', color: '#ffffff', textDecoration: 'none' }}
-                                >
-                                    <Microscope className="mr-3 h-6 w-6" />
-                                    Sanal Mikroskoba Git
-                                    <ArrowRight className="ml-3 h-5 w-5" />
-                                </a>
+                                {currentCase.slides.map((slide, idx) => (
+                                    <a
+                                        key={idx}
+                                        href={slide.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center justify-center px-8 py-5 font-bold text-lg transition-all shadow-md active:scale-95 w-full md:w-auto min-w-[280px]"
+                                        style={{ backgroundColor: idx === 0 ? '#0072C6' : '#B91D47', color: '#ffffff', textDecoration: 'none' }} // Blue for H&E, Red for Congo Red (Metro style)
+                                    >
+                                        <Microscope className="mr-3 h-6 w-6" />
+                                        {slide.label}
+                                        <ArrowRight className="ml-3 h-5 w-5" />
+                                    </a>
+                                ))}
 
                                 {/* Reveal Button - Metro Purple */}
                                 {!isRevealed && (
