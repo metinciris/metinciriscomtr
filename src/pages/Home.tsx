@@ -75,22 +75,13 @@ export function Home({ onNavigate }: HomeProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 transition-colors duration-300">
       <PageContainer>
-        <motion.div
-          className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-10"
-          initial="hidden"
-          animate="visible"
-          variants={{
-            hidden: { opacity: 0 },
-            visible: {
-              opacity: 1,
-              transition: {
-                staggerChildren: 0.1
-              }
-            }
-          }}
-        >
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-10">
           {/* HASTA Bölümü */}
-          <div>
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
             <h2 className="mb-1 text-2xl font-bold">Hasta</h2>
             <p className="mb-4 text-sm text-slate-600">
               Biyopsi sonuçları, iletişim ve günlük pratik bilgiler.
@@ -160,10 +151,14 @@ export function Home({ onNavigate }: HomeProps) {
                 </div>
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* ÖĞRENCİ Bölümü */}
-          <div>
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
             <h2 className="mb-1 text-2xl font-bold">Öğrenci</h2>
             <p className="mb-4 text-sm text-slate-600">
               Tıp, diş ve eczacılık öğrencileri için ders notları ve
@@ -244,10 +239,14 @@ export function Home({ onNavigate }: HomeProps) {
                 onClick={() => onNavigate('pubmed-makale-takip')}
               />
             </div>
-          </div>
+          </motion.div>
 
           {/* AKADEMİK Bölümü */}
-          <div>
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
             <h2 className="mb-1 text-2xl font-bold">Akademik</h2>
             <p className="mb-4 text-sm text-slate-600">
               Yayınlar, portfolyo ve patolojiye yönelik projeler.
@@ -313,8 +312,8 @@ export function Home({ onNavigate }: HomeProps) {
                 onClick={() => onNavigate('diger-calismalar')}
               />
             </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        </div>
       </PageContainer>
     </div>
   );
