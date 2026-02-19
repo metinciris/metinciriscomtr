@@ -673,13 +673,35 @@ export function Konsensus() {
                     </div>
                     <div>
                       <label className="text-xs font-black text-gray-500 block mb-1">Süre</label>
-                      <select
-                        value={formData.duration}
-                        onChange={(e) => setFormData((p) => ({ ...p, duration: parseInt(e.target.value, 10) }))}
-                        className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 font-semibold"
-                      >
-                        {[30, 45, 60, 90, 120, 180].map(d => <option key={d} value={d}>{d} dk</option>)}
-                      </select>
+                      <div className="flex gap-2">
+                        <select
+                          value={[30, 45, 60, 90, 120, 180].includes(formData.duration) ? formData.duration : 'custom'}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            if (val === 'custom') {
+                              setFormData((p) => ({ ...p, duration: 0 }));
+                            } else {
+                              setFormData((p) => ({ ...p, duration: parseInt(val, 10) }));
+                            }
+                          }}
+                          className="w-full px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 font-semibold"
+                        >
+                          {[30, 45, 60, 90, 120, 180].map(d => <option key={d} value={d}>{d} dk</option>)}
+                          <option value="custom">Diğer</option>
+                        </select>
+                        {![30, 45, 60, 90, 120, 180].includes(formData.duration) && (
+                          <input
+                            type="number"
+                            value={formData.duration === 0 ? '' : formData.duration}
+                            onChange={(e) => {
+                              const val = e.target.value === '' ? 0 : parseInt(e.target.value, 10);
+                              setFormData((p) => ({ ...p, duration: val }));
+                            }}
+                            className="w-20 px-3 py-2 rounded-xl bg-gray-50 border border-gray-200 font-semibold text-center"
+                            placeholder="dk"
+                          />
+                        )}
+                      </div>
                     </div>
                   </div>
 
