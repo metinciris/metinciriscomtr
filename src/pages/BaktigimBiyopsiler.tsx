@@ -17,7 +17,7 @@ export function BaktigimBiyopsiler() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         <div className="bg-white p-8">
           <ImageWithFallback
-            src="/img/metin-ciris.jpg"
+            src="/img/metin-ciris.avif"
             alt="Prof. Dr. Metin Çiriş"
             className="w-full h-96 object-cover mb-6"
           />
@@ -84,7 +84,7 @@ export function BaktigimBiyopsiler() {
           {/* 1. Endokrin sistem patolojisi */}
           <div className="relative overflow-hidden group">
             <ImageWithFallback
-              src="/img/endocrine_pathology.jpg"
+              src="/img/endocrine_pathology.avif"
               alt="Endokrin sistem patolojisi"
               className="w-full h-64 object-cover"
             />
@@ -98,7 +98,7 @@ export function BaktigimBiyopsiler() {
           {/* 2. Sitopatoloji */}
           <div className="relative overflow-hidden group">
             <ImageWithFallback
-              src="/img/cytopathology.jpg"
+              src="/img/cytopathology.avif"
               alt="Sitopatoloji"
               className="w-full h-64 object-cover"
             />
@@ -112,7 +112,7 @@ export function BaktigimBiyopsiler() {
           {/* 3. Baş-Boyun Patolojisi */}
           <div className="relative overflow-hidden group">
             <ImageWithFallback
-              src="/img/bas-boyun-patolojisi.jpg"
+              src="/img/bas-boyun-patolojisi.avif"
               alt="Baş-Boyun Patolojisi"
               className="w-full h-64 object-cover"
             />
@@ -126,7 +126,7 @@ export function BaktigimBiyopsiler() {
           {/* 4. Hepatobiliyer Sistem ve pankreas */}
           <div className="relative overflow-hidden group">
             <ImageWithFallback
-              src="/img/hepatobiliyer-pankreas.jpg"
+              src="/img/hepatobiliyer-pankreas.avif"
               alt="Hepatobiliyer Sistem ve pankreas"
               className="w-full h-64 object-cover"
             />
@@ -140,7 +140,7 @@ export function BaktigimBiyopsiler() {
           {/* 5. Nefropatoloji */}
           <div className="relative overflow-hidden group">
             <ImageWithFallback
-              src="/img/nefropatoloji.jpg"
+              src="/img/nefropatoloji.avif"
               alt="Nefropatoloji"
               className="w-full h-64 object-cover"
             />
@@ -154,7 +154,7 @@ export function BaktigimBiyopsiler() {
           {/* 6. Kemik ve Yumuşak Doku */}
           <div className="relative overflow-hidden group">
             <ImageWithFallback
-              src="/img/kemik-yumusak-doku.jpg"
+              src="/img/kemik-yumusak-doku.avif"
               alt="Kemik ve Yumuşak Doku"
               className="w-full h-64 object-cover"
             />
@@ -168,7 +168,7 @@ export function BaktigimBiyopsiler() {
           {/* 7. Frozen */}
           <div className="relative overflow-hidden group">
             <ImageWithFallback
-              src="/img/frozen_section.png"
+              src="/img/frozen_section.avif"
               alt="Frozen"
               className="w-full h-64 object-cover"
             />
@@ -182,7 +182,7 @@ export function BaktigimBiyopsiler() {
           {/* 8. Moleküler tetkikler */}
           <div className="relative overflow-hidden group">
             <ImageWithFallback
-              src="/img/molekuler-tetkik.jpg"
+              src="/img/molekuler-tetkik.avif"
               alt="Moleküler tetkikler"
               className="w-full h-64 object-cover"
             />
@@ -196,7 +196,7 @@ export function BaktigimBiyopsiler() {
           {/* 9. NGS */}
           <div className="relative overflow-hidden group">
             <ImageWithFallback
-              src="/img/ngs.jpg"
+              src="/img/ngs.avif"
               alt="NGS"
               className="w-full h-64 object-cover"
             />
@@ -210,7 +210,7 @@ export function BaktigimBiyopsiler() {
           {/* 10. Metastatik tümörler */}
           <div className="relative overflow-hidden group">
             <ImageWithFallback
-              src="/img/metastatik-tumor.jpg"
+              src="/img/metastatik-tumor.avif"
               alt="Metastatik tümörler"
               className="w-full h-64 object-cover"
             />
@@ -224,7 +224,7 @@ export function BaktigimBiyopsiler() {
           {/* 11. Konsültasyon */}
           <div className="relative overflow-hidden group">
             <ImageWithFallback
-              src="/img/konsultasyon.jpg"
+              src="/img/konsultasyon.avif"
               alt="Konsültasyon"
               className="w-full h-64 object-cover"
             />
@@ -238,7 +238,7 @@ export function BaktigimBiyopsiler() {
           {/* 12. Deneysel Patoloji */}
           <div className="relative overflow-hidden group">
             <ImageWithFallback
-              src="/img/deneysel-patoloji.jpg"
+              src="/img/deneysel-patoloji.avif"
               alt="Deneysel Patoloji"
               className="w-full h-64 object-cover"
             />
@@ -255,7 +255,7 @@ export function BaktigimBiyopsiler() {
       <div className="mb-8">
         <div className="relative overflow-hidden">
           <ImageWithFallback
-            src="/img/patoloji-laboratuvar.jpg"
+            src="/img/patoloji-laboratuvar.avif"
             alt="Patoloji Laboratuvarı"
             className="w-full h-96 object-cover"
           />
