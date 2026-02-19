@@ -12,14 +12,13 @@ export function AyinVakasi() {
         id: 'case-26',
         title: 'Ayın Vakası',
         history: 'Papiller tiroid karsinomu şüphesi nedeniyle bir patoloji konsültasyonu istenmiştir.',
-        imagePlaceholder: 'https://metinciris.github.io/galeri/26/thumbnail.jpg',
         diagnosis: 'Amiloid Guatr',
         description: `Histolojik görünüm normal tiroid dokusundan belirgin şekilde farklıdır. Tiroid folikülleri belirgin atrofik bir patern göstermektedir.
         
 Dr. Kıvanç Kozan'a dijital tarama için teşekkürler.`,
         slides: [
-            { label: 'H&E', url: 'https://metinciris.github.io/galeri/26/' },
-            { label: 'Kongo Red', url: 'https://metinciris.github.io/galeri/27/' }
+            { label: 'H&E', url: 'https://metinciris.github.io/gallery-26/', thumbnail: 'https://metinciris.github.io/gallery-26/thumbnail.jpg' },
+            { label: 'Kongo Red', url: 'https://metinciris.github.io/gallery-27/', thumbnail: 'https://metinciris.github.io/gallery-27/thumbnail.jpg' }
         ]
     };
 
@@ -38,15 +37,21 @@ Dr. Kıvanç Kozan'a dijital tarama için teşekkürler.`,
 
                 {/* Case Card */}
                 <div className="bg-white shadow-xl border border-gray-100 overflow-hidden">
-                    {/* Image Section - Full Visibility */}
-                    <div className="relative bg-gray-200 flex items-center justify-center overflow-hidden group">
-                        <img
-                            src={currentCase.imagePlaceholder}
-                            alt="Ayın vakası mikroskop görüntüsü"
-                            className="w-full h-auto max-h-[600px] object-contain transition-transform duration-700 group-hover:scale-105"
-                            loading="lazy"
-                        />
-                        {/* Overlay Removed */}
+                    {/* Image Section - Vertical Stack */}
+                    <div className="bg-gray-200 flex flex-col items-center justify-center overflow-hidden group">
+                        {currentCase.slides.map((slide, idx) => (
+                            <div key={idx} className="w-full relative">
+                                <img
+                                    src={slide.thumbnail}
+                                    alt={`${slide.label} thumbnail`}
+                                    className="w-full h-auto max-h-[600px] object-contain transition-transform duration-700 hover:scale-105"
+                                    loading="lazy"
+                                />
+                                <div className="absolute bottom-0 left-0 bg-black/50 text-white px-3 py-1 text-sm font-bold">
+                                    {slide.label}
+                                </div>
+                            </div>
+                        ))}
                     </div>
 
                     {/* Clinical History Section - Now Below Image - Metro Style */}
