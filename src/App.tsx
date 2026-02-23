@@ -151,6 +151,9 @@ const TiiabRaporlama = React.lazy(() => import('./pages/TiiabRaporlama'));
 const DunyaSaatleri = React.lazy(() =>
   import('./pages/DunyaSaatleri').then((m) => ({ default: m.DunyaSaatleri })),
 );
+const PatolojiSozlugu = React.lazy(() =>
+  import('./pages/PatolojiSozlugu').then((m) => ({ default: m.PatolojiSozlugu })),
+);
 
 import { trackPageView } from './utils/analytics';
 
@@ -327,6 +330,9 @@ export default function App() {
 
       case 'dunya-saatleri':
         return <DunyaSaatleri />;
+
+      case 'patoloji-sozlugu':
+        return <PatolojiSozlugu />;
 
       case '404':
         return <NotFound onNavigate={navigate} />;

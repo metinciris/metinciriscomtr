@@ -120,6 +120,14 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
             category: 'patoloji'
         },
         {
+            title: "Patoloji Sözlüğü",
+            subtitle: "Terimler ve Sık Sorulan Sorular",
+            icon: <BookOpen size={40} />,
+            color: "bg-[#8E44AD]",
+            page: 'patoloji-sozlugu',
+            category: 'patoloji'
+        },
+        {
             title: "Makale Takip",
             subtitle: "Patoloji PubMed literatür",
             icon: <BookOpen size={40} />,

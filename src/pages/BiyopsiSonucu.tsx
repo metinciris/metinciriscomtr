@@ -1,6 +1,6 @@
 import React from 'react';
 import { PageContainer } from '../components/PageContainer';
-import { FileCheck, Shield, MessageSquare, Phone, Globe } from 'lucide-react';
+import { FileCheck, Shield, MessageSquare, Phone, Globe, Book, ArrowRight } from 'lucide-react';
 
 export function BiyopsiSonucu() {
   return (
@@ -135,6 +135,30 @@ export function BiyopsiSonucu() {
             <Globe size={20} />
             <span>E-Nabız'a Git</span>
           </a>
+        </div>
+      </div>
+
+      {/* Patoloji Sözlüğü Linki */}
+      <div className="bg-white p-8 mb-8 border-l-4 border-[#8E44AD] shadow-sm hover:shadow-md transition-shadow group">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-4 text-center md:text-left">
+            <div className="bg-[#8E44AD]/10 p-4 rounded-2xl text-[#8E44AD] group-hover:scale-110 transition-transform">
+              <Book size={32} />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-gray-800 mb-1">Terimleri Anlamakta Güçlük mü Çekiyorsunuz?</h3>
+              <p className="text-gray-500 m-0">
+                Raporunuzda geçen tıbbi terimler için hazırladığımız <strong>Patoloji Sözlüğü</strong>'ne göz atın.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => window.location.hash = 'patoloji-sozlugu'}
+            className="flex items-center gap-2 bg-[#8E44AD] text-white px-8 py-3 rounded-xl hover:bg-[#9B59B6] transition-all font-bold whitespace-nowrap"
+          >
+            <span>Sözlüğe Git</span>
+            <ArrowRight size={20} />
+          </button>
         </div>
       </div>
 

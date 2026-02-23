@@ -186,6 +186,10 @@ const PAGE_METADATA = {
     'dunya-saatleri': {
         title: 'Dünya Saatleri | Prof Dr Metin Çiriş',
         description: 'Dünya saat dilimleri haritası ve toplantı zamanlama aracı.'
+    },
+    'patoloji-sozlugu': {
+        title: 'Patoloji Sözlüğü | Prof Dr Metin Çiriş',
+        description: 'Patoloji raporlarında sık karşılaşılan tıbbi terimlerin açıklamaları ve hasta bilgilendirme rehberi.'
     }
 };
 

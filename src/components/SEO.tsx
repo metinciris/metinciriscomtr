@@ -97,6 +97,11 @@ const PAGE_METADATA: Record<string, { title: string; description: string; keywor
         description: 'Prof Dr Metin Çiriş tarafından geliştirilen açık kaynaklı tıbbi yazılımlar ve araçlar.',
         keywords: 'açık kaynak, github, tıbbi yazılım, patoloji araçları'
     },
+    'patoloji-sozlugu': {
+        title: 'Patoloji Sözlüğü | Prof Dr Metin Çiriş',
+        description: 'Patoloji raporlarında sık karşılaşılan tıbbi terimlerin açıklamaları ve hasta bilgilendirme rehberi. Atipi, benign, malign ve diğer terimler.',
+        keywords: 'patoloji sözlüğü, tıbbi terimler, patoloji raporu, hasta rehberi, atipi, benign, malign'
+    },
     facebook: {
         title: 'Facebook | Prof Dr Metin Çiriş',
         description: 'Prof Dr Metin Çiriş sosyal medya paylaşımları ve duyurular.',
