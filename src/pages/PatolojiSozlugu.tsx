@@ -13,17 +13,29 @@ interface FAQ {
     answer: string;
 }
 
-export function PatolojiSozlugu() {
+interface PatolojiSozluguProps {
+    onNavigate?: (page: string) => void;
+}
+
+export function PatolojiSozlugu({ onNavigate }: PatolojiSozluguProps) {
     const [searchQuery, setSearchQuery] = useState('');
+
+    const handleNavigate = (page: string) => {
+        if (onNavigate) {
+            onNavigate(page);
+        } else {
+            window.location.hash = page;
+        }
+    };
 
     const terms: Term[] = useMemo(() => [
         {
-            word: 'Adenokarşinom',
+            word: 'Adenokarsinom',
             definition: 'Salgı yapan bez yapılarından köken alan kötü huylu (kanser) tümör.',
             category: 'Tümör'
         },
         {
-            word: 'Apse',
+            word: 'Abse',
             definition: 'İltihap hücreleri ve ölü doku artıklarından oluşan irin birikimi.',
             category: 'Enfeksiyon'
         },
@@ -153,7 +165,7 @@ export function PatolojiSozlugu() {
             category: 'Hücre Yapısı'
         },
         {
-            word: 'Reseksiyon',
+            word: 'Rezeksiyon',
             definition: 'Bir organın veya dokunun bir kısmının veya tamamının ameliyatla çıkarılması.',
             category: 'İşlem'
         },
@@ -175,7 +187,7 @@ export function PatolojiSozlugu() {
         },
         {
             question: "Biyopsi yaptırmak kanserin yayılmasına neden olur mu?",
-            answer: "Tıbbi çalışmalar, standart biyopsi işlemlerinin kanserin yayılmasına neden olmadığını göstermektedir. Aksine, doğru tanı ve uygun tedavi planı için biyopsi hayati önem taşır."
+            answer: "Tıbbi çalışmalar, standart biyopsi işlemlerinin birçok kanser türünde, kanserin yayılmasına neden olmadığını göstermektedir. Aksine, doğru tanı ve uygun tedavi planı için biyopsi hayati önem taşır."
         },
         {
             question: "Raporumu aldım ama hiçbir şey anlamıyorum, ne yapmalıyım?",
@@ -322,7 +334,7 @@ export function PatolojiSozlugu() {
                                 Raporunuzla ilgili detaylı değerlendirme için klinik doktorunuzla randevu planlamayı unutmayın.
                             </p>
                             <button
-                                onClick={() => window.location.hash = 'iletisim'}
+                                onClick={() => handleNavigate('iletisim')}
                                 className="w-full flex items-center justify-center gap-2 bg-[#8E44AD] hover:bg-[#9B59B6] text-white py-4 rounded-xl font-bold transition-all shadow-lg shadow-[#8E44AD]/20 group"
                             >
                                 <span>İletişime Geçin</span>
@@ -336,7 +348,7 @@ export function PatolojiSozlugu() {
             {/* Footer Navigation */}
             <div className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-6">
                 <button
-                    onClick={() => window.location.hash = 'biyopsi-sonucu'}
+                    onClick={() => handleNavigate('biyopsi-sonucu')}
                     className="flex items-center justify-between p-8 bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-md hover:border-[#8E44AD]/30 transition-all group"
                 >
                     <div className="flex items-center gap-4 text-left">

@@ -332,7 +332,7 @@ export default function App() {
         return <DunyaSaatleri />;
 
       case 'patoloji-sozlugu':
-        return <PatolojiSozlugu />;
+        return <PatolojiSozlugu onNavigate={navigate} />;
 
       case '404':
         return <NotFound onNavigate={navigate} />;
