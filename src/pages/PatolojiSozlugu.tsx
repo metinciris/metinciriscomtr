@@ -54,9 +54,9 @@ export function PatolojiSozlugu() {
         },
         {
             word: 'Evre (Stage)',
-            definition: 'Kanserin vübody'deki yaygınlık derecesi(tümör boyutu, lenf nodu tutulumu ve uzak sıçrama durumu).',
-      category: 'Tanı'
-    },
+            definition: 'Kanserin vücuttaki yaygınlık derecesi (tümör boyutu, lenf nodu tutulumu ve uzak sıçrama durumu).',
+            category: 'Tanı'
+        },
         {
             word: 'Hiperplazi',
             definition: 'Hücre sayısının normalden fazla artması. Genellikle bir uyarana (hormonal vb.) yanıt olarak gelişir.',
