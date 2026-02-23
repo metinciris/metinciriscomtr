@@ -2,7 +2,19 @@ import React from 'react';
 import { PageContainer } from '../components/PageContainer';
 import { FileCheck, Shield, MessageSquare, Phone, Globe, Book, ArrowRight } from 'lucide-react';
 
-export function BiyopsiSonucu() {
+interface BiyopsiSonucuProps {
+  onNavigate?: (page: string) => void;
+}
+
+export function BiyopsiSonucu({ onNavigate }: BiyopsiSonucuProps) {
+  const handleNavigate = (page: string) => {
+    if (onNavigate) {
+      onNavigate(page);
+    } else {
+      window.location.hash = page;
+    }
+  };
+
   return (
     <PageContainer>
       <div className="bg-gradient-to-r from-[#8E44AD] to-[#9B59B6] text-white p-12 mb-8">
@@ -153,7 +165,7 @@ export function BiyopsiSonucu() {
             </div>
           </div>
           <button
-            onClick={() => window.location.hash = 'patoloji-sozlugu'}
+            onClick={() => handleNavigate('patoloji-sozlugu')}
             className="flex items-center gap-2 bg-[#8E44AD] text-white px-8 py-3 rounded-xl hover:bg-[#9B59B6] transition-all font-bold whitespace-nowrap"
           >
             <span>Sözlüğe Git</span>

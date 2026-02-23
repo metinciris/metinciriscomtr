@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { PageContainer } from '../components/PageContainer';
-import { Search, Book, HelpCircle, AlertTriangle, ArrowRight, Microscope, Info, ExternalLink } from 'lucide-react';
+import { Search, Book, HelpCircle, AlertTriangle, ArrowRight, Microscope, Info, ExternalLink, Hash, CheckCircle2 } from 'lucide-react';
 
 interface Term {
     word: string;
@@ -23,7 +23,12 @@ export function PatolojiSozlugu() {
             category: 'Tümör'
         },
         {
-            word: 'Atipi',
+            word: 'Apse',
+            definition: 'İltihap hücreleri ve ölü doku artıklarından oluşan irin birikimi.',
+            category: 'Enfeksiyon'
+        },
+        {
+            word: 'Atipi / Atipik',
             definition: 'Hücrelerin normal görünümlerinden farklılaşması. Kanser anlamına gelmez ancak takip gerektirebilir.',
             category: 'Hücre Yapısı'
         },
@@ -49,8 +54,13 @@ export function PatolojiSozlugu() {
         },
         {
             word: 'Evre (Stage)',
-            definition: 'Kanserin vücuttaki yaygınlık derecesi (tümör boyutu, lenf nodu tutulumu ve uzak sıçrama durumu).',
-            category: 'Tanı'
+            definition: 'Kanserin vübody'deki yaygınlık derecesi(tümör boyutu, lenf nodu tutulumu ve uzak sıçrama durumu).',
+      category: 'Tanı'
+    },
+        {
+            word: 'Hiperplazi',
+            definition: 'Hücre sayısının normalden fazla artması. Genellikle bir uyarana (hormonal vb.) yanıt olarak gelişir.',
+            category: 'Hücre Yapısı'
         },
         {
             word: 'İn situ',
@@ -73,6 +83,16 @@ export function PatolojiSozlugu() {
             category: 'Tümör'
         },
         {
+            word: 'Kist',
+            definition: 'İçerisinde sıvı veya yarı katı madde bulunan, etrafı ince bir zarla çevrili keselere denir.',
+            category: 'Genel'
+        },
+        {
+            word: 'Lenfovasküler İnvazyon',
+            definition: 'Tümör hücrelerinin kan veya lenf damarlarına girmesi. Yayılma riski açısından önemlidir.',
+            category: 'Tanı'
+        },
+        {
             word: 'Lezyon',
             definition: 'Doku üzerinde meydana gelen herhangi bir yapısal bozukluk veya hastalık bölgesi.',
             category: 'Genel'
@@ -93,6 +113,11 @@ export function PatolojiSozlugu() {
             category: 'Tümör'
         },
         {
+            word: 'Mitoz',
+            definition: 'Hücre bölünmesi hızı. Kanserli dokularda mitoz sayısının artması genellikle agresif seyirle ilişkilidir.',
+            category: 'Hücre Yapısı'
+        },
+        {
             word: 'Nekroz',
             definition: 'Hücre veya dokuların ölümü.',
             category: 'Genel'
@@ -101,6 +126,36 @@ export function PatolojiSozlugu() {
             word: 'Neoplazi',
             definition: 'Kontrolsüz hücre çoğalması sonucu oluşan yeni doku oluşumu (kitle/tümör).',
             category: 'Tümör'
+        },
+        {
+            word: 'Nükleer Derece (Grade)',
+            definition: 'Hücre çekirdeğinin görüntüsüne göre belirlenen anormallik derecesi. Yüksek derece genellikle hızlı büyümeyi gösterir.',
+            category: 'Tanı'
+        },
+        {
+            word: 'Perinöral İnvazyon',
+            definition: 'Tümör hücrelerinin sinir kılıfı çevresine yayılması.',
+            category: 'Tanı'
+        },
+        {
+            word: 'Polip',
+            definition: 'Organların mukoza adı verilen iç yüzeylerinden dışarıya doğru sarkan saplı veya sapsız doku çıkıntıları.',
+            category: 'Genel'
+        },
+        {
+            word: 'Prognoz',
+            definition: 'Hastalığın seyri ve iyileşme ihtimali hakkındaki öngörü.',
+            category: 'Genel'
+        },
+        {
+            word: 'Reaktif',
+            definition: 'Hücrelerin bir hasara (tahriş, iltihap vb.) yanıt olarak gösterdiği geçici ve iyi huylu değişiklikler.',
+            category: 'Hücre Yapısı'
+        },
+        {
+            word: 'Reseksiyon',
+            definition: 'Bir organın veya dokunun bir kısmının veya tamamının ameliyatla çıkarılması.',
+            category: 'İşlem'
         },
         {
             word: 'Sitoloji',
@@ -159,14 +214,14 @@ export function PatolojiSozlugu() {
             {/* Critical Disclaimer */}
             <div className="bg-amber-50 border-l-8 border-amber-500 p-8 rounded-2xl mb-12 shadow-sm">
                 <div className="flex items-start gap-4">
-                    <div className="bg-amber-100 p-3 rounded-full flex-shrink-0">
+                    <div className="bg-amber-100 p-3 rounded-full flex-shrink-0 mt-1">
                         <AlertTriangle className="text-amber-600 w-8 h-8" />
                     </div>
                     <div>
-                        <h2 className="text-amber-900 text-xl font-bold mb-2">Çok Önemli Not</h2>
+                        <h2 className="text-amber-900 text-xl font-bold mb-2">Çok Önemli Not!</h2>
                         <p className="text-amber-800 text-lg leading-relaxed">
                             Bu sözlükteki bilgiler sadece genel bilgilendirme amaçlıdır. Patoloji raporları bir bütündür ve tek bir kelime üzerinden yorumlanamaz.
-                            <strong> Sonuçlarınızı mutlaka biyopsiyi alan ve tedavinizi planlayan doktorunuzla görüşmelisiniz.</strong>
+                            <strong className="block mt-2 bg-amber-200/50 px-2 py-1 rounded inline-block"> Sonuçlarınızı mutlaka biyopsiyi alan ve tedavinizi planlayan doktorunuzla görüşmelisiniz.</strong>
                         </p>
                     </div>
                 </div>
@@ -181,15 +236,15 @@ export function PatolojiSozlugu() {
                                 <Book className="text-[#8E44AD] w-8 h-8" />
                                 <h2 className="text-2xl font-bold text-gray-800 m-0">Terimler Sözlüğü</h2>
                             </div>
-                            <div className="text-sm text-gray-500 font-medium">
-                                {filteredTerms.length} terim listeleniyor
+                            <div className="text-sm bg-gray-100 text-gray-600 px-3 py-1 rounded-full font-bold">
+                                {filteredTerms.length} Terim
                             </div>
                         </div>
 
                         {/* Search Bar */}
                         <div className="relative mb-8">
                             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                <Search className="h-5 w-5 text-gray-400" />
+                                <Search className="h-5 w-5 text-[#8E44AD]" />
                             </div>
                             <input
                                 type="text"
@@ -201,14 +256,16 @@ export function PatolojiSozlugu() {
                         </div>
 
                         {/* Terms List */}
-                        <div className="space-y-4 max-h-[800px] overflow-y-auto pr-2 custom-scrollbar">
+                        <div className="space-y-4 max-h-[1000px] overflow-y-auto pr-2 custom-scrollbar">
                             {filteredTerms.map((term, index) => (
                                 <div
                                     key={index}
-                                    className="p-6 rounded-2xl border border-gray-50 bg-white hover:bg-[#8E44AD]/5 hover:border-[#8E44AD]/20 transition-all group"
+                                    className="p-6 rounded-2xl border border-gray-50 bg-white hover:bg-[#8E44AD]/5 hover:border-[#8E44AD]/20 transition-all group relative overflow-hidden"
                                 >
-                                    <div className="flex items-start justify-between mb-2">
-                                        <h3 className="text-xl font-bold text-[#8E44AD] m-0 group-hover:scale-[1.01] transition-transform">
+                                    <div className="absolute top-0 left-0 w-1 h-full bg-[#8E44AD] opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                                        <h3 className="text-xl font-bold text-[#8E44AD] m-0 group-hover:translate-x-1 transition-transform inline-flex items-center gap-2">
+                                            <Hash size={16} className="text-gray-300" />
                                             {term.word}
                                         </h3>
                                         {term.category && (
@@ -217,7 +274,7 @@ export function PatolojiSozlugu() {
                                             </span>
                                         )}
                                     </div>
-                                    <p className="text-gray-600 leading-relaxed m-0 text-lg italic">
+                                    <p className="text-gray-600 leading-relaxed m-0 text-lg">
                                         {term.definition}
                                     </p>
                                 </div>
@@ -232,42 +289,43 @@ export function PatolojiSozlugu() {
                     </div>
                 </div>
 
-                {/* FAQ Section */}
+                {/* FAQ Section - Lightened as requested */}
                 <div className="lg:col-span-1">
-                    <div className="bg-[#1e293b] rounded-3xl p-8 text-white shadow-xl sticky top-24">
-                        <div className="flex items-center gap-3 mb-8 pb-4 border-b border-white/10">
-                            <HelpCircle className="text-[#A569BD] w-8 h-8" />
-                            <h2 className="text-2xl font-bold text-white m-0">Sık Sorulanlar</h2>
+                    <div className="bg-[#f8fafc] rounded-3xl p-8 border border-slate-200 shadow-sm sticky top-24">
+                        <div className="flex items-center gap-3 mb-8 pb-4 border-b border-slate-200">
+                            <div className="bg-[#8E44AD] p-2 rounded-lg text-white">
+                                <HelpCircle size={24} />
+                            </div>
+                            <h2 className="text-2xl font-bold text-slate-800 m-0">Sık Sorulanlar</h2>
                         </div>
 
-                        <div className="space-y-8">
+                        <div className="space-y-10">
                             {faqs.map((faq, index) => (
                                 <div key={index} className="space-y-3">
-                                    <h4 className="text-lg font-bold text-[#A569BD] flex items-start gap-2">
-                                        <span className="opacity-50">Q:</span>
+                                    <h4 className="text-lg font-bold text-[#8E44AD] flex items-start gap-2 leading-snug">
+                                        <CheckCircle2 size={18} className="text-[#8E44AD] mt-1 flex-shrink-0" />
                                         {faq.question}
                                     </h4>
-                                    <p className="text-slate-300 leading-relaxed text-base pl-6 relative">
-                                        <span className="absolute left-0 top-0 opacity-20 text-2xl font-serif">"</span>
+                                    <p className="text-slate-600 leading-relaxed text-base pl-7">
                                         {faq.answer}
                                     </p>
                                 </div>
                             ))}
                         </div>
 
-                        <div className="mt-12 p-6 bg-white/5 rounded-2xl border border-white/10">
-                            <h4 className="flex items-center gap-2 text-white mb-3">
-                                <Info size={18} className="text-[#A569BD]" />
+                        <div className="mt-12 p-6 bg-white rounded-2xl border border-slate-200 shadow-sm">
+                            <h4 className="flex items-center gap-2 text-slate-800 mb-3 font-bold">
+                                <Info size={18} className="text-[#8E44AD]" />
                                 Hala Sorularınız mı Var?
                             </h4>
-                            <p className="text-slate-400 text-sm mb-4 leading-relaxed">
+                            <p className="text-slate-500 text-sm mb-4 leading-relaxed">
                                 Raporunuzla ilgili detaylı değerlendirme için klinik doktorunuzla randevu planlamayı unutmayın.
                             </p>
                             <button
                                 onClick={() => window.location.hash = 'iletisim'}
-                                className="w-full flex items-center justify-center gap-2 bg-[#8E44AD] hover:bg-[#9B59B6] text-white py-3 rounded-xl font-bold transition-all group"
+                                className="w-full flex items-center justify-center gap-2 bg-[#8E44AD] hover:bg-[#9B59B6] text-white py-4 rounded-xl font-bold transition-all shadow-lg shadow-[#8E44AD]/20 group"
                             >
-                                <span>İletişim</span>
+                                <span>İletişime Geçin</span>
                                 <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                             </button>
                         </div>
@@ -281,11 +339,11 @@ export function PatolojiSozlugu() {
                     onClick={() => window.location.hash = 'biyopsi-sonucu'}
                     className="flex items-center justify-between p-8 bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-md hover:border-[#8E44AD]/30 transition-all group"
                 >
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-4 text-left">
                         <div className="bg-indigo-50 p-4 rounded-2xl text-indigo-600 group-hover:scale-110 transition-transform">
                             < Microscope size={28} />
                         </div>
-                        <div className="text-left">
+                        <div>
                             <h3 className="text-xl font-bold text-gray-800 mb-1">Biyopsi Sonucu</h3>
                             <p className="text-gray-500 m-0">Rapor sorgulama sayfası</p>
                         </div>
@@ -299,11 +357,11 @@ export function PatolojiSozlugu() {
                     rel="noopener noreferrer"
                     className="flex items-center justify-between p-8 bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-md hover:border-[#0078D4]/30 transition-all group"
                 >
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-4 text-left">
                         <div className="bg-blue-50 p-4 rounded-2xl text-[#0078D4] group-hover:scale-110 transition-transform">
                             <ExternalLink size={28} />
                         </div>
-                        <div className="text-left">
+                        <div>
                             <h3 className="text-xl font-bold text-gray-800 mb-1">E-Nabız Portalı</h3>
                             <p className="text-gray-500 m-0">Resmi sağlık portalı</p>
                         </div>

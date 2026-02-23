@@ -218,7 +218,7 @@ export default function App() {
       case 'ziyaret-mesaji':
         return <ZiyaretMesaji />;
       case 'biyopsi-sonucu':
-        return <BiyopsiSonucu />;
+        return <BiyopsiSonucu onNavigate={navigate} />;
       case 'baktigim-biyopsiler':
         return <BaktigimBiyopsiler />;
       case 'nobetci-eczane':
