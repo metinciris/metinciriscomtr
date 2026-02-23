@@ -25,9 +25,8 @@
             }
 
             // Path'i session storage'a kaydet ve ana sayfaya yönlendir
-            // App.tsx bu path'i okuyup doğru sayfayı gösterecek
             sessionStorage.setItem('spa-redirect-path', path + search);
-            window.location.replace('/');
+            window.location.replace(window.location.origin + '/');
         })();
     </script>
 

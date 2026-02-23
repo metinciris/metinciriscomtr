@@ -249,7 +249,7 @@ for (const page of validPages) {
         // <link rel="canonical"> değiştir
         pageContent = pageContent.replace(
             /<link rel="canonical" href=".*?" \/>/,
-            `<link rel="canonical" href="${BASE_URL}/${page}" />`
+            `<link rel="canonical" href="${BASE_URL}/${page}/" />`
         );
 
         // Open Graph title ve description değiştir
@@ -263,7 +263,7 @@ for (const page of validPages) {
         );
         pageContent = pageContent.replace(
             /<meta property="og:url" content=".*?" \/>/,
-            `<meta property="og:url" content="${BASE_URL}/${page}" />`
+            `<meta property="og:url" content="${BASE_URL}/${page}/" />`
         );
 
         // Twitter Card değiştir
@@ -279,11 +279,11 @@ for (const page of validPages) {
         // Hreflang güncelle
         pageContent = pageContent.replace(
             /<link rel="alternate" hreflang="tr" href=".*?" \/>/,
-            `<link rel="alternate" hreflang="tr" href="${BASE_URL}/${page}" />`
+            `<link rel="alternate" hreflang="tr" href="${BASE_URL}/${page}/" />`
         );
         pageContent = pageContent.replace(
             /<link rel="alternate" hreflang="x-default" href=".*?" \/>/,
-            `<link rel="alternate" hreflang="x-default" href="${BASE_URL}/${page}" />`
+            `<link rel="alternate" hreflang="x-default" href="${BASE_URL}/${page}/" />`
         );
 
         metaInjected++;

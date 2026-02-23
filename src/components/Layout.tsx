@@ -88,7 +88,9 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
       </a>
 
       {/* Header */}
-      <header className="bg-[#1e1e1e]/80 backdrop-blur-md text-white sticky top-0 z-50 shadow-lg border-b border-white/5 transition-colors duration-300" role="banner">
+      {/* Header Wrapper to reserve space and prevent CLS */}
+      <div className="h-20 md:h-16 w-full" aria-hidden="true" />
+      <header className="bg-[#1e1e1e]/80 backdrop-blur-md text-white fixed top-0 left-0 right-0 z-50 shadow-lg border-b border-white/5 transition-colors duration-300" role="banner">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-20 md:h-16">
             {/* Logo + isim */}
@@ -185,8 +187,8 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
                         setMobileMenuOpen(false);
                       }}
                       className={`text-2xl font-medium flex items-center space-x-4 p-4 rounded-xl transition-all ${currentPage === item.path
-                          ? 'bg-blue-600/20 text-[#0078D4]'
-                          : 'text-white/80 hover:text-white hover:bg-white/5'
+                        ? 'bg-blue-600/20 text-[#0078D4]'
+                        : 'text-white/80 hover:text-white hover:bg-white/5'
                         }`}
                     >
                       <item.icon size={28} />

@@ -329,7 +329,7 @@ const getStructuredData = (currentPage: string, meta: { title: string; descripti
 export const SEO: React.FC<SEOProps> = ({ currentPage }) => {
     useEffect(() => {
         const meta = PAGE_METADATA[currentPage] || PAGE_METADATA.home;
-        const canonicalUrl = currentPage === 'home' ? BASE_URL : `${BASE_URL}/${currentPage}`;
+        const canonicalUrl = currentPage === 'home' ? BASE_URL : `${BASE_URL}/${currentPage}/`;
 
         // Update Title
         document.title = meta.title;
