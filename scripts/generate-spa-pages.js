@@ -165,7 +165,7 @@ const PAGE_METADATA = {
     },
     'pubmed-makale-takip': {
         title: 'PubMed Patoloji Günlük Makale Takibi | Prof Dr Metin Çiriş',
-        description: 'Dünyaca ünlü patoloji dergilerinden en güncel makaleleri PubMed üzerinden takip edin.'
+        description: 'Dünyaca ünlü patoloji dergilerinden en güncel makaleleri PubMed üzerinden takip edin. Günlük makale akışı, Türkçe özetler ve vaka takibi için profesyonel literatür aracı.'
     },
     'avif-donusturucu': {
         title: 'AVIF Dönüştürücü | Prof Dr Metin Çiriş',

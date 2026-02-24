@@ -128,7 +128,7 @@ function ArticleCard({ article }: { article: Article }) {
 // Loading Spinner Component
 function LoadingSpinner({ message }: { message: string }) {
     return (
-        <div className="flex flex-col items-center justify-center py-16">
+        <div className="flex flex-col items-center justify-center py-16" data-nosnippet>
             <Loader2 size={48} className="text-blue-600 animate-spin mb-4" />
             <p className="text-slate-600 text-lg">{message}</p>
         </div>
@@ -138,7 +138,7 @@ function LoadingSpinner({ message }: { message: string }) {
 // Error Message Component
 function ErrorMessage({ message, onRetry }: { message: string; onRetry: () => void }) {
     return (
-        <div className="text-center py-12 bg-red-50 rounded-xl border border-red-100">
+        <div className="text-center py-12 bg-red-50 rounded-xl border border-red-100" data-nosnippet>
             <AlertCircle size={48} className="mx-auto text-red-400 mb-4" />
             <h3 className="text-lg font-medium text-red-800 mb-2">Güncel Makaleler Hazırlanıyor</h3>
             <p className="text-red-600 mb-4">{message}</p>
@@ -306,7 +306,7 @@ export function PubMedMakaleTakvim() {
 
     return (
         <PageContainer>
-            {/* SEO-friendly hidden description for bots */}
+            {/* SEO-friendly description for bots at the very top */}
             <div
                 aria-hidden="false"
                 style={{
@@ -321,10 +321,15 @@ export function PubMedMakaleTakvim() {
                     border: '0'
                 }}
             >
-                <h2>PubMed Patoloji Günlük Makale Takibi</h2>
+                <h2>PubMed Patoloji Günlük Makale Takibi ve Literatür Arşivi</h2>
                 <p>
-                    Prof. Dr. Metin Çiriş tarafından sunulan bu platform, dünya çapındaki saygın patoloji dergilerinden (Modern Pathology, Histopathology, AJSP ve daha fazlası) en güncel makaleleri günlük olarak takip etmenizi sağlar. PubMed verilerini canlı olarak filtreleyen sistemimiz, tıp profesyonelleri ve akademisyenler için en doğru literatür akışını sunar.
+                    Prof. Dr. Metin Çiriş tarafından sunulan bu akademik platform, dünya çapındaki saygın patoloji dergilerinden (Modern Pathology, Histopathology, AJSP, Human Pathology, Virchows Archiv ve daha fazlası) en güncel bilimsel makaleleri günlük olarak takip etmenizi sağlar. PubMed verilerini canlı olarak filtreleyen sistemimiz, tıp profesyonelleri, patoloji asistanları ve akademisyenler için en doğru ve güncel literatür akışını sunar. Geçmişe dönük makale araması yapabilir, günlük olarak yayınlanan patoloji çalışmalarını Türkçe özetleriyle inceleyebilirsiniz.
                 </p>
+                <nav>
+                    <ul>
+                        {PATHOLOGY_JOURNALS.map(j => <li key={j}>{j}</li>)}
+                    </ul>
+                </nav>
             </div>
 
             {/* Hero Banner */}
