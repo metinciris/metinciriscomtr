@@ -111,11 +111,11 @@ export function VucutKitleIndeksi() {
                                             <div key={i} className={`w-0.5 ${i % 5 === 0 ? 'h-4 bg-slate-300' : 'h-2 bg-slate-200'} rounded-full`} />
                                         ))}
                                     </div>
-                                    <div className="absolute top-1/2 left-0 w-full h-1.5 bg-slate-100 rounded-full -translate-y-1/2" />
+                                    <div className="absolute top-1/2 left-0 w-full h-1.5 bg-slate-300 rounded-full -translate-y-1/2" />
                                     <input
                                         type="range"
                                         min="100"
-                                        max="250"
+                                        max="220"
                                         value={height}
                                         onChange={(e) => setHeight(parseInt(e.target.value))}
                                         className="relative z-10 w-full h-6 bg-transparent appearance-none cursor-pointer
@@ -128,7 +128,7 @@ export function VucutKitleIndeksi() {
                                 <div className="flex justify-between text-[10px] text-slate-400 font-black uppercase tracking-tighter mt-1 px-1">
                                     <span>100 cm</span>
                                     <span>İdeal (175)</span>
-                                    <span>250 cm</span>
+                                    <span>220 cm</span>
                                 </div>
                             </div>
 
