@@ -91,7 +91,7 @@ export function VucutKitleIndeksi() {
                                     max="250"
                                     value={height}
                                     onChange={(e) => setHeight(parseInt(e.target.value))}
-                                    className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                                    className="w-full h-3 bg-indigo-100/50 rounded-lg appearance-none cursor-pointer accent-indigo-600 border border-indigo-50"
                                 />
                                 <div className="flex justify-between text-xs text-slate-400 font-medium">
                                     <span>100 cm</span>
@@ -112,7 +112,7 @@ export function VucutKitleIndeksi() {
                                     max="250"
                                     value={weight}
                                     onChange={(e) => setWeight(parseInt(e.target.value))}
-                                    className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                                    className="w-full h-3 bg-indigo-100/50 rounded-lg appearance-none cursor-pointer accent-indigo-600 border border-indigo-50"
                                 />
                                 <div className="flex justify-between text-xs text-slate-400 font-medium">
                                     <span>30 kg</span>
@@ -149,8 +149,6 @@ export function VucutKitleIndeksi() {
                         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(255,255,255,0.1),transparent)] pointer-events-none" />
 
                         <div className="relative z-10 w-full flex flex-col items-center">
-                            <span className="text-sm font-bold opacity-80 uppercase tracking-widest mb-8">Görsel Temsil</span>
-
                             {/* Dynamic Body SVG */}
                             <div className="relative flex items-center justify-center h-64 w-full">
                                 <motion.svg
