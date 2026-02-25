@@ -37,8 +37,24 @@ export function VucutKitleIndeksi() {
     }, [weight, height]);
 
     // Vücut şeklini BMI'ye göre hesapla
-    // Normal BMI 22 civarı. Genişlik çarpanı olarak kullanacağız.
-    const bodyWidth = Math.min(Math.max((bmi / 22) * 60, 40), 120);
+    // Normal BMI 22.5 civarı.
+    const getBodyWidth = () => {
+        if (bmi < 18.5) return 30 + (bmi / 18.5) * 20; // 30-50 arası (Zayıf)
+        if (bmi < 25) return 50 + ((bmi - 18.5) / 6.5) * 15; // 50-65 arası (Normal)
+        if (bmi < 30) return 65 + ((bmi - 25) / 5) * 20; // 65-85 arası (Fazla Kilolu)
+        return Math.min(85 + ((bmi - 30) / 10) * 35, 130); // 85-130 arası (Obez)
+    };
+
+    const bodyWidth = getBodyWidth();
+
+    // Dinamik arka plan renkleri
+    const getBgGradient = () => {
+        if (bmi < 18.5) return 'from-cyan-500 to-blue-600';
+        if (bmi < 25) return 'from-emerald-500 to-green-600';
+        if (bmi < 30) return 'from-amber-400 to-orange-500';
+        if (bmi < 35) return 'from-orange-500 to-red-600';
+        return 'from-red-600 to-rose-800';
+    };
 
     return (
         <PageContainer>
@@ -66,7 +82,7 @@ export function VucutKitleIndeksi() {
                         transition={{ delay: 0.2 }}
                         className="text-slate-500"
                     >
-                        Boy ve kilo değerlerinizi girerek ideal kilonuzu ve sağlık durumunuzu kontrol edin.
+                        İdeal kilonuzu ve sağlık durumunuzu kontrol edin.
                     </motion.p>
                 </div>
 
@@ -80,59 +96,91 @@ export function VucutKitleIndeksi() {
                     >
                         <div className="space-y-8">
                             {/* Height Input */}
-                            <div className="space-y-4">
-                                <div className="flex justify-between items-center">
-                                    <label className="text-sm font-bold text-slate-700 uppercase tracking-wider">Boy (cm)</label>
-                                    <span className="text-2xl font-black text-indigo-600">{height} <span className="text-sm font-medium text-slate-400">cm</span></span>
+                            <div className="group">
+                                <div className="flex justify-between items-center mb-6">
+                                    <label className="text-sm font-black text-slate-400 uppercase tracking-widest">Boy</label>
+                                    <div className="flex items-baseline gap-1">
+                                        <span className="text-4xl font-black text-indigo-600">{height}</span>
+                                        <span className="text-sm font-bold text-slate-400">cm</span>
+                                    </div>
                                 </div>
-                                <input
-                                    type="range"
-                                    min="100"
-                                    max="250"
-                                    value={height}
-                                    onChange={(e) => setHeight(parseInt(e.target.value))}
-                                    className="w-full h-3 bg-indigo-100/50 rounded-lg appearance-none cursor-pointer accent-indigo-600 border border-indigo-50"
-                                />
-                                <div className="flex justify-between text-xs text-slate-400 font-medium">
+                                <div className="relative pt-2 pb-6 px-1">
+                                    {/* Ruler Markings */}
+                                    <div className="absolute top-0 left-0 w-full h-full flex justify-between px-1 pointer-events-none">
+                                        {[...Array(11)].map((_, i) => (
+                                            <div key={i} className={`w-0.5 ${i % 5 === 0 ? 'h-4 bg-slate-300' : 'h-2 bg-slate-200'} rounded-full`} />
+                                        ))}
+                                    </div>
+                                    <input
+                                        type="range"
+                                        min="100"
+                                        max="250"
+                                        value={height}
+                                        onChange={(e) => setHeight(parseInt(e.target.value))}
+                                        className="relative z-10 w-full h-1.5 bg-transparent appearance-none cursor-pointer accent-indigo-600
+                                                   [&::-webkit-slider-runnable-track]:bg-slate-100 [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-runnable-track]:h-1.5
+                                                   [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:bg-white 
+                                                   [&::-webkit-slider-thumb]:border-4 [&::-webkit-slider-thumb]:border-indigo-600 [&::-webkit-slider-thumb]:rounded-full 
+                                                   [&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:-top-2 [&::-webkit-slider-thumb]:relative"
+                                    />
+                                </div>
+                                <div className="flex justify-between text-[10px] text-slate-400 font-black uppercase tracking-tighter mt-1 px-1">
                                     <span>100 cm</span>
-                                    <span>175 cm</span>
+                                    <span>İdeal (175)</span>
                                     <span>250 cm</span>
                                 </div>
                             </div>
 
                             {/* Weight Input */}
-                            <div className="space-y-4">
-                                <div className="flex justify-between items-center">
-                                    <label className="text-sm font-bold text-slate-700 uppercase tracking-wider">Kilo (kg)</label>
-                                    <span className="text-2xl font-black text-indigo-600">{weight} <span className="text-sm font-medium text-slate-400">kg</span></span>
+                            <div className="group">
+                                <div className="flex justify-between items-center mb-6">
+                                    <label className="text-sm font-black text-slate-400 uppercase tracking-widest">Kilo</label>
+                                    <div className="flex items-baseline gap-1">
+                                        <span className="text-4xl font-black text-indigo-600">{weight}</span>
+                                        <span className="text-sm font-bold text-slate-400">kg</span>
+                                    </div>
                                 </div>
-                                <input
-                                    type="range"
-                                    min="30"
-                                    max="250"
-                                    value={weight}
-                                    onChange={(e) => setWeight(parseInt(e.target.value))}
-                                    className="w-full h-3 bg-indigo-100/50 rounded-lg appearance-none cursor-pointer accent-indigo-600 border border-indigo-50"
-                                />
-                                <div className="flex justify-between text-xs text-slate-400 font-medium">
+                                <div className="relative pt-2 pb-6 px-1">
+                                    {/* Ruler Markings */}
+                                    <div className="absolute top-0 left-0 w-full h-full flex justify-between px-1 pointer-events-none">
+                                        {[...Array(11)].map((_, i) => (
+                                            <div key={i} className={`w-0.5 ${i % 5 === 0 ? 'h-4 bg-slate-300' : 'h-2 bg-slate-200'} rounded-full`} />
+                                        ))}
+                                    </div>
+                                    <input
+                                        type="range"
+                                        min="30"
+                                        max="250"
+                                        value={weight}
+                                        onChange={(e) => setWeight(parseInt(e.target.value))}
+                                        className="relative z-10 w-full h-1.5 bg-transparent appearance-none cursor-pointer accent-indigo-600
+                                                   [&::-webkit-slider-runnable-track]:bg-slate-100 [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-runnable-track]:h-1.5
+                                                   [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:bg-white 
+                                                   [&::-webkit-slider-thumb]:border-4 [&::-webkit-slider-thumb]:border-indigo-600 [&::-webkit-slider-thumb]:rounded-full 
+                                                   [&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:-top-2 [&::-webkit-slider-thumb]:relative"
+                                    />
+                                </div>
+                                <div className="flex justify-between text-[10px] text-slate-400 font-black uppercase tracking-tighter mt-1 px-1">
                                     <span>30 kg</span>
-                                    <span>140 kg</span>
+                                    <span>Ortalama (80)</span>
                                     <span>250 kg</span>
                                 </div>
                             </div>
 
-                            {/* Result Summary */}
                             <div className="pt-6 border-t border-slate-50">
-                                <div className="bg-slate-50 rounded-2xl p-6 relative overflow-hidden">
+                                <div className="bg-slate-50 rounded-3xl p-8 relative overflow-hidden group">
                                     <div className="relative z-10">
-                                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">VKİ Sonucunuz</p>
-                                        <div className="flex items-baseline gap-2">
-                                            <span className="text-5xl font-black text-slate-800">{bmi.toFixed(1)}</span>
-                                            <span className={`text-lg font-bold ${color}`}>{category}</span>
+                                        <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Beden Kitle İndeksiniz</p>
+                                        <div className="flex flex-col gap-1">
+                                            <span className="text-6xl font-black text-slate-800 tracking-tighter">{bmi.toFixed(1)}</span>
+                                            <div className="flex items-center gap-2">
+                                                <div className={`w-3 h-3 rounded-full ${color.replace('text-', 'bg-')}`} />
+                                                <span className={`text-xl font-black ${color} tracking-tight uppercase`}>{category}</span>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div className="absolute right-0 bottom-0 opacity-5 scale-150 transform translate-x-4 translate-y-4">
-                                        <Calculator size={120} />
+                                    <div className="absolute right-[-10%] bottom-[-10%] opacity-[0.03] group-hover:opacity-[0.07] transition-opacity duration-500 scale-150 transform">
+                                        <Calculator size={200} />
                                     </div>
                                 </div>
                             </div>
@@ -141,16 +189,25 @@ export function VucutKitleIndeksi() {
 
                     {/* Visual Representation */}
                     <motion.div
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.4 }}
-                        className="bg-gradient-to-br from-indigo-600 to-violet-700 rounded-3xl shadow-xl p-8 text-white flex flex-col items-center justify-center relative overflow-hidden"
+                        className={`bg-gradient-to-br ${getBgGradient()} rounded-3xl shadow-2xl p-8 text-white flex flex-col items-center justify-between relative overflow-hidden transition-colors duration-700`}
                     >
-                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(255,255,255,0.1),transparent)] pointer-events-none" />
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.2),transparent)] pointer-events-none" />
 
-                        <div className="relative z-10 w-full flex flex-col items-center">
+                        <div className="w-full flex justify-between items-center relative z-10 mb-4 opacity-50 text-[10px] font-black uppercase tracking-[0.3em]">
+                            <span>Anatomik Simülasyon</span>
+                            <div className="flex gap-1">
+                                <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                                <div className="w-1.5 h-1.5 rounded-full bg-white/50" />
+                                <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
+                            </div>
+                        </div>
+
+                        <div className="relative z-10 w-full flex flex-col items-center flex-grow justify-center">
                             {/* Dynamic Body SVG */}
-                            <div className="relative flex items-center justify-center h-64 w-full">
+                            <div className="relative flex items-center justify-center h-80 w-full">
                                 <motion.svg
                                     viewBox="0 0 200 400"
                                     className="h-full drop-shadow-2xl"
@@ -160,12 +217,15 @@ export function VucutKitleIndeksi() {
                                     <motion.circle
                                         cx="100"
                                         cy="60"
-                                        r="40"
+                                        r="35"
                                         fill="white"
-                                        animate={{ r: 35 + (bmi > 30 ? (bmi - 30) / 2 : 0) }}
+                                        animate={{
+                                            r: 32 + (bmi > 30 ? (bmi - 30) / 4 : 0),
+                                            cy: 60 - (bmi < 18.5 ? 2 : 0)
+                                        }}
                                     />
                                     {/* Neck */}
-                                    <rect x="90" y="95" width="20" height="15" fill="white" fillOpacity="0.8" />
+                                    <rect x="92" y="90" width="16" height="15" fill="white" fillOpacity="0.8" />
 
                                     {/* Torso & Body */}
                                     <motion.path
@@ -191,38 +251,50 @@ export function VucutKitleIndeksi() {
 
                                     {/* Left Arm */}
                                     <motion.path
-                                        d={`M ${100 - bodyWidth / 2} 120 L ${100 - bodyWidth / 2 - 30} 240`}
+                                        d={`M ${100 - bodyWidth / 2} 115 L ${100 - bodyWidth / 2 - 25} 230`}
                                         stroke="white"
-                                        strokeWidth="15"
+                                        strokeWidth={12 + (bmi > 30 ? (bmi - 30) / 3 : 0)}
                                         strokeLinecap="round"
-                                        animate={{ d: `M ${100 - bodyWidth / 2} 120 L ${100 - bodyWidth / 2 - 30 - (bmi > 30 ? (bmi - 30) / 2 : 0)} 240` }}
+                                        animate={{
+                                            d: `M ${100 - bodyWidth / 2} 115 L ${100 - bodyWidth / 2 - 25 - (bmi > 30 ? (bmi - 30) / 5 : 0)} 230`,
+                                            strokeWidth: 10 + (bmi / 10)
+                                        }}
                                     />
 
                                     {/* Right Arm */}
                                     <motion.path
-                                        d={`M ${100 + bodyWidth / 2} 120 L ${100 + bodyWidth / 2 + 30} 240`}
+                                        d={`M ${100 + bodyWidth / 2} 115 L ${100 + bodyWidth / 2 + 25} 230`}
                                         stroke="white"
-                                        strokeWidth="15"
+                                        strokeWidth={12 + (bmi > 30 ? (bmi - 30) / 3 : 0)}
                                         strokeLinecap="round"
-                                        animate={{ d: `M ${100 + bodyWidth / 2} 120 L ${100 + bodyWidth / 2 + 30 + (bmi > 30 ? (bmi - 30) / 2 : 0)} 240` }}
+                                        animate={{
+                                            d: `M ${100 + bodyWidth / 2} 115 L ${100 + bodyWidth / 2 + 25 + (bmi > 30 ? (bmi - 30) / 5 : 0)} 230`,
+                                            strokeWidth: 10 + (bmi / 10)
+                                        }}
                                     />
 
                                     {/* Left Leg */}
                                     <motion.path
-                                        d={`M ${100 - bodyWidth / 4} 250 L ${100 - bodyWidth / 4 - 10} 380`}
+                                        d={`M ${100 - bodyWidth / 4} 240 L ${100 - bodyWidth / 4 - 8} 380`}
                                         stroke="white"
-                                        strokeWidth="20"
+                                        strokeWidth={18 + (bmi > 30 ? (bmi - 30) / 4 : 0)}
                                         strokeLinecap="round"
-                                        animate={{ d: `M ${100 - bodyWidth / 4} 250 L ${100 - bodyWidth / 4 - 10} 380` }}
+                                        animate={{
+                                            d: `M ${100 - bodyWidth / 4} 240 L ${100 - bodyWidth / 4 - 8} 380`,
+                                            strokeWidth: 14 + (bmi / 8)
+                                        }}
                                     />
 
                                     {/* Right Leg */}
                                     <motion.path
-                                        d={`M ${100 + bodyWidth / 4} 250 L ${100 + bodyWidth / 4 + 10} 380`}
+                                        d={`M ${100 + bodyWidth / 4} 240 L ${100 + bodyWidth / 4 + 8} 380`}
                                         stroke="white"
-                                        strokeWidth="20"
+                                        strokeWidth={18 + (bmi > 30 ? (bmi - 30) / 4 : 0)}
                                         strokeLinecap="round"
-                                        animate={{ d: `M ${100 + bodyWidth / 4} 250 L ${100 + bodyWidth / 4 + 10} 380` }}
+                                        animate={{
+                                            d: `M ${100 + bodyWidth / 4} 240 L ${100 + bodyWidth / 4 + 8} 380`,
+                                            strokeWidth: 14 + (bmi / 8)
+                                        }}
                                     />
                                 </motion.svg>
                             </div>
@@ -231,18 +303,18 @@ export function VucutKitleIndeksi() {
                                 <AnimatePresence mode="wait">
                                     <motion.div
                                         key={category}
-                                        initial={{ opacity: 0, scale: 0.9 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        exit={{ opacity: 0, scale: 1.1 }}
-                                        className="px-6 py-2 bg-white/20 backdrop-blur-md rounded-full font-bold text-lg"
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                        className="px-8 py-3 bg-white text-slate-800 rounded-2xl font-black text-xl shadow-xl uppercase tracking-tighter"
                                     >
                                         {category}
                                     </motion.div>
                                 </AnimatePresence>
-                                <p className="mt-4 text-white/70 text-sm max-w-[250px]">
-                                    {category === 'Normal Kilolu' ? 'Harika! Sağlıklı bir kilodasınız. Dengeli beslenmeye devam edin.' :
-                                        category === 'Zayıf' ? 'Vücut direncinizin düşmemesi için yeterli protein ve kalori almalısınız.' :
-                                            'Sağlığınız için ideal kilonuza ulaşmanız ve fiziksel aktiviteyi artırmanız önerilir.'}
+                                <p className="mt-6 text-white font-medium text-sm max-w-[280px] leading-relaxed opacity-90">
+                                    {category === 'Normal Kilolu' ? 'Mükemmel uyum! Formunuzu korumaya odaklanın.' :
+                                        category === 'Zayıf' ? 'Vücut kitle indeksiniz düşük. Beslenmenize dikkat etmelisiniz.' :
+                                            'Sağlığınız için hedeflerinizi belirlemenin tam zamanı.'}
                                 </p>
                             </div>
                         </div>
