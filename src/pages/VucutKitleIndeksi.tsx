@@ -111,17 +111,18 @@ export function VucutKitleIndeksi() {
                                             <div key={i} className={`w-0.5 ${i % 5 === 0 ? 'h-4 bg-slate-300' : 'h-2 bg-slate-200'} rounded-full`} />
                                         ))}
                                     </div>
+                                    <div className="absolute top-1/2 left-0 w-full h-1.5 bg-slate-100 rounded-full -translate-y-1/2" />
                                     <input
                                         type="range"
                                         min="100"
                                         max="250"
                                         value={height}
                                         onChange={(e) => setHeight(parseInt(e.target.value))}
-                                        className="relative z-10 w-full h-1.5 bg-transparent appearance-none cursor-pointer accent-indigo-600
-                                                   [&::-webkit-slider-runnable-track]:bg-slate-100 [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-runnable-track]:h-1.5
+                                        className="relative z-10 w-full h-6 bg-transparent appearance-none cursor-pointer
+                                                   [&::-webkit-slider-runnable-track]:bg-transparent
                                                    [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:bg-white 
                                                    [&::-webkit-slider-thumb]:border-4 [&::-webkit-slider-thumb]:border-indigo-600 [&::-webkit-slider-thumb]:rounded-full 
-                                                   [&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:-top-2 [&::-webkit-slider-thumb]:relative"
+                                                   [&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:relative"
                                     />
                                 </div>
                                 <div className="flex justify-between text-[10px] text-slate-400 font-black uppercase tracking-tighter mt-1 px-1">
@@ -147,17 +148,18 @@ export function VucutKitleIndeksi() {
                                             <div key={i} className={`w-0.5 ${i % 5 === 0 ? 'h-4 bg-slate-300' : 'h-2 bg-slate-200'} rounded-full`} />
                                         ))}
                                     </div>
+                                    <div className="absolute top-1/2 left-0 w-full h-1.5 bg-slate-100 rounded-full -translate-y-1/2" />
                                     <input
                                         type="range"
                                         min="30"
                                         max="250"
                                         value={weight}
                                         onChange={(e) => setWeight(parseInt(e.target.value))}
-                                        className="relative z-10 w-full h-1.5 bg-transparent appearance-none cursor-pointer accent-indigo-600
-                                                   [&::-webkit-slider-runnable-track]:bg-slate-100 [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-runnable-track]:h-1.5
+                                        className="relative z-10 w-full h-6 bg-transparent appearance-none cursor-pointer
+                                                   [&::-webkit-slider-runnable-track]:bg-transparent
                                                    [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:bg-white 
                                                    [&::-webkit-slider-thumb]:border-4 [&::-webkit-slider-thumb]:border-indigo-600 [&::-webkit-slider-thumb]:rounded-full 
-                                                   [&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:-top-2 [&::-webkit-slider-thumb]:relative"
+                                                   [&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:relative"
                                     />
                                 </div>
                                 <div className="flex justify-between text-[10px] text-slate-400 font-black uppercase tracking-tighter mt-1 px-1">
