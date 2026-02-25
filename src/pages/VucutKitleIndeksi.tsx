@@ -108,7 +108,7 @@ export function VucutKitleIndeksi() {
                                     {/* Ruler Markings */}
                                     <div className="absolute top-0 left-0 w-full h-full flex justify-between px-1 pointer-events-none">
                                         {[...Array(11)].map((_, i) => (
-                                            <div key={i} className={`w-0.5 ${i % 5 === 0 ? 'h-4 bg-slate-300' : 'h-2 bg-slate-200'} rounded-full`} />
+                                            <div key={i} className={`w-0.5 ${i % 5 === 0 ? 'h-4 bg-slate-400' : 'h-2 bg-slate-300'} rounded-full`} />
                                         ))}
                                     </div>
                                     <div className="absolute top-1/2 left-0 w-full h-1.5 bg-slate-300 rounded-full -translate-y-1/2" />
@@ -145,10 +145,10 @@ export function VucutKitleIndeksi() {
                                     {/* Ruler Markings */}
                                     <div className="absolute top-0 left-0 w-full h-full flex justify-between px-1 pointer-events-none">
                                         {[...Array(11)].map((_, i) => (
-                                            <div key={i} className={`w-0.5 ${i % 5 === 0 ? 'h-4 bg-slate-300' : 'h-2 bg-slate-200'} rounded-full`} />
+                                            <div key={i} className={`w-0.5 ${i % 5 === 0 ? 'h-4 bg-slate-400' : 'h-2 bg-slate-300'} rounded-full`} />
                                         ))}
                                     </div>
-                                    <div className="absolute top-1/2 left-0 w-full h-1.5 bg-slate-100 rounded-full -translate-y-1/2" />
+                                    <div className="absolute top-1/2 left-0 w-full h-1.5 bg-slate-300 rounded-full -translate-y-1/2" />
                                     <input
                                         type="range"
                                         min="30"
