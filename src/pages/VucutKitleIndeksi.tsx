@@ -246,7 +246,7 @@ export function VucutKitleIndeksi() {
                         Z
                       `
                                         }}
-                                        transition={{ type: "spring", stiffness: 100, damping: 15 }}
+                                        transition={{ type: "spring", stiffness: 80, damping: 20 }}
                                     />
 
                                     {/* Left Arm */}
