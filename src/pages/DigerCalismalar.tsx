@@ -207,6 +207,14 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
             page: 'dunya-saatleri',
             category: 'diger'
         },
+        {
+            title: "VKİ Hesaplama",
+            subtitle: "Vücut Kitle İndeksi",
+            icon: <Calculator size={40} />,
+            style: { backgroundColor: '#16a085' },
+            page: 'vki-hesaplama',
+            category: 'diger'
+        },
     ];
 
     const handleNavigate = (page: string) => {

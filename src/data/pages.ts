@@ -42,5 +42,6 @@ export const validPages = [
     'endoskopi-raporlama',
     'tiiab-raporlama',
     'dunya-saatleri',
-    'patoloji-sozlugu'
+    'patoloji-sozlugu',
+    'vki-hesaplama'
 ];

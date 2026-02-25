@@ -154,6 +154,9 @@ const DunyaSaatleri = React.lazy(() =>
 const PatolojiSozlugu = React.lazy(() =>
   import('./pages/PatolojiSozlugu').then((m) => ({ default: m.PatolojiSozlugu })),
 );
+const VucutKitleIndeksi = React.lazy(() =>
+  import('./pages/VucutKitleIndeksi').then((m) => ({ default: m.VucutKitleIndeksi })),
+);
 
 import { trackPageView } from './utils/analytics';
 
@@ -333,6 +336,8 @@ export default function App() {
 
       case 'patoloji-sozlugu':
         return <PatolojiSozlugu onNavigate={navigate} />;
+      case 'vki-hesaplama':
+        return <VucutKitleIndeksi />;
 
       case '404':
         return <NotFound onNavigate={navigate} />;
