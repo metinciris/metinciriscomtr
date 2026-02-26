@@ -314,13 +314,13 @@ const getStructuredData = (currentPage: string, meta: { title: string; descripti
                         "@type": "ListItem",
                         "position": 1,
                         "name": "Ana Sayfa",
-                        "item": BASE_URL
+                        "item": `${BASE_URL}/`
                     },
                     {
                         "@type": "ListItem",
                         "position": 2,
                         "name": meta.title.split(' | ')[0],
-                        "item": `${BASE_URL}/${currentPage}`
+                        "item": `${BASE_URL}/${currentPage}/`
                     }
                 ]
             } : null

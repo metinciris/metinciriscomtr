@@ -55,6 +55,8 @@ const PAGE_NAMES: Record<string, string> = {
   'dunya-saatleri': 'Dünya Saatleri',
 };
 
+const BASE_URL = 'https://metinciris.com.tr';
+
 export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const [showScrollTop, setShowScrollTop] = React.useState(false);
@@ -222,13 +224,17 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
               itemScope
               itemType="https://schema.org/ListItem"
             >
-              <button
-                onClick={() => onNavigate('home')}
-                className="hover:text-slate-800 transition-colors bg-transparent"
+              <a
+                href={`${BASE_URL}/`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  onNavigate('home');
+                }}
+                className="hover:text-slate-800 transition-colors bg-transparent border-none p-0 cursor-pointer inline-flex items-center"
                 itemProp="item"
               >
                 <span itemProp="name">Ana Sayfa</span>
-              </button>
+              </a>
               <meta itemProp="position" content="1" />
             </li>
             <ChevronRight size={14} className="text-slate-400 shrink-0" aria-hidden="true" />
@@ -238,9 +244,16 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
               itemType="https://schema.org/ListItem"
               aria-current="page"
             >
-              <span className="text-slate-700 font-medium" itemProp="name">
-                {pageName}
-              </span>
+              <a
+                href={`${BASE_URL}/${currentPage}/`}
+                onClick={(e) => e.preventDefault()}
+                className="text-slate-700 font-medium border-none p-0 cursor-default"
+                itemProp="item"
+              >
+                <span itemProp="name">
+                  {pageName}
+                </span>
+              </a>
               <meta itemProp="position" content="2" />
             </li>
           </ol>
