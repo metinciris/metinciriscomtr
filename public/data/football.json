@@ -12,7 +12,7 @@
     "scoreHome": 5,
     "scoreAway": 2,
     "source": "football-data",
-    "lastFetchedAt": "2026-02-25T19:13:55.519Z"
+    "lastFetchedAt": "2026-02-26T07:08:04.597Z"
   },
   {
     "id": "football-UEFAEuropaLeague-8",
@@ -27,7 +27,7 @@
     "scoreHome": 0,
     "scoreAway": 3,
     "source": "fixturedownload",
-    "lastFetchedAt": "2026-02-25T19:13:55.955Z"
+    "lastFetchedAt": "2026-02-26T07:08:05.647Z"
   },
   {
     "id": "football-CL-552063",
@@ -38,11 +38,11 @@
     "awayTeam": "Galatasaray SK",
     "startTimeUTC": "2026-02-25T20:00:00Z",
     "startTimeLocal": "2026-02-25T23:00:00+03:00",
-    "status": "scheduled",
-    "scoreHome": null,
-    "scoreAway": null,
+    "status": "finished",
+    "scoreHome": 3,
+    "scoreAway": 2,
     "source": "football-data",
-    "lastFetchedAt": "2026-02-25T19:13:55.519Z"
+    "lastFetchedAt": "2026-02-26T07:08:04.597Z"
   },
   {
     "id": "football-UEFAEuropaLeague-9",
@@ -57,6 +57,21 @@
     "scoreHome": null,
     "scoreAway": null,
     "source": "fixturedownload",
-    "lastFetchedAt": "2026-02-25T19:13:55.955Z"
+    "lastFetchedAt": "2026-02-26T07:08:05.647Z"
+  },
+  {
+    "id": "football-CL-552069",
+    "sport": "football",
+    "competition": "UEFA Champions League",
+    "season": "2025/26",
+    "homeTeam": "Galatasaray SK",
+    "awayTeam": null,
+    "startTimeUTC": "2026-03-11T00:00:00Z",
+    "startTimeLocal": "2026-03-11T03:00:00+03:00",
+    "status": "scheduled",
+    "scoreHome": null,
+    "scoreAway": null,
+    "source": "football-data",
+    "lastFetchedAt": "2026-02-26T07:08:04.597Z"
   }
 ]
