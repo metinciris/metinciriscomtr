@@ -1,4 +1,12 @@
+# Permanent Redirects (301) for Legacy Content
+/index.php              /                       301
+/mobile.php             /                       301
+/ispartaeczane/*        /nobetci-eczane/        301
+/pages/yemek.php        /hastane-yemek/         301
+/pages/ogrenciyemek.php /ogrenci-yemek/         301
+/online-test-analiz     /online-test-analiz/    301
+/facebook               /facebook/              301
+
 # Netlify SPA Fallback
 # Serve index.html for all routes (except static assets)
-# This is critical for SEO - prevents 404 errors on direct URL access
-/*    /index.html   200
+/*                      /index.html             200

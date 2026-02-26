@@ -4,9 +4,16 @@ interface SEOProps {
     currentPage: string;
 }
 
+interface PageMetadata {
+    title: string;
+    description: string;
+    keywords?: string;
+    noindex?: boolean;
+}
+
 const BASE_URL = 'https://metinciris.com.tr';
 
-const PAGE_METADATA: Record<string, { title: string; description: string; keywords?: string }> = {
+const PAGE_METADATA: Record<string, PageMetadata> = {
     home: {
         title: 'Prof Dr Metin Çiriş | SDÜ Tıbbi Patoloji',
         description: 'Prof Dr Metin Çiriş – Süleyman Demirel Üniversitesi Tıp Fakültesi Tıbbi Patoloji Anabilim Dalı. Hasta bilgilendirme, biyopsi sonuçları ve akademik yayınlar.',
@@ -229,7 +236,8 @@ const PAGE_METADATA: Record<string, { title: string; description: string; keywor
     },
     '404': {
         title: 'Sayfa Bulunamadı | Prof Dr Metin Çiriş',
-        description: 'Aradığınız sayfa mevcut değil.'
+        description: 'Aradığınız sayfa mevcut değil.',
+        noindex: true
     }
 };
 
@@ -372,6 +380,22 @@ export const SEO: React.FC<SEOProps> = ({ currentPage }) => {
             canonicalLink.setAttribute('rel', 'canonical');
             canonicalLink.setAttribute('href', canonicalUrl);
             document.head.appendChild(canonicalLink);
+        }
+
+        // Update Robots Meta (Noindex)
+        let robotsMeta = document.querySelector('meta[name="robots"]');
+        if (meta.noindex) {
+            if (robotsMeta) {
+                robotsMeta.setAttribute('content', 'noindex, follow');
+            } else {
+                robotsMeta = document.createElement('meta');
+                robotsMeta.setAttribute('name', 'robots');
+                robotsMeta.setAttribute('content', 'noindex, follow');
+                document.head.appendChild(robotsMeta);
+            }
+        } else if (robotsMeta) {
+            // Remove noindex if it exists on a normal page
+            robotsMeta.setAttribute('content', 'index, follow');
         }
 
         // Update Open Graph tags

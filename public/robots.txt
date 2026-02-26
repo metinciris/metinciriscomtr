@@ -4,6 +4,18 @@
 # Tüm arama motorları için kurallar
 User-agent: *
 Allow: /
+# Eski sorgu parametrelerini ve hashbang'leri engelle
+Disallow: /*?
+Disallow: /#!
+# Eski PHP dosyalarını engelle
+Disallow: /index.php
+Disallow: /mobile.php
+Disallow: /fatura.php
+Disallow: /benkimim.php
+Disallow: /dersprogram.php
+Disallow: /eczane.php
+Disallow: /myimages.php
+Disallow: /ziyaretcimobil.php
 
 # Sitemap konumu
 Sitemap: https://metinciris.com.tr/sitemap.xml
