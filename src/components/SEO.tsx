@@ -61,7 +61,7 @@ export const SEO: React.FC<SEOProps> = ({ currentPage }) => {
                 document.head.appendChild(robotsMeta);
             }
         } else if (robotsMeta) {
-            robotsMeta.setAttribute('content', 'index, follow');
+            robotsMeta.setAttribute('content', 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1');
         }
 
         // Update Open Graph tags
@@ -113,6 +113,18 @@ export const SEO: React.FC<SEOProps> = ({ currentPage }) => {
             document.head.appendChild(hreflang);
         } else {
             hreflang.setAttribute('href', canonicalUrl);
+        }
+
+        // Add hreflang x-default
+        let xDefault = document.querySelector('link[hreflang="x-default"]');
+        if (!xDefault) {
+            xDefault = document.createElement('link');
+            xDefault.setAttribute('rel', 'alternate');
+            xDefault.setAttribute('hreflang', 'x-default');
+            xDefault.setAttribute('href', canonicalUrl);
+            document.head.appendChild(xDefault);
+        } else {
+            xDefault.setAttribute('href', canonicalUrl);
         }
 
     }, [currentPage]);

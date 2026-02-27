@@ -31,9 +31,12 @@
   <!-- Canonical URL -->
   <link rel="canonical" href="https://metinciris.com.tr/" />
 
-  <!-- Hreflang for Turkish -->
+  <!-- Hreflang Tags (Static) -->
   <link rel="alternate" hreflang="tr" href="https://metinciris.com.tr/" />
   <link rel="alternate" hreflang="x-default" href="https://metinciris.com.tr/" />
+
+  <!-- Preload Critical LCP Image -->
+  <link rel="preload" href="/img/metinciris.avif" as="image" type="image/avif" fetchpriority="high" />
 
   <!-- Favicon -->
   <link rel="icon" type="image/x-icon" href="/favicon.ico" />
@@ -43,11 +46,10 @@
 
   <!-- Preconnect hints for performance -->
   <link rel="preconnect" href="https://www.googletagmanager.com" />
-  <!-- Defer edilen kaynaklar için preconnect kaldırıldı: docs.google.com, api.open-meteo.com -->
-
-  <!-- Fonts (Optimized Loading) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <!-- Fonts (Optimized Loading) -->
   <link rel="preload" as="style"
     href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
