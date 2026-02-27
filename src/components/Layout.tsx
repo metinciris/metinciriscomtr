@@ -96,7 +96,7 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
           <div className="flex items-center justify-between h-20 md:h-16">
             {/* Logo + isim */}
             <div
-              className="flex items-center space-x-3 cursor-pointer"
+              className="flex items-center space-x-3 cursor-pointer min-h-[48px] py-1"
               onClick={() => onNavigate('home')}
               role="button"
               tabIndex={0}
@@ -310,31 +310,31 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
                 <p className="m-0">
                   <a
                     href="mailto:ibrahimciris@sdu.edu.tr"
-                    className="hover:text-white transition-colors"
+                    className="hover:text-white transition-colors inline-block py-2"
                   >
                     ibrahimciris@sdu.edu.tr
                   </a>
                 </p>
-                <p className="m-0 mt-4">
+                <div className="mt-4">
                   <a
                     href="https://www.linkedin.com/in/patoloji"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="hover:text-white transition-colors"
+                    className="hover:text-white transition-colors inline-block py-2"
                   >
                     LinkedIn: linkedin.com/in/patoloji
                   </a>
-                </p>
-                <p className="m-0">
+                </div>
+                <div>
                   <a
                     href="https://fb.com/patoloji"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="hover:text-white transition-colors"
+                    className="hover:text-white transition-colors inline-block py-2"
                   >
                     Facebook: fb.com/patoloji
                   </a>
-                </p>
+                </div>
               </div>
             </div>
           </div>
