@@ -74,12 +74,13 @@ let metaInjected = 0;
 
 for (const id of pageIds) {
     const meta = registry[id];
-    if (id === 'home' || !meta.slug) continue;
+    if (!meta.slug && id !== 'home') continue;
 
-    const pageDir = join(distDir, meta.slug);
+    const isHome = id === 'home';
+    const pageDir = isHome ? distDir : join(distDir, meta.slug);
     const pagePath = join(pageDir, 'index.html');
 
-    if (!existsSync(pageDir)) {
+    if (!isHome && !existsSync(pageDir)) {
         mkdirSync(pageDir, { recursive: true });
     }
 
@@ -88,20 +89,20 @@ for (const id of pageIds) {
     // SEO Meta Enjeksiyonu
     pageContent = pageContent.replace(/<title>.*?<\/title>/, `<title>${meta.title}</title>`);
     pageContent = pageContent.replace(/<meta name="description"[\s\S]*?\/>/, `<meta name="description" content="${meta.description}" />`);
-    pageContent = pageContent.replace(/<link rel="canonical" href=".*?" \/>/, `<link rel="canonical" href="${BASE_URL}/${meta.slug}/" />`);
+    pageContent = pageContent.replace(/<link rel="canonical" href=".*?" \/>/, `<link rel="canonical" href="${BASE_URL}/${meta.slug ? meta.slug + '/' : ''}" />`);
 
     // Open Graph
     pageContent = pageContent.replace(/<meta property="og:title" content=".*?" \/>/, `<meta property="og:title" content="${meta.title}" />`);
     pageContent = pageContent.replace(/<meta property="og:description"[\s\S]*?\/>/, `<meta property="og:description" content="${meta.description}" />`);
-    pageContent = pageContent.replace(/<meta property="og:url" content=".*?" \/>/, `<meta property="og:url" content="${BASE_URL}/${meta.slug}/" />`);
+    pageContent = pageContent.replace(/<meta property="og:url" content=".*?" \/>/, `<meta property="og:url" content="${BASE_URL}/${meta.slug ? meta.slug + '/' : ''}" />`);
 
     // Twitter
     pageContent = pageContent.replace(/<meta name="twitter:title" content=".*?" \/>/, `<meta name="twitter:title" content="${meta.title}" />`);
     pageContent = pageContent.replace(/<meta name="twitter:description"[\s\S]*?\/>/, `<meta name="twitter:description" content="${meta.description}" />`);
 
     // Hreflang
-    pageContent = pageContent.replace(/<link rel="alternate" hreflang="tr" href=".*?" \/>/, `<link rel="alternate" hreflang="tr" href="${BASE_URL}/${meta.slug}/" />`);
-    pageContent = pageContent.replace(/<link rel="alternate" hreflang="x-default" href=".*?" \/>/, `<link rel="alternate" hreflang="x-default" href="${BASE_URL}/${meta.slug}/" />`);
+    pageContent = pageContent.replace(/<link rel="alternate" hreflang="tr" href=".*?" \/>/, `<link rel="alternate" hreflang="tr" href="${BASE_URL}/${meta.slug ? meta.slug + '/' : ''}" />`);
+    pageContent = pageContent.replace(/<link rel="alternate" hreflang="x-default" href=".*?" \/>/, `<link rel="alternate" hreflang="x-default" href="${BASE_URL}/${meta.slug ? meta.slug + '/' : ''}" />`);
 
     // Noindex if set
     if (meta.noindex) {
@@ -109,9 +110,9 @@ for (const id of pageIds) {
     }
 
     writeFileSync(pagePath, pageContent, 'utf8');
-    created++;
+    if (!isHome) created++;
     metaInjected++;
-    console.log(`  ✓ /${meta.slug}/index.html [META ✅]`);
+    console.log(`  ✓ ${isHome ? '(ana dizin)' : '/' + meta.slug}/index.html [META ✅]`);
 }
 
 // --- 2. Sitemap XML Oluştur ---
