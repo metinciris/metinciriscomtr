@@ -96,7 +96,7 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
           <div className="flex items-center justify-between h-20 md:h-16">
             {/* Logo + isim */}
             <div
-              className="flex items-center space-x-3 cursor-pointer min-h-[48px] py-1"
+              className="flex items-center space-x-3 cursor-pointer min-h-[48px] py-2 px-2"
               onClick={() => onNavigate('home')}
               role="button"
               tabIndex={0}
@@ -306,35 +306,29 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
             </div>
             <div>
               <h4>İletişim Bilgileri</h4>
-              <div className="text-white/70 mt-2 space-y-1">
-                <p className="m-0">
-                  <a
-                    href="mailto:ibrahimciris@sdu.edu.tr"
-                    className="hover:text-white transition-colors inline-block py-2"
-                  >
-                    ibrahimciris@sdu.edu.tr
-                  </a>
-                </p>
-                <div className="mt-4">
-                  <a
-                    href="https://www.linkedin.com/in/patoloji"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hover:text-white transition-colors inline-block py-2"
-                  >
-                    LinkedIn: linkedin.com/in/patoloji
-                  </a>
-                </div>
-                <div>
-                  <a
-                    href="https://fb.com/patoloji"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hover:text-white transition-colors inline-block py-2"
-                  >
-                    Facebook: fb.com/patoloji
-                  </a>
-                </div>
+              <div className="text-white/70 mt-2 flex flex-col items-start">
+                <a
+                  href="mailto:ibrahimciris@sdu.edu.tr"
+                  className="hover:text-white transition-colors flex items-center min-h-[48px] py-2"
+                >
+                  ibrahimciris@sdu.edu.tr
+                </a>
+                <a
+                  href="https://www.linkedin.com/in/patoloji"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-white transition-colors flex items-center min-h-[48px] py-2"
+                >
+                  LinkedIn: linkedin.com/in/patoloji
+                </a>
+                <a
+                  href="https://fb.com/patoloji"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-white transition-colors flex items-center min-h-[48px] py-2"
+                >
+                  Facebook: fb.com/patoloji
+                </a>
               </div>
             </div>
           </div>
