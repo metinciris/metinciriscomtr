@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { PageContainer } from '../components/PageContainer';
 import { Calculator, Info } from 'lucide-react';
+import { calculateRCBValue, RcbInputs } from '../core/calculators/rcb';
 
 export function RcbCalculator() {
     const [d1, setD1] = useState("");
@@ -9,11 +10,10 @@ export function RcbCalculator() {
     const [pis, setPis] = useState("");
     const [pn, setPn] = useState("");
     const [dmet, setDmet] = useState("");
-    const [rcbResult, setRcbResult] = useState("");
-    const [rcbCategory, setRcbCategory] = useState("");
-    const [output, setOutput] = useState("");
 
-    const calculateRCB = () => {
+    const [result, setResult] = useState<{ rcb: string; category: string; output: string } | null>(null);
+
+    const handleCalculate = () => {
         const D1 = parseFloat(d1);
         const D2 = parseFloat(d2);
         const C = parseFloat(c);
@@ -22,57 +22,21 @@ export function RcbCalculator() {
         const dmetVal = parseFloat(dmet || "0");
 
         if (isNaN(D1) || isNaN(D2)) {
-            alert(
-                "Lütfen tümör yatağı alanı için hem genişlik hem de yükseklik değerlerini girin."
-            );
+            alert("Lütfen tümör yatağı alanı için hem genişlik hem de yükseklik değerlerini girin.");
             return;
         }
 
-        if (
-            C < 0 ||
-            C > 100 ||
-            PIS < 0 ||
-            PIS > 100 ||
-            D1 <= 0 ||
-            D2 <= 0 ||
-            pN < 0 ||
-            dmetVal < 0
-        ) {
+        if (C < 0 || C > 100 || PIS < 0 || PIS > 100 || D1 <= 0 || D2 <= 0 || pN < 0 || dmetVal < 0) {
             alert("Lütfen geçerli değerler girin.");
             return;
         }
 
-        const dprim = Math.sqrt(D1 * D2);
-        const finv = (1 - PIS / 100) * (C / 100);
-        const term1 = 1.4 * Math.pow(finv * dprim, 0.17);
-        const term2 = Math.pow(4 * (1 - Math.pow(0.75, pN)) * dmetVal, 0.17);
-        const RCB = term1 + term2;
-
-        let category = "";
-        if (RCB < 1.36) {
-            category = "Class I (Minimal tümör yükü)";
-        } else if (RCB < 3.28) {
-            category = "Class II (Orta derecede yük)";
-        } else {
-            category = "Class III (Yaygın tümör yükü)";
-        }
-
-        setRcbResult(RCB.toFixed(3));
-        setRcbCategory(category);
-
-        let outputText = `Tümör yatağı alanı: ${D1} mm X ${D2} mm\n`;
-        outputText += `Kanser alanı tümör selülaritesi: %${C}\n`;
-        outputText += `Tümör alanı in situ yüzdesi: %${PIS}\n`;
-        outputText += `Pozitif lenf nodu sayısı: ${pN}\n`;
-        if (pN > 0) {
-            outputText += `En büyük metastazın çapı: ${dmetVal} mm\n`;
-        } else {
-            outputText += `En büyük metastazın çapı: Lenf nodunda metastaz yok\n`;
-        }
-        outputText += `Rezidüel kanser yükü: ${RCB.toFixed(3)}\n`;
-        outputText += `Rezidüel Kanser Yükü Sınıfı: ${category}\n`;
-
-        setOutput(outputText);
+        const res = calculateRCBValue({ d1: D1, d2: D2, c: C, pis: PIS, pn: pN, dmet: dmetVal });
+        setResult({
+            rcb: res.rcb.toFixed(3),
+            category: res.category,
+            output: res.details
+        });
     };
 
     return (
@@ -185,7 +149,7 @@ export function RcbCalculator() {
                     </div>
 
                     <button
-                        onClick={calculateRCB}
+                        onClick={handleCalculate}
                         className="w-full bg-[#E74C3C] hover:bg-[#C0392B] text-white font-bold py-4 px-6 rounded-xl shadow-md transition-colors flex items-center justify-center gap-2 text-lg"
                     >
                         <Calculator size={24} />
@@ -198,16 +162,16 @@ export function RcbCalculator() {
                     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 sticky top-24 flex flex-col h-[calc(100vh-8rem)] lg:h-auto lg:min-h-[600px]">
                         <h2 className="text-xl font-bold mb-6 text-gray-800">Sonuçlar</h2>
 
-                        {rcbResult ? (
+                        {result ? (
                             <div className="space-y-6 flex-1 flex flex-col">
                                 <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 text-center">
                                     <p className="text-gray-500 text-sm mb-1">Rezidüel Kanser Yükü (RCB)</p>
-                                    <p className="text-4xl font-bold text-[#E74C3C]">{rcbResult}</p>
+                                    <p className="text-4xl font-bold text-[#E74C3C]">{result.rcb}</p>
                                 </div>
 
                                 <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 text-center">
                                     <p className="text-gray-500 text-sm mb-1">RCB Sınıfı</p>
-                                    <p className="text-xl font-bold text-gray-800">{rcbCategory}</p>
+                                    <p className="text-xl font-bold text-gray-800">{result.category}</p>
                                 </div>
 
                                 <div className="flex-1 flex flex-col">
@@ -215,7 +179,7 @@ export function RcbCalculator() {
                                         Detaylı Çıktı
                                     </label>
                                     <textarea
-                                        value={output}
+                                        value={result.output}
                                         readOnly
                                         className="w-full flex-1 p-3 text-sm bg-gray-50 border border-gray-200 rounded-lg resize-none font-mono focus:outline-none min-h-[200px]"
                                     />

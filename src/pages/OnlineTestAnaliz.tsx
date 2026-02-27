@@ -39,6 +39,32 @@ import {
     CartesianGrid,
 } from "recharts";
 
+import {
+    Booklet,
+    ProfileConfig,
+    ScoringConfig,
+    SubjectBlock,
+    FieldKey,
+    DEFAULT_PROFILE,
+    DEFAULT_SCORING,
+    clampInt,
+    onlyAnswerChars,
+    normalizeAnswerChar,
+    splitFixed,
+    parseBookletChar,
+    validatePermutation,
+    parseMappingTable,
+    deriveBookletKeyFromA,
+    round2,
+    parseStudents,
+    calculateResults,
+    performItemAnalysis,
+    Student, // Assuming Student type is also exported from exam.ts
+    overlap, // Assuming overlap is also exported from exam.ts
+    safeMean, // Assuming safeMean is also exported from exam.ts
+    formatPct, // Assuming formatPct is also exported from exam.ts
+} from "../core/calculators/exam";
+
 /**
  * ✅ ÖNEMLİ:
  * - Router/React.lazy kullanan sistemlerde "Minified React error #306" genelde
@@ -46,29 +72,7 @@ import {
  * - Bu dosyada hem named hem default export var.
  */
 
-type Booklet = "A" | "B" | "C" | "D";
-
 type StepStatus = "todo" | "done" | "skipped";
-
-type FieldKey = "id" | "name" | "booklet" | "answers";
-
-interface ProfileConfig {
-    idStart: number;
-    idLen: number;
-    nameStart: number;
-    nameLen: number;
-    bookletPos: number; // 1-based index in line (0 => yok)
-    answersStart: number;
-    answersLen: number; // soru sayısı
-    noBooklet: boolean;
-}
-
-interface Student {
-    id: string;
-    name: string;
-    booklet: Booklet;
-    answersRaw: string[]; // geldiği sıradaki cevaplar (kitapçık sırası)
-}
 
 interface MappingPack {
     // mapping[booklet][i] = A'daki soru numarası (1..N)
@@ -79,195 +83,6 @@ interface MappingPack {
     errors: string[];
     warnings: string[];
 }
-
-interface ScoringConfig {
-    blankAsWrong: boolean;
-    // yanlışın doğruları götürmesi (ör: 4 seçenek için 1/3; 5 seçenek için 1/4)
-    wrongPenalty: number; // 0 => götürme yok
-    totalScore: number; // 100 gibi
-}
-
-interface SubjectBlock {
-    name: string;
-    start: number; // 1-based
-    end: number; // 1-based
-}
-
-const DEFAULT_PROFILE: ProfileConfig = {
-    idStart: 21,
-    idLen: 10,
-    nameStart: 1,
-    nameLen: 20,
-    bookletPos: 31,
-    answersStart: 32,
-    answersLen: 95,
-    noBooklet: false,
-};
-
-const DEFAULT_SCORING: ScoringConfig = {
-    blankAsWrong: false,
-    wrongPenalty: 0,
-    totalScore: 100,
-};
-
-function clampInt(n: number, min: number, max: number) {
-    if (Number.isNaN(n)) return min;
-    return Math.max(min, Math.min(max, n));
-}
-
-function onlyAnswerChars(s: string) {
-    return (s || "")
-        .toUpperCase()
-        .replace(/\s+/g, "") // Dikey girişi (satır sonlarını) yanyana getirmek için tüm whitespace'leri sil
-        .replace(/[^ABCDE#*X]/g, ""); // Sadece geçerli karakterleri tut
-}
-
-// DAT içinden cevaplar; boş/okunmayan işaretleri normalize edelim:
-function normalizeAnswerChar(ch: string) {
-    const c = (ch || "").toUpperCase();
-    if (c === "*" || c === "#" || c === "X") return " "; // boş say
-    if (["A", "B", "C", "D", "E"].includes(c)) return c;
-    return " ";
-}
-
-function splitFixed(line: string, start1Based: number, len: number) {
-    const s = clampInt(start1Based, 1, Math.max(1, line.length));
-    const l = clampInt(len, 0, Math.max(0, line.length));
-    return line.slice(s - 1, s - 1 + l);
-}
-
-function parseBookletChar(ch: string): Booklet {
-    const c = (ch || "").toUpperCase();
-    if (c === "B") return "B";
-    if (c === "C") return "C";
-    if (c === "D") return "D";
-    return "A";
-}
-
-function validatePermutation(arr: number[], n: number) {
-    const seen = new Set<number>();
-    const missing: number[] = [];
-    const dup: number[] = [];
-    for (const v of arr) {
-        if (!Number.isFinite(v) || v < 1 || v > n) return { ok: false, missing: [], dup: [], outOfRange: true };
-        if (seen.has(v)) dup.push(v);
-        seen.add(v);
-    }
-    for (let i = 1; i <= n; i++) if (!seen.has(i)) missing.push(i);
-    return { ok: missing.length === 0 && dup.length === 0, missing, dup, outOfRange: false };
-}
-
-/**
- * Mapping TABLO parser:
- * Beklenen Excel kopyala-yapıştır formatı:
- *  A anahtar | B kitapçık sıra | C kitapçık sıra | D kitapçık sıra | Soru No
- *  E         | 12             | 8               | 16              | 1
- *  ...
- *
- * Buradaki kritik yorum:
- *  - mapping[B][i] = B kitapçıkta i. sıradaki sorunun A'daki karşılığı (A soru no)
- *  - B anahtarı otomatik üretimi: Bkey[i] = Akey[mapping[B][i]]
- *
- * (Bu, senin verdiğin tablo + anahtarlarla birebir uyumlu olan yön.)
- */
-function parseMappingList(text: string): number[] {
-    return (text || "")
-        .split(/[\s,;]+/)
-        .map(x => parseInt(x))
-        .filter(x => !isNaN(x));
-}
-
-function parseMappingTable(bText: string, cText: string, dText: string): MappingPack {
-    const errors: string[] = [];
-    const warnings: string[] = [];
-
-    const mapB = parseMappingList(bText);
-    const mapC = parseMappingList(cText);
-    const mapD = parseMappingList(dText);
-
-    return {
-        mapping: { B: mapB, C: mapC, D: mapD },
-        errors,
-        warnings,
-    };
-}
-
-function deriveBookletKeyFromA(aKey: string, toA: number[]) {
-    const A = aKey || "";
-    return toA
-        .map((aNo) => {
-            const idx = Number(aNo) - 1;
-            if (!Number.isFinite(idx) || idx < 0 || idx >= A.length) return " ";
-            return A[idx] || " ";
-        })
-        .join("");
-}
-
-function answersToAOrder(answersInBookletOrder: string[], toA: number[], n: number) {
-    const out = new Array(n).fill(" ");
-    for (let i = 0; i < Math.min(answersInBookletOrder.length, toA.length); i++) {
-        const aNo = toA[i];
-        const aIdx = Number(aNo) - 1;
-        if (!Number.isFinite(aIdx) || aIdx < 0 || aIdx >= n) continue;
-        out[aIdx] = answersInBookletOrder[i] ?? " ";
-    }
-    return out;
-}
-
-function scoreOne(
-    studentAnswersAOrder: string[],
-    aKey: string[],
-    scoring: ScoringConfig
-) {
-    let correct = 0;
-    let wrong = 0;
-    let blank = 0;
-
-    for (let i = 0; i < aKey.length; i++) {
-        const s = normalizeAnswerChar(studentAnswersAOrder[i] || " ");
-        const k = normalizeAnswerChar(aKey[i] || " ");
-        if (s === " ") {
-            blank++;
-            if (scoring.blankAsWrong) wrong++;
-        } else if (s === k) {
-            correct++;
-        } else {
-            wrong++;
-        }
-    }
-
-    const net = correct - wrong * scoring.wrongPenalty;
-    const totalQ = aKey.length || 1;
-    const score = (net / totalQ) * scoring.totalScore;
-
-    return { correct, wrong, blank, net, score };
-}
-
-function overlap(aStart: number, aLen: number, bStart: number, bLen: number) {
-    const a0 = aStart;
-    const a1 = aStart + Math.max(0, aLen) - 1;
-    const b0 = bStart;
-    const b1 = bStart + Math.max(0, bLen) - 1;
-    if (aLen <= 0 || bLen <= 0) return false;
-    return !(a1 < b0 || b1 < a0);
-}
-
-function formatPct(n: number) {
-    if (!Number.isFinite(n)) return "0%";
-    return `${n.toFixed(2)}%`.replace(".", ",");
-}
-
-function safeMean(xs: number[]) {
-    const v = xs.filter((x) => Number.isFinite(x));
-    if (!v.length) return 0;
-    return v.reduce((a, b) => a + b, 0) / v.length;
-}
-
-function round2(n: number) {
-    return Math.round(n * 100) / 100;
-}
-
-
 
 function commentFor(p: number, disc: number) {
     // p: difficulty (doğru oranı)
@@ -569,45 +384,14 @@ export function OnlineTestAnaliz() {
 
     // --- parse DAT ---
     useEffect(() => {
-        const content = (datContent || "").trim();
-        if (!content) {
-            setStudents([]);
-            setFirstLine("");
-            return;
-        }
-
-        const lines = content
-            .split(/\r?\n/)
-            .map((l) => l.replace(/\r/g, ""))
-            .filter((l) => l.trim().length > 0);
-
-        setFirstLine(lines[0] || "");
-
-        const parsed: Student[] = [];
-
-        for (const line of lines) {
-            const id = splitFixed(line, profile.idStart, profile.idLen).trim();
-            const name = splitFixed(line, profile.nameStart, profile.nameLen).trim();
-
-            const booklet =
-                profile.noBooklet || profile.bookletPos <= 0
-                    ? "A"
-                    : parseBookletChar(line.charAt(profile.bookletPos - 1));
-
-            const answersRawStr = splitFixed(line, profile.answersStart, profile.answersLen);
-            const answersRaw = answersRawStr.split("").map(normalizeAnswerChar);
-
-            if (!id && !name) continue;
-
-            parsed.push({
-                id: id || "(id yok)",
-                name: name || "(isim yok)",
-                booklet,
-                answersRaw,
-            });
-        }
-
+        const parsed = parseStudents(datContent, profile);
         setStudents(parsed);
+        if (datContent.trim()) {
+            const lines = datContent.split(/\r?\n/);
+            setFirstLine(lines[0] || "");
+        } else {
+            setFirstLine("");
+        }
     }, [datContent, profile]);
 
     // --- normalized keys ---
@@ -622,9 +406,7 @@ export function OnlineTestAnaliz() {
     }, [bMappingText, cMappingText, dMappingText]);
 
     const questionCount = useMemo(() => {
-        // soru sayısını en güvenli şekilde A anahtardan alalım
         if (aKey.length > 0) return aKey.length;
-        // yoksa profile.answersLen
         return profile.answersLen || 0;
     }, [aKey.length, profile.answersLen]);
 
@@ -641,14 +423,12 @@ export function OnlineTestAnaliz() {
         const mB = mappingPack.mapping.B;
         const mC = mappingPack.mapping.C;
         const mD = mappingPack.mapping.D;
-
         const n = aKey.length;
 
         if (mB && mB.length >= n) out.B = deriveBookletKeyFromA(aKey, mB.slice(0, n));
         if (mC && mC.length >= n) out.C = deriveBookletKeyFromA(aKey, mC.slice(0, n));
         if (mD && mD.length >= n) out.D = deriveBookletKeyFromA(aKey, mD.slice(0, n));
 
-        // permütasyon kontrolü
         if (mB && mB.length >= n) {
             const v = validatePermutation(mB.slice(0, n), n);
             if (!v.ok) warnings.push("B mapping 1..N permütasyonu değil (eksik/tekrar/out-of-range olabilir).");
@@ -662,18 +442,8 @@ export function OnlineTestAnaliz() {
             if (!v.ok) warnings.push("D mapping 1..N permütasyonu değil (eksik/tekrar/out-of-range olabilir).");
         }
 
-        // tablo A anahtar kontrolü
-        if (mappingPack.tableAKey && mappingPack.tableAKey.length >= 5) {
-            const len = Math.min(n, mappingPack.tableAKey.length);
-            const tableA = mappingPack.tableAKey.slice(0, len);
-            const refA = aKey.slice(0, len);
-            if (tableA !== refA) {
-                errors.push("Mapping tablosundaki A anahtar harfleri ile girilen A anahtar uyuşmuyor. Tablo başka sınava ait kısımlar içeriyor olabilir.");
-            }
-        }
-
         return { out, errors, warnings };
-    }, [aKey, mappingPack.mapping, mappingPack.tableAKey]);
+    }, [aKey, mappingPack.mapping]);
 
     // --- detect if mapping needed ---
     const bookletsUsed = useMemo(() => {
@@ -683,9 +453,7 @@ export function OnlineTestAnaliz() {
     }, [students]);
 
     const mappingNeeded = useMemo(() => {
-        // kitapçık yoksa mapping gereksiz
         if (profile.noBooklet || profile.bookletPos <= 0) return false;
-        // sadece A varsa mapping gereksiz
         const used = new Set(bookletsUsed);
         used.delete("A");
         return used.size > 0;
@@ -693,168 +461,20 @@ export function OnlineTestAnaliz() {
 
     // --- results calculation ---
     const results = useMemo(() => {
-        const n = questionCount;
-        if (!students.length || !aKey || aKey.length < 5 || n < 5) {
-            return {
-                scored: [] as Array<
-                    Student & { correct: number; wrong: number; blank: number; net: number; score: number; answersA: string[]; excludedReason?: string }
-                >,
-                excluded: [] as Array<{ student: Student; reason: string }>,
-            };
-        }
-
-        const aKeyArr = aKey.slice(0, n).split("");
-
-        const scored: Array<
-            Student & { correct: number; wrong: number; blank: number; net: number; score: number; answersA: string[]; excludedReason?: string }
-        > = [];
-        const excluded: Array<{ student: Student; reason: string }> = [];
-
-        for (const st of students) {
-            // öğrencinin cevapları A düzenine çevrilecek
-            let answersA: string[] = [];
-
-            if (st.booklet === "A" || !mappingNeeded) {
-                answersA = (st.answersRaw || []).slice(0, n);
-            } else {
-                const toA = mappingPack.mapping[st.booklet];
-                if (toA && toA.length > 0) {
-                    // Case 1: Mapping table is available
-                    answersA = answersToAOrder(st.answersRaw || [], toA, n);
-                } else {
-                    // Case 2: Mapping missing, check for manual key fallback
-                    const manualKey = st.booklet === "B" ? bKey : st.booklet === "C" ? cKey : st.booklet === "D" ? dKey : "";
-                    if (manualKey && manualKey.length >= 5) {
-                        // Directly score against the manual key
-                        const studAnswers = (st.answersRaw || []).slice(0, n);
-                        const manualKeyArr = manualKey.slice(0, n).split("");
-                        const s = scoreOne(studAnswers, manualKeyArr, scoring);
-                        scored.push({
-                            ...st,
-                            answersA: studAnswers, // Not actually A-order, but used for scoring display
-                            correct: s.correct,
-                            wrong: s.wrong,
-                            blank: s.blank,
-                            net: round2(s.net),
-                            score: round2(s.score),
-                            excludedReason: "Mapping yok, manuel anahtara göre hesaplandı."
-                        });
-                        continue;
-                    } else {
-                        excluded.push({ student: st, reason: `${st.booklet} mapping tablosu veya manuel anahtar bulunamadı.` });
-                        continue;
-                    }
-                }
-            }
-
-            const s = scoreOne(answersA, aKeyArr, scoring);
-
-            scored.push({
-                ...st,
-                answersA,
-                correct: s.correct,
-                wrong: s.wrong,
-                blank: s.blank,
-                net: round2(s.net),
-                score: round2(s.score),
-            });
-        }
-
-        return { scored, excluded };
-    }, [students, aKey, questionCount, scoring, mappingNeeded, mappingPack.mapping]);
+        return calculateResults(
+            students,
+            aKey,
+            questionCount,
+            scoring,
+            mappingNeeded,
+            mappingPack.mapping,
+            { B: bKey, C: cKey, D: dKey }
+        );
+    }, [students, aKey, questionCount, scoring, mappingNeeded, mappingPack.mapping, bKey, cKey, dKey]);
 
     // --- Step7Analysis: madde analizi ---
     const analysis = useMemo(() => {
-        const n = questionCount;
-        const scored = results.scored;
-        if (!n || !aKey || aKey.length < n || scored.length === 0) {
-            return { questionRows: [], scoreHist: [] as Array<{ range: string; count: number }> };
-        }
-
-        const aKeyArr = aKey.slice(0, n).split("");
-
-        // histogram
-        const bins = [
-            { min: 0, max: 20, label: "0-20" },
-            { min: 20, max: 40, label: "20-40" },
-            { min: 40, max: 60, label: "40-60" },
-            { min: 60, max: 70, label: "60-70" },
-            { min: 70, max: 80, label: "70-80" },
-            { min: 80, max: 90, label: "80-90" },
-            { min: 90, max: 100.0001, label: "90-100" },
-        ];
-
-        const scoreHist = bins.map((b) => ({
-            range: b.label,
-            count: scored.filter((x) => x.score >= b.min && x.score < b.max).length,
-        }));
-
-        // madde istatistikleri için üst/alt %27 grupları belirle
-        const scoreIndices = scored
-            .map((s, i) => ({ s: s.score, i }))
-            .sort((a, b) => b.s - a.s); // puan azalan
-
-        const totalStudents = scored.length;
-        // Eğer öğrenci sayısı az ise (örn < 10) bu yöntem sapıtabilir ama yine de %27 mantığı:
-        const groupSize = Math.max(1, Math.round(totalStudents * 0.27));
-
-        const topIndices = new Set(scoreIndices.slice(0, groupSize).map(x => x.i));
-        // Alt grup sondan groupSize kadar
-        const botIndices = new Set(scoreIndices.slice(totalStudents - groupSize).map(x => x.i));
-
-        const questionRows = Array.from({ length: n }).map((_, qi) => {
-            const correctAnswer = aKeyArr[qi];
-
-            const dist: Record<string, number> = { A: 0, B: 0, C: 0, D: 0, E: 0, blank: 0 };
-
-            let correctTop = 0;
-            let correctBot = 0;
-
-            scored.forEach((st, i) => {
-                const ans = normalizeAnswerChar(st.answersA[qi] || " ");
-
-                // Dağılım sayımı
-                if (ans === " ") dist.blank++;
-                else dist[ans] = (dist[ans] || 0) + 1;
-
-                const isCorrect = ans === correctAnswer;
-
-                // Üst/Alt grup doğru sayıları
-                if (topIndices.has(i) && isCorrect) correctTop++;
-                if (botIndices.has(i) && isCorrect) correctBot++;
-            });
-
-            const total = scored.length || 1;
-            const p = dist[correctAnswer] / total; // Genel doğru oranı ( klasik p)
-
-            // Kullanıcı isteği Zorluk: ((üst + alt) / (2 * grupSayisi)) * 100
-            // Not: grupSayisi dediğimiz groupSize (tek grubun mevcudu). İkisinin toplamı 2*groupSize.
-            const diffFormula = ((correctTop + correctBot) / (2 * groupSize)) * 100; // 0..100 ölçeğinde
-            // Ancak UI genelde 0..1 bekliyor olabilir mi? Hayır, formülde *100 var. 
-            // round2 ile gösterirken 0.55 yerine 55.00 yazacak. Puan gibi.
-
-            // Ayırıcılık: (üst - alt) / grupSayisi
-            // -1..+1 arası çıkar.
-            const discFormula = (correctTop - correctBot) / groupSize;
-
-            return {
-                soru: qi + 1,
-                A: dist.A,
-                B: dist.B,
-                C: dist.C,
-                D: dist.D,
-                E: dist.E,
-                Bos: dist.blank,
-                dogru: correctAnswer,
-                dogruPct: p, // Bu "Doğru %" sütunu için, genel başarı
-                ayiricilik: round2(discFormula),
-                // Kullanıcı isteğine göre zorluk 0..100 arası olmalı
-                zorluk: round2(diffFormula),
-                yorum: commentFor(diffFormula / 100, discFormula),
-            };
-        });
-
-        return { questionRows, scoreHist };
+        return performItemAnalysis(results.scored, questionCount, aKey);
     }, [results.scored, questionCount, aKey]);
 
     // --- overlaps in Design step ---

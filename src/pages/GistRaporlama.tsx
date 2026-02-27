@@ -4,65 +4,19 @@ import { Copy, Check, Activity, Ruler, Microscope, FileText, Info, LayoutGrid } 
 import { PageContainer } from "../components/PageContainer";
 import { RelatedPages } from "../components/RelatedPages";
 import { ReportingDisclaimer } from "../components/ReportingDisclaimer";
-
-// --- Constants & Logic ---
-const HISTO_TIP_OPTS = [
-    "Gastrointestinal Stromal Tümör, iğsi hücreli tip",
-    "Gastrointestinal Stromal Tümör, epiteloid tip",
-    "Gastrointestinal Stromal Tümör, mikst",
-];
-
-const YERLEŞIM_OPTS = [
-    "Mide", "Duedonum", "Jejenum/İleum", "Rektum", "Kolon", "Özofagus",
-    "Omentum", "Mezenter", "Retroperiton", "Periton", "Karaciğer", "Pankreas",
-];
-
-const SINIR_OPTS = ["Ekspansil", "İnfiltratif"];
-const ODAK_OPTS = ["Unifokal", "Multifokal"];
-
-function formatNumber(n: any, digits = 1) {
-    if (n === undefined || n === null || n === "") return "";
-    const val = typeof n === "string" ? parseFloat(n.replace(",", ".")) : n;
-    if (Number.isNaN(val)) return String(n);
-    return val.toLocaleString("tr-TR", { maximumFractionDigits: digits, minimumFractionDigits: digits });
-}
-
-function toNumber(n: any) {
-    if (n === undefined || n === null || n === "") return undefined;
-    if (typeof n === "number") return n;
-    const v = parseFloat(String(n).replace(",", "."));
-    return Number.isNaN(v) ? undefined : v;
-}
-
-function pTFromSize(cm: number | undefined, neoadjuvan: boolean) {
-    if (!cm && cm !== 0) return "";
-    let cat = "";
-    if (cm === 0) cat = "pT0";
-    else if (cm <= 2) cat = "pT1";
-    else if (cm <= 5) cat = "pT2";
-    else if (cm <= 10) cat = "pT3";
-    else cat = "pT4";
-    return (neoadjuvan ? "y" : "") + cat;
-}
-
-function gradeFromMitotic(mitosPer5mm2: number | undefined) {
-    if (mitosPer5mm2 === undefined) return "";
-    return mitosPer5mm2 <= 5 ? "G1; low grade" : "G2; high grade";
-}
-
-function riskFrom(sizeCm: number | undefined, mitos: number | undefined, site: string) {
-    if (sizeCm === undefined || mitos === undefined || !site) return "Belirsiz";
-    const highMitos = mitos > 5;
-    const gastric = site === "Mide";
-    const smallBowel = site === "Jejenum/İleum" || site === "Duedonum";
-    const colorectal = site === "Rektum" || site === "Kolon";
-    const s = sizeCm;
-    const band = s <= 2 ? 1 : s <= 5 ? 2 : s <= 10 ? 3 : 4;
-
-    if (gastric) return !highMitos ? (band === 1 ? "Çok düşük" : band === 2 ? "Düşük" : band === 3 ? "Orta" : "Yüksek") : (band === 1 ? "Orta" : band === 2 ? "Orta" : "Yüksek");
-    if (smallBowel || colorectal) return !highMitos ? (band === 1 ? "Düşük" : band === 2 ? "Orta" : "Yüksek") : "Yüksek";
-    return highMitos || band >= 3 ? "Yüksek" : band === 2 ? "Orta" : "Düşük";
-}
+import {
+    HISTO_TIP_OPTS,
+    YERLEŞIM_OPTS,
+    SINIR_OPTS,
+    ODAK_OPTS,
+    GistData,
+    formatNumber,
+    toNumber,
+    pTFromSize,
+    gradeFromMitotic,
+    riskFrom,
+    generateGistReport
+} from "../core/calculators/gist";
 
 export default function GistRaporlama() {
     // State
@@ -104,27 +58,35 @@ export default function GistRaporlama() {
 
     // Report Generation
     const rapor = useMemo(() => {
-        const lines = [];
-        if (histoTip) lines.push(`Histolojik Tip: ${histoTip}`);
-        const ebc = formatNumber(sizeNum);
-        if (ebc) lines.push(`En büyük tümör boyutu: ${ebc} cm`);
-        const L = formatNumber(toNumber(lx)), W = formatNumber(toNumber(wx)), H = formatNumber(toNumber(hx));
-        if (L || W || H) lines.push(`Tümör boyutları: ${L || "?"} x ${W || "?"} x ${H || "?"} cm`);
-        if (sinir) lines.push(`Tümör sınırları: ${sinir}`);
-        if (odak) lines.push(`Tümör odağı: ${odak}`);
-        if (yerlesim) lines.push(`Tümör yerleşimi: ${yerlesim}`);
-        if (mitozNum !== undefined) lines.push(`Mitotik oran: ${formatNumber(mitozNum, 0)} mitoz/5mm²`);
-        lines.push(nekrozVar ? `Nekroz: Var${toNumber(nekrozYuzde) !== undefined ? ` (%${formatNumber(toNumber(nekrozYuzde), 0)})` : ""}` : "Nekroz: Yok");
-        if (neoTedaviVar) lines.push(`Neoadjuvan tedavi vardır. Canlı tümör yüzdesi: ${toNumber(canliTumorYuzde) !== undefined ? `%${formatNumber(toNumber(canliTumorYuzde), 0)}` : "belirtilmemiş"}.`);
-        if (cerrahiMetin) lines.push(`Cerrahi sınırlar: ${cerrahiMetin}`);
-        if (nodDurumu) lines.push(`Bölgesel lenf nodları durumu: ${nodDurumu}`);
-        if (grade) lines.push(`Histolojik Grade: ${grade}`);
-        if (risk) lines.push(`Risk değerlendirmesi: ${risk}`);
-        if (pT) lines.push(`pT kategori: ${pT}`);
-        lines.push(`C-KİT (CD117): ${cd117}`, `DOG1 (ANO1): ${dog1}`, `SDHA: ${sdha}`, `SDHB: ${sdhb}`, `BRAF: ${braf}`, `CD34: ${cd34}`, `SMA: ${sma}`, `Desmin: ${desmin}`, `S-100: ${s100}`);
-        if (ki67) lines.push(`Ki-67: %${ki67}`);
-        return lines.join("\n");
-    }, [histoTip, sizeNum, lx, wx, hx, sinir, odak, yerlesim, mitozNum, nekrozVar, nekrozYuzde, neoTedaviVar, canliTumorYuzde, cerrahiMetin, nodDurumu, grade, risk, pT, cd117, dog1, sdha, sdhb, braf, cd34, sma, desmin, s100, ki67]);
+        const data: GistData = {
+            histoTip,
+            enBuyukCm: sizeNum,
+            lx: toNumber(lx),
+            wx: toNumber(wx),
+            hx: toNumber(hx),
+            sinir,
+            odak,
+            yerlesim,
+            mitozNum,
+            nekrozVar,
+            nekrozYuzde: toNumber(nekrozYuzde),
+            neoTedaviVar,
+            canliTumorYuzde: toNumber(canliTumorYuzde),
+            cerrahiMetin,
+            nodDurumu,
+            cd117,
+            dog1,
+            sdha,
+            sdhb,
+            braf,
+            cd34,
+            sma,
+            desmin,
+            s100,
+            ki67
+        };
+        return generateGistReport(data);
+    }, [histoTip, sizeNum, lx, wx, hx, sinir, odak, yerlesim, mitozNum, nekrozVar, nekrozYuzde, neoTedaviVar, canliTumorYuzde, cerrahiMetin, nodDurumu, cd117, dog1, sdha, sdhb, braf, cd34, sma, desmin, s100, ki67]);
 
     const handleCopy = () => {
         if (navigator.clipboard) {

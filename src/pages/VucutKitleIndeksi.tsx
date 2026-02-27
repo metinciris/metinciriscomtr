@@ -1,51 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { PageContainer } from '../components/PageContainer';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calculator, Info, CheckCircle2, AlertCircle } from 'lucide-react';
+import { calculateBMI, getBmiBodyWidth } from '../core/calculators/bmi';
 
 export function VucutKitleIndeksi() {
     const [weight, setWeight] = useState(80);
     const [height, setHeight] = useState(175);
-    const [bmi, setBmi] = useState(0);
-    const [category, setCategory] = useState('');
-    const [color, setColor] = useState('');
 
-    useEffect(() => {
-        const heightInMeters = height / 100;
-        const calculatedBmi = weight / (heightInMeters * heightInMeters);
-        setBmi(calculatedBmi);
-
-        if (calculatedBmi < 18.5) {
-            setCategory('Zayıf');
-            setColor('text-blue-500');
-        } else if (calculatedBmi >= 18.5 && calculatedBmi < 25) {
-            setCategory('Normal Kilolu');
-            setColor('text-green-500');
-        } else if (calculatedBmi >= 25 && calculatedBmi < 30) {
-            setCategory('Fazla Kilolu');
-            setColor('text-yellow-500');
-        } else if (calculatedBmi >= 30 && calculatedBmi < 35) {
-            setCategory('I. Derece Obez');
-            setColor('text-orange-500');
-        } else if (calculatedBmi >= 35 && calculatedBmi < 40) {
-            setCategory('II. Derece Obez');
-            setColor('text-red-500');
-        } else {
-            setCategory('III. Derece Obez (Morbid)');
-            setColor('text-red-700');
-        }
-    }, [weight, height]);
-
-    // Vücut şeklini BMI'ye göre hesapla
-    // Normal BMI 22.5 civarı.
-    const getBodyWidth = () => {
-        if (bmi < 18.5) return 30 + (bmi / 18.5) * 20; // 30-50 arası (Zayıf)
-        if (bmi < 25) return 50 + ((bmi - 18.5) / 6.5) * 15; // 50-65 arası (Normal)
-        if (bmi < 30) return 65 + ((bmi - 25) / 5) * 20; // 65-85 arası (Fazla Kilolu)
-        return Math.min(85 + ((bmi - 30) / 10) * 35, 130); // 85-130 arası (Obez)
-    };
-
-    const bodyWidth = getBodyWidth();
+    const { bmi, category, color } = useMemo(() => calculateBMI(weight, height), [weight, height]);
+    const bodyWidth = useMemo(() => getBmiBodyWidth(bmi), [bmi]);
 
     // Dinamik arka plan renkleri
     const getBgGradient = () => {

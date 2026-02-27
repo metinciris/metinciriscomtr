@@ -1,27 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { PageContainer } from '../components/PageContainer';
 import { Trash2, RotateCcw, Volume2, VolumeX, History, Maximize, Minimize } from 'lucide-react';
-
-type LogType = 'Reaktif' | 'Metastatik' | 'Deposit';
-
-interface LogEntry {
-    id: number;
-    type: LogType;
-    timestamp: Date;
-}
+import { LogType, LogEntry, calculateLymphNodeCounts, createLogEntry } from '../core/calculators/lymphnode';
 
 export function LenfNoduSayaci() {
     const [logs, setLogs] = useState<LogEntry[]>([]);
     const [soundEnabled, setSoundEnabled] = useState(true);
     const [isFullscreen, setIsFullscreen] = useState(false);
 
-    // Derived counts
-    const counts = {
-        Reaktif: logs.filter(l => l.type === 'Reaktif').length,
-        Metastatik: logs.filter(l => l.type === 'Metastatik').length,
-        Deposit: logs.filter(l => l.type === 'Deposit').length,
-        Total: logs.length
-    };
+    // Derived counts using core logic
+    const counts = calculateLymphNodeCounts(logs);
 
     // Refs
     const historyRef = useRef<HTMLDivElement>(null);
@@ -116,7 +104,7 @@ export function LenfNoduSayaci() {
     const addCount = (type: LogType) => {
         playSound(type);
         setLogs(prev => [
-            { id: Date.now(), type, timestamp: new Date() },
+            createLogEntry(type),
             ...prev
         ]);
 
