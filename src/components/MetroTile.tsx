@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'motion/react';
 
 interface MetroTileProps {
   title: string;
@@ -37,26 +36,13 @@ export function MetroTile({
   };
 
   return (
-    <motion.div
-      whileHover={{ scale: 1.05, y: -8 }}
-      whileTap={{ scale: 0.98 }}
-      transition={{
-        type: "spring",
-        stiffness: 300,
-        damping: 20,
-        duration: 0.3
-      }}
-      className={`${sizeClasses[size]} ${color} ${className} rounded-2xl cursor-pointer overflow-hidden relative group shadow-lg hover:shadow-2xl dark:shadow-black/50 dark:hover:shadow-black/70 transition-shadow duration-300`}
+    <div
+      className={`${sizeClasses[size]} ${color} ${className} rounded-2xl cursor-pointer overflow-hidden relative group shadow-lg hover:shadow-2xl hover:-translate-y-2 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300`}
       onClick={onClick}
       style={style}
     >
-      {/* Glassmorphism overlay - optimized for dark mode */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent dark:from-white/5 dark:to-black/20 pointer-events-none z-[1]" />
-
-      {/* Glow effect on hover - adjusted for dark mode */}
-      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-[2]">
-        <div className="absolute inset-0 bg-gradient-to-t from-white/20 via-transparent to-transparent dark:from-white/10 dark:via-transparent dark:to-transparent" />
-      </div>
+      {/* Glassmorphism overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none z-[1]" />
 
       <div className={`w-full h-full p-6 flex flex-col justify-between relative z-10 ${innerClassName}`}>
         <div className="flex-1 flex items-center justify-between">
@@ -72,9 +58,6 @@ export function MetroTile({
           </div>
         </div>
       </div>
-
-      {/* Subtle hover overlay */}
-      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300 z-[3]" />
-    </motion.div>
+    </div>
   );
 }
