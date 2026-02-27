@@ -12,7 +12,9 @@ import { ErrorBoundary } from './components/ErrorBoundary';
  */
 
 // Home ve Hasta/Öğrenci/Akademik sayfaları
-import { Home } from './pages/Home';
+const Home = React.lazy(() =>
+  import('./pages/Home').then((m) => ({ default: m.Home })),
+);
 
 const Iletisim = React.lazy(() =>
   import('./pages/Iletisim').then((m) => ({ default: m.Iletisim })),
