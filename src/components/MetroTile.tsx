@@ -9,7 +9,6 @@ interface MetroTileProps {
   onClick?: () => void;
   className?: string;
   children?: React.ReactNode;
-  innerClassName?: string;
   style?: React.CSSProperties;
   textColor?: string;
 }
@@ -23,7 +22,6 @@ export function MetroTile({
   onClick,
   className = '',
   children,
-  innerClassName = '',
   style,
   textColor = 'text-white',
 }: MetroTileProps) {
@@ -44,7 +42,7 @@ export function MetroTile({
       {/* Glassmorphism overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none z-[1]" />
 
-      <div className={`w-full h-full p-6 flex flex-col justify-between relative z-10 ${innerClassName}`}>
+      <div className="w-full h-full p-6 flex flex-col justify-between relative z-10">
         <div className="flex-1 flex items-center justify-between">
           <div className="flex flex-col justify-between h-full">
             {icon && <div className={`${textColor} opacity-90 mb-auto transition-transform duration-300 group-hover:scale-110`}>{icon}</div>}

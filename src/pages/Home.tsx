@@ -1,7 +1,6 @@
 import React from 'react';
 import { PageContainer } from '../components/PageContainer';
 import { MetroTile } from '../components/MetroTile';
-import { motion } from 'motion/react';
 import {
   MessageSquare,
   FileText,
@@ -28,7 +27,6 @@ import {
   ILETISIM_SUBTITLES,
   DIS_SUBTITLES,
   ECZA_SUBTITLES,
-  BLOG_SUBTITLES,
   GALERI_SUBTITLES,
   MAKALE_SUBTITLES,
   HASTANE_YEMEK_SUBTITLES,
