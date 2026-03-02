@@ -162,6 +162,9 @@ const VucutKitleIndeksi = React.lazy(() =>
 const GeriSayim = React.lazy(() =>
   import('./pages/GeriSayim').then((m) => ({ default: m.GeriSayim })),
 );
+const MitozDonusturucu = React.lazy(() =>
+  import('./pages/MitozDonusturucu').then((m) => ({ default: m.MitozDonusturucu })),
+);
 
 import { trackPageView } from './utils/analytics';
 
@@ -346,6 +349,9 @@ export default function App() {
 
       case 'geri-sayim':
         return <GeriSayim />;
+
+      case 'mitoz-donusturucu':
+        return <MitozDonusturucu />;
 
       case '404':
         return <NotFound onNavigate={navigate} />;

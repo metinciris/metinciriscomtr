@@ -223,6 +223,14 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
             page: 'geri-sayim',
             category: 'diger'
         },
+        {
+            title: "Mitoz Dönüştürücü",
+            subtitle: "HPF'den mm² alana dönüşüm",
+            icon: <Microscope size={40} />,
+            style: { backgroundColor: '#059669' },
+            page: 'mitoz-donusturucu',
+            category: 'patoloji'
+        },
     ];
 
     const handleNavigate = (page: string) => {

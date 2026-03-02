@@ -44,5 +44,6 @@ export const validPages = [
     'dunya-saatleri',
     'patoloji-sozlugu',
     'vki-hesaplama',
-    'geri-sayim'
+    'geri-sayim',
+    'mitoz-donusturucu'
 ];
