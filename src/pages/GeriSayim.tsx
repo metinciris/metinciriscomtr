@@ -203,9 +203,6 @@ export function GeriSayim() {
     const minutes = Math.floor((remainingMs % 3_600_000) / 60_000);
     const seconds = Math.floor((remainingMs % 60_000) / 1_000);
 
-    // Manual setup check
-    const isManualTimer = activePreset === -1;
-
     // ── Actions ──
     const applyCustomTime = () => {
         const ms = ((inputH * 3600) + (inputM * 60) + inputS) * 1000;
@@ -250,8 +247,9 @@ export function GeriSayim() {
     const barWidth = `${(progress * 100).toFixed(2)}%`;
     const ringSize = isFullscreen ? 420 : 280;
 
-    // Show seconds if enabled OR if it's a manual timer
-    const effectivelyShowSeconds = settings.showSeconds || isManualTimer;
+    // Direct use of settings.showSeconds ensures it works reliably in all modes
+    // The previous interpretation to "force" it for manual setup might have caused confusion
+    const effectivelyShowSeconds = settings.showSeconds;
 
     // Minimal mode visibility condition: last minute
     const showDigitsInMinimal = settings.displayMode === 'minimal' ? remainingMs < 60000 : true;
@@ -394,7 +392,7 @@ export function GeriSayim() {
                                 </div>
                                 {!showDigitsInMinimal && (
                                     <div className="flex flex-col items-center gap-6 opacity-30">
-                                        <div className="w-20 h-20 rounded-full border-[6px] border-white/10 border-t-white animate-spin duration-[4s]" />
+                                        <div className="w-20 h-20 rounded-full border-[6px] border-white/10 border-t-white" />
                                         <div className="text-white font-bold tracking-[0.5em] text-sm">FOCUS</div>
                                     </div>
                                 )}
@@ -459,7 +457,7 @@ export function GeriSayim() {
                     {/* ──── [3] SETUP AREA ──── */}
                     {!isFullscreen && (
                         <div className="mt-8 space-y-12">
-                            {/* Manuel Input */}
+                            {/* Manuel Input Area */}
                             <div className="bg-black/20 border border-white/5 rounded-[3rem] p-10">
                                 <p className="text-white/20 text-[10px] uppercase font-bold tracking-[0.4em] mb-8 text-center flex items-center justify-center gap-3">
                                     <Zap size={14} className="text-amber-500/50" /> MANUEL KURULUM
@@ -501,7 +499,7 @@ export function GeriSayim() {
                                 </div>
                             </div>
 
-                            {/* Presets */}
+                            {/* Presets Grid */}
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                                 {PRESETS.map((p, i) => (
                                     <button
