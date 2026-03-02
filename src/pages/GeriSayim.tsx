@@ -87,16 +87,16 @@ function ProgressRing({ progress, color, size = 300 }: { progress: number; color
 // ────────────────────────────────────────────────────────────
 //  Digit block for digital display
 // ────────────────────────────────────────────────────────────
-function DigitBlock({ value, label, opacity = 1, animate = false }: { value: string; label: string; opacity?: number; animate?: boolean }) {
+function DigitBlock({ value, label, opacity = 1 }: { value: string; label: string; opacity?: number }) {
     return (
-        <div className={`flex flex-col items-center transition-opacity duration-500 ${animate ? 'animate-pulse-slow' : ''}`} style={{ opacity }}>
+        <div className="flex flex-col items-center" style={{ opacity }}>
             <div
                 className="font-mono font-black text-white select-none transition-all duration-300"
                 style={{ fontSize: 'clamp(2.5rem, 10vw, 5rem)', lineHeight: 1, letterSpacing: '0.04em', textShadow: '0 0 30px currentColor' }}
             >
                 {value}
             </div>
-            <div className="text-white/40 text-xs mt-1 uppercase tracking-widest">{label}</div>
+            <div className="text-white/40 text-[10px] mt-1 uppercase tracking-widest">{label}</div>
         </div>
     );
 }
@@ -137,7 +137,7 @@ export function GeriSayim() {
     const toggleFullscreen = () => {
         if (!document.fullscreenElement) {
             containerRef.current?.requestFullscreen().catch(err => {
-                console.error(`Error attempting to enable full-screen mode: ${err.message}`);
+                console.error(`Error: ${err.message}`);
             });
             setIsFullscreen(true);
         } else {
@@ -243,19 +243,16 @@ export function GeriSayim() {
     const barWidth = `${(progress * 100).toFixed(2)}%`;
     const ringSize = isFullscreen ? 420 : 280;
 
-    // Pulse condition: running and seconds hidden
-    const shouldPulse = isRunning && !settings.showSeconds;
-
-    // Minimal mode visibility condition: last minute or precisely the ring progress
+    // Minimal mode visibility condition: last minute
     const showDigitsInMinimal = settings.displayMode === 'minimal' ? remainingMs < 60000 : true;
 
     return (
         <PageContainer>
-            {/* Settings Panel */}
+            {/* Settings Modal */}
             {showSettings && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-                    <div className="bg-gray-900 border border-white/10 rounded-2xl p-6 w-full max-w-sm shadow-2xl">
-                        <div className="flex items-center justify-between mb-6">
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+                    <div className="bg-gray-900 border border-white/10 rounded-3xl p-6 w-full max-w-sm shadow-2xl">
+                        <div className="flex items-center justify-between mb-8">
                             <h2 className="text-white font-bold text-xl flex items-center gap-2">
                                 <Settings size={20} className="text-violet-400" />
                                 Ayarlar
@@ -265,129 +262,85 @@ export function GeriSayim() {
                             </button>
                         </div>
 
-                        {/* Display mode */}
-                        <div className="mb-5">
-                            <p className="text-gray-400 text-sm font-medium mb-3 text-center">Kadran Modu</p>
-                            <div className="grid grid-cols-3 gap-2">
-                                {(['digital', 'minimal', 'circle'] as TimerSettings['displayMode'][]).map(m => (
-                                    <button
-                                        key={m}
-                                        onClick={() => setSettings(s => ({ ...s, displayMode: m }))}
-                                        className="py-2.5 rounded-xl text-sm font-medium transition-all"
-                                        style={{
-                                            background: settings.displayMode === m ? theme.hex : 'rgba(255,255,255,0.05)',
-                                            color: settings.displayMode === m ? 'white' : '#9ca3af',
-                                            border: `1px solid ${settings.displayMode === m ? theme.hex : 'rgba(255,255,255,0.1)'}`,
-                                        }}
-                                    >
-                                        {m === 'digital' ? '🖥 Dijital' : m === 'minimal' ? '✦ Minimal' : '⭕ Çember'}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Color theme */}
-                        <div className="mb-6">
-                            <p className="text-gray-400 text-sm font-medium mb-3 text-center">Renk Teması</p>
-                            <div className="flex justify-center flex-wrap gap-3">
-                                {(Object.keys(THEMES) as TimerSettings['colorTheme'][]).map(k => (
-                                    <button
-                                        key={k}
-                                        onClick={() => setSettings(s => ({ ...s, colorTheme: k }))}
-                                        className="w-10 h-10 rounded-full border-2 transition-all relative"
-                                        style={{
-                                            backgroundColor: THEMES[k].hex,
-                                            borderColor: settings.colorTheme === k ? 'white' : 'transparent',
-                                            transform: settings.colorTheme === k ? 'scale(1.15)' : 'scale(1)',
-                                            boxShadow: settings.colorTheme === k ? `0 0 15px ${THEMES[k].hex}` : 'none'
-                                        }}
-                                        title={k}
-                                    >
-                                        {settings.colorTheme === k && <div className="absolute inset-0 flex items-center justify-center text-white text-xs">✓</div>}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div className="space-y-3">
-                            {/* Toggle Seconds */}
-                            <button
-                                onClick={() => setSettings(s => ({ ...s, showSeconds: !s.showSeconds }))}
-                                className="flex items-center justify-between w-full py-3 px-4 rounded-xl transition-all hover:bg-white/5"
-                                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
-                            >
-                                <span className="text-white text-sm font-medium">Saniye Göster</span>
-                                <div className={`w-10 h-5 rounded-full relative transition-colors ${settings.showSeconds ? 'bg-green-500' : 'bg-gray-700'}`}>
-                                    <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${settings.showSeconds ? 'left-6' : 'left-1'}`} />
+                        <div className="space-y-6">
+                            {/* Display mode */}
+                            <div>
+                                <p className="text-gray-400 text-xs font-bold mb-3 uppercase tracking-widest text-center">Kadran Modu</p>
+                                <div className="grid grid-cols-3 gap-2">
+                                    {(['digital', 'minimal', 'circle'] as TimerSettings['displayMode'][]).map(m => (
+                                        <button
+                                            key={m}
+                                            onClick={() => setSettings(s => ({ ...s, displayMode: m }))}
+                                            className="py-2.5 rounded-xl text-xs font-bold transition-all"
+                                            style={{
+                                                background: settings.displayMode === m ? theme.hex : 'rgba(255,255,255,0.05)',
+                                                color: settings.displayMode === m ? 'white' : '#9ca3af',
+                                                border: `1px solid ${settings.displayMode === m ? theme.hex : 'rgba(255,255,255,0.1)'}`,
+                                            }}
+                                        >
+                                            {m === 'digital' ? '🖥 Dijital' : m === 'minimal' ? '✦ Minimal' : '⭕ Çember'}
+                                        </button>
+                                    ))}
                                 </div>
-                            </button>
+                            </div>
 
-                            {/* Sound Toggle */}
-                            <button
-                                onClick={() => setSettings(s => ({ ...s, soundEnabled: !s.soundEnabled }))}
-                                className="flex items-center justify-between w-full py-3 px-4 rounded-xl transition-all hover:bg-white/5"
-                                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
-                            >
-                                <span className="text-white text-sm font-medium">Ses Efektleri</span>
-                                <div className={`w-10 h-5 rounded-full relative transition-colors ${settings.soundEnabled ? 'bg-indigo-500' : 'bg-gray-700'}`}>
-                                    <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${settings.soundEnabled ? 'left-6' : 'left-1'}`} />
+                            {/* Color theme */}
+                            <div>
+                                <p className="text-gray-400 text-xs font-bold mb-3 uppercase tracking-widest text-center">Renk Teması</p>
+                                <div className="flex justify-center flex-wrap gap-3">
+                                    {(Object.keys(THEMES) as TimerSettings['colorTheme'][]).map(k => (
+                                        <button
+                                            key={k}
+                                            onClick={() => setSettings(s => ({ ...s, colorTheme: k }))}
+                                            className="w-10 h-10 rounded-full border-2 transition-all relative"
+                                            style={{
+                                                backgroundColor: THEMES[k].hex,
+                                                borderColor: settings.colorTheme === k ? 'white' : 'transparent',
+                                                transform: settings.colorTheme === k ? 'scale(1.1)' : 'scale(1)',
+                                            }}
+                                            title={k}
+                                        />
+                                    ))}
                                 </div>
-                            </button>
+                            </div>
+
+                            <div className="space-y-2">
+                                {/* Toggle Seconds */}
+                                <button
+                                    onClick={() => setSettings(s => ({ ...s, showSeconds: !s.showSeconds }))}
+                                    className="flex items-center justify-between w-full py-3 px-4 rounded-2xl bg-white/5 border border-white/5"
+                                >
+                                    <span className="text-white text-sm font-medium">Saniye Göster</span>
+                                    <div className={`w-10 h-5 rounded-full relative transition-colors ${settings.showSeconds ? 'bg-green-500' : 'bg-gray-700'}`}>
+                                        <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${settings.showSeconds ? 'left-6' : 'left-1'}`} />
+                                    </div>
+                                </button>
+
+                                {/* Sound Toggle */}
+                                <button
+                                    onClick={() => setSettings(s => ({ ...s, soundEnabled: !s.soundEnabled }))}
+                                    className="flex items-center justify-between w-full py-3 px-4 rounded-2xl bg-white/5 border border-white/5"
+                                >
+                                    <span className="text-white text-sm font-medium">Ses Efektleri</span>
+                                    <div className={`w-10 h-5 rounded-full relative transition-colors ${settings.soundEnabled ? 'bg-indigo-500' : 'bg-gray-700'}`}>
+                                        <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${settings.soundEnabled ? 'left-6' : 'left-1'}`} />
+                                    </div>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* Dark full-page wrapper */}
-            <div ref={containerRef} className={`min-h-screen bg-gradient-to-br transition-all duration-700 ${theme.bg} ${isFullscreen ? 'p-0 flex items-center justify-center' : '-mx-4 sm:-mx-6 lg:-mx-8 -my-8 px-4 pb-16'}`} style={{ marginTop: isFullscreen ? '0' : '-2rem' }}>
-                <div className={`${isFullscreen ? 'w-full max-w-4xl p-12' : 'max-w-2xl mx-auto pt-8'}`}>
+            {/* Main Content Area */}
+            <div ref={containerRef} className={`min-h-screen bg-gradient-to-br transition-all duration-700 ${theme.bg} ${isFullscreen ? 'p-0 flex items-center justify-center overflow-hidden' : '-mx-4 sm:-mx-6 lg:-mx-8 -my-8 px-4 pb-16 pt-12'}`} style={{ marginTop: isFullscreen ? '0' : '-2rem' }}>
+                <div className={`${isFullscreen ? 'w-full max-w-4xl p-12' : 'max-w-2xl mx-auto flex flex-col gap-12'}`}>
 
-                    {/* ── Header ── */}
-                    {!isFullscreen && (
-                        <div className="flex items-center justify-between mb-8">
-                            <div>
-                                <div className="flex items-center gap-2">
-                                    <Clock size={20} className="text-white/60" />
-                                    <h1 className="text-white font-black text-2xl tracking-tight">Geri Sayım</h1>
-                                </div>
-                                <p className="text-white/40 text-sm mt-0.5">Sınav ve çalışma sayacı</p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <button
-                                    onClick={toggleFullscreen}
-                                    className="p-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-all"
-                                    title="Tam Ekran"
-                                >
-                                    {isFullscreen ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
-                                </button>
-                                <button
-                                    onClick={() => setShowSettings(true)}
-                                    className="p-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-all"
-                                    title="Ayarlar"
-                                >
-                                    <Settings size={20} />
-                                </button>
-                            </div>
-                        </div>
-                    )}
+                    {/* ──── [1] TIMER DISPLAY (ALWAYS TOP) ──── */}
+                    <div className="relative flex items-center justify-center"
+                        style={{ minHeight: settings.displayMode === 'circle' ? `${ringSize}px` : isFullscreen ? '300px' : '220px' }}>
 
-                    {/* Fullscreen Controls overlay */}
-                    {isFullscreen && (
-                        <div className="fixed top-8 right-8 flex gap-4 opacity-20 hover:opacity-100 transition-opacity z-50">
-                            <button onClick={toggleFullscreen} className="p-4 bg-black/40 text-white rounded-2xl backdrop-blur-md hover:bg-black/60 transition-all border border-white/10">
-                                <Minimize2 size={24} />
-                            </button>
-                            <button onClick={() => setShowSettings(true)} className="p-4 bg-black/40 text-white rounded-2xl backdrop-blur-md hover:bg-black/60 transition-all border border-white/10">
-                                <Settings size={24} />
-                            </button>
-                        </div>
-                    )}
-
-                    {/* ── Timer Display ── */}
-                    <div className="relative flex items-center justify-center mb-8"
-                        style={{ minHeight: settings.displayMode === 'circle' ? `${ringSize}px` : isFullscreen ? '300px' : '180px' }}>
-
-                        {/* Circle display */}
+                        {/* Circle mode */}
                         {settings.displayMode === 'circle' && (
                             <>
                                 <ProgressRing progress={progress} color={theme.hex} size={ringSize} />
@@ -395,205 +348,208 @@ export function GeriSayim() {
                                     <div className="font-mono font-black text-white text-center" style={{ fontSize: `clamp(2rem, ${isFullscreen ? '12vw' : '8vw'}, ${isFullscreen ? '6rem' : '3.5rem'})`, textShadow: `0 0 30px ${theme.hex}` }}>
                                         {hours > 0 && <span>{pad(hours)}:</span>}{pad(minutes)}{settings.showSeconds && <span className="opacity-50">:{pad(seconds)}</span>}
                                     </div>
-                                    <div className="text-white/40 text-sm mt-2 transition-all duration-500" style={{ opacity: shouldPulse ? 0.7 : 0.4, transform: shouldPulse ? 'scale(1.05)' : 'scale(1)' }}>
-                                        {(progress * 100).toFixed(1)}% kaldı
+                                    <div className="text-white/30 text-[10px] uppercase font-bold tracking-[0.3em] mt-3">
+                                        {(progress * 100).toFixed(1)}% KALDI
                                     </div>
                                 </div>
                             </>
                         )}
 
-                        {/* Digital display */}
+                        {/* Digital mode */}
                         {settings.displayMode === 'digital' && (
-                            <div className={`w-full bg-black/40 border border-white/10 rounded-3xl flex items-center justify-center gap-3 sm:gap-6 transition-all duration-500 ${isFullscreen ? 'p-16' : 'p-8'}`}
+                            <div className={`w-full bg-black/40 border border-white/10 rounded-[3rem] flex items-center justify-center gap-3 sm:gap-6 ${isFullscreen ? 'p-20' : 'p-10'}`}
                                 style={{ boxShadow: `0 0 60px ${theme.hex}22, inset 0 1px 0 rgba(255,255,255,0.05)` }}>
                                 {hours > 0 && (
                                     <>
-                                        <DigitBlock value={pad(hours)} label="saat" animate={shouldPulse} />
-                                        <span className={`text-white/30 font-black mb-4 ${isFullscreen ? 'text-7xl sm:text-9xl' : 'text-5xl sm:text-7xl'}`}>:</span>
+                                        <DigitBlock value={pad(hours)} label="saat" />
+                                        <span className={`text-white/25 font-black mb-4 ${isFullscreen ? 'text-8xl' : 'text-6xl'}`}>:</span>
                                     </>
                                 )}
-                                <DigitBlock value={pad(minutes)} label="dakika" animate={shouldPulse} />
-
+                                <DigitBlock value={pad(minutes)} label="dakika" />
                                 {settings.showSeconds && (
                                     <>
-                                        <span className={`text-white/30 font-black mb-4 ${isFullscreen ? 'text-7xl sm:text-9xl' : 'text-5xl sm:text-7xl'}`} style={{ animation: isRunning ? 'blink 1s step-end infinite' : 'none' }}>:</span>
-                                        <DigitBlock value={pad(seconds)} label="saniye" opacity={0.5} />
+                                        <span className={`text-white/20 font-black mb-4 ${isFullscreen ? 'text-8xl' : 'text-6xl'}`} style={{ animation: isRunning ? 'blink 1.5s infinite steps(2)' : 'none' }}>:</span>
+                                        <DigitBlock value={pad(seconds)} label="saniye" opacity={0.4} />
                                     </>
                                 )}
                             </div>
                         )}
 
-                        {/* Minimal display */}
+                        {/* Minimal mode */}
                         {settings.displayMode === 'minimal' && (
                             <div className="flex flex-col items-center text-center">
-                                <div className={`font-mono font-black text-white transition-all duration-700 ${showDigitsInMinimal ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-4 scale-90'}`}
+                                <div className={`font-mono font-black text-white transition-opacity duration-1000 ${showDigitsInMinimal ? 'opacity-100' : 'opacity-0'}`}
                                     style={{ fontSize: `clamp(4rem, ${isFullscreen ? '25vw' : '20vw'}, ${isFullscreen ? '14rem' : '8rem'})`, lineHeight: 1, textShadow: `0 0 60px ${theme.hex}` }}>
                                     {hours > 0 && <span>{pad(hours)}:</span>}{pad(minutes)}{settings.showSeconds && <span className="opacity-50">:{pad(seconds)}</span>}
                                 </div>
                                 {!showDigitsInMinimal && (
-                                    <div className="animate-pulse flex flex-col items-center">
-                                        <div className="w-16 h-16 rounded-full border-4 border-white/20 border-t-white shadow-[0_0_20px_white/30]" />
-                                        <div className="mt-6 text-white/40 font-medium tracking-widest uppercase text-xl">SÜRE DEVAM EDİYOR</div>
+                                    <div className="flex flex-col items-center gap-6 opacity-30">
+                                        <div className="w-20 h-20 rounded-full border-[6px] border-white/10 border-t-white animate-spin duration-[4s]" />
+                                        <div className="text-white font-bold tracking-[0.5em] text-sm">FOCUS</div>
                                     </div>
                                 )}
                             </div>
                         )}
                     </div>
 
-                    {/* ── Progress Bar ── */}
-                    <div className="mb-10">
-                        <div className="flex justify-between text-white/40 text-xs mb-2">
-                            <span>0:00</span>
-                            <span className={theme.text}>{(progress * 100).toFixed(1)}% kaldı</span>
-                            <span>{pad(Math.floor(totalMs / 60000))}:{pad((totalMs % 60000) / 1000)}</span>
-                        </div>
-                        <div className="h-4 bg-white/10 rounded-full overflow-hidden p-[2px]">
+                    {/* Progress Bar */}
+                    <div className="w-full">
+                        <div className="h-[6px] bg-white/5 rounded-full overflow-hidden">
                             <div
                                 className="h-full rounded-full transition-all duration-300"
                                 style={{
                                     width: barWidth,
-                                    background: `linear-gradient(90deg, ${theme.hex}bb, ${theme.hex})`,
-                                    boxShadow: `0 0 15px ${theme.hex}aa`,
+                                    background: `linear-gradient(90deg, ${theme.hex}99, ${theme.hex})`,
+                                    boxShadow: `0 0 20px ${theme.hex}44`,
                                 }}
                             />
                         </div>
                     </div>
 
-                    {/* Finished alert */}
+                    {/* Finished Alert */}
                     {isFinished && (
-                        <div className="mb-8 p-6 rounded-3xl text-center font-bold text-white text-2xl animate-bounce shadow-2xl"
-                            style={{ background: `linear-gradient(135deg, ${theme.hex}ee, ${theme.hex}88)`, border: `1px solid ${theme.hex}` }}>
-                            ⏰ Süre Doldu!
+                        <div className="p-8 rounded-[2.5rem] text-center font-black text-white text-3xl animate-bounce shadow-2xl"
+                            style={{ background: `linear-gradient(135deg, ${theme.hex}, ${theme.hex}88)`, border: `1px solid ${theme.hex}` }}>
+                            ⏰ SÜRE DOLDU
                         </div>
                     )}
 
-                    {/* ── Controls ── */}
-                    <div className="flex items-center justify-center gap-6 mb-12">
+                    {/* ──── [2] MAIN CONTROLS ──── */}
+                    <div className="flex items-center justify-center gap-8">
                         <button
                             onClick={handleReset}
-                            className={`rounded-2xl bg-white/10 hover:bg-white/20 text-white transition-all active:scale-90 ${isFullscreen ? 'p-6' : 'p-4'}`}
+                            className={`rounded-full bg-white/5 hover:bg-white/15 text-white/60 transition-all active:scale-90 ${isFullscreen ? 'p-8' : 'p-5'}`}
                         >
-                            <RotateCcw size={isFullscreen ? 32 : 22} />
+                            <RotateCcw size={isFullscreen ? 36 : 24} />
                         </button>
 
                         <button
                             onClick={handleStartPause}
                             disabled={isFinished}
-                            className={`flex items-center gap-4 rounded-3xl text-white font-black transition-all active:scale-95 disabled:opacity-40 group ${isFullscreen ? 'px-16 py-8 text-3xl' : 'px-10 py-5 text-xl'}`}
+                            className={`flex items-center gap-4 rounded-[2rem] text-white font-black transition-all active:scale-95 disabled:opacity-30 ${isFullscreen ? 'px-20 py-10 text-4xl' : 'px-14 py-6 text-2xl'}`}
                             style={{
                                 background: isRunning
-                                    ? 'linear-gradient(135deg, #4b5563, #1f2937)'
-                                    : `linear-gradient(135deg, ${theme.hex}, ${theme.hex}bb)`,
-                                boxShadow: isRunning ? 'none' : `0 12px 40px ${theme.hex}66`,
+                                    ? 'linear-gradient(135deg, #374151, #111827)'
+                                    : `linear-gradient(135deg, ${theme.hex}, ${theme.hex}aa)`,
+                                boxShadow: isRunning ? 'none' : `0 15px 45px ${theme.hex}55`,
                             }}
                         >
-                            {isRunning ? <Pause size={isFullscreen ? 40 : 24} /> : <Play size={isFullscreen ? 40 : 24} className="fill-current" />}
-                            {isRunning ? 'Duraklat' : 'Başlat'}
+                            {isRunning ? <Pause size={isFullscreen ? 44 : 28} /> : <Play size={isFullscreen ? 44 : 28} className="fill-current" />}
+                            {isRunning ? 'DUR' : 'BAŞLAT'}
                         </button>
 
                         <button
                             onClick={() => setSettings(s => ({ ...s, soundEnabled: !s.soundEnabled }))}
-                            className={`rounded-2xl bg-white/10 hover:bg-white/20 text-white transition-all active:scale-90 ${isFullscreen ? 'p-6' : 'p-4'}`}
-                            title={settings.soundEnabled ? 'Sesi kapat' : 'Sesi aç'}
+                            className={`rounded-full bg-white/5 hover:bg-white/15 text-white/60 transition-all active:scale-90 ${isFullscreen ? 'p-8' : 'p-5'}`}
                         >
-                            {settings.soundEnabled ? <Volume2 size={isFullscreen ? 32 : 22} /> : <VolumeX size={isFullscreen ? 32 : 22} className="text-gray-500" />}
+                            {settings.soundEnabled ? <Volume2 size={isFullscreen ? 36 : 24} /> : <VolumeX size={isFullscreen ? 36 : 24} />}
                         </button>
                     </div>
 
-                    {/* ── Setup Area (Presets & Manuel) ── */}
+                    {/* ──── [3] SETUP AREA ──── */}
                     {!isFullscreen && (
-                        <div className="border-t border-white/5 pt-12 mt-12 space-y-10">
-
-                            {/* Quick Presets */}
-                            <div>
-                                <p className="text-white/40 text-xs uppercase tracking-[0.2em] mb-4 text-center">Hızlı Seçim</p>
-                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                                    {PRESETS.map((p, i) => (
-                                        <button
-                                            key={p.label}
-                                            onClick={() => applyPreset(i)}
-                                            className="flex flex-col items-center gap-2 py-4 px-3 rounded-2xl transition-all duration-300 border hover:scale-[1.03]"
-                                            style={{
-                                                background: activePreset === i ? p.color + 'cc' : 'rgba(255,255,255,0.04)',
-                                                borderColor: activePreset === i ? p.color : 'rgba(255,255,255,0.08)',
-                                                boxShadow: activePreset === i ? `0 8px 24px ${p.color}44` : 'none',
-                                            }}
-                                        >
-                                            <span className="text-2xl mb-1">{p.icon}</span>
-                                            <span className="text-white font-bold text-sm tracking-tight">{p.label}</span>
-                                            <span className="text-white/40 text-xs">{p.minutes} dk</span>
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Custom Time */}
-                            <div className="bg-white/[0.03] border border-white/10 rounded-[2.5rem] p-8">
-                                <p className="text-white/40 text-xs uppercase tracking-[0.2em] mb-6 flex items-center justify-center gap-2">
-                                    <Zap size={14} className="text-amber-400" /> Manuel Süre Girişi
+                        <div className="mt-8 space-y-12">
+                            {/* Manuel Input */}
+                            <div className="bg-black/20 border border-white/5 rounded-[3rem] p-10">
+                                <p className="text-white/20 text-[10px] uppercase font-bold tracking-[0.4em] mb-8 text-center flex items-center justify-center gap-3">
+                                    <Zap size={14} className="text-amber-500/50" /> MANUEL KURULUM
                                 </p>
-                                <div className="flex items-center justify-center gap-4 max-w-sm mx-auto">
+                                <div className="flex items-end justify-center gap-4 max-w-sm mx-auto">
                                     <div className="flex-1">
                                         <input
                                             type="number" min={0} max={23} value={inputH}
                                             onChange={e => setInputH(Math.max(0, Math.min(23, parseInt(e.target.value) || 0)))}
-                                            className="w-full text-center bg-white/5 border border-white/10 rounded-2xl py-3 text-white font-mono text-2xl font-black focus:outline-none focus:border-white/20 transition-all"
+                                            className="w-full text-center bg-white/5 border border-white/10 rounded-3xl py-4 text-white font-mono text-3xl font-black focus:outline-none focus:border-white/20 transition-all"
                                         />
-                                        <span className="block text-center text-white/30 text-[10px] mt-2 uppercase font-bold tracking-widest">Saat</span>
+                                        <span className="block text-center text-white/20 text-[9px] mt-3 uppercase tracking-[0.2em] font-bold">Saat</span>
                                     </div>
-                                    <span className="text-white/20 font-black text-3xl mb-6">:</span>
+                                    <span className="text-white/10 font-black text-4xl mb-12">:</span>
                                     <div className="flex-1">
                                         <input
                                             type="number" min={0} max={59} value={inputM}
                                             onChange={e => setInputM(Math.max(0, Math.min(59, parseInt(e.target.value) || 0)))}
-                                            className="w-full text-center bg-white/5 border border-white/10 rounded-2xl py-3 text-white font-mono text-2xl font-black focus:outline-none focus:border-white/20 transition-all"
+                                            className="w-full text-center bg-white/5 border border-white/10 rounded-3xl py-4 text-white font-mono text-3xl font-black focus:outline-none focus:border-white/20 transition-all"
                                         />
-                                        <span className="block text-center text-white/30 text-[10px] mt-2 uppercase font-bold tracking-widest">Dakika</span>
-                                    </div>
-                                    <span className="text-white/20 font-black text-3xl mb-6">:</span>
-                                    <div className="flex-1">
-                                        <input
-                                            type="number" min={0} max={59} value={inputS}
-                                            onChange={e => setInputS(Math.max(0, Math.min(59, parseInt(e.target.value) || 0)))}
-                                            className="w-full text-center bg-white/5 border border-white/10 rounded-2xl py-3 text-white font-mono text-2xl font-black focus:outline-none focus:border-white/20 transition-all"
-                                        />
-                                        <span className="block text-center text-white/30 text-[10px] mt-2 uppercase font-bold tracking-widest">Saniye</span>
+                                        <span className="block text-center text-white/20 text-[9px] mt-3 uppercase tracking-[0.2em] font-bold">Dakika</span>
                                     </div>
                                     <button
                                         onClick={applyCustomTime}
-                                        className="mb-6 px-6 py-4 rounded-2xl text-white text-sm font-black transition-all hover:scale-105"
-                                        style={{ background: theme.hex, boxShadow: `0 8px 24px ${theme.hex}44` }}
+                                        className="mb-10 px-8 py-5 rounded-3xl text-white text-sm font-black transition-all hover:scale-110 active:scale-95 shadow-xl"
+                                        style={{ background: theme.hex, boxShadow: `0 10px 30px ${theme.hex}44` }}
                                     >
-                                        Kur
+                                        KUR
                                     </button>
                                 </div>
                             </div>
 
+                            {/* Presets */}
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                {PRESETS.map((p, i) => (
+                                    <button
+                                        key={p.label}
+                                        onClick={() => applyPreset(i)}
+                                        className="flex flex-col items-center gap-3 py-6 px-4 rounded-[2rem] transition-all duration-500 border hover:bg-white/5 group"
+                                        style={{
+                                            background: activePreset === i ? p.color + 'bb' : 'rgba(255,255,255,0.03)',
+                                            borderColor: activePreset === i ? p.color : 'rgba(255,255,255,0.05)',
+                                            boxShadow: activePreset === i ? `0 10px 25px ${p.color}33` : 'none',
+                                        }}
+                                    >
+                                        <span className="text-3xl transition-transform group-hover:scale-125">{p.icon}</span>
+                                        <div className="text-center">
+                                            <div className="text-white font-black text-sm tracking-tight">{p.label}</div>
+                                            <div className="text-white/30 text-[10px] font-bold mt-1">{p.minutes} DK</div>
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ──── [4] FOOTER (HEADER/SETTINGS MOVED HERE) ──── */}
+                    {!isFullscreen && (
+                        <div className="border-t border-white/5 pt-16 pb-8 flex flex-col items-center gap-8 opacity-40 hover:opacity-100 transition-opacity">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-white/10 rounded-lg">
+                                    <Clock size={18} className="text-white/60" />
+                                </div>
+                                <div>
+                                    <h1 className="text-white font-black text-xl tracking-tight leading-none">Geri Sayım</h1>
+                                    <p className="text-white/40 text-[10px] uppercase tracking-widest mt-1">Sınav ve Ders Sayacı</p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-4">
+                                <button
+                                    onClick={toggleFullscreen}
+                                    className="px-6 py-3 rounded-2xl bg-white/5 hover:bg-white/15 text-white flex items-center gap-2 text-xs font-bold transition-all"
+                                >
+                                    <Maximize2 size={16} /> TAM EKRAN
+                                </button>
+                                <button
+                                    onClick={() => setShowSettings(true)}
+                                    className="px-6 py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white flex items-center gap-2 text-xs font-bold transition-all"
+                                >
+                                    <Settings size={16} /> AYARLAR
+                                </button>
+                            </div>
                         </div>
                     )}
 
                 </div>
             </div>
 
+            {/* Global Styles */}
             <style>{`
                 @keyframes blink {
                     0%, 100% { opacity: 1; }
                     50% { opacity: 0.1; }
                 }
-                @keyframes pulse-slow {
-                    0%, 100% { opacity: 1; transform: scale(1); }
-                    50% { opacity: 0.7; transform: scale(0.98); }
-                }
-                .animate-pulse-slow {
-                    animation: pulse-slow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-                }
-                /* Hide scrollbar but keep functionality */
-                ::-webkit-scrollbar {
-                    display: none;
-                }
-                * {
-                    -ms-overflow-style: none;
-                    scrollbar-width: none;
+                ::-webkit-scrollbar { display: none; }
+                * { -ms-overflow-style: none; scrollbar-width: none; }
+                input[type=number]::-webkit-inner-spin-button, 
+                input[type=number]::-webkit-outer-spin-button { 
+                    -webkit-appearance: none; margin: 0; 
                 }
             `}</style>
         </PageContainer>
