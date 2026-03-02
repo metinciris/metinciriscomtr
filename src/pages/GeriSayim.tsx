@@ -443,7 +443,7 @@ export function GeriSayim() {
                             }}
                         >
                             {isRunning ? <Pause size={isFullscreen ? 44 : 28} /> : <Play size={isFullscreen ? 44 : 28} className="fill-current" />}
-                            {isRunning ? 'DUR' : 'BAŞLAT'}
+                            {isRunning ? 'DURAKLAT' : (remainingMs < totalMs ? 'DEVAM' : 'BAŞLAT')}
                         </button>
 
                         <button
