@@ -5,7 +5,7 @@ import { Microscope, Calculator, Info, RotateCcw, ChevronRight, Settings } from 
 // ────────────────────────────────────────────────────────────
 //  Constants & Types
 // ────────────────────────────────────────────────────────────
-const RANGE_1 = [0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.69]; // Standard Ranges
+const RANGE_1 = Array.from({ length: 30 }, (_, i) => parseFloat((0.40 + i * 0.01).toFixed(2))); // 0.40 to 0.69 with 0.01 steps
 const RANGE_2 = [0.15, 0.16, 0.17, 0.18, 0.19, 0.20]; // 60x Ranges
 const TARGET_AREAS = [1, 2, 5]; // mm2
 
