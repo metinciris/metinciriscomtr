@@ -1,7 +1,13 @@
 {
-  "date": "01.03.2026",
-  "items": [],
-  "kcal": null,
+  "date": "02.03.2026",
+  "items": [
+    "ARPA ŞEHRİYE ÇORBASI",
+    "KIYMALI ISPANAK",
+    "PEYNİRLİ MAKARNA",
+    "KASE YOĞURT",
+    "ARPA ŞEHRİYE ÇORBASI"
+  ],
+  "kcal": "950",
   "source": "https://w3.sdu.edu.tr/aylik-yemek-listesi?dosya=yemekler_ogle&tur=2",
-  "updatedAt": "2026-03-01T07:50:00.233Z"
+  "updatedAt": "2026-03-02T05:37:05.451Z"
 }
