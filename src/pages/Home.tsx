@@ -52,7 +52,6 @@ export function Home({ onNavigate }: HomeProps) {
   const iletisimSubtitle = useRotatingText(ILETISIM_SUBTITLES, 4000);
   const disSubtitle = useRotatingText(DIS_SUBTITLES, 4000);
   const eczaSubtitle = useRotatingText(ECZA_SUBTITLES, 4000);
-  const blogSubtitle = useRotatingText(BLOG_SUBTITLES, 4000);
   const galeriSubtitle = useRotatingText(GALERI_SUBTITLES, 4000);
   const makaleSubtitle = useRotatingText(MAKALE_SUBTITLES, 4000);
   const hastaneYemekSubtitle = useRotatingText(HASTANE_YEMEK_SUBTITLES, 4000);
