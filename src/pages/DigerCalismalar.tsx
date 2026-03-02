@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { PageContainer } from '../components/PageContainer';
 import { MetroTile } from '../components/MetroTile';
-import { FileBarChart, Activity, FileText, AlertCircle, Microscope, Box, BookOpen, Calculator, TrendingUp, Trophy, Users, Search, Briefcase, Calendar, Image, Globe } from 'lucide-react';
+import { FileBarChart, Activity, FileText, AlertCircle, Microscope, Box, BookOpen, Calculator, TrendingUp, Trophy, Users, Search, Briefcase, Calendar, Image, Globe, Timer } from 'lucide-react';
 
 
 interface DigerCalismalarProps {
@@ -213,6 +213,14 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
             icon: <Calculator size={40} />,
             style: { backgroundColor: '#16a085' },
             page: 'vki-hesaplama',
+            category: 'diger'
+        },
+        {
+            title: "Geri Sayım",
+            subtitle: "TUS, DUS, YDS ve ders saati",
+            icon: <Timer size={40} />,
+            style: { backgroundColor: '#7c3aed' },
+            page: 'geri-sayim',
             category: 'diger'
         },
     ];

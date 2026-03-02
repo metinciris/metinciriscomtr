@@ -43,5 +43,6 @@ export const validPages = [
     'tiiab-raporlama',
     'dunya-saatleri',
     'patoloji-sozlugu',
-    'vki-hesaplama'
+    'vki-hesaplama',
+    'geri-sayim'
 ];
