@@ -6,7 +6,7 @@ import { Play, Pause, RotateCcw, Settings, X, Volume2, VolumeX, Clock, Zap, Maxi
 //  Types
 // ────────────────────────────────────────────────────────────
 interface TimerSettings {
-    colorTheme: 'violet' | 'emerald' | 'rose' | 'amber' | 'cyan' | 'indigo';
+    colorTheme: 'violet' | 'emerald' | 'rose' | 'amber' | 'cyan' | 'indigo' | 'black';
     displayMode: 'digital' | 'minimal' | 'circle';
     soundEnabled: boolean;
     showSeconds: boolean;
@@ -36,6 +36,7 @@ const THEMES: Record<TimerSettings['colorTheme'], { bg: string; ring: string; te
     amber: { bg: 'from-amber-900 via-orange-900 to-yellow-900', ring: '#f59e0b', text: 'text-amber-300', btn: 'bg-amber-600 hover:bg-amber-500', glow: 'shadow-amber-500/40', hex: '#f59e0b' },
     cyan: { bg: 'from-cyan-900 via-sky-900 to-blue-900', ring: '#06b6d4', text: 'text-cyan-300', btn: 'bg-cyan-600 hover:bg-cyan-500', glow: 'shadow-cyan-500/40', hex: '#06b6d4' },
     indigo: { bg: 'from-indigo-900 via-blue-900 to-slate-900', ring: '#6366f1', text: 'text-indigo-300', btn: 'bg-indigo-600 hover:bg-indigo-500', glow: 'shadow-indigo-500/40', hex: '#6366f1' },
+    black: { bg: 'from-black via-zinc-950 to-black', ring: '#ffffff', text: 'text-zinc-400', btn: 'bg-zinc-800 hover:bg-zinc-700', glow: 'shadow-white/10', hex: '#ffffff' },
 };
 
 // ────────────────────────────────────────────────────────────
@@ -202,15 +203,21 @@ export function GeriSayim() {
     const minutes = Math.floor((remainingMs % 3_600_000) / 60_000);
     const seconds = Math.floor((remainingMs % 60_000) / 1_000);
 
+    // Manual setup check
+    const isManualTimer = activePreset === -1;
+
     // ── Actions ──
     const applyCustomTime = () => {
         const ms = ((inputH * 3600) + (inputM * 60) + inputS) * 1000;
         if (ms <= 0) return;
         setTotalMs(ms);
         setRemainingMs(ms);
-        setIsRunning(false);
         setIsFinished(false);
-        setActivePreset(-1);
+        setActivePreset(-1); // Mark as manual setup
+
+        // Auto-start requested
+        setIsRunning(true);
+        if (settings.soundEnabled) beep(getAudioCtx());
     };
 
     const applyPreset = (idx: number) => {
@@ -242,6 +249,9 @@ export function GeriSayim() {
 
     const barWidth = `${(progress * 100).toFixed(2)}%`;
     const ringSize = isFullscreen ? 420 : 280;
+
+    // Show seconds if enabled OR if it's a manual timer
+    const effectivelyShowSeconds = settings.showSeconds || isManualTimer;
 
     // Minimal mode visibility condition: last minute
     const showDigitsInMinimal = settings.displayMode === 'minimal' ? remainingMs < 60000 : true;
@@ -292,10 +302,10 @@ export function GeriSayim() {
                                         <button
                                             key={k}
                                             onClick={() => setSettings(s => ({ ...s, colorTheme: k }))}
-                                            className="w-10 h-10 rounded-full border-2 transition-all relative"
+                                            className={`w-10 h-10 rounded-full border-2 transition-all relative ${k === 'black' ? 'border-white/20' : ''}`}
                                             style={{
-                                                backgroundColor: THEMES[k].hex,
-                                                borderColor: settings.colorTheme === k ? 'white' : 'transparent',
+                                                backgroundColor: k === 'black' ? '#0a0a0a' : THEMES[k].hex,
+                                                borderColor: settings.colorTheme === k ? 'white' : (k === 'black' ? 'rgba(255,255,255,0.2)' : 'transparent'),
                                                 transform: settings.colorTheme === k ? 'scale(1.1)' : 'scale(1)',
                                             }}
                                             title={k}
@@ -346,7 +356,7 @@ export function GeriSayim() {
                                 <ProgressRing progress={progress} color={theme.hex} size={ringSize} />
                                 <div className="relative z-10 flex flex-col items-center justify-center" style={{ width: ringSize, height: ringSize }}>
                                     <div className="font-mono font-black text-white text-center" style={{ fontSize: `clamp(2rem, ${isFullscreen ? '12vw' : '8vw'}, ${isFullscreen ? '6rem' : '3.5rem'})`, textShadow: `0 0 30px ${theme.hex}` }}>
-                                        {hours > 0 && <span>{pad(hours)}:</span>}{pad(minutes)}{settings.showSeconds && <span className="opacity-50">:{pad(seconds)}</span>}
+                                        {hours > 0 && <span>{pad(hours)}:</span>}{pad(minutes)}{effectivelyShowSeconds && <span className="opacity-50">:{pad(seconds)}</span>}
                                     </div>
                                     <div className="text-white/30 text-[10px] uppercase font-bold tracking-[0.3em] mt-3">
                                         {(progress * 100).toFixed(1)}% KALDI
@@ -366,7 +376,7 @@ export function GeriSayim() {
                                     </>
                                 )}
                                 <DigitBlock value={pad(minutes)} label="dakika" />
-                                {settings.showSeconds && (
+                                {effectivelyShowSeconds && (
                                     <>
                                         <span className={`text-white/20 font-black mb-4 ${isFullscreen ? 'text-8xl' : 'text-6xl'}`} style={{ animation: isRunning ? 'blink 1.5s infinite steps(2)' : 'none' }}>:</span>
                                         <DigitBlock value={pad(seconds)} label="saniye" opacity={0.4} />
@@ -380,7 +390,7 @@ export function GeriSayim() {
                             <div className="flex flex-col items-center text-center">
                                 <div className={`font-mono font-black text-white transition-opacity duration-1000 ${showDigitsInMinimal ? 'opacity-100' : 'opacity-0'}`}
                                     style={{ fontSize: `clamp(4rem, ${isFullscreen ? '25vw' : '20vw'}, ${isFullscreen ? '14rem' : '8rem'})`, lineHeight: 1, textShadow: `0 0 60px ${theme.hex}` }}>
-                                    {hours > 0 && <span>{pad(hours)}:</span>}{pad(minutes)}{settings.showSeconds && <span className="opacity-50">:{pad(seconds)}</span>}
+                                    {hours > 0 && <span>{pad(hours)}:</span>}{pad(minutes)}{effectivelyShowSeconds && <span className="opacity-50">:{pad(seconds)}</span>}
                                 </div>
                                 {!showDigitsInMinimal && (
                                     <div className="flex flex-col items-center gap-6 opacity-30">
@@ -471,6 +481,15 @@ export function GeriSayim() {
                                             className="w-full text-center bg-white/5 border border-white/10 rounded-3xl py-4 text-white font-mono text-3xl font-black focus:outline-none focus:border-white/20 transition-all"
                                         />
                                         <span className="block text-center text-white/20 text-[9px] mt-3 uppercase tracking-[0.2em] font-bold">Dakika</span>
+                                    </div>
+                                    <span className="text-white/10 font-black text-4xl mb-12">:</span>
+                                    <div className="flex-1">
+                                        <input
+                                            type="number" min={0} max={59} value={inputS}
+                                            onChange={e => setInputS(Math.max(0, Math.min(59, parseInt(e.target.value) || 0)))}
+                                            className="w-full text-center bg-white/5 border border-white/10 rounded-3xl py-4 text-white font-mono text-3xl font-black focus:outline-none focus:border-white/20 transition-all"
+                                        />
+                                        <span className="block text-center text-white/20 text-[9px] mt-3 uppercase tracking-[0.2em] font-bold">Saniye</span>
                                     </div>
                                     <button
                                         onClick={applyCustomTime}
