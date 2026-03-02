@@ -29,9 +29,6 @@
   --ring: oklch(0.708 0 0);
   --radius: 0.625rem;
 
-  /* Modern Metro Tile Variables */
-  --tile-border-radius: 1rem;
-  --tile-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @theme inline {
