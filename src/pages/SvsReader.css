@@ -83,6 +83,20 @@
     color: rgba(226, 232, 240, 0.9);
     background-color: rgba(15, 23, 42, 0.6);
     backdrop-filter: blur(10px);
+    transition: all 0.2s ease;
+}
+
+.svs-badge.demo-link {
+    text-decoration: none;
+    border-color: rgba(249, 115, 22, 0.5);
+    background: rgba(249, 115, 22, 0.1);
+}
+
+.svs-badge.demo-link:hover {
+    border-color: rgba(249, 115, 22, 0.8);
+    background: rgba(249, 115, 22, 0.2);
+    transform: translateY(-1px);
+    color: #fff;
 }
 
 .svs-scripts-loading {

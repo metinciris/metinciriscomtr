@@ -6,6 +6,7 @@ import React, {
 } from 'react';
 import { PageContainer } from '../components/PageContainer';
 import {
+  FileDown,
   Upload,
   ZoomIn,
   ZoomOut,
@@ -434,6 +435,32 @@ export function SvsReader() {
     }
   };
 
+  const loadDemo = async () => {
+    if (!scriptsLoaded) return;
+    setIsLoading(true);
+    setLoadingMessage('Demo slayt indiriliyor...');
+    setError(null);
+
+    try {
+      // GitHub raw content URL for the demo file
+      const demoUrl = 'https://raw.githubusercontent.com/metinciris/metinciriscomtr/main/public/resim/demo.svs';
+      const response = await fetch(demoUrl);
+
+      if (!response.ok) {
+        throw new Error('Demo dosyası indirilemedi.');
+      }
+
+      const blob = await response.blob();
+      const file = new File([blob], 'demo.svs', { type: 'application/octet-stream' });
+
+      await initViewer(file, false);
+    } catch (err: any) {
+      console.error('Demo yükleme hatası:', err);
+      setError(`Demo yüklenirken bir hata oluştu: ${err.message}`);
+      setIsLoading(false);
+    }
+  };
+
   const clearFile = () => {
     if (viewerInstance.current) {
       viewerInstance.current.destroy();
@@ -479,6 +506,16 @@ export function SvsReader() {
                 </div>
               </div>
               <div className="svs-header-badges">
+                <button
+                  type="button"
+                  onClick={loadDemo}
+                  disabled={isLoading || !scriptsLoaded}
+                  className="svs-badge demo-link"
+                  style={{ cursor: (isLoading || !scriptsLoaded) ? 'wait' : 'pointer', border: 'none' }}
+                >
+                  <FileDown size={13} />
+                  <span>Demo Slayt Yükle</span>
+                </button>
                 <span className="svs-badge">
                   <Cpu size={13} />
                   <span>İstemci taraflı işleme</span>
