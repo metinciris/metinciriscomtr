@@ -92,9 +92,9 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
       {/* Header Wrapper to reserve space and prevent CLS */}
       <div className="h-20 md:h-16 w-full" aria-hidden="true" />
       <header className="bg-[#1e1e1e]/80 backdrop-blur-md text-white fixed top-0 left-0 right-0 z-50 shadow-lg border-b border-white/5 transition-colors duration-300" role="banner">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-4 max-w-none">
           <div className="flex items-center justify-between h-20 md:h-16">
-            {/* Logo + isim */}
+            {/* Logo + isim - Left side */}
             <div
               className="flex items-center space-x-3 cursor-pointer min-h-[48px] py-2 px-2"
               onClick={() => onNavigate('home')}
@@ -126,7 +126,7 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
               </div>
             </div>
 
-            {/* Desktop Navigation */}
+            {/* Desktop Navigation - Right side */}
             <nav className="hidden md:flex items-center space-x-1" aria-label="Ana navigasyon">
               {navItems.map((item) => (
                 <button
