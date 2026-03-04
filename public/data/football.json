@@ -1,20 +1,5 @@
 [
   {
-    "id": "football-CL-552055",
-    "sport": "football",
-    "competition": "UEFA Champions League",
-    "season": "2025/26",
-    "homeTeam": "Galatasaray SK",
-    "awayTeam": "Juventus FC",
-    "startTimeUTC": "2026-02-17T17:45:00Z",
-    "startTimeLocal": "2026-02-17T20:45:00+03:00",
-    "status": "finished",
-    "scoreHome": 5,
-    "scoreAway": 2,
-    "source": "football-data",
-    "lastFetchedAt": "2026-03-03T07:01:05.179Z"
-  },
-  {
     "id": "football-UEFAEuropaLeague-8",
     "sport": "football",
     "competition": "UEFA Europa League",
@@ -27,7 +12,7 @@
     "scoreHome": 0,
     "scoreAway": 3,
     "source": "fixturedownload",
-    "lastFetchedAt": "2026-03-03T07:01:05.902Z"
+    "lastFetchedAt": "2026-03-04T06:57:28.268Z"
   },
   {
     "id": "football-CL-552063",
@@ -42,7 +27,7 @@
     "scoreHome": 3,
     "scoreAway": 2,
     "source": "football-data",
-    "lastFetchedAt": "2026-03-03T07:01:05.179Z"
+    "lastFetchedAt": "2026-03-04T06:57:27.168Z"
   },
   {
     "id": "football-UEFAEuropaLeague-9",
@@ -57,7 +42,7 @@
     "scoreHome": 1,
     "scoreAway": 2,
     "source": "fixturedownload",
-    "lastFetchedAt": "2026-03-03T07:01:05.902Z"
+    "lastFetchedAt": "2026-03-04T06:57:28.269Z"
   },
   {
     "id": "football-CL-552069",
@@ -72,6 +57,6 @@
     "scoreHome": null,
     "scoreAway": null,
     "source": "football-data",
-    "lastFetchedAt": "2026-03-03T07:01:05.179Z"
+    "lastFetchedAt": "2026-03-04T06:57:27.168Z"
   }
 ]
