@@ -10,10 +10,31 @@ import { Upload, Download, Image as ImageIcon, RotateCcw } from 'lucide-react';
  * Uses perspective transformation for realistic image wrapping.
  */
 
+const DEFAULT_IMAGE_URL = 'https://raw.githubusercontent.com/metinciris/metinciriscomtr/refs/heads/main/public/resim/demo.avif';
+
 export function Prizma3D() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [uploadedImage, setUploadedImage] = useState<HTMLImageElement | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+
+    // Load default image on mount
+    const loadDefaultImage = useCallback(() => {
+        setIsLoading(true);
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+            setUploadedImage(img);
+            setIsLoading(false);
+        };
+        img.onerror = () => {
+            setIsLoading(false);
+        };
+        img.src = DEFAULT_IMAGE_URL;
+    }, []);
+
+    useEffect(() => {
+        loadDefaultImage();
+    }, [loadDefaultImage]);
 
     // Prism dimensions - larger to fill more canvas
     const PRISM = {
@@ -375,9 +396,9 @@ export function Prizma3D() {
         link.click();
     };
 
-    // Reset
+    // Reset - reload default image
     const handleReset = () => {
-        setUploadedImage(null);
+        loadDefaultImage();
     };
 
     return (
