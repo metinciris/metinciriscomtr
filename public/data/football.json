@@ -12,7 +12,7 @@
     "scoreHome": 0,
     "scoreAway": 3,
     "source": "fixturedownload",
-    "lastFetchedAt": "2026-03-04T18:59:14.996Z"
+    "lastFetchedAt": "2026-03-05T07:01:17.084Z"
   },
   {
     "id": "football-CL-552063",
@@ -27,7 +27,7 @@
     "scoreHome": 3,
     "scoreAway": 2,
     "source": "football-data",
-    "lastFetchedAt": "2026-03-04T18:59:13.859Z"
+    "lastFetchedAt": "2026-03-05T07:01:15.872Z"
   },
   {
     "id": "football-UEFAEuropaLeague-9",
@@ -42,7 +42,7 @@
     "scoreHome": 1,
     "scoreAway": 2,
     "source": "fixturedownload",
-    "lastFetchedAt": "2026-03-04T18:59:14.997Z"
+    "lastFetchedAt": "2026-03-05T07:01:17.085Z"
   },
   {
     "id": "football-CL-552069",
@@ -57,6 +57,21 @@
     "scoreHome": null,
     "scoreAway": null,
     "source": "football-data",
-    "lastFetchedAt": "2026-03-04T18:59:13.859Z"
+    "lastFetchedAt": "2026-03-05T07:01:15.872Z"
+  },
+  {
+    "id": "football-CL-552077",
+    "sport": "football",
+    "competition": "UEFA Champions League",
+    "season": "2025/26",
+    "homeTeam": "Liverpool FC",
+    "awayTeam": "Galatasaray SK",
+    "startTimeUTC": "2026-03-18T20:00:00Z",
+    "startTimeLocal": "2026-03-18T23:00:00+03:00",
+    "status": "scheduled",
+    "scoreHome": null,
+    "scoreAway": null,
+    "source": "football-data",
+    "lastFetchedAt": "2026-03-05T07:01:15.872Z"
   }
 ]
