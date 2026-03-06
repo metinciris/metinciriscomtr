@@ -143,9 +143,14 @@ export function MeetingCard({
                     </div>
 
                     {meeting.description && (
-                        <p className={`mt-4 text-[13px] sm:text-sm leading-relaxed ${isActuallyPast ? 'text-gray-500 italic' : 'text-gray-700'}`}>
-                            {meeting.description}
-                        </p>
+                        <div className={`mt-4 p-4 rounded-2xl border-l-4 ${isActuallyPast 
+                            ? 'bg-gray-100/50 border-gray-300 text-gray-500 italic' 
+                            : 'bg-blue-50/50 border-blue-400 text-gray-700 shadow-sm'
+                        }`}>
+                            <p className="text-[14px] sm:text-[15px] md:text-[16px] font-medium leading-relaxed">
+                                {meeting.description}
+                            </p>
+                        </div>
                     )}
 
                     <div className="flex-1" />

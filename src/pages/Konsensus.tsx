@@ -708,10 +708,11 @@ export function Konsensus() {
                   <div className="space-y-2">
                     <label className="text-sm font-black text-gray-700">Açıklama</label>
                     <textarea
-                      rows={3}
+                      rows={4}
                       value={formData.description}
                       onChange={(e) => setFormData((p) => ({ ...p, description: e.target.value }))}
-                      className="w-full px-4 py-3 rounded-2xl bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-blue-500 font-semibold resize-none"
+                      className="w-full px-4 py-3 rounded-2xl bg-white border-2 border-blue-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent font-medium text-base resize-none shadow-sm"
+                      placeholder="Toplantı hakkında detaylı bilgi..."
                     />
                   </div>
 
