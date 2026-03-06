@@ -711,7 +711,7 @@ export function Konsensus() {
                       rows={4}
                       value={formData.description}
                       onChange={(e) => setFormData((p) => ({ ...p, description: e.target.value }))}
-                      className="w-full px-4 py-3 rounded-2xl bg-white border-2 border-blue-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent font-medium text-base resize-none shadow-sm"
+                      className="w-full px-4 py-3 rounded-2xl bg-yellow-50/30 border-2 border-blue-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent font-medium text-base resize-none shadow-sm"
                       placeholder="Toplantı hakkında detaylı bilgi..."
                     />
                   </div>

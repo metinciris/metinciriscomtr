@@ -143,9 +143,9 @@ export function MeetingCard({
                     </div>
 
                     {meeting.description && (
-                        <div className={`mt-4 p-4 rounded-2xl border-l-4 ${isActuallyPast 
+                        <div className={`mt-4 p-4 rounded-2xl border-l-[6px] ${isActuallyPast 
                             ? 'bg-gray-100/50 border-gray-300 text-gray-500 italic' 
-                            : 'bg-blue-50/50 border-blue-400 text-gray-700 shadow-sm'
+                            : 'bg-yellow-50/60 border-blue-500 text-gray-800 shadow-sm'
                         }`}>
                             <p className="text-[14px] sm:text-[15px] md:text-[16px] font-medium leading-relaxed">
                                 {meeting.description}
