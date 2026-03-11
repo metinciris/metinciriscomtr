@@ -12,7 +12,7 @@
     "scoreHome": 3,
     "scoreAway": 2,
     "source": "football-data",
-    "lastFetchedAt": "2026-03-10T18:58:59.790Z"
+    "lastFetchedAt": "2026-03-11T07:02:40.269Z"
   },
   {
     "id": "football-UEFAEuropaLeague-9",
@@ -27,7 +27,7 @@
     "scoreHome": 1,
     "scoreAway": 2,
     "source": "fixturedownload",
-    "lastFetchedAt": "2026-03-10T18:59:00.762Z"
+    "lastFetchedAt": "2026-03-11T07:02:42.135Z"
   },
   {
     "id": "football-CL-552069",
@@ -38,11 +38,11 @@
     "awayTeam": "Liverpool FC",
     "startTimeUTC": "2026-03-10T17:45:00Z",
     "startTimeLocal": "2026-03-10T20:45:00+03:00",
-    "status": "scheduled",
+    "status": "finished",
     "scoreHome": 1,
     "scoreAway": 0,
     "source": "football-data",
-    "lastFetchedAt": "2026-03-10T18:58:59.790Z"
+    "lastFetchedAt": "2026-03-11T07:02:40.269Z"
   },
   {
     "id": "football-CL-552077",
@@ -57,6 +57,6 @@
     "scoreHome": null,
     "scoreAway": null,
     "source": "football-data",
-    "lastFetchedAt": "2026-03-10T18:58:59.790Z"
+    "lastFetchedAt": "2026-03-11T07:02:40.269Z"
   }
 ]
