@@ -12,7 +12,7 @@
     "scoreHome": 1,
     "scoreAway": 2,
     "source": "fixturedownload",
-    "lastFetchedAt": "2026-03-12T07:04:14.742Z"
+    "lastFetchedAt": "2026-03-12T19:01:56.183Z"
   },
   {
     "id": "football-CL-552069",
@@ -27,7 +27,7 @@
     "scoreHome": 1,
     "scoreAway": 0,
     "source": "football-data",
-    "lastFetchedAt": "2026-03-12T07:04:13.907Z"
+    "lastFetchedAt": "2026-03-12T19:01:55.197Z"
   },
   {
     "id": "football-CL-552077",
@@ -42,6 +42,6 @@
     "scoreHome": null,
     "scoreAway": null,
     "source": "football-data",
-    "lastFetchedAt": "2026-03-12T07:04:13.907Z"
+    "lastFetchedAt": "2026-03-12T19:01:55.197Z"
   }
 ]
