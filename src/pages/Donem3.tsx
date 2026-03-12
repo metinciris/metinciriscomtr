@@ -75,7 +75,7 @@ export function Donem3() {
         {
           name: 'Glomerüler Hastalıkların Patolojisi / Tubulus ve İnterstisyel Böbrek Hastalıklarının Patolojisi',
           links: [
-            'https://www.dropbox.com/scl/fo/ux2nae6xf2vc09m63jwwj/AKpLPoomF7VJEOBvoV-Y7EY/T%C4%B1p%203/4-5.%20kurul?dl=0&preview=B%C3%B6brek+Patolojisi+t%C3%BCm%C3%B6r+d%C4%B1%C5%9F%C4%B1+.pptx&rlkey=4z1tpnwnam9pxt0vo2no8t8v6&subfolder_nav_tracking=1'
+            'https://www.dropbox.com/scl/fi/wn48dm1aafao20zc0em41/B-brek-Patolojisi-t-m-r-d.pptx?rlkey=ygfav7qd0yglw6itdifbu8c09&st=bx2mzpbt&dl=0'
           ]
         },
         {
