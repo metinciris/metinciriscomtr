@@ -1,20 +1,5 @@
 [
   {
-    "id": "football-UEFAEuropaLeague-9",
-    "sport": "football",
-    "competition": "UEFA Europa League",
-    "season": "2025/26",
-    "homeTeam": "Nott'm Forest",
-    "awayTeam": "Fenerbahçe",
-    "startTimeUTC": "2026-02-26 20:00:00Z",
-    "startTimeLocal": "2026-02-26T23:00:00+03:00",
-    "status": "finished",
-    "scoreHome": 1,
-    "scoreAway": 2,
-    "source": "fixturedownload",
-    "lastFetchedAt": "2026-03-12T19:01:56.183Z"
-  },
-  {
     "id": "football-CL-552069",
     "sport": "football",
     "competition": "UEFA Champions League",
@@ -27,7 +12,7 @@
     "scoreHome": 1,
     "scoreAway": 0,
     "source": "football-data",
-    "lastFetchedAt": "2026-03-12T19:01:55.197Z"
+    "lastFetchedAt": "2026-03-13T07:02:53.932Z"
   },
   {
     "id": "football-CL-552077",
@@ -42,6 +27,6 @@
     "scoreHome": null,
     "scoreAway": null,
     "source": "football-data",
-    "lastFetchedAt": "2026-03-12T19:01:55.197Z"
+    "lastFetchedAt": "2026-03-13T07:02:53.932Z"
   }
 ]
