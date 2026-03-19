@@ -12,7 +12,7 @@
     "scoreHome": 1,
     "scoreAway": 0,
     "source": "football-data",
-    "lastFetchedAt": "2026-03-18T19:10:30.043Z"
+    "lastFetchedAt": "2026-03-19T07:05:08.171Z"
   },
   {
     "id": "football-CL-552077",
@@ -23,10 +23,10 @@
     "awayTeam": "Galatasaray SK",
     "startTimeUTC": "2026-03-18T20:00:00Z",
     "startTimeLocal": "2026-03-18T23:00:00+03:00",
-    "status": "scheduled",
-    "scoreHome": null,
-    "scoreAway": null,
+    "status": "finished",
+    "scoreHome": 4,
+    "scoreAway": 0,
     "source": "football-data",
-    "lastFetchedAt": "2026-03-18T19:10:30.043Z"
+    "lastFetchedAt": "2026-03-19T07:05:08.171Z"
   }
 ]
