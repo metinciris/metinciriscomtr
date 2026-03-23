@@ -1,7 +1,13 @@
 {
-  "date": "22.03.2026",
-  "items": [],
-  "kcal": null,
+  "date": "23.03.2026",
+  "items": [
+    "KIYMALI NOHUTLU TARHANA ÇORBASI",
+    "ZEYTİNYAĞLI TAZE FASÜLYE",
+    "YOĞURTLU MANTI",
+    "PORTAKAL",
+    "KIYMALI NOHUTLU TARHANA ÇORBASI"
+  ],
+  "kcal": "950",
   "source": "https://w3.sdu.edu.tr/aylik-yemek-listesi?dosya=yemekler_ogle&tur=2",
-  "updatedAt": "2026-03-22T07:53:45.233Z"
+  "updatedAt": "2026-03-23T05:54:29.432Z"
 }
