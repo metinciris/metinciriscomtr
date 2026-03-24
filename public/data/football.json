@@ -1,20 +1,5 @@
 [
   {
-    "id": "football-CL-552069",
-    "sport": "football",
-    "competition": "UEFA Champions League",
-    "season": "2025/26",
-    "homeTeam": "Galatasaray SK",
-    "awayTeam": "Liverpool FC",
-    "startTimeUTC": "2026-03-10T17:45:00Z",
-    "startTimeLocal": "2026-03-10T20:45:00+03:00",
-    "status": "finished",
-    "scoreHome": 1,
-    "scoreAway": 0,
-    "source": "football-data",
-    "lastFetchedAt": "2026-03-24T07:12:27.385Z"
-  },
-  {
     "id": "football-CL-552077",
     "sport": "football",
     "competition": "UEFA Champions League",
@@ -27,6 +12,6 @@
     "scoreHome": 4,
     "scoreAway": 0,
     "source": "football-data",
-    "lastFetchedAt": "2026-03-24T07:12:27.385Z"
+    "lastFetchedAt": "2026-03-24T19:12:55.864Z"
   }
 ]
