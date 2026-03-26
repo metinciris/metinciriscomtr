@@ -4,10 +4,13 @@ on:
   issues:
     types: [opened]
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   update-publications:
-    # Sadece belirli kullanıcının issue'larını işle
-    if: github.event.issue.user.login == 'metinciris'
+    # Sadece metinciris'in, belirli etiketlere sahip yayın issue'larını işle
+    if: github.event.issue.user.login == 'metinciris' && (contains(github.event.issue.labels.*.name, 'katilim') || contains(github.event.issue.labels.*.name, 'sci') || contains(github.event.issue.labels.*.name, 'ulusal') || contains(github.event.issue.labels.*.name, 'kitap'))
     runs-on: ubuntu-latest
     
     permissions:
@@ -21,7 +24,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
           
       - name: Update publications
         run: node scripts/update-publications.js
