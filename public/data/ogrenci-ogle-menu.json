@@ -1,13 +1,7 @@
 {
-  "date": "27.03.2026",
-  "items": [
-    "KÖYLÜ ÇORBASI",
-    "İZMİR KÖFTE",
-    "FIRIN MAKARNA",
-    "KEMALPAŞA TATLISI",
-    "KÖYLÜ ÇORBASI"
-  ],
-  "kcal": "1300",
+  "date": "28.03.2026",
+  "items": [],
+  "kcal": null,
   "source": "https://w3.sdu.edu.tr/aylik-yemek-listesi?dosya=yemekler_ogle&tur=2",
-  "updatedAt": "2026-03-27T08:07:41.634Z"
+  "updatedAt": "2026-03-28T05:40:53.590Z"
 }
