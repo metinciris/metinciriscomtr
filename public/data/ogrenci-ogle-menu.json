@@ -1,13 +1,7 @@
 {
-  "date": "03.04.2026",
-  "items": [
-    "TOYGA ÇORBASI",
-    "PATATES OTURTMA",
-    "TEL ŞEHRİYELİ BULGUR PİLAVI",
-    "BEYAZ LAHANA SALATASI",
-    "TOYGA ÇORBASI"
-  ],
-  "kcal": "1000",
+  "date": "04.04.2026",
+  "items": [],
+  "kcal": null,
   "source": "https://w3.sdu.edu.tr/aylik-yemek-listesi?dosya=yemekler_ogle&tur=2",
-  "updatedAt": "2026-04-03T08:09:59.745Z"
+  "updatedAt": "2026-04-04T05:40:46.573Z"
 }
