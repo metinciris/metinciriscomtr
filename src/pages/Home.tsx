@@ -9,7 +9,7 @@ import {
   GraduationCap,
   Briefcase,
   BookMarked,
-  Facebook,
+  Users,
   Building2,
   FolderOpen,
   Linkedin,
@@ -265,12 +265,12 @@ export function Home({ onNavigate }: HomeProps) {
               />
 
               <MetroTile
-                title="Facebook"
+                title="Konsensus"
                 subtitle=""
-                icon={<Facebook size={40} />}
-                color="bg-[#3B5998] text-white"
+                icon={<Users size={40} />}
+                color="bg-[#2563eb] text-white"
                 size="medium"
-                onClick={() => onNavigate('facebook')}
+                onClick={() => onNavigate('konsensus')}
               />
               <MetroTile
                 title="LinkedIn"
