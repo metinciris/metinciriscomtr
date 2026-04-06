@@ -49,3 +49,8 @@ export const PORTFOLYO_SUBTITLES = [
     'Akademik geçmiş',
 ];
 export const DIGER_SUBTITLES = ['Raporlama', 'Patoloji için'];
+export const KONSENSUS_SUBTITLES = [
+    'Patoloji konsensus',
+    'Toplantı takvimi',
+    'Patoloji konsensus toplantıları takip'
+];

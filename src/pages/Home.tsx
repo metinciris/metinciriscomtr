@@ -33,6 +33,7 @@ import {
   YAYIN_SUBTITLES,
   PORTFOLYO_SUBTITLES,
   DIGER_SUBTITLES,
+  KONSENSUS_SUBTITLES,
 } from '../data/homeSubtitles';
 import './Home.css';
 
@@ -58,6 +59,7 @@ export function Home({ onNavigate }: HomeProps) {
   const yayinSubtitle = useRotatingText(YAYIN_SUBTITLES, 4000);
   const portfolyoSubtitle = useRotatingText(PORTFOLYO_SUBTITLES, 4000);
   const digerSubtitle = useRotatingText(DIGER_SUBTITLES, 4000);
+  const konsensusSubtitle = useRotatingText(KONSENSUS_SUBTITLES, 4000);
 
   // Podcast karosu için canlı başlık
   const podcastDynamicTitle = usePodcastTitle(10000);
@@ -266,7 +268,7 @@ export function Home({ onNavigate }: HomeProps) {
 
               <MetroTile
                 title="Konsensus"
-                subtitle=""
+                subtitle={konsensusSubtitle}
                 icon={<Users size={40} />}
                 color="bg-[#2563eb] text-white"
                 size="medium"
