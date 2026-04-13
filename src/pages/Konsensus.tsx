@@ -33,6 +33,7 @@ import { AdminPanel } from '../components/Konsensus/AdminPanel';
 import { NotificationsCard } from '../components/Konsensus/NotificationsCard';
 import { PosterLightbox } from '../components/Konsensus/PosterLightbox';
 import { Toast, ToastType } from '../components/Konsensus/Toast';
+import { WeeklyCalendarBanner } from '../components/Konsensus/WeeklyCalendarBanner';
 
 function SectionTitle({ title, icon }: { title: string; icon: React.ReactNode }) {
   return (
@@ -402,6 +403,8 @@ export function Konsensus() {
                 </button>
               </div>
             )}
+
+            <WeeklyCalendarBanner meetings={meetings} now={now} onDayClick={handleDayClick} />
 
             <div className="bg-white rounded-3xl shadow-xl p-6 sm:p-8 border border-gray-100">
               <SectionTitle title="Bugün" icon={<Clock className="w-6 h-6" />} />
