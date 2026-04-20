@@ -1,7 +1,13 @@
 {
-  "date": "19.04.2026",
-  "items": [],
-  "kcal": null,
+  "date": "20.04.2026",
+  "items": [
+    "YAYLA ÇORBASI",
+    "TAS KEBABI",
+    "CEVİZLİ ERİŞTE PİLAVI",
+    "ELMA",
+    "YAYLA ÇORBASI"
+  ],
+  "kcal": "1000",
   "source": "https://w3.sdu.edu.tr/aylik-yemek-listesi?dosya=yemekler_ogle&tur=2",
-  "updatedAt": "2026-04-19T08:15:06.146Z"
+  "updatedAt": "2026-04-20T06:32:18.175Z"
 }
