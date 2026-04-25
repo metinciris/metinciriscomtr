@@ -1,13 +1,7 @@
 {
-  "date": "24.04.2026",
-  "items": [
-    "KÖYLÜ ÇORBASI",
-    "FIRIN TAVUK BUT",
-    "ARPA ŞEHRİYELİ PİRİNÇ PİLAVI",
-    "KASE AYRAN",
-    "KÖYLÜ ÇORBASI"
-  ],
-  "kcal": "1000",
+  "date": "25.04.2026",
+  "items": [],
+  "kcal": null,
   "source": "https://w3.sdu.edu.tr/aylik-yemek-listesi?dosya=yemekler_ogle&tur=2",
-  "updatedAt": "2026-04-24T09:13:39.932Z"
+  "updatedAt": "2026-04-25T06:07:39.720Z"
 }
