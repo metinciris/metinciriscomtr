@@ -1,7 +1,13 @@
 {
-  "date": "10.05.2026",
-  "items": [],
-  "kcal": null,
+  "date": "11.05.2026",
+  "items": [
+    "KREMALI SEBZE ÇORBASI",
+    "ZEYTİNYAĞLI KURU FASÜLYE",
+    "KABUNE",
+    "İRMİK HELVASI",
+    "KREMALI SEBZE ÇORBASI"
+  ],
+  "kcal": "1150",
   "source": "https://w3.sdu.edu.tr/aylik-yemek-listesi?dosya=yemekler_ogle&tur=2",
-  "updatedAt": "2026-05-10T09:10:00.307Z"
+  "updatedAt": "2026-05-11T08:01:47.504Z"
 }
