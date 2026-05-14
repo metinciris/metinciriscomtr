@@ -278,6 +278,20 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
 
             <div className="mb-12">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-gray-100">
+                    <div className="relative w-full md:w-80">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <Search className="h-5 w-5 text-gray-400" />
+                        </div>
+                        <input
+                            type="text"
+                            placeholder="Sayfada ara..."
+                            autoFocus
+                            className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#8E44AD]/30 focus:border-[#8E44AD] transition-all text-base shadow-sm"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                    </div>
+
                     <div className="flex flex-wrap gap-2">
                         {categories.map(cat => (
                             <button
@@ -291,19 +305,6 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
                                 {cat.name}
                             </button>
                         ))}
-                    </div>
-
-                    <div className="relative w-full md:w-80">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <Search className="h-5 w-5 text-gray-400" />
-                        </div>
-                        <input
-                            type="text"
-                            placeholder="Sayfada ara..."
-                            className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#8E44AD]/30 focus:border-[#8E44AD] transition-all text-base shadow-sm"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
                     </div>
                 </div>
             </div>
