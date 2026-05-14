@@ -45,5 +45,6 @@ export const validPages = [
     'patoloji-sozlugu',
     'vki-hesaplama',
     'geri-sayim',
-    'mitoz-donusturucu'
+    'mitoz-donusturucu',
+    'hematoloji-hesaplayici'
 ];

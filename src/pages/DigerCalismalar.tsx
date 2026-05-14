@@ -231,6 +231,14 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
             page: 'mitoz-donusturucu',
             category: 'patoloji'
         },
+        {
+            title: "Hematoloji Hesaplayıcı",
+            subtitle: "Formüller ve İndeksler",
+            icon: <Calculator size={40} />,
+            style: { backgroundColor: '#7c3aed' },
+            page: 'hematoloji-hesaplayici',
+            category: 'patoloji'
+        },
     ];
 
     const handleNavigate = (page: string) => {

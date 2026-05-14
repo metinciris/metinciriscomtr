@@ -165,6 +165,9 @@ const GeriSayim = React.lazy(() =>
 const MitozDonusturucu = React.lazy(() =>
   import('./pages/MitozDonusturucu').then((m) => ({ default: m.MitozDonusturucu })),
 );
+const HematolojiHesaplayici = React.lazy(() =>
+  import('./pages/HematolojiHesaplayici').then((m) => ({ default: m.HematolojiHesaplayici })),
+);
 
 import { trackPageView } from './utils/analytics';
 
@@ -352,6 +355,9 @@ export default function App() {
 
       case 'mitoz-donusturucu':
         return <MitozDonusturucu />;
+
+      case 'hematoloji-hesaplayici':
+        return <HematolojiHesaplayici />;
 
       case '404':
         return <NotFound onNavigate={navigate} />;
