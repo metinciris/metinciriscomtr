@@ -1,7 +1,13 @@
 {
-  "date": "12.04.2026",
-  "items": [],
-  "kcal": null,
+  "date": "13.05.2026",
+  "items": [
+    "&#199;ARŞAMBA",
+    "KÖYLÜ ÇORBASI",
+    "TAS KEBABI",
+    "TEL ŞEHRİYELİ BULGUR PİLAVI",
+    "KASE YOĞURT"
+  ],
+  "kcal": "1000",
   "source": "https://w3.sdu.edu.tr/aylik-yemek-listesi?dosya=yemekler_ogle&tur=2",
-  "updatedAt": "2026-04-12T08:09:57.835Z"
+  "updatedAt": "2026-05-13T10:00:41.065Z"
 }

@@ -315,10 +315,10 @@ export default function SjogrenRaporlama() {
                                         { key: "enYogun", label: "Fokus sayımında gland yapısında en yoğun 4 mm2 alan değerlendirildi" },
                                         { key: "plazmaNadir", label: "Nadir plazma hücresi izlendi" },
                                         { key: "plazmaTopluluk", label: "Plazma hücresi topluluğu (>10 hücre) izlendi" },
-                                        { key: "onkositik", label: "Duktuslarda onkositik metaplazi vardır" },
+                                        { key: "onkositik", label: "Glandüler duktusta onkositik metaplazi vardır" },
                                         { key: "devKonfluen", label: "Dev / Konfluen fokus vardır" },
                                         { key: "germinal", label: "Germinal merkez izlenmiştir" },
-                                        { key: "mukozal", label: "Minör tükrük bezi içermeyen mukozal fragman izlendi" },
+                                        { key: "mukozal", label: "Minör tükrük bezi içermeyen mukozal/stromal fragman izlendi" },
                                     ].map((item) => (
                                         <label key={item.key} className="flex items-center gap-3 group cursor-pointer p-2 rounded-lg hover:bg-slate-50 transition-colors">
                                             <input
