@@ -200,7 +200,7 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
       </header>
 
       {/* Breadcrumb — Ana sayfa hariç */}
-      {currentPage !== 'home' && currentPage !== '404' && (
+      {currentPage !== 'home' && currentPage !== '404' && currentPage !== 'hematoloji-hesaplayici' && (
         <nav
           aria-label="Breadcrumb"
           className="container mx-auto px-4 py-2"

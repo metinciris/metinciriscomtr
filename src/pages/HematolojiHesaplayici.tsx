@@ -218,6 +218,20 @@ export function HematolojiHesaplayici() {
         </PageContainer>
     );
 }
+const normalRanges: Record<string, { min: number, max: number }> = {
+    hb: { min: 12, max: 17.5 },
+    hct: { min: 36, max: 50 },
+    rbc: { min: 4.0, max: 5.5 },
+    wbc: { min: 4.0, max: 11.0 },
+    neutrophil: { min: 40, max: 75 },
+    lymphocyte: { min: 20, max: 45 },
+    rdw: { min: 11.5, max: 14.5 },
+    platelet: { min: 150, max: 450 },
+    iron: { min: 50, max: 170 },
+    tibc: { min: 250, max: 450 },
+    retic: { min: 0.5, max: 2.5 },
+    nrbc: { min: 0, max: 0 },
+};
 
 interface InputFieldProps {
     label: string;
@@ -227,6 +241,18 @@ interface InputFieldProps {
 }
 
 function InputField({ label, name, value, onChange }: InputFieldProps) {
+    const val = parseFloat(value);
+    const range = normalRanges[name];
+    let bgClass = "bg-white";
+    
+    if (value !== '' && range) {
+        if (val >= range.min && val <= range.max) {
+            bgClass = "bg-green-50 border-green-200 focus:ring-green-500/30 focus:border-green-500";
+        } else {
+            bgClass = "bg-red-50 border-red-200 focus:ring-red-500/30 focus:border-red-500";
+        }
+    }
+
     return (
         <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
@@ -235,7 +261,7 @@ function InputField({ label, name, value, onChange }: InputFieldProps) {
                 name={name}
                 value={value}
                 onChange={onChange}
-                className="block w-full px-3 py-2 border border-gray-200 rounded-lg bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-500 transition-all text-sm"
+                className={`block w-full px-3 py-2 border rounded-lg placeholder-gray-400 focus:outline-none transition-all text-sm ${bgClass}`}
                 placeholder="0.0"
             />
         </div>
