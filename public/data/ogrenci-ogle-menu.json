@@ -1,7 +1,13 @@
 {
-  "date": "17.05.2026",
-  "items": [],
-  "kcal": null,
+  "date": "18.05.2026",
+  "items": [
+    "DÜĞÜN ÇORBASI",
+    "ZEYTİNYAĞLI BAMYA",
+    "BOLONEZ SOSLU MAKARNA",
+    "ERİK",
+    "DÜĞÜN ÇORBASI"
+  ],
+  "kcal": "950",
   "source": "https://w3.sdu.edu.tr/aylik-yemek-listesi?dosya=yemekler_ogle&tur=2",
-  "updatedAt": "2026-05-17T09:16:52.576Z"
+  "updatedAt": "2026-05-18T08:31:45.945Z"
 }
