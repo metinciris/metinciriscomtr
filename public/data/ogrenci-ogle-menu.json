@@ -1,7 +1,13 @@
 {
-  "date": "19.05.2026",
-  "items": [],
-  "kcal": null,
+  "date": "20.05.2026",
+  "items": [
+    "&#199;ARŞAMBA",
+    "TARHANA ÇORBASI",
+    "FIRIN TAVUK",
+    "SEBZELİ BULGUR PİLAVI",
+    "KASE AYRAN"
+  ],
+  "kcal": "1000",
   "source": "https://w3.sdu.edu.tr/aylik-yemek-listesi?dosya=yemekler_ogle&tur=2",
-  "updatedAt": "2026-05-19T10:46:01.425Z"
+  "updatedAt": "2026-05-20T08:01:02.715Z"
 }
