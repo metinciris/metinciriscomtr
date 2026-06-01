@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { PageContainer } from '../components/PageContainer';
-import { Calendar, ChevronLeft, ChevronRight, ExternalLink, Clock, BookOpen, Loader2, AlertCircle, RefreshCw, FileText, Link2 } from 'lucide-react';
+import { Calendar, ExternalLink, Clock, BookOpen, Loader2, AlertCircle, RefreshCw, FileText, Link2, CheckCircle } from 'lucide-react';
 import { pubmedDailyService, Article } from '../services/pubmedDailyService';
 
 // Pathology journals to track
@@ -153,137 +153,129 @@ function ErrorMessage({ message, onRetry }: { message: string; onRetry: () => vo
     );
 }
 
+interface DayGroup {
+    date: Date;
+    articles: Article[];
+}
+
 export function PubMedMakaleTakvim() {
-    const [articles, setArticles] = useState<Article[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [selectedDate, setSelectedDate] = useState(new Date());
-    const [totalResults, setTotalResults] = useState(0);
-    const [isSearchingDate, setIsSearchingDate] = useState(false);
+    const [loadedDays, setLoadedDays] = useState<DayGroup[]>([]);
+    const [initialLoading, setInitialLoading] = useState(true);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
+    const [initialError, setInitialError] = useState<string | null>(null);
+    const [loadMoreError, setLoadMoreError] = useState<string | null>(null);
+    const [lastCheckedDate, setLastCheckedDate] = useState<Date>(new Date());
+    const [hasMore, setHasMore] = useState(true);
+    const [currentCheckingDate, setCurrentCheckingDate] = useState<Date | null>(null);
 
-    const fetchArticles = useCallback(async (date: Date) => {
-        setLoading(true);
-        setError(null);
-
-        try {
-            const result = await pubmedDailyService.searchArticles(PATHOLOGY_JOURNALS, date);
-            setArticles(result.articles);
-            setTotalResults(result.total);
-        } catch (err) {
-            setError('Makaleler yüklenirken bir hata oluştu. Lütfen tekrar deneyin.');
-            setArticles([]);
-            setTotalResults(0);
-        } finally {
-            setLoading(false);
-        }
-    }, []);
-
-    const findLastArticleDate = useCallback(async (startDate: Date): Promise<Date | null> => {
-        setIsSearchingDate(true);
-        const maxDaysToCheck = 30;
-
-        for (let i = 0; i < maxDaysToCheck; i++) {
-            const checkDate = new Date(startDate);
-            checkDate.setDate(checkDate.getDate() - i);
-
-            try {
-                const result = await pubmedDailyService.searchArticles(PATHOLOGY_JOURNALS, checkDate);
-                if (result.total > 0) {
-                    setIsSearchingDate(false);
-                    return checkDate;
-                }
-            } catch (error) {
-                console.error('Tarih arama hatası:', error);
-            }
-        }
-
-        setIsSearchingDate(false);
-        return null;
-    }, []);
-
-    const findPreviousArticleDate = useCallback(async (currentDate: Date): Promise<Date | null> => {
-        setIsSearchingDate(true);
-        const maxDaysToCheck = 30;
-
-        for (let i = 1; i <= maxDaysToCheck; i++) {
-            const checkDate = new Date(currentDate);
-            checkDate.setDate(checkDate.getDate() - i);
-
-            try {
-                const result = await pubmedDailyService.searchArticles(PATHOLOGY_JOURNALS, checkDate);
-                if (result.total > 0) {
-                    setIsSearchingDate(false);
-                    return checkDate;
-                }
-            } catch (error) {
-                console.error('Önceki tarih arama hatası:', error);
-            }
-        }
-
-        setIsSearchingDate(false);
-        return null;
-    }, []);
-
-    const findNextArticleDate = useCallback(async (currentDate: Date): Promise<Date | null> => {
-        setIsSearchingDate(true);
+    // Initial search: find the first day with articles (check up to 30 days)
+    const initializeApp = useCallback(async () => {
+        setInitialLoading(true);
+        setInitialError(null);
         const today = new Date();
         const maxDaysToCheck = 30;
 
-        for (let i = 1; i <= maxDaysToCheck; i++) {
-            const checkDate = new Date(currentDate);
-            checkDate.setDate(checkDate.getDate() + i);
-
-            if (checkDate > today) {
-                break;
-            }
+        for (let i = 0; i < maxDaysToCheck; i++) {
+            const checkDate = new Date(today);
+            checkDate.setDate(checkDate.getDate() - i);
+            setCurrentCheckingDate(checkDate);
 
             try {
                 const result = await pubmedDailyService.searchArticles(PATHOLOGY_JOURNALS, checkDate);
-                if (result.total > 0) {
-                    setIsSearchingDate(false);
-                    return checkDate;
+                if (result.total > 0 && result.articles.length > 0) {
+                    setLoadedDays([{ date: checkDate, articles: result.articles }]);
+                    setLastCheckedDate(checkDate);
+                    setInitialLoading(false);
+                    setCurrentCheckingDate(null);
+                    return;
                 }
-            } catch (error) {
-                console.error('Sonraki tarih arama hatası:', error);
+            } catch (err) {
+                console.error('Initial load checking error for date:', checkDate, err);
+                if (i === 0) {
+                    setInitialError('PubMed bağlantısı kurulamadı. Lütfen internet bağlantınızı kontrol edip tekrar deneyin.');
+                    setInitialLoading(false);
+                    setCurrentCheckingDate(null);
+                    return;
+                }
             }
         }
 
-        setIsSearchingDate(false);
-        return null;
+        // If we searched 30 days and found nothing
+        setLoadedDays([]);
+        setLastCheckedDate(today);
+        setInitialLoading(false);
+        setHasMore(false);
+        setCurrentCheckingDate(null);
     }, []);
 
-    useEffect(() => {
-        const initializeApp = async () => {
-            const today = new Date();
-            const lastDate = await findLastArticleDate(today);
+    // Load more days: search backwards from the day before lastCheckedDate
+    const loadMoreDays = useCallback(async () => {
+        if (isLoadingMore || !hasMore || initialLoading) return;
+        setIsLoadingMore(true);
+        setLoadMoreError(null);
 
-            if (lastDate) {
-                setSelectedDate(lastDate);
-                await fetchArticles(lastDate);
-            } else {
-                setSelectedDate(today);
-                await fetchArticles(today);
-            }
-        };
+        const maxDaysToCheck = 30;
+        const baseDate = new Date(lastCheckedDate);
 
-        initializeApp();
-    }, [fetchArticles, findLastArticleDate]);
+        for (let i = 1; i <= maxDaysToCheck; i++) {
+            const checkDate = new Date(baseDate);
+            checkDate.setDate(checkDate.getDate() - i);
+            setCurrentCheckingDate(checkDate);
 
-    const handleDateChange = async (direction: 'prev' | 'next') => {
-        if (direction === 'prev') {
-            const prevDate = await findPreviousArticleDate(selectedDate);
-            if (prevDate) {
-                setSelectedDate(prevDate);
-                await fetchArticles(prevDate);
-            }
-        } else {
-            const nextDate = await findNextArticleDate(selectedDate);
-            if (nextDate) {
-                setSelectedDate(nextDate);
-                await fetchArticles(nextDate);
+            try {
+                const result = await pubmedDailyService.searchArticles(PATHOLOGY_JOURNALS, checkDate);
+                if (result.total > 0 && result.articles.length > 0) {
+                    setLoadedDays(prev => [...prev, { date: checkDate, articles: result.articles }]);
+                    setLastCheckedDate(checkDate);
+                    setIsLoadingMore(false);
+                    setCurrentCheckingDate(null);
+                    return;
+                }
+            } catch (err) {
+                console.error('Error checking date:', checkDate, err);
+                setLoadMoreError('Sonraki makaleler yüklenirken bir bağlantı sorunu oluştu.');
+                setIsLoadingMore(false);
+                setCurrentCheckingDate(null);
+                return;
             }
         }
-    };
+
+        // If we searched 30 days and found nothing
+        setHasMore(false);
+        setIsLoadingMore(false);
+        setCurrentCheckingDate(null);
+    }, [lastCheckedDate, isLoadingMore, hasMore, initialLoading]);
+
+    useEffect(() => {
+        initializeApp();
+    }, [initializeApp]);
+
+    // Intersection Observer sentinel
+    const observer = useRef<IntersectionObserver | null>(null);
+    const sentinelRef = useCallback(
+        (node: HTMLDivElement | null) => {
+            if (initialLoading || isLoadingMore || !hasMore || loadMoreError || initialError) return;
+            if (observer.current) observer.current.disconnect();
+
+            observer.current = new IntersectionObserver(
+                (entries) => {
+                    if (entries[0].isIntersecting) {
+                        loadMoreDays();
+                    }
+                },
+                { rootMargin: '200px' } // Load a bit before reaching the exact bottom for seamless feel
+            );
+
+            if (node) observer.current.observe(node);
+        },
+        [initialLoading, isLoadingMore, hasMore, loadMoreError, initialError, loadMoreDays]
+    );
+
+    useEffect(() => {
+        return () => {
+            if (observer.current) observer.current.disconnect();
+        };
+    }, []);
 
     const formatDate = (date: Date) => {
         return date.toLocaleDateString('tr-TR', {
@@ -299,9 +291,20 @@ export function PubMedMakaleTakvim() {
         return date.toDateString() === today.toDateString();
     };
 
-    const canGoNext = () => {
-        const today = new Date();
-        return selectedDate < today;
+    const handleRetryInitial = () => {
+        initializeApp();
+    };
+
+    const handleSearchFurther = () => {
+        setHasMore(true);
+        setHasMore(prev => {
+            if (!prev) {
+                setTimeout(() => {
+                    loadMoreDays();
+                }, 50);
+            }
+            return true;
+        });
     };
 
     return (
@@ -388,7 +391,7 @@ export function PubMedMakaleTakvim() {
                         lineHeight: '1.625',
                         margin: 0
                     }}>
-                        Dünyaca ünlü patoloji dergilerinden günlük makale takibi - Tarihe göre gezinin
+                        Dünyaca ünlü patoloji dergilerinden günlük makale takibi - Tarihe göre kesintisiz akış
                     </p>
                     <div className="flex items-center gap-2 mt-4">
                         <Clock size={16} style={{ color: 'rgba(255,255,255,0.7)' }} />
@@ -403,97 +406,130 @@ export function PubMedMakaleTakvim() {
                 </div>
             </div>
 
-            {/* Date Navigation */}
-            <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-slate-100">
-                <div className="flex items-center justify-between flex-wrap gap-4">
-                    <button
-                        onClick={() => handleDateChange('prev')}
-                        disabled={isSearchingDate}
-                        className="flex items-center gap-2 px-5 py-3 rounded-xl font-medium transition-all duration-200"
-                        style={{
-                            backgroundColor: isSearchingDate ? '#f3f4f6' : '#1e40af',
-                            color: isSearchingDate ? '#9ca3af' : '#ffffff',
-                            cursor: isSearchingDate ? 'not-allowed' : 'pointer'
-                        }}
-                    >
-                        <ChevronLeft size={20} />
-                        <span>
-                            {isSearchingDate ? 'Aranıyor...' : 'Önceki Gün'}
-                        </span>
-                    </button>
-
-                    <div className="flex items-center gap-4">
-                        <Calendar size={28} className="text-blue-600" />
-                        <div className="text-center">
-                            <h2 className="text-xl font-bold text-gray-900">
-                                {formatDate(selectedDate)}
-                            </h2>
-                            {isToday(selectedDate) && (
-                                <span
-                                    className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold mt-1"
-                                    style={{ backgroundColor: '#d1fae5', color: '#065f46' }}
-                                >
-                                    Bugün
-                                </span>
-                            )}
-                        </div>
+            {/* Feed Header */}
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 mb-8 border border-blue-100 flex items-center justify-between flex-wrap gap-4">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-600 text-white rounded-xl shadow-md">
+                        <Clock size={24} />
                     </div>
-
-                    <button
-                        onClick={() => handleDateChange('next')}
-                        disabled={!canGoNext() || isSearchingDate}
-                        className="flex items-center gap-2 px-5 py-3 rounded-xl font-medium transition-all duration-200"
-                        style={{
-                            backgroundColor: canGoNext() && !isSearchingDate ? '#1e40af' : '#f3f4f6',
-                            color: canGoNext() && !isSearchingDate ? '#ffffff' : '#9ca3af',
-                            cursor: canGoNext() && !isSearchingDate ? 'pointer' : 'not-allowed'
-                        }}
-                    >
-                        <span>
-                            {isSearchingDate ? 'Aranıyor...' : 'Sonraki Gün'}
-                        </span>
-                        <ChevronRight size={20} />
-                    </button>
+                    <div>
+                        <h2 className="text-lg font-bold text-slate-800">Canlı Patoloji Akışı</h2>
+                        <p className="text-xs text-slate-500">En güncel yayınlardan geriye doğru kesintisiz akış</p>
+                    </div>
+                </div>
+                <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                    <span className="text-sm font-semibold text-emerald-800 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
+                        Aktif Takip
+                    </span>
                 </div>
             </div>
 
-            {/* Results Summary */}
-            {!loading && !isSearchingDate && (
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-5 mb-8 border border-blue-100">
-                    <p className="text-blue-800 text-center text-lg font-medium">
-                        {totalResults > 0
-                            ? `📚 ${totalResults} makale bulundu - ${PATHOLOGY_JOURNALS.length} patoloji dergisinden`
-                            : '📭 Bu tarihte makale bulunamadı'
-                        }
-                    </p>
-                </div>
-            )}
-
             {/* Content */}
             <div className="min-h-96">
-                {(loading || isSearchingDate) && (
-                    <LoadingSpinner message={isSearchingDate ? 'Makale bulunan tarih aranıyor...' : 'Makaleler yükleniyor...'} />
+                {initialLoading && (
+                    <div className="py-20">
+                        <LoadingSpinner message={currentCheckingDate ? `${formatDate(currentCheckingDate)} tarihi taranıyor...` : 'İlk makaleler yükleniyor...'} />
+                    </div>
                 )}
 
-                {error && <ErrorMessage message={error} onRetry={() => fetchArticles(selectedDate)} />}
+                {initialError && (
+                    <ErrorMessage message={initialError} onRetry={handleRetryInitial} />
+                )}
 
-                {!loading && !isSearchingDate && !error && articles.length === 0 && (
+                {!initialLoading && !initialError && loadedDays.length === 0 && (
                     <div className="text-center py-16 bg-slate-50 rounded-2xl border border-slate-200">
                         <BookOpen size={64} className="mx-auto text-slate-400 mb-4" />
                         <h3 className="text-xl font-semibold text-gray-900 mb-2">
                             Makale Bulunamadı
                         </h3>
-                        <p className="text-gray-600 text-lg">
-                            Son 30 gün içinde seçilen dergilerde yayınlanan makale bulunmuyor.
+                        <p className="text-gray-600 text-lg mb-4">
+                            Son 30 gün içinde seçilen dergilerde yayınlanan makale bulunamadı.
                         </p>
+                        <button
+                            onClick={handleSearchFurther}
+                            className="inline-flex items-center gap-2 px-5 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-semibold transition-colors shadow-md"
+                        >
+                            Geçmişe Doğru Tara
+                        </button>
                     </div>
                 )}
 
-                {!loading && !isSearchingDate && !error && articles.length > 0 && (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {articles.map((article, index) => (
-                            <ArticleCard key={`${article.pmid}-${index}`} article={article} />
+                {!initialLoading && !initialError && loadedDays.length > 0 && (
+                    <div className="space-y-12">
+                        {loadedDays.map((dayGroup) => (
+                            <div key={dayGroup.date.toDateString()} className="border-b border-slate-100 pb-10 last:border-0 last:pb-0">
+                                {/* Day Header */}
+                                <div className="flex items-center gap-3 mb-6 pb-2 border-b border-slate-100/60">
+                                    <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                                        <Calendar size={18} />
+                                    </div>
+                                    <h3 className="text-xl font-bold text-slate-800">
+                                        {formatDate(dayGroup.date)}
+                                    </h3>
+                                    <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-100">
+                                        {dayGroup.articles.length} Makale
+                                    </span>
+                                    {isToday(dayGroup.date) && (
+                                        <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                                            Bugün
+                                        </span>
+                                    )}
+                                </div>
+
+                                {/* Articles Grid */}
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                    {dayGroup.articles.map((article, index) => (
+                                        <ArticleCard key={`${article.pmid}-${index}`} article={article} />
+                                    ))}
+                                </div>
+                            </div>
                         ))}
+
+                        {/* Infinite Scroll Load More Status / Sentinel */}
+                        <div ref={sentinelRef} className="py-8 mt-4 border-t border-slate-100/40">
+                            {isLoadingMore && (
+                                <div className="flex flex-col items-center justify-center py-4">
+                                    <Loader2 size={32} className="text-blue-600 animate-spin mb-2" />
+                                    <p className="text-slate-500 text-sm">
+                                        {currentCheckingDate 
+                                            ? `${formatDate(currentCheckingDate)} tarihi taranıyor...` 
+                                            : 'Önceki makaleler aranıyor...'}
+                                    </p>
+                                </div>
+                            )}
+
+                            {loadMoreError && (
+                                <div className="text-center py-4 max-w-md mx-auto">
+                                    <AlertCircle className="mx-auto text-red-500 mb-2" size={32} />
+                                    <p className="text-red-700 text-sm mb-3">{loadMoreError}</p>
+                                    <button
+                                        onClick={loadMoreDays}
+                                        className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-medium transition-colors"
+                                    >
+                                        <RefreshCw size={14} />
+                                        Tekrar Dene
+                                    </button>
+                                </div>
+                            )}
+
+                            {!hasMore && !isLoadingMore && !loadMoreError && (
+                                <div className="text-center py-8 bg-slate-50 rounded-2xl border border-slate-100 max-w-xl mx-auto p-6">
+                                    <CheckCircle className="mx-auto text-emerald-500 mb-3" size={40} />
+                                    <h4 className="text-lg font-bold text-slate-800 mb-1">Görünüşe Göre Akışın Sonundasınız</h4>
+                                    <p className="text-slate-500 text-sm mb-4 leading-relaxed">
+                                        Son 30 günlük patoloji makale akışı başarıyla listelendi. Daha eski makaleleri taramak ister misiniz?
+                                    </p>
+                                    <button
+                                        onClick={handleSearchFurther}
+                                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 text-sm font-semibold transition-colors shadow-md hover:shadow-lg"
+                                    >
+                                        <Clock size={16} />
+                                        Daha Eski Makaleleri Ara
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 )}
             </div>
