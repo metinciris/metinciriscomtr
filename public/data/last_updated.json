@@ -1,18 +1,18 @@
 {
-  "lastUpdated": "2026-06-01T11:46:43.572Z",
+  "lastUpdated": "2026-06-01T21:38:52.632Z",
   "football": {
     "status": "success",
     "matchCount": 0,
-    "updatedAt": "2026-06-01T11:46:43.572Z"
+    "updatedAt": "2026-06-01T21:38:52.632Z"
   },
   "basketball": {
     "status": "error",
     "matchCount": 0,
-    "updatedAt": "2026-06-01T11:46:43.572Z"
+    "updatedAt": "2026-06-01T21:38:52.632Z"
   },
   "volleyball": {
     "status": "success",
     "matchCount": 0,
-    "updatedAt": "2026-06-01T11:46:43.572Z"
+    "updatedAt": "2026-06-01T21:38:52.632Z"
   }
 }
