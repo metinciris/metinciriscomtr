@@ -15,7 +15,6 @@ import {
 import { Meeting } from './types';
 import {
     getOrganizerWithEmoji,
-    normalizeId,
     formatDateTR,
     toTimeRange,
     buildGoogleCalendarUrl,
@@ -61,9 +60,13 @@ export function MeetingCard({
     const hasPoster = !!meeting.poster_url;
     const duration = Math.max(15, meeting.duration ?? 60);
 
-    const hasIdPw = !!(meeting.zoom_id || meeting.zoom_password);
-    const showJoin = !!meeting.zoom_link && !hasIdPw && !isActuallyPast;
-    const showIdPw = !isActuallyPast && hasIdPw;
+    const hasZoomLink = !!(meeting.zoom_link && meeting.zoom_link.trim());
+    const hasZoomId = !!(meeting.zoom_id && meeting.zoom_id.trim());
+    const hasZoomPassword = !!(meeting.zoom_password && meeting.zoom_password.trim());
+    const hasZoomInfo = hasZoomLink || hasZoomId || hasZoomPassword;
+
+    const showJoin = hasZoomLink && !isActuallyPast;
+    const showZoomInfo = hasZoomInfo && !isActuallyPast;
 
     const posterButtonOnly = isActuallyPast && hasPoster;
 
@@ -143,10 +146,10 @@ export function MeetingCard({
                     </div>
 
                     {meeting.description && (
-                        <div className={`mt-4 p-4 rounded-2xl border-l-[6px] ${isActuallyPast 
-                            ? 'bg-gray-100/50 border-gray-300 text-gray-500 italic' 
+                        <div className={`mt-4 p-4 rounded-2xl border-l-[6px] ${isActuallyPast
+                            ? 'bg-gray-100/50 border-gray-300 text-gray-500 italic'
                             : 'bg-yellow-50/60 border-blue-500 text-gray-800 shadow-sm'
-                        }`}>
+                            }`}>
                             <p className="text-[14px] sm:text-[15px] md:text-[16px] font-medium leading-relaxed">
                                 {meeting.description}
                             </p>
@@ -169,33 +172,51 @@ export function MeetingCard({
 
                     {!isActuallyPast && (
                         <div className="mt-5 pt-4 border-t border-gray-100">
-                            {showJoin && (
-                                <a
-                                    href={meeting.zoom_link!}
-                                    className={`inline-flex items-center px-6 py-3 text-sm font-black rounded-xl transition shadow-md ${isLive
-                                        ? 'bg-green-600 hover:bg-green-700 text-white shadow-green-200'
-                                        : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-200'
-                                        }`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                >
-                                    <Video className="w-4 h-4 mr-2" />
-                                    {isLive ? 'Canlı Yayına Katıl' : 'Zoom\'a Katıl'}
-                                </a>
-                            )}
+                            {showZoomInfo ? (
+                                <>
+                                    {showJoin && (
+                                        <a
+                                            href={meeting.zoom_link!}
+                                            className={`inline-flex items-center px-6 py-3 text-sm font-black rounded-xl transition shadow-md ${isLive
+                                                ? 'bg-green-600 hover:bg-green-700 text-white shadow-green-200'
+                                                : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-200'
+                                                }`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            <Video className="w-4 h-4 mr-2" />
+                                            {isLive ? 'Canlı Yayına Katıl' : 'Zoom\'a Katıl'}
+                                        </a>
+                                    )}
 
-                            {showIdPw && (
-                                <div className="mt-3 flex flex-wrap gap-2">
-                                    {meeting.zoom_id && (
-                                        <div className="bg-gray-100 px-3 py-2 rounded-xl text-sm font-semibold text-gray-700">
-                                            <span className="font-black text-gray-900">Zoom ID:</span> {meeting.zoom_id}
+                                    {(hasZoomId || hasZoomPassword) && (
+                                        <div className="mt-3 flex flex-wrap gap-2">
+                                            {hasZoomId && (
+                                                <div className="bg-gray-100 px-3 py-2 rounded-xl text-sm font-semibold text-gray-700">
+                                                    <span className="font-black text-gray-900">Zoom ID:</span> {meeting.zoom_id}
+                                                </div>
+                                            )}
+
+                                            {hasZoomPassword && (
+                                                <details className="bg-gray-100 px-3 py-2 rounded-xl text-sm font-semibold text-gray-700">
+                                                    <summary className="cursor-pointer font-black text-blue-700">
+                                                        Şifreyi Göster
+                                                    </summary>
+                                                    <div className="mt-1">
+                                                        <span className="font-black text-gray-900">Şifre:</span> {meeting.zoom_password}
+                                                    </div>
+                                                </details>
+                                            )}
                                         </div>
                                     )}
-                                    {meeting.zoom_password && (
-                                        <div className="bg-gray-100 px-3 py-2 rounded-xl text-sm font-semibold text-gray-700">
-                                            <span className="font-black text-gray-900">Şifre:</span> {meeting.zoom_password}
-                                        </div>
-                                    )}
+
+                                    <div className="mt-3 text-xs font-semibold text-gray-500">
+                                        Toplantı bilgileri değişirse güncel ayrıntılar bu sayfada paylaşılır.
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="rounded-2xl bg-gray-50 border border-gray-100 px-4 py-3 text-sm font-semibold text-gray-600">
+                                    Ayrıntıları ve güncel toplantı bilgilerini bu sayfadan takip edin.
                                 </div>
                             )}
 
@@ -247,4 +268,3 @@ export function MeetingCard({
         </div>
     );
 }
-
