@@ -22,6 +22,9 @@ export function NobetciEczane() {
   const weekdayEn = now.toLocaleDateString('en-US', { weekday: 'long' });
   const todayEn = `${day} ${monthEn} ${year} ${weekdayEn}`;
 
+  const [isLoading, setIsLoading] = React.useState(true);
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
   // Eczaneleri.NET widget kurulumu
   useEffect(() => {
     (window as any).pharmacyiFrame = {
@@ -39,10 +42,42 @@ export function NobetciEczane() {
     script.async = true;
     document.body.appendChild(script);
 
+    let observer: MutationObserver | null = null;
+
+    const checkIframe = () => {
+      const iframe = containerRef.current?.querySelector('iframe');
+      if (iframe) {
+        iframe.addEventListener('load', () => setIsLoading(false));
+        return true;
+      }
+      return false;
+    };
+
+    if (!checkIframe() && containerRef.current) {
+      observer = new MutationObserver(() => {
+        if (checkIframe()) {
+          observer?.disconnect();
+        }
+      });
+      observer.observe(containerRef.current, {
+        childList: true,
+        subtree: true,
+      });
+    }
+
+    // 6 saniyelik yedek zaman aşımı (eğer dış kaynak yüklenemezse sayfa takılı kalmasın)
+    const fallbackTimeout = setTimeout(() => {
+      setIsLoading(false);
+    }, 6000);
+
     return () => {
       try {
         document.body.removeChild(script);
       } catch { }
+      if (observer) {
+        observer.disconnect();
+      }
+      clearTimeout(fallbackTimeout);
       delete (window as any).pharmacyiFrame;
     };
   }, []);
@@ -96,7 +131,19 @@ export function NobetciEczane() {
             Aşağıdaki nöbetçi eczaneler otomatik alınmaktadır:
           </p>
           {/* Widget konteyneri – script burayı dolduracak */}
-          <div className="pharmacy-container w-full overflow-hidden" />
+          {isLoading && (
+            <div className="flex flex-col items-center justify-center py-16 px-4 border border-dashed border-gray-200 rounded-lg bg-gray-50/50 my-4 animate-pulse">
+              <div className="animate-spin rounded-full h-8 w-8 border-2 border-t-transparent border-[#990000] mb-3"></div>
+              <p className="text-muted-foreground text-center font-medium text-sm m-0">
+                Güncel nöbetçi eczane bilgisi çekiliyor...
+              </p>
+            </div>
+          )}
+          <div
+            ref={containerRef}
+            className="pharmacy-container w-full overflow-hidden"
+            style={isLoading ? { position: 'absolute', opacity: 0, pointerEvents: 'none', height: 0 } : {}}
+          />
           <p className="text-xs text-muted-foreground mt-3 text-center">
             Veri kaynağı: Eczaneleri.NET – Saatlik olarak güncellenir.
           </p>
