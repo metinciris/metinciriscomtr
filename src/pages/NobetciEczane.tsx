@@ -33,8 +33,8 @@ export function NobetciEczane() {
       city: 'isparta',   // sadece Isparta
       county: 'merkez',  // Isparta merkez
       type: 'default-iframe',
-      width: 450,        // px cinsinden
-      height: 1100       // px cinsinden
+      width: 768,        // px cinsinden (max-w-3xl boyutuna uygun)
+      height: 1500       // px cinsinden (daha yüksek yapıldı)
     };
 
     const script = document.createElement('script');
@@ -139,6 +139,14 @@ export function NobetciEczane() {
               </p>
             </div>
           )}
+          <style dangerouslySetInnerHTML={{ __html: `
+            .pharmacy-container iframe {
+              width: 100% !important;
+              height: 1500px !important;
+              min-height: 1500px !important;
+              border: none !important;
+            }
+          `}} />
           <div
             ref={containerRef}
             className="pharmacy-container w-full overflow-hidden"
