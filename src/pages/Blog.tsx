@@ -63,7 +63,7 @@ export function Blog() {
       'Accept': 'application/vnd.github.v3+json'
     };
 
-    if (token && token.startsWith('ghp_')) {
+    if (token && token.startsWith('gh')) {
       headers['Authorization'] = `token ${token}`;
     }
 
