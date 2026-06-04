@@ -1,7 +1,13 @@
 {
-  "date": "31.05.2026",
-  "items": [],
-  "kcal": null,
+  "date": "04.06.2026",
+  "items": [
+    "DOMATES ÇORBASI",
+    "BAGET PİLİÇ HAŞLAMA",
+    "MEYANE PİLAVI",
+    "MEVSİM SALATASI",
+    "DOMATES ÇORBASI"
+  ],
+  "kcal": "1000",
   "source": "https://w3.sdu.edu.tr/aylik-yemek-listesi?dosya=yemekler_ogle&tur=2",
-  "updatedAt": "2026-05-31T09:59:16.603Z"
+  "updatedAt": "2026-06-04T10:45:23.778Z"
 }
