@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { PageContainer } from '../components/PageContainer';
-import { Calendar, ExternalLink, Clock, BookOpen, Loader2, AlertCircle, RefreshCw, FileText, Link2, CheckCircle } from 'lucide-react';
+import { Calendar, ExternalLink, Clock, BookOpen, Loader2, AlertCircle, RefreshCw, FileText, Link2, CheckCircle, Trash2, Plus, Sliders, Languages } from 'lucide-react';
 import { pubmedDailyService, Article } from '../services/pubmedDailyService';
 
-// Pathology journals to track
-const PATHOLOGY_JOURNALS = [
+// Default Pathology journals to track
+const DEFAULT_PATHOLOGY_JOURNALS = [
     'Modern Pathology',
     'Histopathology',
     'American Journal of Surgical Pathology',
@@ -28,70 +28,147 @@ function ArticleCard({ article }: { article: Article }) {
     const pubmedUrl = `https://pubmed.ncbi.nlm.nih.gov/${article.pmid}/`;
     const doiUrl = article.doi ? `https://doi.org/${article.doi}` : null;
     const [showAbstract, setShowAbstract] = useState(false);
+    const [isTranslating, setIsTranslating] = useState(false);
+    const [translatedAbstract, setTranslatedAbstract] = useState<string | null>(null);
+    const [translationError, setTranslationError] = useState<string | null>(null);
+
+    const handleTranslate = async () => {
+        if (!article.abstract) return;
+        setIsTranslating(true);
+        setTranslationError(null);
+        try {
+            // Clean HTML tag entities if any
+            const cleanText = article.abstract.replace(/<[^>]*>/g, '');
+            // Limit characters to translate to fit MyMemory limit (around 1000 characters)
+            const textToTranslate = cleanText.length > 800 ? cleanText.substring(0, 800) + '...' : cleanText;
+            
+            const response = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(textToTranslate)}&langpair=en|tr`);
+            if (!response.ok) throw new Error('API hatası');
+            const data = await response.json();
+            
+            if (data.responseData && data.responseData.translatedText) {
+                setTranslatedAbstract(data.responseData.translatedText);
+            } else {
+                throw new Error('Çeviri alınamadı');
+            }
+        } catch (err) {
+            console.error('Translation error:', err);
+            setTranslationError('Otomatik çeviri limitine ulaşıldı veya bir hata oluştu.');
+        } finally {
+            setIsTranslating(false);
+        }
+    };
 
     return (
         <div
-            className="bg-white rounded-2xl shadow-lg border border-slate-100 p-6 hover:shadow-xl transition-all duration-300"
+            className="bg-white rounded-2xl shadow-lg border border-slate-100 p-6 hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
         >
-            {/* Journal Badge */}
-            <div className="mb-4">
-                <span
-                    className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold"
-                    style={{ backgroundColor: '#dbeafe', color: '#1e40af' }}
+            <div>
+                {/* Journal Badge */}
+                <div className="mb-4">
+                    <span
+                        className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold"
+                        style={{ backgroundColor: '#dbeafe', color: '#1e40af' }}
+                    >
+                        {article.journal}
+                    </span>
+                </div>
+
+                {/* Title - larger and more readable */}
+                <h3
+                    className="font-bold text-slate-900 mb-4"
+                    style={{ fontSize: '1.125rem', lineHeight: '1.6' }}
                 >
-                    {article.journal}
-                </span>
+                    {article.title}
+                </h3>
+
+                {/* Authors */}
+                {article.authors.length > 0 && (
+                    <p className="text-slate-600 text-sm mb-4" style={{ lineHeight: '1.5' }}>
+                        <span className="font-medium text-slate-700">Yazarlar: </span>
+                        {article.authors.join(', ')}
+                        {article.authors.length >= 5 && ' et al.'}
+                    </p>
+                )}
+
+                {/* Publication Date */}
+                {article.pubDate && (
+                    <p className="text-slate-500 text-sm mb-4">
+                        <span className="font-medium">Yayın Tarihi: </span>
+                        {article.pubDate}
+                    </p>
+                )}
+
+                {/* Abstract Toggle */}
+                {article.abstract && (
+                    <div className="mb-4">
+                        <button
+                            onClick={() => setShowAbstract(!showAbstract)}
+                            className="flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium text-sm transition-colors"
+                        >
+                            <FileText size={16} />
+                            {showAbstract ? 'Özeti Gizle' : 'Özeti Göster'}
+                        </button>
+
+                        {showAbstract && (
+                            <div
+                                className="mt-3 p-4 bg-slate-50 rounded-xl border border-slate-200"
+                                style={{ fontSize: '0.9rem', lineHeight: '1.7', color: '#374151' }}
+                            >
+                                <div className="mb-4 text-slate-700">{article.abstract}</div>
+                                
+                                {/* Translation interface */}
+                                <div className="border-t border-slate-200/80 pt-3 mt-3">
+                                    {!translatedAbstract && !isTranslating && (
+                                        <button
+                                            onClick={handleTranslate}
+                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors text-xs font-semibold"
+                                        >
+                                            <Languages size={14} />
+                                            Türkçe'ye Çevir (BETA)
+                                        </button>
+                                    )}
+                                    
+                                    {isTranslating && (
+                                        <div className="flex items-center gap-2 text-xs text-slate-500 font-medium py-1">
+                                            <Loader2 size={14} className="animate-spin text-blue-500" />
+                                            Türkçe'ye çevriliyor...
+                                        </div>
+                                    )}
+                                    
+                                    {translatedAbstract && (
+                                        <div className="mt-2 bg-blue-50/50 border border-blue-100/50 p-3 rounded-lg">
+                                            <div className="flex items-center gap-1.5 text-xs text-blue-700 font-bold mb-1">
+                                                <Languages size={14} />
+                                                Türkçe Çeviri:
+                                            </div>
+                                            <p className="text-slate-800 text-sm leading-relaxed">{translatedAbstract}</p>
+                                        </div>
+                                    )}
+                                    
+                                    {translationError && (
+                                        <div className="mt-2">
+                                            <p className="text-xs text-amber-600 mb-1.5">{translationError}</p>
+                                            <a
+                                                href={`https://translate.google.com/?sl=en&tl=tr&text=${encodeURIComponent(article.abstract)}&op=translate`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-bold"
+                                            >
+                                                <ExternalLink size={12} />
+                                                Google Translate ile Çevir (Yeni Sekme)
+                                            </a>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
 
-            {/* Title - larger and more readable */}
-            <h3
-                className="font-bold text-slate-900 mb-4"
-                style={{ fontSize: '1.125rem', lineHeight: '1.6' }}
-            >
-                {article.title}
-            </h3>
-
-            {/* Authors */}
-            {article.authors.length > 0 && (
-                <p className="text-slate-600 text-sm mb-4" style={{ lineHeight: '1.5' }}>
-                    <span className="font-medium text-slate-700">Yazarlar: </span>
-                    {article.authors.join(', ')}
-                    {article.authors.length >= 5 && ' et al.'}
-                </p>
-            )}
-
-            {/* Publication Date */}
-            {article.pubDate && (
-                <p className="text-slate-500 text-sm mb-4">
-                    <span className="font-medium">Yayın Tarihi: </span>
-                    {article.pubDate}
-                </p>
-            )}
-
-            {/* Abstract Toggle */}
-            {article.abstract && (
-                <div className="mb-4">
-                    <button
-                        onClick={() => setShowAbstract(!showAbstract)}
-                        className="flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium text-sm transition-colors"
-                    >
-                        <FileText size={16} />
-                        {showAbstract ? 'Özeti Gizle' : 'Özeti Göster'}
-                    </button>
-
-                    {showAbstract && (
-                        <div
-                            className="mt-3 p-4 bg-slate-50 rounded-xl border border-slate-200"
-                            style={{ fontSize: '0.9rem', lineHeight: '1.7', color: '#374151' }}
-                        >
-                            {article.abstract}
-                        </div>
-                    )}
-                </div>
-            )}
-
             {/* Links Section */}
-            <div className="flex flex-wrap gap-3 pt-4 border-t border-slate-100">
+            <div className="flex flex-wrap gap-3 pt-4 border-t border-slate-100 mt-auto">
                 {/* PubMed Link */}
                 <a
                     href={pubmedUrl}
@@ -117,7 +194,7 @@ function ArticleCard({ article }: { article: Article }) {
                 )}
 
                 {/* PMID Badge */}
-                <span className="inline-flex items-center px-3 py-2 bg-slate-100 text-slate-600 rounded-lg text-sm">
+                <span className="inline-flex items-center px-3 py-2 bg-slate-100 text-slate-600 rounded-lg text-sm ml-auto">
                     PMID: {article.pmid}
                 </span>
             </div>
@@ -125,12 +202,47 @@ function ArticleCard({ article }: { article: Article }) {
     );
 }
 
-// Loading Spinner Component
-function LoadingSpinner({ message }: { message: string }) {
+// Skeleton Loader Component for a single article card
+function ArticleCardSkeleton() {
     return (
-        <div className="flex flex-col items-center justify-center py-16" data-nosnippet>
-            <Loader2 size={48} className="text-blue-600 animate-spin mb-4" />
-            <p className="text-slate-600 text-lg">{message}</p>
+        <div className="bg-white rounded-2xl shadow-lg border border-slate-100 p-6 animate-pulse flex flex-col justify-between h-[320px]">
+            <div>
+                {/* Journal Badge placeholder */}
+                <div className="mb-4">
+                    <div className="h-6 w-32 bg-slate-200 rounded-full"></div>
+                </div>
+                
+                {/* Title placeholder */}
+                <div className="space-y-2 mb-4">
+                    <div className="h-4 bg-slate-200 rounded w-full"></div>
+                    <div className="h-4 bg-slate-200 rounded w-5/6"></div>
+                </div>
+                
+                {/* Authors placeholder */}
+                <div className="h-4 bg-slate-200 rounded w-2/3 mb-4"></div>
+                
+                {/* Pub Date placeholder */}
+                <div className="h-3 bg-slate-200 rounded w-1/3 mb-4"></div>
+            </div>
+            
+            {/* Buttons placeholder */}
+            <div className="flex gap-3 pt-4 border-t border-slate-100">
+                <div className="h-9 w-20 bg-slate-200 rounded-lg"></div>
+                <div className="h-9 w-16 bg-slate-200 rounded-lg"></div>
+                <div className="h-9 w-24 bg-slate-200 rounded-lg ml-auto"></div>
+            </div>
+        </div>
+    );
+}
+
+// Skeleton feed loader
+function FeedSkeleton() {
+    return (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <ArticleCardSkeleton />
+            <ArticleCardSkeleton />
+            <ArticleCardSkeleton />
+            <ArticleCardSkeleton />
         </div>
     );
 }
@@ -168,10 +280,29 @@ export function PubMedMakaleTakvim() {
     const [hasMore, setHasMore] = useState(true);
     const [currentCheckingDate, setCurrentCheckingDate] = useState<Date | null>(null);
 
+    // Dynamic user-customized journals state
+    const [journals, setJournals] = useState<string[]>(() => {
+        const saved = localStorage.getItem('pubmed_journals');
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    return parsed;
+                }
+            } catch (e) {
+                console.error('Failed to parse saved journals:', e);
+            }
+        }
+        return DEFAULT_PATHOLOGY_JOURNALS;
+    });
+    const [showSettings, setShowSettings] = useState(false);
+    const [newJournal, setNewJournal] = useState('');
+
     // Initial search: find the first day with articles (check up to 30 days)
     const initializeApp = useCallback(async () => {
         setInitialLoading(true);
         setInitialError(null);
+        setLoadedDays([]); // Clear previous feed on re-initialization
         const today = new Date();
         const maxDaysToCheck = 30;
 
@@ -181,7 +312,7 @@ export function PubMedMakaleTakvim() {
             setCurrentCheckingDate(checkDate);
 
             try {
-                const result = await pubmedDailyService.searchArticles(PATHOLOGY_JOURNALS, checkDate);
+                const result = await pubmedDailyService.searchArticles(journals, checkDate);
                 if (result.total > 0 && result.articles.length > 0) {
                     setLoadedDays([{ date: checkDate, articles: result.articles }]);
                     setLastCheckedDate(checkDate);
@@ -206,7 +337,7 @@ export function PubMedMakaleTakvim() {
         setInitialLoading(false);
         setHasMore(false);
         setCurrentCheckingDate(null);
-    }, []);
+    }, [journals]);
 
     // Load more days: search backwards from the day before lastCheckedDate
     const loadMoreDays = useCallback(async () => {
@@ -223,7 +354,7 @@ export function PubMedMakaleTakvim() {
             setCurrentCheckingDate(checkDate);
 
             try {
-                const result = await pubmedDailyService.searchArticles(PATHOLOGY_JOURNALS, checkDate);
+                const result = await pubmedDailyService.searchArticles(journals, checkDate);
                 if (result.total > 0 && result.articles.length > 0) {
                     setLoadedDays(prev => [...prev, { date: checkDate, articles: result.articles }]);
                     setLastCheckedDate(checkDate);
@@ -244,7 +375,7 @@ export function PubMedMakaleTakvim() {
         setHasMore(false);
         setIsLoadingMore(false);
         setCurrentCheckingDate(null);
-    }, [lastCheckedDate, isLoadingMore, hasMore, initialLoading]);
+    }, [lastCheckedDate, isLoadingMore, hasMore, initialLoading, journals]);
 
     useEffect(() => {
         initializeApp();
@@ -263,7 +394,7 @@ export function PubMedMakaleTakvim() {
                         loadMoreDays();
                     }
                 },
-                { rootMargin: '200px' } // Load a bit before reaching the exact bottom for seamless feel
+                { rootMargin: '200px' } // Load a bit before reaching the bottom for seamless feel
             );
 
             if (node) observer.current.observe(node);
@@ -330,7 +461,7 @@ export function PubMedMakaleTakvim() {
                 </p>
                 <nav>
                     <ul>
-                        {PATHOLOGY_JOURNALS.map(j => <li key={j}>{j}</li>)}
+                        {journals.map(j => <li key={j}>{j}</li>)}
                     </ul>
                 </nav>
             </div>
@@ -417,19 +548,124 @@ export function PubMedMakaleTakvim() {
                         <p className="text-xs text-slate-500">En güncel yayınlardan geriye doğru kesintisiz akış</p>
                     </div>
                 </div>
-                <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse"></span>
-                    <span className="text-sm font-semibold text-emerald-800 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
-                        Aktif Takip
-                    </span>
+                <div className="flex items-center gap-3 ml-auto flex-wrap">
+                    <button
+                        onClick={() => setShowSettings(!showSettings)}
+                        className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all shadow-sm border ${
+                            showSettings 
+                                ? 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700' 
+                                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                        }`}
+                    >
+                        <Sliders size={16} />
+                        Dergileri Yönet ({journals.length})
+                    </button>
+                    <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-full">
+                        <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                        <span className="text-xs font-semibold text-emerald-800">
+                            Aktif Takip
+                        </span>
+                    </div>
                 </div>
             </div>
+
+            {/* Expandable settings panel for managing journals */}
+            {showSettings && (
+                <div className="bg-slate-50 rounded-2xl p-6 mb-8 border border-slate-200/80 transition-all duration-300">
+                    <div className="flex items-center justify-between mb-4 border-b border-slate-200 pb-3">
+                        <h3 className="font-bold text-slate-800 text-base flex items-center gap-2">
+                            <Sliders size={18} className="text-blue-600" />
+                            Takip Edilen Dergileri Özelleştir
+                        </h3>
+                        <button
+                            onClick={() => {
+                                if (window.confirm('Dergi listenizi varsayılan patoloji dergileri listesine sıfırlamak istiyor musunuz?')) {
+                                    setJournals(DEFAULT_PATHOLOGY_JOURNALS);
+                                    localStorage.setItem('pubmed_journals', JSON.stringify(DEFAULT_PATHOLOGY_JOURNALS));
+                                }
+                            }}
+                            className="text-xs text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1 bg-white border border-slate-200 px-2.5 py-1 rounded-lg hover:border-slate-300 transition-colors"
+                        >
+                            <RefreshCw size={12} />
+                            Varsayılana Sıfırla
+                        </button>
+                    </div>
+
+                    {/* Add new journal form */}
+                    <form
+                        onSubmit={(e) => {
+                            e.preventDefault();
+                            if (!newJournal.trim()) return;
+                            const trimmed = newJournal.trim();
+                            if (journals.includes(trimmed)) {
+                                alert('Bu dergi zaten listenizde ekli.');
+                                return;
+                            }
+                            const updated = [...journals, trimmed];
+                            setJournals(updated);
+                            localStorage.setItem('pubmed_journals', JSON.stringify(updated));
+                            setNewJournal('');
+                        }}
+                        className="flex gap-2 mb-4"
+                    >
+                        <input
+                            type="text"
+                            placeholder="Yeni dergi adı yazın (örn: Nature Medicine veya Lancet Oncology)"
+                            value={newJournal}
+                            onChange={(e) => setNewJournal(e.target.value)}
+                            className="flex-1 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800"
+                        />
+                        <button
+                            type="submit"
+                            className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 text-sm font-semibold transition-colors shadow-md"
+                        >
+                            <Plus size={16} />
+                            Ekle
+                        </button>
+                    </form>
+
+                    {/* Active journals list tag pool */}
+                    <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto p-1 bg-white rounded-xl border border-slate-100 p-3">
+                        {journals.map((journal) => (
+                            <div
+                                key={journal}
+                                className="inline-flex items-center gap-1.5 pl-3 pr-2 py-1 bg-slate-50 text-slate-700 border border-slate-200 rounded-lg text-xs font-medium hover:border-slate-300 hover:bg-slate-100 transition-all"
+                            >
+                                <span>{journal}</span>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        if (journals.length <= 1) {
+                                            alert('En az bir dergi takip edilmelidir.');
+                                            return;
+                                        }
+                                        const updated = journals.filter(j => j !== journal);
+                                        setJournals(updated);
+                                        localStorage.setItem('pubmed_journals', JSON.stringify(updated));
+                                    }}
+                                    className="text-slate-400 hover:text-red-500 rounded-full p-0.5 hover:bg-slate-200 transition-colors"
+                                    title={`${journal} dergisini çıkar`}
+                                >
+                                    <Trash2 size={12} />
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                    <p className="text-xs text-slate-500 mt-3 flex items-center gap-1">
+                        ℹ️ Dergi listeniz tarayıcınızın belleğine kaydedilir ve değişiklik yapıldığında akış en baştan taranır.
+                    </p>
+                </div>
+            )}
 
             {/* Content */}
             <div className="min-h-96">
                 {initialLoading && (
-                    <div className="py-20">
-                        <LoadingSpinner message={currentCheckingDate ? `${formatDate(currentCheckingDate)} tarihi taranıyor...` : 'İlk makaleler yükleniyor...'} />
+                    <div className="space-y-6 py-6">
+                        <div className="text-center py-4 bg-slate-50/50 rounded-xl border border-slate-100 flex items-center justify-center gap-3 text-slate-600 font-medium">
+                            <Loader2 size={20} className="animate-spin text-blue-600" />
+                            {currentCheckingDate ? `${formatDate(currentCheckingDate)} tarihi taranıyor...` : 'İlk makaleler yükleniyor...'}
+                        </div>
+                        <FeedSkeleton />
                     </div>
                 )}
 
@@ -489,13 +725,14 @@ export function PubMedMakaleTakvim() {
                         {/* Infinite Scroll Load More Status / Sentinel */}
                         <div ref={sentinelRef} className="py-8 mt-4 border-t border-slate-100/40">
                             {isLoadingMore && (
-                                <div className="flex flex-col items-center justify-center py-4">
-                                    <Loader2 size={32} className="text-blue-600 animate-spin mb-2" />
-                                    <p className="text-slate-500 text-sm">
+                                <div className="space-y-6 mt-6">
+                                    <div className="text-center py-4 bg-slate-50/50 rounded-xl border border-slate-100 flex items-center justify-center gap-3 text-slate-600 font-medium">
+                                        <Loader2 size={20} className="animate-spin text-blue-600" />
                                         {currentCheckingDate 
                                             ? `${formatDate(currentCheckingDate)} tarihi taranıyor...` 
                                             : 'Önceki makaleler aranıyor...'}
-                                    </p>
+                                    </div>
+                                    <FeedSkeleton />
                                 </div>
                             )}
 
@@ -538,10 +775,10 @@ export function PubMedMakaleTakvim() {
             <div className="mt-12 bg-white rounded-xl shadow-lg p-8 border border-slate-100">
                 <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-3">
                     <BookOpen size={24} className="text-blue-600" />
-                    Takip Edilen Patoloji Dergileri
+                    Takip Edilen Patoloji Dergileri ({journals.length})
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {PATHOLOGY_JOURNALS.map((journal, index) => (
+                    {journals.map((journal, index) => (
                         <div key={index} className="flex items-center gap-3 py-2 px-3 bg-slate-50 rounded-lg">
                             <div className="w-2.5 h-2.5 bg-blue-500 rounded-full flex-shrink-0"></div>
                             <span className="text-sm text-gray-700 font-medium">{journal}</span>
