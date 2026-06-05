@@ -218,9 +218,9 @@ export function calculateTumorScores(
         if (ageRange === '0-5') score -= 20;
       }
 
-      // Schiller-Duval Bodies (100% pathognomonic for Yolk Sac)
+      // Schiller-Duval / mikrokistik-retiküler patern yolk sac tümör komponenti lehine güçlü morfolojik destek sağlar; İHK ve serum markerları ile korelasyon önerilir.
       if (tumor === 'yolk_sac' && morphologyFlags.schillerDuvalPattern) {
-        score = 100; // Diagnostic!
+        score = 100; // Güçlü morfolojik destek
       } else {
         if (tumor === 'prepubertal_seminoma') {
           if (ageRange === '0-5' || ageRange === '6-12') score += 50;
@@ -404,6 +404,17 @@ export function generateCombinationCards(
     });
   }
 
+  // --- Schiller-Duval morphology check ---
+  if (morphologyFlags.schillerDuvalPattern) {
+    cards.push({
+      id: 'morphology_schiller_duval',
+      title: 'Schiller-Duval / mikrokistik-retiküler patern',
+      text: 'Schiller-Duval / mikrokistik-retiküler patern yolk sac tümör komponenti lehine güçlü morfolojik destek sağlar; İHK ve serum markerları ile korelasyon önerilir.',
+      type: 'supportive',
+      priority: 95,
+    });
+  }
+
   // --- Card 4: Yolk sac tumor profile ---
   const afpPositiveOrSerumHigh =
     isPositive(observedResults, 'AFP') ||
@@ -533,7 +544,7 @@ export function generateCombinationCards(
       cards.push({
         id: `wrong_pattern_${markerId}`,
         title: `${markerName} – Yanlış boyanma paterni`,
-        text: 'Bu belirteç için uygun nükleer boyanma pozitif kabul edilmelidir. Sitoplazmik/zemin boyanma tanısal pozitiflik olarak skorlanmamalıdır.',
+        text: 'Bu belirteç için uygun nükleer boyanma pozitif kabul edilmelidir. Sitoplazmik/zemin boyanma profil uyumu pozitifliği olarak skorlanmamalıdır.',
         type: 'pitfall',
         priority: 60,
       });
@@ -580,7 +591,7 @@ export function generateMimicWarnings(
   if (olderAge && gcnisNotPresent && coreGermNegative && lymphoidPositive) {
     cards.push({
       id: 'mimic_lymphoma',
-      title: 'Lenfoma uyarısı',
+      title: 'Lenfoma (Mimik Uyarısı)',
       text: 'İleri yaş, GCNIS yokluğu ve germ hücre belirteçlerinin negatifliği ile birlikte CD45/CD20/PAX5 pozitifliği testiküler lenfoma lehine değerlendirilmelidir. Seminom benzeri solid görünümde lenfoma dışlanmadan seminom lehine yorum yapılmamalıdır.',
       type: 'non_gct_warning',
       priority: 95,
@@ -610,7 +621,7 @@ export function generateMimicWarnings(
   ) {
     cards.push({
       id: 'mimic_sex_cord',
-      title: 'Sex-cord stromal tümör uyarısı',
+      title: 'Sex-Cord Stromal Tümör (Mimik Uyarısı)',
       text: 'Germ hücre belirteçleri negatifken SF1 nükleer pozitifliği ve inhibin/calretinin desteği varsa Leydig/Sertoli hücreli tümörler veya sex-cord stromal tümörler yönünden değerlendirme önerilir.',
       type: 'non_gct_warning',
       priority: 90,
@@ -634,7 +645,7 @@ export function generateMimicWarnings(
   ) {
     cards.push({
       id: 'mimic_metastatic_carcinoma',
-      title: 'Metastatik karsinom / somatik tip malignite uyarısı',
+      title: 'Metastatik Karsinom / Somatik Tip Malignite (Mimik Uyarısı)',
       text: 'Diffüz PanCK/EMA pozitifliği ve germ hücre belirteçlerinin negatifliği, germ hücreli tümör dışı epitelyal malignite veya teratom zemininde somatik tip malignite açısından korele edilmelidir.',
       type: 'non_gct_warning',
       priority: 88,
@@ -659,7 +670,7 @@ export function generateMimicWarnings(
   ) {
     cards.push({
       id: 'mimic_melanoma',
-      title: 'Melanom uyarısı',
+      title: 'Melanom (Mimik Uyarısı)',
       text: 'Germ hücre ve epitelyal belirteçler negatifken SOX10/S100/HMB45/Melan-A pozitifliği melanom/metastatik melanom açısından değerlendirilmelidir.',
       type: 'non_gct_warning',
       priority: 87,
@@ -685,7 +696,7 @@ export function generateMimicWarnings(
   ) {
     cards.push({
       id: 'mimic_paratesticular_sarcoma',
-      title: 'Paratestiküler sarkom / mezenkimal tümör uyarısı',
+      title: 'Paratestiküler Sarkom / Mezenkimal Tümör (Mimik Uyarısı)',
       text: 'Germ hücre belirteçleri negatif ve mezenkimal markerlar pozitifse paratestiküler sarkom veya mezenkimal tümörler açısından lokalizasyon ve morfoloji ile korelasyon gerekir.',
       type: 'non_gct_warning',
       priority: 85,
@@ -904,7 +915,7 @@ export function buildIhcCopyText(
 
     if (option.isWrongPattern) {
       wrongPatternNotes.push(
-        `${abName} için sitoplazmik/yanlış patern tarzı boyanma izlenmiş olup tanısal nükleer pozitiflik olarak değerlendirilmemelidir.`,
+        `${abName} için sitoplazmik/yanlış patern tarzı boyanma izlenmiş olup profil uyumu için nükleer pozitiflik olarak değerlendirilmemelidir.`,
       );
       continue;
     }

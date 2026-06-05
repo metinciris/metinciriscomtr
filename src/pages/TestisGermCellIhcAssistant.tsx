@@ -30,7 +30,6 @@ import {
   buildIhcCopyText,
   buildSerumCopyText,
   buildInterpretationCopyText,
-  isPositive as checkIsPositive,
   type ScoreBreakdown,
 } from '../data/testisGhtRules';
 
@@ -412,6 +411,32 @@ function ReferencePanel({ tumorId }: { tumorId: TumorType | null }) {
   );
 }
 
+function getAutoStatusSuggestion(marker: 'afp' | 'betaHcg' | 'ldh', valStr: string) {
+  const cleanVal = valStr.replace(',', '.').trim();
+  const num = parseFloat(cleanVal);
+  if (isNaN(num) || num <= 0) return null;
+
+  if (marker === 'afp') {
+    if (num < 10) return { key: 'normal', label: 'Normal' };
+    if (num < 1000) return { key: 'mild_high', label: 'Hafif Yüksek' };
+    if (num <= 10000) return { key: 'significant_high', label: 'Anlamlı Yüksek' };
+    return { key: 'very_high', label: 'Çok Yüksek' };
+  }
+  if (marker === 'betaHcg') {
+    if (num < 5) return { key: 'normal', label: 'Normal' };
+    if (num < 5000) return { key: 'mild_high', label: 'Hafif Yüksek' };
+    if (num <= 50000) return { key: 'significant_high', label: 'Anlamlı Yüksek' };
+    return { key: 'very_high', label: 'Çok Yüksek' };
+  }
+  if (marker === 'ldh') {
+    if (num < 1.0) return { key: 'normal', label: 'Normal' };
+    if (num < 1.5) return { key: 'mild_high', label: 'Hafif Yüksek' };
+    if (num <= 10.0) return { key: 'significant_high', label: 'Anlamlı Yüksek' };
+    return { key: 'very_high', label: 'Çok Yüksek' };
+  }
+  return null;
+}
+
 // ─── Main Component ───
 export function TestisGermCellIhcAssistant() {
   // ─── State ───
@@ -668,6 +693,33 @@ export function TestisGermCellIhcAssistant() {
                             onChange={e => handleSerumChange(marker, 'value', e.target.value)}
                             style={{ ...inputStyle, marginBottom: '6px' }}
                           />
+                          {(() => {
+                            const sug = getAutoStatusSuggestion(marker, serumMarkers[marker].value);
+                            if (!sug) return null;
+                            const isCurrent = serumMarkers[marker].status === sug.key;
+                            return (
+                              <div style={{ marginBottom: '6px', fontSize: '10px' }}>
+                                <span style={{ color: '#64748b', marginRight: '4px' }}>Öneri:</span>
+                                <button
+                                  onClick={() => handleSerumChange(marker, 'status', sug.key)}
+                                  style={{
+                                    border: 'none',
+                                    background: isCurrent ? '#dcfce7' : '#f1f5f9',
+                                    color: isCurrent ? '#15803d' : '#2563eb',
+                                    padding: '2px 6px',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    fontWeight: '600',
+                                    fontFamily: 'inherit',
+                                    textDecoration: isCurrent ? 'none' : 'underline',
+                                  }}
+                                  title="Seçmek için tıklayın"
+                                >
+                                  {sug.label} {isCurrent && '✓'}
+                                </button>
+                              </div>
+                            );
+                          })()}
                           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
                             {serumStatusOptions.map(opt => (
                               <button
@@ -881,6 +933,20 @@ export function TestisGermCellIhcAssistant() {
                     </span>
                   </div>
                   <div style={{ padding: '14px 18px' }}>
+                    {!hasResults && (
+                      <div style={{
+                        padding: '10px 12px',
+                        backgroundColor: '#eff6ff',
+                        border: '1px solid #bfdbfe',
+                        borderRadius: '8px',
+                        marginBottom: '12px',
+                        fontSize: '11px',
+                        color: '#1e40af',
+                        lineHeight: '1.4',
+                      }}>
+                        ℹ️ <strong>İHK Verisi Girilmedi:</strong> Henüz antikor sonucu seçmediniz. Aşağıdaki barlar sadece girilen klinik/yaş/serum verilerine göre geçici profil uyumunu göstermektedir.
+                      </div>
+                    )}
                     {sortedScores.map(s => (
                       <ScoreBar
                         key={s.id}

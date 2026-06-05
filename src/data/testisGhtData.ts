@@ -472,7 +472,7 @@ export const MAIN_PANEL_ANTIBODIES: AntibodyDefinition[] = [
       expectedPositive: ['Embriyonel karsinom'],
       expectedNegative: ['Seminom', 'Spermatositik tümör'],
       pitfall:
-        'Teratom komponentlerinde değişken olabilir. Tek başına embriyonel karsinom tanısı koydurmamalıdır.',
+        'Teratom komponentlerinde değişken olabilir. Tek başına embriyonel karsinom komponent profilini doğrulamak için yeterli olmayabilir; morfolojik korelasyon önerilir.',
       copyName: 'SOX2',
     },
   },
@@ -548,7 +548,7 @@ export const MAIN_PANEL_ANTIBODIES: AntibodyDefinition[] = [
       expectedPositive: ['Koryokarsinom'],
       expectedNegative: ['Seminom', 'Spermatositik tümör'],
       pitfall:
-        'Skuamöz hücreli karsinom metastazında da pozitiftir; GHT dışı tümör ayırıcı tanıda düşünülmelidir.',
+        'Skuamöz hücreli karsinom metastazında da pozitiftir; GHT dışı tümör olasılığı yönünden de değerlendirilmelidir.',
       copyName: 'p63',
     },
   },
@@ -600,7 +600,7 @@ export const MAIN_PANEL_ANTIBODIES: AntibodyDefinition[] = [
       expectedPositive: [],
       expectedNegative: ['GCNIS', 'Seminom', 'Embriyonel karsinom', 'Yolk sac tümör', 'Koryokarsinom', 'Spermatositik tümör'],
       pitfall:
-        'SF1 pozitifliği seks kord-stromal tümörü kuvvetle destekler; GHT tanısı sorgulanmalıdır.',
+        'SF1 pozitifliği seks kord-stromal tümörü kuvvetle destekler; GHT profil uyumu sorgulanmalıdır.',
       copyName: 'SF1',
     },
   },
@@ -651,7 +651,7 @@ export const MAIN_PANEL_ANTIBODIES: AntibodyDefinition[] = [
       expectedPositive: [],
       expectedNegative: ['GCNIS', 'Seminom', 'Embriyonel karsinom', 'Yolk sac tümör', 'Spermatositik tümör'],
       pitfall:
-        'EMA pozitifliği GHT tanısını sorgulatmalıdır; karsinom metastazı, lenfoma veya teratom matür komponenti düşünülmelidir.',
+        'EMA pozitifliği GHT profil uyumunu sorgulatmalıdır; karsinom metastazı, lenfoma veya teratom matür komponenti düşünülmelidir.',
       copyName: 'EMA',
     },
   },
@@ -998,7 +998,7 @@ export const MIMIC_PANEL_ANTIBODIES: AntibodyDefinition[] = [
     options: mimicOptions(),
     infoCard: {
       stainingPattern: 'Nükleer',
-      mainUse: 'Rabdomyosarkom tanısında spesifik nükleer belirteç.',
+      mainUse: 'Rabdomyosarkom profili için spesifik nükleer belirteç.',
       expectedPositive: ['Rabdomyosarkom'],
       expectedNegative: ['GHT', 'Leiomyosarkom'],
       pitfall: 'Paratestiküler rabdomyosarkom testis kitlesi olarak başvurabilir.',
@@ -1013,7 +1013,7 @@ export const MIMIC_PANEL_ANTIBODIES: AntibodyDefinition[] = [
     options: mimicOptions(),
     infoCard: {
       stainingPattern: 'Nükleer',
-      mainUse: 'Rabdomyosarkom tanısında nükleer belirteç. Myogenin ile birlikte kullanılır.',
+      mainUse: 'Rabdomyosarkom profili için nükleer belirteç. Myogenin ile birlikte kullanılır.',
       expectedPositive: ['Rabdomyosarkom'],
       expectedNegative: ['GHT', 'Leiomyosarkom'],
       pitfall: 'Myogenin\'den daha az spesifiktir; birlikte değerlendirilmelidir.',
@@ -1078,7 +1078,7 @@ export const MIMIC_PANEL_ANTIBODIES: AntibodyDefinition[] = [
     options: mimicOptions(),
     infoCard: {
       stainingPattern: 'Nükleer',
-      mainUse: 'MDM2 ile birlikte liposarkom tanısında destekleyici belirteç.',
+      mainUse: 'MDM2 ile birlikte liposarkom profili için destekleyici belirteç.',
       expectedPositive: ['İyi diferansiye liposarkom', 'Dediferansiye liposarkom'],
       expectedNegative: ['GHT', 'Lipom'],
       pitfall: 'Nonspesifik nükleer boyanma görülebilir; MDM2 ile birlikte yorumlanmalıdır.',
@@ -1110,7 +1110,7 @@ export const MIMIC_PANEL_ANTIBODIES: AntibodyDefinition[] = [
     options: mimicOptions(),
     infoCard: {
       stainingPattern: 'Membranöz',
-      mainUse: 'Vasküler endotelyal belirteç. Anjiosarkom tanısında en spesifik vasküler belirteçtir.',
+      mainUse: 'Vasküler endotelyal belirteç. Anjiosarkom profili için en spesifik vasküler belirteçtir.',
       expectedPositive: ['Anjiosarkom', 'Hemanjiyom'],
       expectedNegative: ['GHT', 'Karsinom'],
       pitfall: 'Megakaryositler ve trombositlerde de pozitiftir; tümör hücresindeki boyanma doğrulanmalıdır.',
@@ -1267,7 +1267,7 @@ export const TUMOR_DEFINITIONS: TumorDefinition[] = [
         'İmmatür komponent veya somatik malignite gelişimi araştırılmalıdır.',
       ],
       notes: [
-        'Tanı immünohistokimyadan çok morfolojik somatik doku komponentlerinin gösterilmesine dayanır.',
+        'Komponent profil uyumu immünohistokimyadan çok morfolojik somatik doku komponentlerinin gösterilmesine dayanır.',
         'Matür/immatür somatik doku komponentine göre boyanır; epitelyal, mezenkimal, nöral komponentler farklı belirteçlerle pozitif olabilir.',
       ],
     },
@@ -1287,7 +1287,7 @@ export const TUMOR_DEFINITIONS: TumorDefinition[] = [
       },
       pitfalls: [
         'Seminomdan ayrımda GCNIS yokluğu, OCT3/4 negatifliği ve yaş önemlidir.',
-        'İleri yaşta lenfoma da ayırıcı tanıdadır.',
+        'İleri yaşta lenfoma olasılığı (mimik uyarısı) dışlanmalıdır.',
       ],
       notes: [
         'Spermatositik tümör: OCT3/4-, CD30-, AFP/GPC3-, SALL4 değişken/zayıf, CD117 olabilir.',
@@ -1531,7 +1531,7 @@ export const MEDICAL_DISCLAIMER =
 // ---------------------------------------------------------------------------
 
 export const WEIGHT_DISCLAIMER =
-  'Yüzdeler tanısal duyarlılık/özgüllük değildir; girilen sonucun ilgili komponent profiliyle beklenen uyum gücünü gösteren pratik uygulama ağırlıklarıdır.';
+  'Yüzdeler tanısal duyarlılık/özgüllük veya kesin tanı değildir; girilen sonucun ilgili komponent profiliyle beklenen uyum gücünü gösteren pratik uygulama ağırlıklarıdır.';
 
 // ---------------------------------------------------------------------------
 // 13. getScoreColor
