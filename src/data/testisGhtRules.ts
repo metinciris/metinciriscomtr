@@ -89,12 +89,19 @@ function allTumorTypes(): TumorType[] {
 
 // ─── 1. calculateTumorScores ───────────────────────────────
 
+export interface ScoreBreakdown {
+  total: number;
+  ihc: number;
+  serum: number;
+  clinical: number;
+}
+
 export function calculateTumorScores(
   observedResults: Record<string, string>,
   serumMarkers: SerumMarkers,
   ageRange: AgeRange,
   morphologyFlags: MorphologyFlags,
-): Record<TumorType, number> {
+): Record<TumorType, ScoreBreakdown> {
   const tumorTypes = allTumorTypes();
   const allAntibodies = [...MAIN_PANEL_ANTIBODIES, ...MIMIC_PANEL_ANTIBODIES];
 
@@ -181,102 +188,139 @@ export function calculateTumorScores(
     if (rawScores[tumor] < 0) rawScores[tumor] = 0;
   }
 
-  // ---------- Normalise to 0–100 ----------
-  const normalised: Record<string, number> = {};
+  // ---------- Base IHC score ----------
+  const ihcScores: Record<string, number> = {};
   for (const tumor of tumorTypes) {
     const maxVal = theoreticalMax[tumor];
     if (maxVal <= 0) {
-      normalised[tumor] = 0;
+      ihcScores[tumor] = 0;
     } else {
-      normalised[tumor] = Math.min(100, Math.max(0, (rawScores[tumor] / maxVal) * 100));
+      ihcScores[tumor] = Math.min(100, Math.max(0, (rawScores[tumor] / maxVal) * 100));
     }
   }
 
   // ---------- Serum marker adjustments ----------
-  // AFP
-  if (
-    serumMarkers.afp === 'significant_high' ||
-    serumMarkers.afp === 'very_high'
-  ) {
-    normalised['yolk_sac'] = (normalised['yolk_sac'] ?? 0) + 15;
-    normalised['seminoma'] = (normalised['seminoma'] ?? 0) - 10;
-  } else if (serumMarkers.afp === 'mild_high') {
-    normalised['yolk_sac'] = (normalised['yolk_sac'] ?? 0) + 8;
-  } else if (serumMarkers.afp === 'normal') {
-    normalised['seminoma'] = (normalised['seminoma'] ?? 0) + 3;
+  const serumAdjustments: Record<string, number> = {};
+  for (const tumor of tumorTypes) {
+    serumAdjustments[tumor] = 0;
+  }
+  const afpStatus = serumMarkers.afp?.status;
+  const hcgStatus = serumMarkers.betaHcg?.status;
+  const ldhStatus = serumMarkers.ldh?.status;
+
+  if (afpStatus === 'significant_high' || afpStatus === 'very_high') {
+    serumAdjustments['yolk_sac'] += 15;
+    serumAdjustments['seminoma'] -= 10;
+  } else if (afpStatus === 'mild_high') {
+    serumAdjustments['yolk_sac'] += 8;
+  } else if (afpStatus === 'normal') {
+    serumAdjustments['seminoma'] += 3;
   }
 
-  // beta-hCG
-  if (
-    serumMarkers.betaHcg === 'significant_high' ||
-    serumMarkers.betaHcg === 'very_high'
-  ) {
-    normalised['choriocarcinoma'] = (normalised['choriocarcinoma'] ?? 0) + 15;
-  } else if (serumMarkers.betaHcg === 'mild_high') {
-    normalised['choriocarcinoma'] = (normalised['choriocarcinoma'] ?? 0) + 8;
+  if (hcgStatus === 'significant_high' || hcgStatus === 'very_high') {
+    serumAdjustments['choriocarcinoma'] += 15;
+  } else if (hcgStatus === 'mild_high') {
+    serumAdjustments['choriocarcinoma'] += 8;
   }
 
-  // LDH
-  if (serumMarkers.ldh === 'very_high') {
+  if (ldhStatus === 'very_high') {
     for (const tumor of tumorTypes) {
-      normalised[tumor] = (normalised[tumor] ?? 0) + 2;
+      serumAdjustments[tumor] += 2;
     }
   }
 
-  // Re-clamp after serum
-  for (const tumor of tumorTypes) {
-    normalised[tumor] = Math.min(100, Math.max(0, normalised[tumor] ?? 0));
-  }
-
   // ---------- Age adjustments ----------
+  const ageAdjustments: Record<string, number> = {};
+  for (const tumor of tumorTypes) {
+    ageAdjustments[tumor] = 0;
+  }
   if (ageRange === '0-5') {
-    normalised['yolk_sac'] = (normalised['yolk_sac'] ?? 0) + 5;
-    normalised['teratoma'] = (normalised['teratoma'] ?? 0) + 5;
-    normalised['seminoma'] = (normalised['seminoma'] ?? 0) - 5;
-    normalised['gcnis'] = (normalised['gcnis'] ?? 0) - 5;
+    ageAdjustments['yolk_sac'] += 5;
+    ageAdjustments['teratoma'] += 5;
+    ageAdjustments['seminoma'] -= 5;
+    ageAdjustments['gcnis'] -= 5;
   } else if (ageRange === '6-12') {
-    normalised['yolk_sac'] = (normalised['yolk_sac'] ?? 0) + 3;
-    normalised['teratoma'] = (normalised['teratoma'] ?? 0) + 3;
+    ageAdjustments['yolk_sac'] += 3;
+    ageAdjustments['teratoma'] += 3;
   } else if (ageRange === '>60') {
-    normalised['spermatocytic'] = (normalised['spermatocytic'] ?? 0) + 8;
-    normalised['seminoma'] = (normalised['seminoma'] ?? 0) - 3;
+    ageAdjustments['spermatocytic'] += 8;
+    ageAdjustments['seminoma'] -= 3;
   } else if (ageRange === '46-60') {
-    normalised['spermatocytic'] = (normalised['spermatocytic'] ?? 0) + 5;
+    ageAdjustments['spermatocytic'] += 5;
   }
 
   // ---------- Morphology adjustments ----------
+  const morphAdjustments: Record<string, number> = {};
+  for (const tumor of tumorTypes) {
+    morphAdjustments[tumor] = 0;
+  }
   if (morphologyFlags.gcnisPresent) {
-    normalised['gcnis'] = (normalised['gcnis'] ?? 0) + 5;
-    normalised['seminoma'] = (normalised['seminoma'] ?? 0) + 3;
-    normalised['embryonal_carcinoma'] = (normalised['embryonal_carcinoma'] ?? 0) + 2;
+    morphAdjustments['gcnis'] += 5;
+    morphAdjustments['seminoma'] += 3;
+    morphAdjustments['embryonal_carcinoma'] += 2;
   }
   if (morphologyFlags.gcnisAbsent) {
-    normalised['spermatocytic'] = (normalised['spermatocytic'] ?? 0) + 5;
-    normalised['gcnis'] = (normalised['gcnis'] ?? 0) - 10;
+    morphAdjustments['spermatocytic'] += 5;
+    morphAdjustments['gcnis'] -= 10;
   }
   if (morphologyFlags.schillerDuvalPattern) {
-    normalised['yolk_sac'] = (normalised['yolk_sac'] ?? 0) + 5;
+    morphAdjustments['yolk_sac'] += 5;
   }
   if (morphologyFlags.hemorrhageNecrosisDominant) {
-    normalised['choriocarcinoma'] = (normalised['choriocarcinoma'] ?? 0) + 5;
+    morphAdjustments['choriocarcinoma'] += 5;
   }
   if (morphologyFlags.syncytiotrophoblasticGiantCells) {
-    normalised['choriocarcinoma'] = (normalised['choriocarcinoma'] ?? 0) + 3;
+    morphAdjustments['choriocarcinoma'] += 3;
   }
   if (morphologyFlags.biphasicTrophoblasticPattern) {
-    normalised['choriocarcinoma'] = (normalised['choriocarcinoma'] ?? 0) + 5;
+    morphAdjustments['choriocarcinoma'] += 5;
   }
   if (morphologyFlags.matureSomaticComponent) {
-    normalised['teratoma'] = (normalised['teratoma'] ?? 0) + 8;
+    morphAdjustments['teratoma'] += 8;
   }
   if (morphologyFlags.clearCytoplasmSheets) {
-    normalised['seminoma'] = (normalised['seminoma'] ?? 0) + 3;
+    morphAdjustments['seminoma'] += 3;
   }
 
-  // ---------- Final clamp ----------
-  const result = {} as Record<TumorType, number>;
+  // ---------- Final clamp and compile breakdown ----------
+  const result = {} as Record<TumorType, ScoreBreakdown>;
   for (const tumor of tumorTypes) {
-    result[tumor] = Math.min(100, Math.max(0, Math.round(normalised[tumor] ?? 0)));
+    const ihcVal = Math.round(ihcScores[tumor] ?? 0);
+    const serumVal = serumAdjustments[tumor] ?? 0;
+    const clinicalVal = (ageAdjustments[tumor] ?? 0) + (morphAdjustments[tumor] ?? 0);
+
+    const total = Math.min(100, Math.max(0, Math.round(ihcVal + serumVal + clinicalVal)));
+
+    // Distribute proportions for stacked bar colors
+    const ihcContrib = Math.max(0, ihcVal);
+    const serumContrib = Math.max(0, serumVal);
+    const clinicalContrib = Math.max(0, clinicalVal);
+    const sumContrib = ihcContrib + serumContrib + clinicalContrib;
+
+    let ihcShare = 0;
+    let serumShare = 0;
+    let clinicalShare = 0;
+
+    if (sumContrib > 0) {
+      ihcShare = Math.round((ihcContrib / sumContrib) * total);
+      serumShare = Math.round((serumContrib / sumContrib) * total);
+      clinicalShare = Math.min(total - ihcShare - serumShare, Math.round((clinicalContrib / sumContrib) * total));
+
+      // Ensure exact sum match due to rounding
+      const diff = total - (ihcShare + serumShare + clinicalShare);
+      if (diff !== 0) {
+        if (ihcShare > 0) ihcShare += diff;
+        else if (serumShare > 0) serumShare += diff;
+        else if (clinicalShare > 0) clinicalShare += diff;
+      }
+    }
+
+    result[tumor] = {
+      total,
+      ihc: ihcShare,
+      serum: serumShare,
+      clinical: clinicalShare,
+    };
   }
   return result;
 }
@@ -332,7 +376,7 @@ export function generateCombinationCards(
   }
 
   // --- Card 3: Seminoma vs embryonal carcinoma differentiation ---
-  if (scores.seminoma >= 40 && scores.embryonal_carcinoma >= 40) {
+  if (scores.seminoma.total >= 40 && scores.embryonal_carcinoma.total >= 40) {
     let diffText: string;
     if (
       (isPositive(observedResults, 'CD117') || isPositive(observedResults, 'SOX17')) &&
@@ -365,9 +409,9 @@ export function generateCombinationCards(
   // --- Card 4: Yolk sac tumor profile ---
   const afpPositiveOrSerumHigh =
     isPositive(observedResults, 'AFP') ||
-    serumMarkers.afp === 'significant_high' ||
-    serumMarkers.afp === 'very_high' ||
-    serumMarkers.afp === 'mild_high';
+    serumMarkers.afp.status === 'significant_high' ||
+    serumMarkers.afp.status === 'very_high' ||
+    serumMarkers.afp.status === 'mild_high';
 
   if (
     isPositive(observedResults, 'SALL4') &&
@@ -422,7 +466,7 @@ export function generateCombinationCards(
 
   // --- Card 7: beta-hCG seminoma pitfall ---
   if (
-    scores.seminoma >= 60 &&
+    scores.seminoma.total >= 60 &&
     observedResults['betaHCG'] === 'syncytial_only' &&
     isNegative(observedResults, 'AFP') &&
     isNegative(observedResults, 'GPC3')
@@ -438,8 +482,8 @@ export function generateCombinationCards(
 
   // --- Card 8: AFP elevation + seminoma conflict ---
   if (
-    scores.seminoma >= 60 &&
-    (serumMarkers.afp === 'significant_high' || serumMarkers.afp === 'very_high')
+    scores.seminoma.total >= 60 &&
+    (serumMarkers.afp.status === 'significant_high' || serumMarkers.afp.status === 'very_high')
   ) {
     cards.push({
       id: 'combo_afp_seminoma_conflict',
@@ -674,9 +718,9 @@ export function generateNextMarkerSuggestions(
 
   // Seminoma vs EC ambiguity
   if (
-    scores.seminoma >= 30 &&
-    scores.embryonal_carcinoma >= 30 &&
-    Math.abs(scores.seminoma - scores.embryonal_carcinoma) <= 20
+    scores.seminoma.total >= 30 &&
+    scores.embryonal_carcinoma.total >= 30 &&
+    Math.abs(scores.seminoma.total - scores.embryonal_carcinoma.total) <= 20
   ) {
     cards.push({
       id: 'suggest_sem_ec_diff',
@@ -690,7 +734,7 @@ export function generateNextMarkerSuggestions(
 
   // Yolk sac + AFP ambiguity
   if (
-    scores.yolk_sac >= 30 &&
+    scores.yolk_sac.total >= 30 &&
     (isNegative(observedResults, 'AFP') || isNotDone(observedResults, 'AFP'))
   ) {
     cards.push({
@@ -704,7 +748,7 @@ export function generateNextMarkerSuggestions(
   }
 
   // Choriocarcinoma
-  if (scores.choriocarcinoma >= 30) {
+  if (scores.choriocarcinoma.total >= 30) {
     cards.push({
       id: 'suggest_chorio',
       title: 'Koryokarsinom değerlendirmesi için önerilen panel',
@@ -717,12 +761,12 @@ export function generateNextMarkerSuggestions(
 
   // Older age + low GCT scores → lymphoma exclusion
   const maxGctScore = Math.max(
-    scores.seminoma ?? 0,
-    scores.embryonal_carcinoma ?? 0,
-    scores.yolk_sac ?? 0,
-    scores.choriocarcinoma ?? 0,
-    scores.teratoma ?? 0,
-    scores.spermatocytic ?? 0,
+    scores.seminoma?.total ?? 0,
+    scores.embryonal_carcinoma?.total ?? 0,
+    scores.yolk_sac?.total ?? 0,
+    scores.choriocarcinoma?.total ?? 0,
+    scores.teratoma?.total ?? 0,
+    scores.spermatocytic?.total ?? 0,
   );
   if (ageRange === '>60' && maxGctScore < 60) {
     cards.push({
@@ -925,31 +969,32 @@ function serumStatusToTr(status: string | undefined): string {
 /** Build Turkish-language serum marker summary. */
 export function buildSerumCopyText(serumMarkers: SerumMarkers): string {
   const allUnknown =
-    (serumMarkers.afp === 'unknown' || !serumMarkers.afp) &&
-    (serumMarkers.betaHcg === 'unknown' || !serumMarkers.betaHcg) &&
-    (serumMarkers.ldh === 'unknown' || !serumMarkers.ldh);
+    (serumMarkers.afp.status === 'unknown' || !serumMarkers.afp.status) &&
+    (serumMarkers.betaHcg.status === 'unknown' || !serumMarkers.betaHcg.status) &&
+    (serumMarkers.ldh.status === 'unknown' || !serumMarkers.ldh.status);
 
   if (allUnknown) {
     return 'Serum marker bilgisi girilmemiştir.';
   }
 
-  return `Serum belirteçlerinde AFP ${serumStatusToTr(serumMarkers.afp)}, beta-hCG ${serumStatusToTr(serumMarkers.betaHcg)}, LDH ${serumStatusToTr(serumMarkers.ldh)} olarak değerlendirilmiştir.`;
+  return `Serum belirteçlerinde AFP ${serumStatusToTr(serumMarkers.afp.status)}, beta-hCG ${serumStatusToTr(serumMarkers.betaHcg.status)}, LDH ${serumStatusToTr(serumMarkers.ldh.status)} olarak değerlendirilmiştir.`;
 }
 
 /** Build interpretation copy text from scored cards. */
 export function buildInterpretationCopyText(
   cards: CardOutput[],
-  scores: Record<TumorType, number>,
+  scores: Record<TumorType, ScoreBreakdown>,
 ): string {
   const parts: string[] = [];
 
   // Top scoring tumours (up to 3)
-  const sortedTumors = (Object.entries(scores) as [TumorType, number][])
-    .filter(([, v]) => v > 0)
-    .sort(([, a], [, b]) => b - a)
+  const sortedTumors = (Object.entries(scores) as [TumorType, ScoreBreakdown][])
+    .filter(([, v]) => v.total > 0)
+    .sort(([, a], [, b]) => b.total - a.total)
     .slice(0, 3);
 
-  for (const [tumor, score] of sortedTumors) {
+  for (const [tumor, breakdown] of sortedTumors) {
+    const score = breakdown.total;
     const def = TUMOR_DEFINITIONS.find((t) => t.id === tumor);
     const label = def?.name ?? tumor;
     let uyumLevel: string;

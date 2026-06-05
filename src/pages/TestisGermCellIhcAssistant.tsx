@@ -31,6 +31,7 @@ import {
   buildSerumCopyText,
   buildInterpretationCopyText,
   isPositive as checkIsPositive,
+  type ScoreBreakdown,
 } from '../data/testisGhtRules';
 
 // ─── Inline style constants ───
@@ -209,44 +210,84 @@ function AntibodyRow({
   );
 }
 
-function ScoreBar({ tumorId, name, score, isSelected, onClick }: {
-  tumorId: string; name: string; score: number; isSelected: boolean;
+function ScoreBar({
+  tumorId,
+  name,
+  breakdown,
+  isSelected,
+  onClick,
+}: {
+  tumorId: string;
+  name: string;
+  breakdown: ScoreBreakdown;
+  isSelected: boolean;
   onClick: () => void;
 }) {
-  const colors = getScoreColor(score);
+  const colors = getScoreColor(breakdown.total);
   return (
     <button
       onClick={onClick}
       style={{
         width: '100%', textAlign: 'left', cursor: 'pointer',
-        padding: '10px 14px', borderRadius: '10px', marginBottom: '6px',
-        border: isSelected ? '2px solid #3b82f6' : '1px solid #e2e8f0',
-        backgroundColor: isSelected ? '#eff6ff' : '#ffffff',
-        transition: 'all 0.2s', fontFamily: 'inherit',
-        boxShadow: isSelected ? '0 0 0 2px rgba(59,130,246,0.2)' : 'none',
+        padding: '12px 16px', borderRadius: '10px', marginBottom: '8px',
+        border: isSelected ? '2px solid #2563eb' : '1px solid #e2e8f0',
+        borderLeft: isSelected ? '6px solid #2563eb' : '1px solid #e2e8f0',
+        backgroundColor: isSelected ? '#f8fafc' : '#ffffff',
+        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+        fontFamily: 'inherit',
+        boxShadow: isSelected ? '0 4px 12px rgba(37,99,235,0.15)' : 'none',
+        transform: isSelected ? 'scale(1.02)' : 'scale(1)',
       }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-        <span style={{ fontSize: '13px', fontWeight: '700', color: '#0f172a' }}>{name}</span>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+        <span style={{ fontSize: '13px', fontWeight: '700', color: isSelected ? '#1e3a8a' : '#0f172a' }}>{name}</span>
         <span style={{
           fontSize: '12px', fontWeight: '700', color: colors.text,
           backgroundColor: colors.bg, padding: '2px 8px', borderRadius: '6px',
           border: `1px solid ${colors.border}`,
         }}>
-          {Math.round(score)}%
+          {Math.round(breakdown.total)}%
         </span>
       </div>
+
+      {/* Segmented Progress Bar */}
       <div style={{
-        height: '6px', backgroundColor: '#f1f5f9', borderRadius: '3px', overflow: 'hidden',
+        height: '8px', backgroundColor: '#f1f5f9', borderRadius: '4px', overflow: 'hidden',
+        display: 'flex',
       }}>
-        <div style={{
-          height: '100%', width: `${Math.min(score, 100)}%`,
-          backgroundColor: colors.border, borderRadius: '3px',
-          transition: 'width 0.4s ease',
-        }} />
+        {breakdown.ihc > 0 && (
+          <div style={{
+            height: '100%', width: `${breakdown.ihc}%`,
+            backgroundColor: '#3b82f6', // blue for IHC
+            transition: 'width 0.4s ease',
+          }} title={`İHK Uyumu: %${breakdown.ihc}`} />
+        )}
+        {breakdown.serum > 0 && (
+          <div style={{
+            height: '100%', width: `${breakdown.serum}%`,
+            backgroundColor: '#f59e0b', // amber for Serum
+            transition: 'width 0.4s ease',
+          }} title={`Serum Uyumu: %${breakdown.serum}`} />
+        )}
+        {breakdown.clinical > 0 && (
+          <div style={{
+            height: '100%', width: `${breakdown.clinical}%`,
+            backgroundColor: '#8b5cf6', // violet for Clinical/Age/Morphology
+            transition: 'width 0.4s ease',
+          }} title={`Yaş/Klinik Uyumu: %${breakdown.clinical}`} />
+        )}
       </div>
-      <div style={{ fontSize: '10px', color: colors.text, marginTop: '2px', fontWeight: '500' }}>
-        {colors.label}
+
+      {/* Legend & Label */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
+        <div style={{ fontSize: '10px', color: colors.text, fontWeight: '600' }}>
+          {colors.label}
+        </div>
+        <div style={{ display: 'flex', gap: '6px', fontSize: '9px', color: '#64748b' }}>
+          {breakdown.ihc > 0 && <span>🔵 İHK</span>}
+          {breakdown.serum > 0 && <span>🟡 Serum</span>}
+          {breakdown.clinical > 0 && <span>🟣 Klinik</span>}
+        </div>
       </div>
     </button>
   );
@@ -556,7 +597,7 @@ export function TestisGermCellIhcAssistant() {
           {/* ─── Main Layout ─── */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: '1fr 390px',
+            gridTemplateColumns: '390px 360px 1fr',
             gap: '16px',
           }} className="testis-ght-layout">
 
@@ -755,116 +796,6 @@ export function TestisGermCellIhcAssistant() {
                 )}
               </div>
 
-              {/* ─── Combination Cards ─── */}
-              {combinationCards.length > 0 && (
-                <div style={cardStyle}>
-                  <div style={{
-                    ...sectionHeaderStyle, cursor: 'default',
-                  }}>
-                    <span style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a' }}>
-                      🔬 Kombinasyon Kartları
-                    </span>
-                  </div>
-                  <div style={{ padding: '14px 18px' }}>
-                    {combinationCards.map((card, i) => (
-                      <CardDisplay key={i} card={card} />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* ─── Mimic Warnings ─── */}
-              {mimicWarnings.length > 0 && (
-                <div style={cardStyle}>
-                  <div style={{
-                    ...sectionHeaderStyle, cursor: 'default',
-                    backgroundColor: '#fdf2f8',
-                  }}>
-                    <span style={{ fontSize: '14px', fontWeight: '700', color: '#831843' }}>
-                      🔴 GHT Dışı / Mimik Uyarıları
-                    </span>
-                  </div>
-                  <div style={{ padding: '14px 18px' }}>
-                    {mimicWarnings.map((card, i) => (
-                      <CardDisplay key={i} card={card} />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* ─── Next Marker Suggestions ─── */}
-              {nextSuggestions.length > 0 && (
-                <div style={cardStyle}>
-                  <div style={{
-                    ...sectionHeaderStyle, cursor: 'default',
-                    backgroundColor: '#eff6ff',
-                  }}>
-                    <span style={{ fontSize: '14px', fontWeight: '700', color: '#1e40af' }}>
-                      💡 Sonraki Önerilen Markerlar
-                    </span>
-                  </div>
-                  <div style={{ padding: '14px 18px' }}>
-                    {nextSuggestions.map((card, i) => (
-                      <CardDisplay key={i} card={card} />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* ─── Copy Section ─── */}
-              <div style={cardStyle}>
-                <div
-                  style={sectionHeaderStyle}
-                  onClick={() => setShowCopyPanel(p => !p)}
-                >
-                  <Clipboard size={16} color="#0d9488" />
-                  <span style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a' }}>
-                    Kopyalanabilir Metinler
-                  </span>
-                  {showCopyPanel ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                </div>
-                {showCopyPanel && (
-                  <div style={{ padding: '14px 18px' }}>
-                    <div style={{ marginBottom: '14px' }}>
-                      <label style={labelStyle}>İHK Sonucu</label>
-                      <div style={{
-                        padding: '10px', backgroundColor: '#f8fafc', borderRadius: '8px',
-                        border: '1px solid #e2e8f0', fontSize: '12px', lineHeight: '1.6',
-                        color: '#334155', marginBottom: '6px', maxHeight: '120px', overflow: 'auto',
-                      }}>
-                        {ihcCopyText || 'Henüz sonuç girilmemiş.'}
-                      </div>
-                      <CopyButton text={ihcCopyText} label="Kopyala: İHK" />
-                    </div>
-                    <div style={{ marginBottom: '14px' }}>
-                      <label style={labelStyle}>Serum Sonucu</label>
-                      <div style={{
-                        padding: '10px', backgroundColor: '#f8fafc', borderRadius: '8px',
-                        border: '1px solid #e2e8f0', fontSize: '12px', lineHeight: '1.6',
-                        color: '#334155', marginBottom: '6px',
-                      }}>
-                        {serumCopyText}
-                      </div>
-                      <CopyButton text={serumCopyText} label="Kopyala: Serum" />
-                    </div>
-                    <div style={{ marginBottom: '14px' }}>
-                      <label style={labelStyle}>Uyum Yorumu</label>
-                      <div style={{
-                        padding: '10px', backgroundColor: '#f8fafc', borderRadius: '8px',
-                        border: '1px solid #e2e8f0', fontSize: '12px', lineHeight: '1.6',
-                        color: '#334155', marginBottom: '6px', maxHeight: '120px', overflow: 'auto',
-                      }}>
-                        {interpretationCopyText || 'Yeterli veri girilmemiş.'}
-                      </div>
-                      <CopyButton text={interpretationCopyText} label="Kopyala: Uyum Yorumu" />
-                    </div>
-                    <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '10px' }}>
-                      <CopyButton text={fullCopyText} label="Hepsini Kopyala" />
-                    </div>
-                  </div>
-                )}
-              </div>
-
               {/* ─── Action Buttons ─── */}
               <div style={{
                 display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px',
@@ -916,7 +847,7 @@ export function TestisGermCellIhcAssistant() {
 
             </div>
 
-            {/* ═══ RIGHT COLUMN (Sidebar) ═══ */}
+            {/* ═══ MIDDLE COLUMN (Uyumlar) ═══ */}
             <div>
               <div
                 className="testis-ght-sidebar"
@@ -932,6 +863,7 @@ export function TestisGermCellIhcAssistant() {
                 <div style={cardStyle}>
                   <div style={{
                     ...sectionHeaderStyle, cursor: 'default',
+                    backgroundColor: '#f8fafc',
                   }}>
                     <Shield size={16} color="#0d9488" />
                     <span style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a' }}>
@@ -944,14 +876,28 @@ export function TestisGermCellIhcAssistant() {
                         key={s.id}
                         tumorId={s.id}
                         name={s.name}
-                        score={s.score}
+                        breakdown={scores[s.id as TumorType]}
                         isSelected={selectedTumorReference === s.id}
                         onClick={() => handleTumorClick(s.id as TumorType)}
                       />
                     ))}
                   </div>
                 </div>
+              </div>
+            </div>
 
+            {/* ═══ RIGHT COLUMN (Detaylar & Kartlar) ═══ */}
+            <div>
+              <div
+                className="testis-ght-sidebar"
+                style={{
+                  position: 'sticky',
+                  top: '16px',
+                  maxHeight: 'calc(100vh - 32px)',
+                  overflowY: 'auto',
+                  paddingRight: '6px',
+                }}
+              >
                 {/* Info/Reference Panel */}
                 {selectedAntibodyDef && (
                   <InfoPanel antibody={selectedAntibodyDef} />
@@ -975,7 +921,117 @@ export function TestisGermCellIhcAssistant() {
                   </div>
                 )}
 
-                {/* Active warnings count */}
+                {/* ─── Combination Cards ─── */}
+                {combinationCards.length > 0 && (
+                  <div style={cardStyle}>
+                    <div style={{
+                      ...sectionHeaderStyle, cursor: 'default',
+                    }}>
+                      <span style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a' }}>
+                        🔬 Kombinasyon Kartları
+                      </span>
+                    </div>
+                    <div style={{ padding: '14px 18px' }}>
+                      {combinationCards.map((card, i) => (
+                        <CardDisplay key={i} card={card} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* ─── Mimic Warnings ─── */}
+                {mimicWarnings.length > 0 && (
+                  <div style={cardStyle}>
+                    <div style={{
+                      ...sectionHeaderStyle, cursor: 'default',
+                      backgroundColor: '#fdf2f8',
+                    }}>
+                      <span style={{ fontSize: '14px', fontWeight: '700', color: '#831843' }}>
+                        🔴 GHT Dışı / Mimik Uyarıları
+                      </span>
+                    </div>
+                    <div style={{ padding: '14px 18px' }}>
+                      {mimicWarnings.map((card, i) => (
+                        <CardDisplay key={i} card={card} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* ─── Next Marker Suggestions ─── */}
+                {nextSuggestions.length > 0 && (
+                  <div style={cardStyle}>
+                    <div style={{
+                      ...sectionHeaderStyle, cursor: 'default',
+                      backgroundColor: '#eff6ff',
+                    }}>
+                      <span style={{ fontSize: '14px', fontWeight: '700', color: '#1e40af' }}>
+                        💡 Sonraki Önerilen Markerlar
+                      </span>
+                    </div>
+                    <div style={{ padding: '14px 18px' }}>
+                      {nextSuggestions.map((card, i) => (
+                        <CardDisplay key={i} card={card} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* ─── Copy Section ─── */}
+                <div style={cardStyle}>
+                  <div
+                    style={sectionHeaderStyle}
+                    onClick={() => setShowCopyPanel(p => !p)}
+                  >
+                    <Clipboard size={16} color="#0d9488" />
+                    <span style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a' }}>
+                      Kopyalanabilir Metinler
+                    </span>
+                    {showCopyPanel ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                  </div>
+                  {showCopyPanel && (
+                    <div style={{ padding: '14px 18px' }}>
+                      <div style={{ marginBottom: '14px' }}>
+                        <label style={labelStyle}>İHK Sonucu</label>
+                        <div style={{
+                          padding: '10px', backgroundColor: '#f8fafc', borderRadius: '8px',
+                          border: '1px solid #e2e8f0', fontSize: '12px', lineHeight: '1.6',
+                          color: '#334155', marginBottom: '6px', maxHeight: '120px', overflow: 'auto',
+                        }}>
+                          {ihcCopyText || 'Henüz sonuç girilmemiş.'}
+                        </div>
+                        <CopyButton text={ihcCopyText} label="Kopyala: İHK" />
+                      </div>
+                      <div style={{ marginBottom: '14px' }}>
+                        <label style={labelStyle}>Serum Sonucu</label>
+                        <div style={{
+                          padding: '10px', backgroundColor: '#f8fafc', borderRadius: '8px',
+                          border: '1px solid #e2e8f0', fontSize: '12px', lineHeight: '1.6',
+                          color: '#334155', marginBottom: '6px',
+                        }}>
+                          {serumCopyText}
+                        </div>
+                        <CopyButton text={serumCopyText} label="Kopyala: Serum" />
+                      </div>
+                      <div style={{ marginBottom: '14px' }}>
+                        <label style={labelStyle}>Uyum Yorumu</label>
+                        <div style={{
+                          padding: '10px', backgroundColor: '#f8fafc', borderRadius: '8px',
+                          border: '1px solid #e2e8f0', fontSize: '12px', lineHeight: '1.6',
+                          color: '#334155', marginBottom: '6px', maxHeight: '120px', overflow: 'auto',
+                        }}>
+                          {interpretationCopyText || 'Yeterli veri girilmemiş.'}
+                        </div>
+                        <CopyButton text={interpretationCopyText} label="Kopyala: Uyum Yorumu" />
+                      </div>
+                      <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '10px' }}>
+                        <CopyButton text={fullCopyText} label="Hepsini Kopyala" />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Active warnings count summary */}
                 {(combinationCards.length > 0 || mimicWarnings.length > 0) && (
                   <div style={{ ...cardStyle, marginTop: '8px' }}>
                     <div style={{ padding: '10px 14px' }}>
@@ -983,21 +1039,16 @@ export function TestisGermCellIhcAssistant() {
                         fontSize: '11px', fontWeight: '700', color: '#64748b',
                         textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px',
                       }}>
-                        Aktif Kartlar
+                        Aktif Kart Özetleri
                       </div>
                       {combinationCards.length > 0 && (
                         <div style={{ fontSize: '12px', color: '#166534', marginBottom: '2px' }}>
-                          ✅ {combinationCards.length} kombinasyon kartı
+                          ✅ {combinationCards.length} kombinasyon kartı aktif
                         </div>
                       )}
                       {mimicWarnings.length > 0 && (
                         <div style={{ fontSize: '12px', color: '#831843' }}>
-                          🔴 {mimicWarnings.length} GHT dışı uyarı
-                        </div>
-                      )}
-                      {nextSuggestions.length > 0 && (
-                        <div style={{ fontSize: '12px', color: '#1e40af', marginTop: '2px' }}>
-                          💡 {nextSuggestions.length} marker önerisi
+                          🔴 {mimicWarnings.length} GHT dışı uyarı aktif
                         </div>
                       )}
                     </div>
@@ -1012,7 +1063,7 @@ export function TestisGermCellIhcAssistant() {
 
       {/* ─── Mobile responsive override ─── */}
       <style>{`
-        @media (max-width: 1024px) {
+        @media (max-width: 1200px) {
           .testis-ght-layout {
             grid-template-columns: 1fr !important;
           }
