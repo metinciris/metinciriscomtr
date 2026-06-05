@@ -556,7 +556,7 @@ export function TestisGermCellIhcAssistant() {
           {/* ─── Main Layout ─── */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: '1fr 340px',
+            gridTemplateColumns: '1fr 390px',
             gap: '16px',
           }} className="testis-ght-layout">
 
@@ -704,35 +704,6 @@ export function TestisGermCellIhcAssistant() {
                 )}
               </div>
 
-              {/* ─── Tumor Scores ─── */}
-              <div style={cardStyle}>
-                <div style={{
-                  ...sectionHeaderStyle, cursor: 'default',
-                }}>
-                  <Shield size={16} color="#0d9488" />
-                  <span style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a' }}>
-                    Komponent Profil Uyumu
-                  </span>
-                  <span style={{
-                    fontSize: '10px', color: '#64748b', marginLeft: 'auto',
-                    fontStyle: 'italic',
-                  }}>
-                    Tümör başlığına tıklayarak referans profil görüntüleyin
-                  </span>
-                </div>
-                <div style={{ padding: '14px 18px' }}>
-                  {sortedScores.map(s => (
-                    <ScoreBar
-                      key={s.id}
-                      tumorId={s.id}
-                      name={s.name}
-                      score={s.score}
-                      isSelected={selectedTumorReference === s.id}
-                      onClick={() => handleTumorClick(s.id as TumorType)}
-                    />
-                  ))}
-                </div>
-              </div>
 
               {/* ─── Main Panel Antibodies ─── */}
               <div style={cardStyle}>
@@ -947,7 +918,39 @@ export function TestisGermCellIhcAssistant() {
 
             {/* ═══ RIGHT COLUMN (Sidebar) ═══ */}
             <div>
-              <div style={{ position: 'sticky', top: '16px' }}>
+              <div
+                className="testis-ght-sidebar"
+                style={{
+                  position: 'sticky',
+                  top: '16px',
+                  maxHeight: 'calc(100vh - 32px)',
+                  overflowY: 'auto',
+                  paddingRight: '6px',
+                }}
+              >
+                {/* ─── Tumor Scores ─── */}
+                <div style={cardStyle}>
+                  <div style={{
+                    ...sectionHeaderStyle, cursor: 'default',
+                  }}>
+                    <Shield size={16} color="#0d9488" />
+                    <span style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a' }}>
+                      Komponent Profil Uyumu
+                    </span>
+                  </div>
+                  <div style={{ padding: '14px 18px' }}>
+                    {sortedScores.map(s => (
+                      <ScoreBar
+                        key={s.id}
+                        tumorId={s.id}
+                        name={s.name}
+                        score={s.score}
+                        isSelected={selectedTumorReference === s.id}
+                        onClick={() => handleTumorClick(s.id as TumorType)}
+                      />
+                    ))}
+                  </div>
+                </div>
 
                 {/* Info/Reference Panel */}
                 {selectedAntibodyDef && (
@@ -968,40 +971,6 @@ export function TestisGermCellIhcAssistant() {
                     <div style={{ fontSize: '11px', lineHeight: '1.5' }}>
                       Antikor adına tıklayarak bilgi kartını,
                       tümör başlığına tıklayarak referans profilini görüntüleyin.
-                    </div>
-                  </div>
-                )}
-
-                {/* Quick scores in sidebar */}
-                {hasResults && (
-                  <div style={{ ...cardStyle, marginTop: '8px' }}>
-                    <div style={{
-                      padding: '10px 14px', backgroundColor: '#f0fdfa',
-                      borderBottom: '1px solid #99f6e4',
-                      fontSize: '12px', fontWeight: '700', color: '#0f766e',
-                    }}>
-                      En Yüksek Uyumlar
-                    </div>
-                    <div style={{ padding: '10px 14px' }}>
-                      {sortedScores.slice(0, 3).map(s => {
-                        const c = getScoreColor(s.score);
-                        return (
-                          <div key={s.id} style={{
-                            display: 'flex', justifyContent: 'space-between',
-                            alignItems: 'center', padding: '4px 0',
-                            fontSize: '12px',
-                          }}>
-                            <span style={{ color: '#334155', fontWeight: '600' }}>{s.name}</span>
-                            <span style={{
-                              fontWeight: '700', color: c.text,
-                              backgroundColor: c.bg, padding: '1px 6px',
-                              borderRadius: '4px', fontSize: '11px',
-                            }}>
-                              {Math.round(s.score)}%
-                            </span>
-                          </div>
-                        );
-                      })}
                     </div>
                   </div>
                 )}
@@ -1047,6 +1016,16 @@ export function TestisGermCellIhcAssistant() {
           .testis-ght-layout {
             grid-template-columns: 1fr !important;
           }
+        }
+        .testis-ght-sidebar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .testis-ght-sidebar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .testis-ght-sidebar::-webkit-scrollbar-thumb {
+          background-color: #cbd5e1;
+          border-radius: 3px;
         }
       `}</style>
     </PageContainer>
