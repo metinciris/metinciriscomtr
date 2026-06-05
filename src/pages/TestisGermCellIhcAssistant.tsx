@@ -429,7 +429,7 @@ function getAutoStatusSuggestion(marker: 'afp' | 'betaHcg' | 'ldh', valStr: stri
     return { key: 'very_high', label: 'Çok Yüksek' };
   }
   if (marker === 'ldh') {
-    if (num < 1.0) return { key: 'normal', label: 'Normal' };
+    if (num <= 1.0) return { key: 'normal', label: 'Normal' };
     if (num < 1.5) return { key: 'mild_high', label: 'Hafif Yüksek' };
     if (num <= 10.0) return { key: 'significant_high', label: 'Anlamlı Yüksek' };
     return { key: 'very_high', label: 'Çok Yüksek' };
@@ -629,6 +629,17 @@ export function TestisGermCellIhcAssistant() {
             </div>
           </div>
 
+          {/* ─── Usage Flow Guide ─── */}
+          <div style={{
+            padding: '10px 16px', borderRadius: '10px', marginBottom: '12px',
+            backgroundColor: '#f8fafc', border: '1px dashed #cbd5e1',
+            display: 'flex', alignItems: 'center', gap: '8px',
+          }}>
+            <div style={{ fontSize: '11px', fontWeight: '500', color: '#475569', lineHeight: '1.4' }}>
+              <strong>📋 Kullanım Akışı:</strong> 1) Yaş, serum ve morfoloji bilgisini girin → 2) Antikor paternlerini seçin → 3) Komponent profil uyumu, mimik uyarıları ve kopyalanabilir yorumu inceleyin.
+            </div>
+          </div>
+
           {/* ─── Main Layout ─── */}
           <div style={{
             display: 'grid',
@@ -763,6 +774,18 @@ export function TestisGermCellIhcAssistant() {
                         })}
                       </div>
                     )}
+
+                    {/* Faint safety disclaimer note */}
+                    <div style={{
+                      marginTop: '12px',
+                      paddingTop: '8px',
+                      borderTop: '1px dashed #e2e8f0',
+                      fontSize: '11px',
+                      color: '#64748b',
+                      lineHeight: '1.4',
+                    }}>
+                      ℹ️ Otomatik serum sınıflaması pratik eşik önerisidir; lokal laboratuvar referans aralığı ve klinik bağlam ile birlikte değerlendirilmelidir.
+                    </div>
                   </div>
                 )}
               </div>

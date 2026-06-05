@@ -700,7 +700,7 @@ export const MIMIC_PANEL_ANTIBODIES: AntibodyDefinition[] = [
       mainUse: 'B hücreli lenfoma belirteci. Testis lenfomalarında (DLBCL) pozitiftir.',
       expectedPositive: ['B hücreli lenfoma'],
       expectedNegative: ['GHT'],
-      pitfall: 'İleri yaş testis kitlelerinde lenfoma sık ayırıcı tanıdadır.',
+      pitfall: 'İleri yaş testis kitlelerinde lenfoma olasılığı (mimik uyarısı) dışlanmalıdır.',
       copyName: 'CD20',
     },
   },

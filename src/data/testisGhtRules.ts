@@ -218,7 +218,7 @@ export function calculateTumorScores(
         if (ageRange === '0-5') score -= 20;
       }
 
-      // Schiller-Duval / mikrokistik-retiküler patern yolk sac tümör komponenti lehine güçlü morfolojik destek sağlar; İHK ve serum markerları ile korelasyon önerilir.
+      // Schiller-Duval / mikrokistik-retiküler patern yolk sac tümör komponenti lehine güçlü morfolojik destek sağlar; İHK, serum markerları ve klinik bilgi ile korelasyon önerilir.
       if (tumor === 'yolk_sac' && morphologyFlags.schillerDuvalPattern) {
         score = 100; // Güçlü morfolojik destek
       } else {
@@ -409,7 +409,7 @@ export function generateCombinationCards(
     cards.push({
       id: 'morphology_schiller_duval',
       title: 'Schiller-Duval / mikrokistik-retiküler patern',
-      text: 'Schiller-Duval / mikrokistik-retiküler patern yolk sac tümör komponenti lehine güçlü morfolojik destek sağlar; İHK ve serum markerları ile korelasyon önerilir.',
+      text: 'Schiller-Duval / mikrokistik-retiküler patern yolk sac tümör komponenti lehine güçlü morfolojik destek sağlar; İHK, serum markerları ve klinik bilgi ile korelasyon önerilir.',
       type: 'supportive',
       priority: 95,
     });
