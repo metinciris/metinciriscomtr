@@ -46,5 +46,6 @@ export const validPages = [
     'vki-hesaplama',
     'geri-sayim',
     'mitoz-donusturucu',
-    'hematoloji-hesaplayici'
+    'hematoloji-hesaplayici',
+    'testis-ght-ihk'
 ];

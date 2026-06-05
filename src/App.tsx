@@ -168,6 +168,9 @@ const MitozDonusturucu = React.lazy(() =>
 const HematolojiHesaplayici = React.lazy(() =>
   import('./pages/HematolojiHesaplayici').then((m) => ({ default: m.HematolojiHesaplayici })),
 );
+const TestisGhtIhk = React.lazy(() =>
+  import('./pages/TestisGermCellIhcAssistant').then((m) => ({ default: m.TestisGermCellIhcAssistant })),
+);
 
 import { trackPageView } from './utils/analytics';
 
@@ -358,6 +361,9 @@ export default function App() {
 
       case 'hematoloji-hesaplayici':
         return <HematolojiHesaplayici />;
+
+      case 'testis-ght-ihk':
+        return <TestisGhtIhk />;
 
       case '404':
         return <NotFound onNavigate={navigate} />;

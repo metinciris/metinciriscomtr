@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { PageContainer } from '../components/PageContainer';
 import { MetroTile } from '../components/MetroTile';
-import { FileBarChart, Activity, FileText, AlertCircle, Microscope, Box, BookOpen, Calculator, TrendingUp, Trophy, Users, Facebook, Search, Briefcase, Calendar, Image, Globe, Timer } from 'lucide-react';
+import { FileBarChart, Activity, FileText, AlertCircle, Microscope, Box, BookOpen, Calculator, TrendingUp, Trophy, Users, Facebook, Search, Briefcase, Calendar, Image, Globe, Timer, Shield } from 'lucide-react';
 
 
 interface DigerCalismalarProps {
@@ -237,6 +237,14 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
             icon: <Calculator size={40} />,
             style: { backgroundColor: '#7c3aed' },
             page: 'hematoloji-hesaplayici',
+            category: 'patoloji'
+        },
+        {
+            title: "Testis GHT İHK",
+            subtitle: "Germ hücreli tümör İHK uyum yardımcısı",
+            icon: <Shield size={40} />,
+            style: { backgroundColor: '#0d9488' },
+            page: 'testis-ght-ihk',
             category: 'patoloji'
         },
     ];

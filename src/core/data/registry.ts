@@ -416,7 +416,16 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         lastmod: '2026-02-27',
         priority: 0.7,
         changefreq: 'monthly'
-    }
+    },
+    'testis-ght-ihk': {
+        slug: 'testis-ght-ihk',
+        title: 'Testis GHT İHK Uyum Yardımcısı | Prof Dr Metin Çiriş',
+        description: 'Testis germ hücreli tümörlerinde İHK, serum markerları, yaş ve morfolojik ipuçlarına göre komponent profil uyumu ve kritik mimik uyarıları oluşturan statik yardımcı araç.',
+        keywords: 'testis tümörü, germ hücreli tümör, immünohistokimya, seminom, embriyonel karsinom, yolk sac, koryokarsinom, patoloji',
+        lastmod: '2026-06-05',
+        priority: 0.8,
+        changefreq: 'monthly'
+    },
 };
 
 export const getPages = () => Object.values(PAGE_REGISTRY);
