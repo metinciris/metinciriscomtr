@@ -452,7 +452,7 @@ export function TestisGermCellIhcAssistant() {
   const [morphologyFlags, setMorphologyFlags] = useState<MorphologyFlags>({});
   const [selectedTumorReference, setSelectedTumorReference] = useState<TumorType | null>(null);
   const [selectedAntibodyInfo, setSelectedAntibodyInfo] = useState<string | null>(null);
-  const [showMimicPanel, setShowMimicPanel] = useState(true);
+  const [showMimicPanel, setShowMimicPanel] = useState(false);
   const [showSerumPanel, setShowSerumPanel] = useState(false);
   const [showMorphologyPanel, setShowMorphologyPanel] = useState(false);
   const [showCopyPanel, setShowCopyPanel] = useState(false);
@@ -831,6 +831,34 @@ export function TestisGermCellIhcAssistant() {
                 )}
               </div>
 
+              {/* ─── Mimic/Safety Panel ─── */}
+              <div style={cardStyle}>
+                <div
+                  style={sectionHeaderStyle}
+                  onClick={() => setShowMimicPanel(p => !p)}
+                >
+                  <AlertTriangle size={16} color="#ec4899" />
+                  <span style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a' }}>
+                    Mimik / Güvenlik Paneli
+                  </span>
+                  {showMimicPanel ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                </div>
+                {showMimicPanel && (
+                  <>
+                    {MIMIC_PANEL_ANTIBODIES.map(ab => (
+                      <AntibodyRow
+                        key={ab.id}
+                        antibody={ab}
+                        selectedKey={observedResults[ab.id] || 'not_done'}
+                        onSelect={handleAntibodySelect}
+                        onInfoClick={handleAntibodyInfoClick}
+                        referenceExpected={getRefExpected(ab.id)}
+                      />
+                    ))}
+                  </>
+                )}
+              </div>
+
               {/* ─── Action Buttons ─── */}
               <div style={{
                 display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px',
@@ -881,7 +909,7 @@ export function TestisGermCellIhcAssistant() {
               </div>
             </div>
 
-            {/* ═══ COLUMN 2: Ana Panel Antikorları ═══ */}
+            {/* ═══ COLUMN 2: Ana Panel Antikorları (Grup 1) ═══ */}
             <div>
               <div style={cardStyle}>
                 <div style={{
@@ -892,7 +920,7 @@ export function TestisGermCellIhcAssistant() {
                     Ana Panel Antikorları
                   </span>
                 </div>
-                {MAIN_PANEL_ANTIBODIES.map(ab => (
+                {MAIN_PANEL_ANTIBODIES.slice(0, 7).map(ab => (
                   <AntibodyRow
                     key={ab.id}
                     antibody={ab}
@@ -905,33 +933,27 @@ export function TestisGermCellIhcAssistant() {
               </div>
             </div>
 
-            {/* ═══ COLUMN 3: Mimik / Güvenlik Paneli ═══ */}
+            {/* ═══ COLUMN 3: Ana Panel Antikorları (Devamı) ═══ */}
             <div>
               <div style={cardStyle}>
-                <div
-                  style={sectionHeaderStyle}
-                  onClick={() => setShowMimicPanel(p => !p)}
-                >
-                  <AlertTriangle size={16} color="#ec4899" />
+                <div style={{
+                  ...sectionHeaderStyle, cursor: 'default',
+                }}>
+                  <Microscope size={16} color="#0d9488" />
                   <span style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a' }}>
-                    Mimik / Güvenlik Paneli
+                    Ana Panel (Devamı)
                   </span>
-                  {showMimicPanel ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                 </div>
-                {showMimicPanel && (
-                  <>
-                    {MIMIC_PANEL_ANTIBODIES.map(ab => (
-                      <AntibodyRow
-                        key={ab.id}
-                        antibody={ab}
-                        selectedKey={observedResults[ab.id] || 'not_done'}
-                        onSelect={handleAntibodySelect}
-                        onInfoClick={handleAntibodyInfoClick}
-                        referenceExpected={getRefExpected(ab.id)}
-                      />
-                    ))}
-                  </>
-                )}
+                {MAIN_PANEL_ANTIBODIES.slice(7).map(ab => (
+                  <AntibodyRow
+                    key={ab.id}
+                    antibody={ab}
+                    selectedKey={observedResults[ab.id] || 'not_done'}
+                    onSelect={handleAntibodySelect}
+                    onInfoClick={handleAntibodyInfoClick}
+                    referenceExpected={getRefExpected(ab.id)}
+                  />
+                ))}
               </div>
             </div>
 
