@@ -84,7 +84,7 @@ function isNegativeOrNotDone(
 
 /** All tumour type keys from TUMOR_DEFINITIONS. */
 function allTumorTypes(): TumorType[] {
-  return Object.keys(TUMOR_DEFINITIONS) as TumorType[];
+  return TUMOR_DEFINITIONS.map((t) => t.id);
 }
 
 // ─── 1. calculateTumorScores ───────────────────────────────
@@ -487,7 +487,7 @@ export function generateCombinationCards(
   for (const markerId of NUCLEAR_MARKERS) {
     if (isWrongPattern(observedResults, markerId)) {
       const ab = findAntibody(markerId);
-      const markerName = ab?.label ?? markerId;
+      const markerName = ab?.infoCard?.copyName || ab?.name || markerId;
       cards.push({
         id: `wrong_pattern_${markerId}`,
         title: `${markerName} – Yanlış boyanma paterni`,
@@ -815,6 +815,32 @@ export function generateNextMarkerSuggestions(
 
 // ─── 5. Copy text builders ─────────────────────────────────
 
+/** Helper to extract pattern name for Turkish reports from option key. */
+function getOptionPattern(key: string): string {
+  switch (key) {
+    case 'focal_weak_nuclear': return 'fokal/zayıf nükleer';
+    case 'patchy_nuclear': return 'yamalı nükleer';
+    case 'diffuse_strong_nuclear': return 'diffüz güçlü nükleer';
+    case 'focal_weak_membranous': return 'fokal/zayıf membranöz';
+    case 'diffuse_membranous': return 'diffüz membranöz';
+    case 'cytoplasmic_suspicious': return 'sitoplazmik şüpheli';
+    case 'sparse_cell': return 'seyrek hücre';
+    case 'focal_positive': return 'fokal';
+    case 'diffuse_membranous_golgi': return 'diffüz membranöz/Golgi';
+    case 'patchy_positive': return 'yamalı';
+    case 'diffuse_positive': return 'diffüz';
+    case 'focal_membranous': return 'fokal membranöz';
+    case 'focal_nuclear': return 'fokal nükleer';
+    case 'diffuse_nuclear': return 'diffüz nükleer';
+    case 'syncytiotrophoblastic_only': return 'sadece sinsityotrofoblastik hücrelerde';
+    case 'widespread_tumor': return 'yaygın';
+    case 'diffuse_strong': return 'diffüz güçlü';
+    case 'syncytial_only': return 'sadece sinsityotrofoblastik dev hücrelerde';
+    case 'widespread_trophoblastic': return 'yaygın trofoblastik komponentte';
+    default: return '';
+  }
+}
+
 /** Build a Turkish-language IHC summary suitable for pathology reports. */
 export function buildIhcCopyText(
   observedResults: Record<string, string>,
@@ -832,22 +858,25 @@ export function buildIhcCopyText(
     const option = ab.options.find((o) => o.key === selectedKey);
     if (!option) continue;
 
+    const abName = ab.infoCard?.copyName || ab.name;
+
     if (option.isWrongPattern) {
       wrongPatternNotes.push(
-        `${ab.label} için sitoplazmik/yanlış patern tarzı boyanma izlenmiş olup tanısal nükleer pozitiflik olarak değerlendirilmemelidir.`,
+        `${abName} için sitoplazmik/yanlış patern tarzı boyanma izlenmiş olup tanısal nükleer pozitiflik olarak değerlendirilmemelidir.`,
       );
       continue;
     }
 
     if (option.isPositive) {
-      const patternNote = option.patternLabel ? ` (${option.patternLabel})` : '';
-      positiveItems.push(`${ab.label}${patternNote} pozitif`);
+      const pattern = getOptionPattern(selectedKey);
+      const patternNote = pattern ? ` (${pattern})` : '';
+      positiveItems.push(`${abName}${patternNote} pozitif`);
     } else if (selectedKey === 'negative') {
-      negativeItems.push(`${ab.label} negatif`);
+      negativeItems.push(`${abName} negatif`);
     } else {
       // suspicious / smudge / non-specific etc.
       const note = option.label ?? selectedKey;
-      suspiciousNotes.push(`${ab.label}: ${note}`);
+      suspiciousNotes.push(`${abName}: ${note}`);
     }
   }
 
@@ -921,8 +950,8 @@ export function buildInterpretationCopyText(
     .slice(0, 3);
 
   for (const [tumor, score] of sortedTumors) {
-    const def = TUMOR_DEFINITIONS[tumor];
-    const label = def?.label ?? tumor;
+    const def = TUMOR_DEFINITIONS.find((t) => t.id === tumor);
+    const label = def?.name ?? tumor;
     let uyumLevel: string;
     if (score >= 75) {
       uyumLevel = 'güçlü uyum';
