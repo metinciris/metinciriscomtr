@@ -170,40 +170,50 @@ function AntibodyRow({
         )}
       </div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-        {antibody.options.map((opt) => {
-          const isSelected = selectedKey === opt.key;
-          let bgColor = '#ffffff';
-          let textColor = '#475569';
-          let borderColor = '#e2e8f0';
-          if (isSelected) {
-            if (opt.key === 'not_done') {
-              bgColor = '#f1f5f9'; textColor = '#64748b'; borderColor = '#cbd5e1';
-            } else if (opt.key === 'negative') {
-              bgColor = '#fef2f2'; textColor = '#991b1b'; borderColor = '#fca5a5';
-            } else if (opt.isWrongPattern) {
-              bgColor = '#fef3c7'; textColor = '#92400e'; borderColor = '#fcd34d';
-            } else if (opt.isPositive) {
-              bgColor = '#dcfce7'; textColor = '#166534'; borderColor = '#86efac';
-            } else {
-              bgColor = '#e0e7ff'; textColor = '#3730a3'; borderColor = '#a5b4fc';
+        {antibody.options
+          .filter(opt => {
+            const keysToHide = [
+              'not_done',
+              'suspicious',
+              'suspicious_nonspecific',
+              'cytoplasmic_suspicious',
+              'smudgy_suspicious',
+              'smudge_suspicious'
+            ];
+            return !keysToHide.includes(opt.key);
+          })
+          .map((opt) => {
+            const isSelected = selectedKey === opt.key;
+            let bgColor = '#ffffff';
+            let textColor = '#475569';
+            let borderColor = '#e2e8f0';
+            if (isSelected) {
+              if (opt.key === 'negative') {
+                bgColor = '#fef2f2'; textColor = '#991b1b'; borderColor = '#fca5a5';
+              } else if (opt.isWrongPattern) {
+                bgColor = '#fef3c7'; textColor = '#92400e'; borderColor = '#fcd34d';
+              } else if (opt.isPositive) {
+                bgColor = '#dcfce7'; textColor = '#166534'; borderColor = '#86efac';
+              } else {
+                bgColor = '#e0e7ff'; textColor = '#3730a3'; borderColor = '#a5b4fc';
+              }
             }
-          }
-          return (
-            <button
-              key={opt.key}
-              onClick={() => onSelect(antibody.id, opt.key)}
-              style={{
-                padding: '5px 10px', borderRadius: '6px', fontSize: '11px',
-                fontWeight: isSelected ? '700' : '500', cursor: 'pointer',
-                transition: 'all 0.15s', border: '1px solid',
-                fontFamily: 'inherit', whiteSpace: 'nowrap',
-                backgroundColor: bgColor, color: textColor, borderColor,
-              }}
-            >
-              {opt.label}
-            </button>
-          );
-        })}
+            return (
+              <button
+                key={opt.key}
+                onClick={() => onSelect(antibody.id, opt.key)}
+                style={{
+                  padding: '5px 10px', borderRadius: '6px', fontSize: '11px',
+                  fontWeight: isSelected ? '700' : '500', cursor: 'pointer',
+                  transition: 'all 0.15s', border: '1px solid',
+                  fontFamily: 'inherit', whiteSpace: 'nowrap',
+                  backgroundColor: bgColor, color: textColor, borderColor,
+                }}
+              >
+                {opt.label}
+              </button>
+            );
+          })}
       </div>
     </div>
   );
@@ -459,7 +469,15 @@ export function TestisGermCellIhcAssistant() {
 
   // ─── Handlers ───
   const handleAntibodySelect = useCallback((antibodyId: string, optionKey: string) => {
-    setObservedResults(prev => ({ ...prev, [antibodyId]: optionKey }));
+    setObservedResults(prev => {
+      const next = { ...prev };
+      if (next[antibodyId] === optionKey) {
+        delete next[antibodyId];
+      } else {
+        next[antibodyId] = optionKey;
+      }
+      return next;
+    });
   }, []);
 
   const handleTumorClick = useCallback((tumorId: TumorType) => {
