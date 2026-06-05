@@ -772,19 +772,30 @@ export function generateMimicWarnings(
     isNegative(observedResults, 'CD117');
 
   // --- 1. Lymphoma warning ---
-  const olderAge = ageRange === '46-60' || ageRange === '>60';
-  const gcnisNotPresent =
-    morphologyFlags.gcnisAbsent || morphologyFlags.gcnisNotEvaluable;
-  const lymphoidPositive =
-    isPositive(observedResults, 'CD45_LCA') ||
-    isPositive(observedResults, 'CD20') ||
-    isPositive(observedResults, 'PAX5');
+  const cd45Positive = isPositive(observedResults, 'CD45_LCA');
+  const cd20Positive = isPositive(observedResults, 'CD20');
+  const pax5Positive = isPositive(observedResults, 'PAX5');
 
-  if (coreGermNegative && lymphoidPositive) {
+  const bCellMarkerPositive = cd20Positive || pax5Positive;
+
+  const germCellNotSupported =
+    (isNegativeOrNotDone(observedResults, 'SALL4') &&
+     isNegativeOrNotDone(observedResults, 'OCT4')) ||
+    (
+      (scores.seminoma?.overall ?? 0) < 50 &&
+      (scores.embryonal_carcinoma?.overall ?? 0) < 50 &&
+      (scores.yolk_sac?.overall ?? 0) < 50 &&
+      (scores.choriocarcinoma?.overall ?? 0) < 50
+    );
+
+  if (cd45Positive && bCellMarkerPositive && germCellNotSupported) {
+    const bMarkerText = cd20Positive && pax5Positive ? 'CD20 ve PAX5' : (cd20Positive ? 'CD20' : 'PAX5');
+    const text = `GHT dışı/mimik uyarısı: CD45 pozitifliği ve ${bMarkerText} ile B hücre belirteci desteği, germ hücre belirteçlerinin negatif veya destekleyici olmaması ile birlikte testiküler lenfoma/hematolenfoid süreç açısından güçlü uyarı oluşturur. Seminom benzeri görünüm varsa lenfoma dışlanmadan germ hücreli tümör lehine yorum yapılmamalıdır.`;
+
     cards.push({
       id: 'mimic_lymphoma',
       title: 'Lenfoma (Mimik Uyarısı)',
-      text: 'GHT dışı/mimik uyarısı: CD45, CD20 ve PAX5 pozitifliği ile birlikte germ hücre belirteçlerinin negatifliği testiküler lenfoma/hematolenfoid süreç açısından güçlü uyarı oluşturur. Seminom benzeri görünüm varsa lenfoma dışlanmadan germ hücreli tümör lehine yorum yapılmamalıdır.',
+      text,
       type: 'non_gct_warning',
       priority: 95,
       suggestions: [
@@ -824,21 +835,29 @@ export function generateMimicWarnings(
   const panckDiffuse =
     observedResults['PanCK'] === 'diffuse_positive' ||
     isPositive(observedResults, 'PanCK');
-  if (
+  const metastaticMet =
     panckDiffuse &&
     isPositive(observedResults, 'EMA') &&
     isNegative(observedResults, 'SALL4') &&
     isNegative(observedResults, 'OCT4') &&
     isNegative(observedResults, 'CD30') &&
     isNegative(observedResults, 'GPC3') &&
-    isNegative(observedResults, 'AFP') &&
-    (morphologyFlags.advancedAgeAtypicalClinical ||
-      morphologyFlags.extraTesticularPrimaryHistory)
-  ) {
+    isNegative(observedResults, 'AFP');
+
+  if (metastaticMet) {
+    const isAtypicalClinical =
+      morphologyFlags.advancedAgeAtypicalClinical ||
+      morphologyFlags.extraTesticularPrimaryHistory ||
+      ageRange === '>60';
+
+    const text = isAtypicalClinical
+      ? 'GHT dışı/mimik uyarısı (klinik bağlam ile güçlendirilmiş): Diffüz PanCK/EMA pozitifliği ve germ hücre belirteçlerinin negatifliği, germ hücreli tümör dışı epitelyal malignite veya teratom zemininde somatik tip malignite açısından yüksek olasılık taşır. Klinik ve radyolojik odak araştırması önerilir.'
+      : 'GHT dışı/mimik uyarısı: Diffüz PanCK/EMA pozitifliği ve germ hücre belirteçlerinin negatifliği, germ hücreli tümör dışı epitelyal malignite veya teratom zemininde somatik tip malignite açısından korele edilmelidir.';
+
     cards.push({
       id: 'mimic_metastatic_carcinoma',
       title: 'Metastatik Karsinom / Somatik Tip Malignite (Mimik Uyarısı)',
-      text: 'Diffüz PanCK/EMA pozitifliği ve germ hücre belirteçlerinin negatifliği, germ hücreli tümör dışı epitelyal malignite veya teratom zemininde somatik tip malignite açısından korele edilmelidir.',
+      text,
       type: 'non_gct_warning',
       priority: 88,
       suggestions: [
@@ -1198,12 +1217,15 @@ export function buildInterpretationCopyText(
   // 2. GCNIS (Sorun 6)
   const hasGcnisSupport = scores.gcnis && scores.gcnis.overall >= 50;
 
-  // 3. GHT Component Profiles (Sorun 8)
-  // Exclude GCNIS from main components list and filter out low-scoring (< 50) profiles
+  // 3. GHT Component Profiles (Sorun 8 & New refinements)
+  const componentThreshold = nonGctWarnings.length > 0 ? 75 : 50;
+  const sliceLimit = nonGctWarnings.length > 0 ? 1 : 2;
+
+  // Exclude GCNIS from main components list and filter out low-scoring profiles
   const sortedTumors = (Object.entries(scores) as [TumorType, ScoreBreakdown][])
-    .filter(([id, v]) => id !== 'gcnis' && v.overall >= 50)
+    .filter(([id, v]) => id !== 'gcnis' && v.overall >= componentThreshold)
     .sort(([, a], [, b]) => b.overall - a.overall)
-    .slice(0, 2); // Limit to top 2 profiles
+    .slice(0, sliceLimit);
 
   if (sortedTumors.length > 0) {
     for (const [tumor, breakdown] of sortedTumors) {
@@ -1226,12 +1248,12 @@ export function buildInterpretationCopyText(
       }
     }
   } else if (nonGctWarnings.length === 0) {
-    // Eğer hiçbir GHT profili >= 50 değilse ve mimik uyarısı yoksa
+    // Eğer hiçbir GHT profili >= componentThreshold değilse ve mimik uyarısı yoksa
     parts.push(`Girilen İHK profili belirgin bir germ hücreli tümör komponenti ile güçlü uyum göstermemektedir; morfoloji ve mimik paneli ile korelasyon önerilir.`);
   }
 
-  // GCNIS support as a separate statement (Sorun 6)
-  if (hasGcnisSupport) {
+  // GCNIS support as a separate statement (Sorun 6 & New refinement)
+  if (hasGcnisSupport && nonGctWarnings.length === 0) {
     parts.push(`GCNIS ilişkili profil açısından destekleyici bulgular mevcuttur.`);
   }
 
