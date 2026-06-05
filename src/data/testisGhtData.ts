@@ -1337,7 +1337,7 @@ export const COMPATIBILITY_MATRIX: CompatibilityMatrix = {
     yolk_sac: 95,
     choriocarcinoma: 50,
     teratoma: 30,
-    spermatocytic: 60,
+    spermatocytic: 35,
   },
   OCT4: {
     gcnis: 95,

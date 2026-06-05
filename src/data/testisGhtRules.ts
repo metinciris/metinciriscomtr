@@ -96,6 +96,146 @@ export interface ScoreBreakdown {
   overall: number;
 }
 
+function applySpermatocyticPostProcessing(
+  ihcVal: number,
+  clinVal: number,
+  overallVal: number,
+  observedResults: Record<string, string>,
+  serumMarkers: SerumMarkers,
+  ageRange: AgeRange,
+  morphologyFlags: MorphologyFlags,
+  ihcScores: Record<string, number>,
+): { ihc: number; clinical: number; overall: number } {
+  let ihc = ihcVal;
+  let clinical = clinVal;
+  let overall = overallVal;
+
+  const sall4Pos = isPositive(observedResults, 'SALL4');
+  const sall4DiffuseStrong = observedResults['SALL4'] === 'diffuse_strong_nuclear';
+  const cd117Pos = isPositive(observedResults, 'CD117');
+  
+  const oct4Positive = isPositive(observedResults, 'OCT4');
+  const cd30Positive = isPositive(observedResults, 'CD30');
+  const sox2Positive = isPositive(observedResults, 'SOX2');
+  const gpc3Positive = isPositive(observedResults, 'GPC3');
+  const afpPositive = isPositive(observedResults, 'AFP');
+  const betaHcgDiffuse = observedResults['betaHCG'] === 'widespread_trophoblastic';
+  const panCkDiffuse = observedResults['PanCK'] === 'diffuse_positive' || isPositive(observedResults, 'PanCK');
+
+  const youngAge = ageRange === '0-5' || ageRange === '6-12' || ageRange === '13-19';
+  const adultButNotOlder = ageRange === '20-45';
+  const gcnisPresent = morphologyFlags.gcnisPresent === true;
+  const gcnisAbsent = morphologyFlags.gcnisAbsent === true;
+
+  // 1. Negative-only scoring issue (Point 3)
+  // If neither SALL4 nor CD117 are positive, IHC score should be capped at 40% (negative marker uyumu max 40%)
+  if (!sall4Pos && !cd117Pos) {
+    ihc = Math.min(ihc, 40);
+  }
+
+  // If SALL4 is diffuse strong, it shouldn't support spermatocytic strongly (especially if CD117 is negative)
+  if (sall4DiffuseStrong) {
+    if (!cd117Pos) {
+      ihc = Math.min(ihc, 30); // Cap heavily if SALL4 is diffuse strong but CD117 is negative
+    } else {
+      ihc = Math.min(ihc, 60); // Even if CD117 is positive, cap it since diffuse strong SALL4 is atypical for spermatocytic
+    }
+  }
+
+  // Recalculate overall score with the capped/modified IHC and Clinical values
+  // (using the same blending logic as calculateTumorScores)
+  const clinicalActive = ageRange !== 'unknown' || 
+    (serumMarkers.afp?.status !== 'unknown' && serumMarkers.afp?.status !== undefined) ||
+    (serumMarkers.betaHcg?.status !== 'unknown' && serumMarkers.betaHcg?.status !== undefined) ||
+    (serumMarkers.ldh?.status !== 'unknown' && serumMarkers.ldh?.status !== undefined) ||
+    Object.values(morphologyFlags).some((val) => val === true);
+
+  if (clinicalActive) {
+    const hasResults = Object.keys(observedResults).some(
+      (k) => observedResults[k] && observedResults[k] !== 'not_done'
+    );
+    if (!hasResults) {
+      overall = clinical;
+    } else {
+      if (clinical < 50) {
+        overall = Math.round(ihc * (clinical / 50));
+      } else {
+        overall = Math.round(ihc + (100 - ihc) * ((clinical - 50) / 50));
+      }
+    }
+  } else {
+    overall = ihc;
+  }
+
+  // 2. Score caps (Point 6)
+  if (oct4Positive) overall = Math.min(overall, 25);
+  if (cd30Positive && sox2Positive) overall = Math.min(overall, 25);
+  if (gpc3Positive || afpPositive) overall = Math.min(overall, 40);
+  if (betaHcgDiffuse) overall = Math.min(overall, 35);
+  if (panCkDiffuse) overall = Math.min(overall, 45);
+  if (gcnisPresent) overall = Math.min(overall, 35);
+  if (youngAge) overall = Math.min(overall, 40);
+  if (adultButNotOlder && !gcnisAbsent) overall = Math.min(overall, 60);
+  if (ageRange === 'unknown' && !gcnisAbsent) overall = Math.min(overall, 65);
+
+  // 3. Classic profiles dominance penalties (Point 5)
+  // Seminom profile: SALL4+, OCT3/4+, CD117+, SOX17+ veya D2-40+
+  const sox17Pos = isPositive(observedResults, 'SOX17');
+  const d240Pos = isPositive(observedResults, 'D2_40');
+  const isSeminomaProfile = sall4Pos && oct4Positive && (cd117Pos || sox17Pos || d240Pos);
+  if (isSeminomaProfile) {
+    overall = Math.min(overall, 25);
+  }
+
+  // Embriyonel karsinom profile: OCT3/4+, CD30+, SOX2+, PanCK+
+  const panckPos = isPositive(observedResults, 'PanCK');
+  const isEmbryonalProfile = oct4Positive && cd30Positive && sox2Positive && panckPos;
+  if (isEmbryonalProfile) {
+    overall = Math.min(overall, 20);
+  }
+
+  // Yolk sac profile: SALL4+, GPC3+, AFP+ veya serum AFP yüksek, OCT3/4-
+  const afpHigh = serumMarkers.afp.status === 'significant_high' || serumMarkers.afp.status === 'very_high';
+  const isYolkSacProfile = sall4Pos && (gpc3Positive || afpPositive || afpHigh) && !oct4Positive;
+  if (isYolkSacProfile) {
+    overall = Math.min(overall, 35);
+  }
+
+  // Koryokarsinom/trofoblastik profile: Yaygın beta-hCG+, GATA3+, p63/inhibin+, hemoraji-nekroz/bifazik patern
+  const gata3Pos = isPositive(observedResults, 'GATA3');
+  const p63Pos = isPositive(observedResults, 'p63');
+  const inhibinPos = isPositive(observedResults, 'Inhibin');
+  const isChorioProfile = betaHcgDiffuse && (gata3Pos || p63Pos || inhibinPos) &&
+    (morphologyFlags.hemorrhageNecrosisDominant || morphologyFlags.biphasicTrophoblasticPattern);
+  if (isChorioProfile) {
+    overall = Math.min(overall, 20);
+  }
+
+  // 4. Minimum context requirement (Point 7)
+  let metConditionsCount = 0;
+  if (ageRange === '46-60' || ageRange === '>60') metConditionsCount++;
+  if (morphologyFlags.gcnisAbsent === true) metConditionsCount++;
+  if (observedResults['OCT4'] === 'negative') metConditionsCount++;
+  if (observedResults['CD30'] === 'negative') metConditionsCount++;
+  if (observedResults['GPC3'] === 'negative' && observedResults['AFP'] === 'negative') metConditionsCount++;
+  if (cd117Pos || (sall4Pos && !sall4DiffuseStrong)) metConditionsCount++;
+  
+  // Classic profiles not strong
+  const otherClassicStrong = (
+    (ihcScores['seminoma'] ?? 0) >= 70 ||
+    (ihcScores['embryonal_carcinoma'] ?? 0) >= 70 ||
+    (ihcScores['yolk_sac'] ?? 0) >= 70 ||
+    (ihcScores['choriocarcinoma'] ?? 0) >= 70
+  );
+  if (!otherClassicStrong) metConditionsCount++;
+
+  if (metConditionsCount < 2) {
+    overall = Math.min(overall, 59);
+  }
+
+  return { ihc, clinical, overall };
+}
+
 export function calculateTumorScores(
   observedResults: Record<string, string>,
   serumMarkers: SerumMarkers,
@@ -275,10 +415,27 @@ export function calculateTumorScores(
         }
 
         if (tumor === 'spermatocytic') {
-          if (ageRange === '>60') score += 30;
-          else if (ageRange === '46-60') score += 15;
-          if (morphologyFlags.gcnisAbsent) score += 25;
-          if (morphologyFlags.gcnisPresent) score -= 30;
+          // Yaş etkisi
+          if (ageRange === '0-5' || ageRange === '6-12') {
+            score -= 50;
+          } else if (ageRange === '13-19') {
+            score -= 35;
+          } else if (ageRange === '20-45') {
+            score -= 15;
+          } else if (ageRange === '46-60') {
+            score += 20;
+          } else if (ageRange === '>60') {
+            score += 35;
+          } else if (ageRange === 'unknown') {
+            score -= 5;
+          }
+
+          // GCNIS ilişkisi
+          if (morphologyFlags.gcnisPresent) {
+            score -= 50;
+          } else if (morphologyFlags.gcnisAbsent) {
+            score += 20;
+          }
         }
       }
 
@@ -313,11 +470,31 @@ export function calculateTumorScores(
       }
     }
 
+    let finalIhc = ihcVal;
+    let finalClinical = clinVal;
+    let finalOverall = overall;
+
+    if (tumor === 'spermatocytic') {
+      const processed = applySpermatocyticPostProcessing(
+        ihcVal,
+        clinVal,
+        overall,
+        observedResults,
+        serumMarkers,
+        ageRange,
+        morphologyFlags,
+        ihcScores
+      );
+      finalIhc = processed.ihc;
+      finalClinical = processed.clinical;
+      finalOverall = processed.overall;
+    }
+
     result[tumor] = {
-      ihc: ihcVal,
-      clinical: clinVal,
+      ihc: finalIhc,
+      clinical: finalClinical,
       clinicalActive,
-      overall,
+      overall: finalOverall,
     };
   }
   return result;
@@ -515,7 +692,7 @@ export function generateCombinationCards(
     cards.push({
       id: 'combo_spermatocytic',
       title: 'Spermatositik tümör profili',
-      text: 'OCT3/4, CD30, GPC3 ve AFP negatifliği; CD117/SALL4 değişken pozitifliği ve GCNIS yokluğu ile birlikte spermatositik tümör profili düşünülebilir.',
+      text: 'OCT3/4, CD30, GPC3 ve AFP negatifliği ile spermatositik tümör profili düşünülebilir. Bu profil, klinik yaş ve GCNIS yokluğu ile desteklenirse anlamlıdır; ileri yaş ve OCT3/4 negatifliği ile birlikte değerlendirilmelidir. Lenfoma da ayırıcı tanıda tutulmalıdır.',
       type: 'supportive',
       priority: 65,
     });
