@@ -128,7 +128,8 @@ export function calculateTumorScores(
     const matrixRow = (COMPATIBILITY_MATRIX as CompatibilityMatrix)[ab.id];
     if (!matrixRow) continue;
     for (const tumor of tumorTypes) {
-      const weight = matrixRow[tumor] ?? 0;
+      const lookupTumor = tumor === 'prepubertal_seminoma' ? 'seminoma' : tumor;
+      const weight = matrixRow[lookupTumor] ?? 0;
       theoreticalMax[tumor] += weight;
     }
   }
@@ -145,7 +146,8 @@ export function calculateTumorScores(
     if (!matrixRow) continue;
 
     for (const tumor of tumorTypes) {
-      const weight = matrixRow[tumor] ?? 0;
+      const lookupTumor = tumor === 'prepubertal_seminoma' ? 'seminoma' : tumor;
+      const weight = matrixRow[lookupTumor] ?? 0;
       const patternCoefficient = option.patternCoefficient ?? 1;
 
       if (option.isWrongPattern) {
@@ -220,6 +222,17 @@ export function calculateTumorScores(
       if (tumor === 'yolk_sac' && morphologyFlags.schillerDuvalPattern) {
         score = 100; // Diagnostic!
       } else {
+        if (tumor === 'prepubertal_seminoma') {
+          if (ageRange === '0-5' || ageRange === '6-12') score += 50;
+          else if (ageRange !== 'unknown') score -= 80;
+
+          if (morphologyFlags.gcnisPresent) score -= 80;
+          if (morphologyFlags.gcnisAbsent) score += 20;
+
+          if (afpStatus === 'significant_high' || afpStatus === 'very_high') score -= 45;
+          else if (afpStatus === 'normal') score += 10;
+        }
+
         // Other clinical adjustments
         if (tumor === 'yolk_sac') {
           if (afpStatus === 'significant_high' || afpStatus === 'very_high') score += 40;
