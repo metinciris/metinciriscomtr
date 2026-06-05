@@ -223,7 +223,7 @@ function ScoreBar({
   isSelected: boolean;
   onClick: () => void;
 }) {
-  const colors = getScoreColor(breakdown.total);
+  const colors = getScoreColor(breakdown.overall); // Base color threshold on overall score
   return (
     <button
       onClick={onClick}
@@ -242,51 +242,44 @@ function ScoreBar({
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
         <span style={{ fontSize: '13px', fontWeight: '700', color: isSelected ? '#1e3a8a' : '#0f172a' }}>{name}</span>
         <span style={{
-          fontSize: '12px', fontWeight: '700', color: colors.text,
-          backgroundColor: colors.bg, padding: '2px 8px', borderRadius: '6px',
+          fontSize: '11px', fontWeight: '700', color: colors.text,
+          backgroundColor: colors.bg, padding: '1px 6px', borderRadius: '4px',
           border: `1px solid ${colors.border}`,
         }}>
-          {Math.round(breakdown.total)}%
+          {colors.label}
         </span>
       </div>
 
-      {/* Segmented Progress Bar */}
-      <div style={{
-        height: '8px', backgroundColor: '#f1f5f9', borderRadius: '4px', overflow: 'hidden',
-        display: 'flex',
-      }}>
-        {breakdown.ihc > 0 && (
+      {/* Bar 1: IHC Compatibility */}
+      <div style={{ marginBottom: '6px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px', color: '#64748b', marginBottom: '2px' }}>
+          <span>🔵 İHK Uyumu</span>
+          <span style={{ fontWeight: '700', color: '#1e40af' }}>%{Math.round(breakdown.ihc)}</span>
+        </div>
+        <div style={{ height: '6px', backgroundColor: '#f1f5f9', borderRadius: '3px', overflow: 'hidden' }}>
           <div style={{
             height: '100%', width: `${breakdown.ihc}%`,
-            backgroundColor: '#3b82f6', // blue for IHC
+            backgroundColor: '#3b82f6',
             transition: 'width 0.4s ease',
-          }} title={`İHK Uyumu: %${breakdown.ihc}`} />
-        )}
-        {breakdown.serum > 0 && (
-          <div style={{
-            height: '100%', width: `${breakdown.serum}%`,
-            backgroundColor: '#f59e0b', // amber for Serum
-            transition: 'width 0.4s ease',
-          }} title={`Serum Uyumu: %${breakdown.serum}`} />
-        )}
-        {breakdown.clinical > 0 && (
-          <div style={{
-            height: '100%', width: `${breakdown.clinical}%`,
-            backgroundColor: '#8b5cf6', // violet for Clinical/Age/Morphology
-            transition: 'width 0.4s ease',
-          }} title={`Yaş/Klinik Uyumu: %${breakdown.clinical}`} />
-        )}
+          }} />
+        </div>
       </div>
 
-      {/* Legend & Label */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
-        <div style={{ fontSize: '10px', color: colors.text, fontWeight: '600' }}>
-          {colors.label}
+      {/* Bar 2: Clinical/Serum Compatibility */}
+      <div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px', color: '#64748b', marginBottom: '2px' }}>
+          <span>🟡 Klinik & Serum</span>
+          <span style={{ fontWeight: '700', color: breakdown.clinicalActive ? '#b45309' : '#64748b' }}>
+            {breakdown.clinicalActive ? `%${Math.round(breakdown.clinical)}` : 'Veri yok'}
+          </span>
         </div>
-        <div style={{ display: 'flex', gap: '6px', fontSize: '9px', color: '#64748b' }}>
-          {breakdown.ihc > 0 && <span>🔵 İHK</span>}
-          {breakdown.serum > 0 && <span>🟡 Serum</span>}
-          {breakdown.clinical > 0 && <span>🟣 Klinik</span>}
+        <div style={{ height: '6px', backgroundColor: '#f1f5f9', borderRadius: '3px', overflow: 'hidden' }}>
+          <div style={{
+            height: '100%',
+            width: `${breakdown.clinicalActive ? breakdown.clinical : 0}%`,
+            backgroundColor: breakdown.clinicalActive ? '#f59e0b' : '#cbd5e1',
+            transition: 'width 0.4s ease',
+          }} />
         </div>
       </div>
     </button>
@@ -539,11 +532,11 @@ export function TestisGermCellIhcAssistant() {
   const sortedScores = useMemo(() => {
     const others = TUMOR_DEFINITIONS
       .filter(t => t.id !== 'gcnis')
-      .map(t => ({ id: t.id, name: t.name, score: scores[t.id]?.total || 0 }))
+      .map(t => ({ id: t.id, name: t.name, score: scores[t.id]?.overall || 0 }))
       .sort((a, b) => b.score - a.score);
     const gcnis = TUMOR_DEFINITIONS
       .filter(t => t.id === 'gcnis')
-      .map(t => ({ id: t.id, name: t.name, score: scores[t.id]?.total || 0 }));
+      .map(t => ({ id: t.id, name: t.name, score: scores[t.id]?.overall || 0 }));
     return [...others, ...gcnis];
   }, [scores]);
 
