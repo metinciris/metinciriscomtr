@@ -483,7 +483,7 @@ export function generateCombinationCards(
     cards.push({
       id: 'combo_bhcg_seminoma_pitfall',
       title: 'beta-hCG seminom pitfall uyarısı',
-      text: 'Dikkat: beta-hCG pozitifliği seminomda sinsityotrofoblastik dev hücrelerde görülebilir. Pozitiflik yalnızca bu hücrelerde ise tek başına koryokarsinom lehine yorumlanmamalıdır.',
+      text: 'beta-hCG pozitifliği yalnızca sinsityotrofoblastik dev hücrelerde ise koryokarsinom lehine yorumlanmamalıdır.',
       type: 'pitfall',
       priority: 80,
     });
@@ -497,7 +497,7 @@ export function generateCombinationCards(
     cards.push({
       id: 'combo_afp_seminoma_conflict',
       title: 'AFP yüksekliği – Seminom profili çelişkisi',
-      text: 'Çelişki: AFP yüksekliği saf seminom ile uyumlu değildir. Nonseminomatöz komponent, özellikle yolk sac komponenti, örnekleme sorunu veya klinik/laboratuvar korelasyonu açısından yeniden değerlendirme önerilir.',
+      text: 'AFP yüksekliği mevcutsa saf seminom ile uyumsuz kabul edilerek nonseminomatöz komponent açısından korelasyon önerilir.',
       type: 'conflict',
       priority: 92,
     });
@@ -1008,13 +1008,13 @@ export function buildInterpretationCopyText(
     const label = def?.name ?? tumor;
     let uyumLevel: string;
     if (ihcScore >= 75) {
-      uyumLevel = 'güçlü uyum';
+      uyumLevel = 'güçlü uyumludur';
     } else if (ihcScore >= 50) {
-      uyumLevel = 'orta düzey uyum';
+      uyumLevel = 'orta düzeyde uyumludur';
     } else if (ihcScore >= 30) {
-      uyumLevel = 'zayıf uyum';
+      uyumLevel = 'zayıf uyumludur';
     } else {
-      uyumLevel = 'düşük uyum';
+      uyumLevel = 'düşük uyumludur';
     }
 
     let suffix = '';
@@ -1022,16 +1022,17 @@ export function buildInterpretationCopyText(
       const clinScore = breakdown.clinical;
       let clinLevel: string;
       if (clinScore >= 75) {
-        clinLevel = 'güçlü klinik destek';
+        clinLevel = 'güçlü klinik destek mevcuttur';
       } else if (clinScore >= 45) {
-        clinLevel = 'orta düzey klinik destek';
+        clinLevel = 'orta düzey klinik destek mevcuttur';
       } else {
-        clinLevel = 'zayıf/uyumsuz klinik bulgular';
+        clinLevel = 'zayıf/uyumsuz klinik bulgular izlenmektedir';
       }
-      suffix = ` ve ${clinLevel}`;
+      suffix = ` (klinik korelasyon: ${clinLevel})`;
     }
 
-    parts.push(`İmmün profil ${label} komponenti ile ${uyumLevel}${suffix} göstermektedir.`);
+    const formattedLabel = label === 'GCNIS' ? label : label.toLowerCase();
+    parts.push(`İmmün profil ${formattedLabel} komponenti ile ${uyumLevel}${suffix}.`);
   }
 
   // Critical warnings (conflict, pitfall, non_gct_warning)
