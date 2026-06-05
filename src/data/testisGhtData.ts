@@ -39,7 +39,6 @@ export interface AntibodyDefinition {
 
 export type TumorType =
   | 'gcnis'
-  | 'prepubertal_seminoma'
   | 'seminoma'
   | 'embryonal_carcinoma'
   | 'yolk_sac'
@@ -1293,33 +1292,6 @@ export const TUMOR_DEFINITIONS: TumorDefinition[] = [
         'Spermatositik tümör: OCT3/4-, CD30-, AFP/GPC3-, SALL4 değişken/zayıf, CD117 olabilir.',
         'GCNIS yokluğu destekleyicidir.',
         'İleri yaş (>50) destekleyicidir.',
-      ],
-    },
-  },
-  {
-    id: 'prepubertal_seminoma',
-    name: 'Prepubertal Seminom',
-    shortName: 'P-Sem',
-    referenceProfile: {
-      expectedMarkers: {
-        SALL4: { expected: 'Diffüz nükleer pozitif' },
-        OCT4: { expected: 'Diffüz nükleer pozitif' },
-        CD117: { expected: 'Membranöz pozitif' },
-        SOX17: { expected: 'Nükleer pozitif' },
-        D2_40: { expected: 'Membranöz pozitif' },
-        CD30: { expected: 'Negatif' },
-        SOX2: { expected: 'Negatif' },
-        AFP: { expected: 'Negatif' },
-        GPC3: { expected: 'Negatif' },
-      },
-      pitfalls: [
-        'Prepubertal tip seminomlar (GCNIS ilişkisiz seminomlar veya çocukluk çağı seminom benzeri germ hücreli tümörleri) son derece nadirdir.',
-        'GCNIS yokluğu bu tümör tipinde belirleyicidir.',
-      ],
-      notes: [
-        'İHK profili postpubertal seminoma benzer (SALL4+, OCT3/4+, CD117+, SOX17+, D2-40+; CD30-, SOX2-, AFP-, GPC3-).',
-        'GCNIS eşlik etmez.',
-        'Çocukluk çağında (prepubertal dönem) görülmesi ile ayırt edilir.',
       ],
     },
   },

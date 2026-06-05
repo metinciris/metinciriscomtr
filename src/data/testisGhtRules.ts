@@ -268,8 +268,7 @@ export function calculateTumorScores(
     const matrixRow = (COMPATIBILITY_MATRIX as CompatibilityMatrix)[ab.id];
     if (!matrixRow) continue;
     for (const tumor of tumorTypes) {
-      const lookupTumor = tumor === 'prepubertal_seminoma' ? 'seminoma' : tumor;
-      const weight = matrixRow[lookupTumor] ?? 0;
+      const weight = matrixRow[tumor] ?? 0;
       theoreticalMax[tumor] += weight;
     }
   }
@@ -286,8 +285,7 @@ export function calculateTumorScores(
     if (!matrixRow) continue;
 
     for (const tumor of tumorTypes) {
-      const lookupTumor = tumor === 'prepubertal_seminoma' ? 'seminoma' : tumor;
-      const weight = matrixRow[lookupTumor] ?? 0;
+      const weight = matrixRow[tumor] ?? 0;
       const patternCoefficient = option.patternCoefficient ?? 1;
 
       if (option.isWrongPattern) {
@@ -362,17 +360,6 @@ export function calculateTumorScores(
       if (tumor === 'yolk_sac' && morphologyFlags.schillerDuvalPattern) {
         score = 100; // Güçlü morfolojik destek
       } else {
-        if (tumor === 'prepubertal_seminoma') {
-          if (ageRange === '0-5' || ageRange === '6-12') score += 50;
-          else if (ageRange !== 'unknown') score -= 80;
-
-          if (morphologyFlags.gcnisPresent) score -= 80;
-          if (morphologyFlags.gcnisAbsent) score += 20;
-
-          if (afpStatus === 'significant_high' || afpStatus === 'very_high') score -= 45;
-          else if (afpStatus === 'normal') score += 10;
-        }
-
         // Other clinical adjustments
         if (tumor === 'yolk_sac') {
           if (afpStatus === 'significant_high' || afpStatus === 'very_high') score += 40;
@@ -388,13 +375,21 @@ export function calculateTumorScores(
           if (afpStatus === 'significant_high' || afpStatus === 'very_high') score -= 45; // Never AFP high in pure seminoma
           else if (afpStatus === 'normal') score += 10;
 
-          if (ageRange === '0-5') score -= 25;
-          if (ageRange === '>60') score -= 10;
+          if (ageRange === '0-5' || ageRange === '6-12') score -= 40;
+          else if (ageRange === '20-45') score += 20;
+          else if (ageRange === '46-60') score += 5;
+          else if (ageRange === '>60') score -= 10;
+
           if (morphologyFlags.prominentLymphoidStroma) score += 15;
           if (morphologyFlags.clearCytoplasmSheets) score += 20;
         }
 
         if (tumor === 'embryonal_carcinoma') {
+          if (ageRange === '0-5' || ageRange === '6-12') score -= 40;
+          else if (ageRange === '20-45') score += 20;
+          else if (ageRange === '46-60') score += 5;
+          else if (ageRange === '>60') score -= 15;
+
           if (morphologyFlags.gcnisPresent) score += 10;
           if (morphologyFlags.prominentLymphoidStroma) score -= 10;
         }
@@ -403,14 +398,23 @@ export function calculateTumorScores(
           if (hcgStatus === 'significant_high' || hcgStatus === 'very_high') score += 40;
           else if (hcgStatus === 'mild_high') score += 20;
 
+          if (ageRange === '0-5' || ageRange === '6-12') score -= 45;
+          else if (ageRange === '20-45') score += 20;
+          else if (ageRange === '46-60') score += 0;
+          else if (ageRange === '>60') score -= 15;
+
           if (morphologyFlags.hemorrhageNecrosisDominant) score += 15;
           if (morphologyFlags.syncytiotrophoblasticGiantCells) score += 10;
           if (morphologyFlags.biphasicTrophoblasticPattern) score += 25;
         }
 
         if (tumor === 'teratoma') {
-          if (ageRange === '0-5') score += 20;
+          if (ageRange === '0-5') score += 25;
           else if (ageRange === '6-12') score += 15;
+          else if (ageRange === '20-45') score += 10;
+          else if (ageRange === '46-60') score += 0;
+          else if (ageRange === '>60') score -= 10;
+
           if (morphologyFlags.matureSomaticComponent) score += 35;
         }
 
@@ -592,6 +596,17 @@ export function generateCombinationCards(
     });
   }
 
+  // --- Prepubertal age context card ---
+  if (ageRange === '0-5' || ageRange === '6-12') {
+    cards.push({
+      id: 'prepubertal_age_context',
+      title: 'Prepubertal Yaş Bağlamı',
+      text: 'Prepubertal yaş, yolk sac tümör / prepubertal tip teratom açısından destekleyici klinik bağlam sağlayabilir; klasik GCNIS ilişkili postpubertal seminom için tek başına destekleyici kabul edilmemelidir.',
+      type: 'supportive',
+      priority: 82,
+    });
+  }
+
   // --- Card 4: Yolk sac tumor profile ---
   const afpPositiveOrSerumHigh =
     isPositive(observedResults, 'AFP') ||
@@ -765,11 +780,11 @@ export function generateMimicWarnings(
     isPositive(observedResults, 'CD20') ||
     isPositive(observedResults, 'PAX5');
 
-  if (olderAge && gcnisNotPresent && coreGermNegative && lymphoidPositive) {
+  if (coreGermNegative && lymphoidPositive) {
     cards.push({
       id: 'mimic_lymphoma',
       title: 'Lenfoma (Mimik Uyarısı)',
-      text: 'İleri yaş, GCNIS yokluğu ve germ hücre belirteçlerinin negatifliği ile birlikte CD45/CD20/PAX5 pozitifliği testiküler lenfoma lehine değerlendirilmelidir. Seminom benzeri solid görünümde lenfoma dışlanmadan seminom lehine yorum yapılmamalıdır.',
+      text: 'GHT dışı/mimik uyarısı: CD45, CD20 ve PAX5 pozitifliği ile birlikte germ hücre belirteçlerinin negatifliği testiküler lenfoma/hematolenfoid süreç açısından güçlü uyarı oluşturur. Seminom benzeri görünüm varsa lenfoma dışlanmadan germ hücreli tümör lehine yorum yapılmamalıdır.',
       type: 'non_gct_warning',
       priority: 95,
       suggestions: [
@@ -1170,57 +1185,76 @@ export function buildSerumCopyText(serumMarkers: SerumMarkers): string {
 export function buildInterpretationCopyText(
   cards: CardOutput[],
   scores: Record<TumorType, ScoreBreakdown>,
+  ageRange?: AgeRange,
 ): string {
   const parts: string[] = [];
 
-  // Top scoring tumours (up to 3)
-  const sortedTumors = (Object.entries(scores) as [TumorType, ScoreBreakdown][])
-    .filter(([, v]) => v.overall > 0)
-    .sort(([, a], [, b]) => b.overall - a.overall)
-    .slice(0, 3);
-
-  for (const [tumor, breakdown] of sortedTumors) {
-    const ihcScore = breakdown.ihc;
-    const def = TUMOR_DEFINITIONS.find((t) => t.id === tumor);
-    const label = def?.name ?? tumor;
-    let uyumLevel: string;
-    if (ihcScore >= 75) {
-      uyumLevel = 'güçlü uyumludur';
-    } else if (ihcScore >= 50) {
-      uyumLevel = 'orta düzeyde uyumludur';
-    } else if (ihcScore >= 30) {
-      uyumLevel = 'zayıf uyumludur';
-    } else {
-      uyumLevel = 'düşük uyumludur';
-    }
-
-    let suffix = '';
-    if (breakdown.clinicalActive) {
-      const clinScore = breakdown.clinical;
-      let clinLevel: string;
-      if (clinScore >= 75) {
-        clinLevel = 'güçlü klinik destek mevcuttur';
-      } else if (clinScore >= 45) {
-        clinLevel = 'orta düzey klinik destek mevcuttur';
-      } else {
-        clinLevel = 'zayıf/uyumsuz klinik bulgular izlenmektedir';
-      }
-      suffix = ` (klinik korelasyon: ${clinLevel})`;
-    }
-
-    const formattedLabel = label === 'GCNIS' ? label : label.toLowerCase();
-    parts.push(`İmmün profil ${formattedLabel} komponenti ile ${uyumLevel}${suffix}.`);
+  // 1. Prioritize GHT dışı / Mimik Uyarıları (Sorun 3 & 4)
+  const nonGctWarnings = cards.filter((c) => c.type === 'non_gct_warning');
+  for (const card of nonGctWarnings) {
+    parts.push(card.text);
   }
 
-  // Critical warnings (conflict, pitfall, non_gct_warning)
-  const criticalCards = cards.filter(
-    (c) =>
-      c.type === 'conflict' ||
-      c.type === 'pitfall' ||
-      c.type === 'non_gct_warning',
+  // 2. GCNIS (Sorun 6)
+  const hasGcnisSupport = scores.gcnis && scores.gcnis.overall >= 50;
+
+  // 3. GHT Component Profiles (Sorun 8)
+  // Exclude GCNIS from main components list and filter out low-scoring (< 50) profiles
+  const sortedTumors = (Object.entries(scores) as [TumorType, ScoreBreakdown][])
+    .filter(([id, v]) => id !== 'gcnis' && v.overall >= 50)
+    .sort(([, a], [, b]) => b.overall - a.overall)
+    .slice(0, 2); // Limit to top 2 profiles
+
+  if (sortedTumors.length > 0) {
+    for (const [tumor, breakdown] of sortedTumors) {
+      const def = TUMOR_DEFINITIONS.find((t) => t.id === tumor);
+      const label = def?.name ?? tumor;
+
+      if (tumor === 'spermatocytic') {
+        parts.push(`İmmün profil spermatositik tümör profili ile uyumlu olabilir. Bu yorum ileri yaş, GCNIS yokluğu ve OCT3/4/CD30/AFP/GPC3 negatifliği ile birlikte değerlendirildiğinde anlamlıdır. Lenfoma da ayırıcı tanıda tutulmalıdır.`);
+      } else {
+        let uyumLevel: string;
+        if (breakdown.overall >= 75) {
+          uyumLevel = 'güçlü uyumludur';
+        } else {
+          uyumLevel = 'uyumludur';
+        }
+
+        const formattedLabel = label.toLowerCase();
+        const suffixWord = formattedLabel.includes('komponent') ? 'profili' : 'komponenti';
+        parts.push(`İmmün profil ${formattedLabel} ${suffixWord} ile ${uyumLevel}.`);
+      }
+    }
+  } else if (nonGctWarnings.length === 0) {
+    // Eğer hiçbir GHT profili >= 50 değilse ve mimik uyarısı yoksa
+    parts.push(`Girilen İHK profili belirgin bir germ hücreli tümör komponenti ile güçlü uyum göstermemektedir; morfoloji ve mimik paneli ile korelasyon önerilir.`);
+  }
+
+  // GCNIS support as a separate statement (Sorun 6)
+  if (hasGcnisSupport) {
+    parts.push(`GCNIS ilişkili profil açısından destekleyici bulgular mevcuttur.`);
+  }
+
+  // 4. Clinical context details (Sorun 1 & 2 & 7)
+  const clinicalActive = scores.seminoma ? scores.seminoma.clinicalActive : false;
+  if (!clinicalActive) {
+    parts.push(`Klinik/serum verisi girilmemiştir.`);
+  } else {
+    const hasYolkSacMatch = sortedTumors.some(([t]) => t === 'yolk_sac');
+    const isPrepubertal = ageRange === '0-5' || ageRange === '6-12';
+    if (hasYolkSacMatch && isPrepubertal) {
+      parts.push(`Prepubertal yaş girilmişse bu yaş grubu yolk sac tümör / prepubertal tip tümörler açısından destekleyici klinik bağlam sağlayabilir. Klinik/serum korelasyonu önerilir.`);
+    }
+  }
+
+  // 5. Critical warnings (conflict, pitfall) - but avoid duplication if already pushed
+  const otherCriticalCards = cards.filter(
+    (c) => c.type === 'conflict' || c.type === 'pitfall'
   );
-  for (const card of criticalCards.slice(0, 3)) {
-    parts.push(card.text);
+  for (const card of otherCriticalCards.slice(0, 2)) {
+    if (!parts.includes(card.text)) {
+      parts.push(card.text);
+    }
   }
 
   return parts.join(' ');

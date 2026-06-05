@@ -532,7 +532,7 @@ export function TestisGermCellIhcAssistant() {
   const ihcCopyText = useMemo(() => buildIhcCopyText(observedResults, allAntibodies), [observedResults, allAntibodies]);
   const serumCopyText = useMemo(() => buildSerumCopyText(serumMarkers), [serumMarkers]);
   const allCards = useMemo(() => [...combinationCards, ...mimicWarnings], [combinationCards, mimicWarnings]);
-  const interpretationCopyText = useMemo(() => buildInterpretationCopyText(allCards, scores), [allCards, scores]);
+  const interpretationCopyText = useMemo(() => buildInterpretationCopyText(allCards, scores, ageRange), [allCards, scores, ageRange]);
   const fullCopyText = useMemo(() => `${ihcCopyText}\n\n${serumCopyText}\n\n${interpretationCopyText}`, [ihcCopyText, serumCopyText, interpretationCopyText]);
 
   // Determine if any results entered
