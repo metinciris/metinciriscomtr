@@ -766,11 +766,6 @@ export function generateMimicWarnings(
     isNegativeOrNotDone(observedResults, 'GPC3') &&
     isNegativeOrNotDone(observedResults, 'AFP');
 
-  const coreGermNegative =
-    isNegative(observedResults, 'SALL4') &&
-    isNegative(observedResults, 'OCT4') &&
-    isNegative(observedResults, 'CD117');
-
   // --- 1. Lymphoma warning ---
   const cd45Positive = isPositive(observedResults, 'CD45_LCA');
   const cd20Positive = isPositive(observedResults, 'CD20');
@@ -789,8 +784,15 @@ export function generateMimicWarnings(
     );
 
   if (cd45Positive && bCellMarkerPositive && germCellNotSupported) {
-    const bMarkerText = cd20Positive && pax5Positive ? 'CD20 ve PAX5' : (cd20Positive ? 'CD20' : 'PAX5');
-    const text = `GHT dışı/mimik uyarısı: CD45 pozitifliği ve ${bMarkerText} ile B hücre belirteci desteği, germ hücre belirteçlerinin negatif veya destekleyici olmaması ile birlikte testiküler lenfoma/hematolenfoid süreç açısından güçlü uyarı oluşturur. Seminom benzeri görünüm varsa lenfoma dışlanmadan germ hücreli tümör lehine yorum yapılmamalıdır.`;
+    let bMarkerText = 'B hücre belirteci';
+    if (cd20Positive && pax5Positive) {
+      bMarkerText = 'CD20 ve PAX5 B hücre belirteçleri';
+    } else if (cd20Positive) {
+      bMarkerText = 'CD20 B hücre belirteci';
+    } else if (pax5Positive) {
+      bMarkerText = 'PAX5 B hücre belirteci';
+    }
+    const text = `GHT dışı/mimik uyarısı: CD45 pozitifliği ile birlikte ${bMarkerText} desteği, germ hücre belirteçlerinin negatif veya destekleyici olmaması ile birlikte testiküler lenfoma/hematolenfoid süreç açısından güçlü uyarı oluşturur. Seminom benzeri görünüm varsa lenfoma dışlanmadan germ hücreli tümör lehine yorum yapılmamalıdır.`;
 
     cards.push({
       id: 'mimic_lymphoma',
@@ -832,9 +834,7 @@ export function generateMimicWarnings(
   }
 
   // --- 3. Metastatic carcinoma warning ---
-  const panckDiffuse =
-    observedResults['PanCK'] === 'diffuse_positive' ||
-    isPositive(observedResults, 'PanCK');
+  const panckDiffuse = observedResults['PanCK'] === 'diffuse_positive';
   const metastaticMet =
     panckDiffuse &&
     isPositive(observedResults, 'EMA') &&
@@ -851,7 +851,7 @@ export function generateMimicWarnings(
       ageRange === '>60';
 
     const text = isAtypicalClinical
-      ? 'GHT dışı/mimik uyarısı (klinik bağlam ile güçlendirilmiş): Diffüz PanCK/EMA pozitifliği ve germ hücre belirteçlerinin negatifliği, germ hücreli tümör dışı epitelyal malignite veya teratom zemininde somatik tip malignite açısından yüksek olasılık taşır. Klinik ve radyolojik odak araştırması önerilir.'
+      ? 'GHT dışı/mimik uyarısı (ileri yaş veya primer öykü ile uyarı güçlenir): Diffüz PanCK/EMA pozitifliği ve germ hücre belirteçlerinin negatifliği, germ hücreli tümör dışı epitelyal malignite veya teratom zemininde somatik tip malignite açısından yüksek olasılık taşır. Klinik ve radyolojik odak araştırması önerilir.'
       : 'GHT dışı/mimik uyarısı: Diffüz PanCK/EMA pozitifliği ve germ hücre belirteçlerinin negatifliği, germ hücreli tümör dışı epitelyal malignite veya teratom zemininde somatik tip malignite açısından korele edilmelidir.';
 
     cards.push({
