@@ -537,9 +537,14 @@ export function TestisGermCellIhcAssistant() {
 
   // Sorted scores
   const sortedScores = useMemo(() => {
-    return TUMOR_DEFINITIONS
-      .map(t => ({ id: t.id, name: t.name, score: scores[t.id] || 0 }))
+    const others = TUMOR_DEFINITIONS
+      .filter(t => t.id !== 'gcnis')
+      .map(t => ({ id: t.id, name: t.name, score: scores[t.id]?.total || 0 }))
       .sort((a, b) => b.score - a.score);
+    const gcnis = TUMOR_DEFINITIONS
+      .filter(t => t.id === 'gcnis')
+      .map(t => ({ id: t.id, name: t.name, score: scores[t.id]?.total || 0 }));
+    return [...others, ...gcnis];
   }, [scores]);
 
   const serumStatusOptions: { key: string; label: string }[] = [
@@ -577,6 +582,18 @@ export function TestisGermCellIhcAssistant() {
                   WHO 2022 terminolojisi temelinde statik karar destek aracı
                 </p>
               </div>
+            </div>
+          </div>
+
+          {/* ─── Mixed Tumor Warning ─── */}
+          <div style={{
+            padding: '12px 16px', borderRadius: '10px', marginBottom: '12px',
+            backgroundColor: '#fffbeb', border: '1px solid #fef3c7',
+            display: 'flex', alignItems: 'flex-start', gap: '8px',
+          }}>
+            <Info size={16} color="#d97706" style={{ flexShrink: 0, marginTop: '1px' }} />
+            <div style={{ fontSize: '12px', color: '#92400e', lineHeight: '1.5' }}>
+              <strong>⚠️ Mikst Tümör Uyarısı:</strong> Bu sistem tek başına mikst germ hücreli tümör (MGHT) tanısı koymaz. Mikst tümör kuşkusu olan olgularda, her bir farklı morfolojik komponent alanı (örneğin embriyonel karsinom ve seminom alanları) kendi sınırları içinde ayrı ayrı analiz edilmeli ve immün profilleri sisteme bağımsız olarak girilmelidir.
             </div>
           </div>
 
