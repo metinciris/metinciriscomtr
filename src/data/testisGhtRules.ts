@@ -825,7 +825,7 @@ export function generateMimicWarnings(
     cards.push({
       id: 'mimic_sex_cord',
       title: 'Sex-Cord Stromal Tümör (Mimik Uyarısı)',
-      text: 'Germ hücre belirteçera negatifken SF1 nükleer pozitifliği ve inhibin/calretinin desteği varsa Leydig/Sertoli hücreli tümörler veya sex-cord stromal tümörler yönünden değerlendirme önerilir.',
+      text: 'Germ hücre belirteçleri negatifken SF1 nükleer pozitifliği ve inhibin/calretinin desteği varsa Leydig/Sertoli hücreli tümörler veya sex-cord stromal tümörler yönünden değerlendirme önerilir.',
       type: 'non_gct_warning',
       priority: 90,
     });
