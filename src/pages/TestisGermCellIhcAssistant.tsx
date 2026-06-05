@@ -326,6 +326,7 @@ function InfoPanel({ antibody }: { antibody: AntibodyDefinition | null }) {
   return (
     <div style={{
       ...cardStyle, border: '2px solid #c7d2fe', marginBottom: '12px',
+      maxWidth: '450px',
     }}>
       <div style={{
         padding: '14px 18px', backgroundColor: '#eef2ff',
@@ -373,6 +374,7 @@ function ReferencePanel({ tumorId }: { tumorId: TumorType | null }) {
   return (
     <div style={{
       ...cardStyle, border: '2px solid #bfdbfe', marginBottom: '12px',
+      maxWidth: '450px',
     }}>
       <div style={{
         padding: '14px 18px', backgroundColor: '#dbeafe',
@@ -450,9 +452,9 @@ export function TestisGermCellIhcAssistant() {
   const [morphologyFlags, setMorphologyFlags] = useState<MorphologyFlags>({});
   const [selectedTumorReference, setSelectedTumorReference] = useState<TumorType | null>(null);
   const [selectedAntibodyInfo, setSelectedAntibodyInfo] = useState<string | null>(null);
-  const [showMimicPanel, setShowMimicPanel] = useState(false);
-  const [showSerumPanel, setShowSerumPanel] = useState(true);
-  const [showMorphologyPanel, setShowMorphologyPanel] = useState(true);
+  const [showMimicPanel, setShowMimicPanel] = useState(true);
+  const [showSerumPanel, setShowSerumPanel] = useState(false);
+  const [showMorphologyPanel, setShowMorphologyPanel] = useState(false);
   const [showCopyPanel, setShowCopyPanel] = useState(false);
 
   // ─── Handlers ───
@@ -643,13 +645,12 @@ export function TestisGermCellIhcAssistant() {
           {/* ─── Main Layout ─── */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: '390px 360px 1fr',
+            gridTemplateColumns: '280px 310px 310px 1fr',
             gap: '16px',
           }} className="testis-ght-layout">
 
-            {/* ═══ LEFT COLUMN ═══ */}
+            {/* ═══ COLUMN 1: Klinik Bilgiler & Butonlar ═══ */}
             <div>
-
               {/* ─── Age Range ─── */}
               <div style={cardStyle}>
                 <div style={{ padding: '14px 18px' }}>
@@ -684,13 +685,13 @@ export function TestisGermCellIhcAssistant() {
                 >
                   <Microscope size={16} color="#0d9488" />
                   <span style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a' }}>
-                    Serum Markerları (Opsiyonel)
+                    Serum Markerları
                   </span>
                   {showSerumPanel ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                 </div>
                 {showSerumPanel && (
                   <div style={{ padding: '14px 18px' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px' }}>
                       {(['afp', 'betaHcg', 'ldh'] as const).map(marker => (
                         <div key={marker}>
                           <label style={labelStyle}>
@@ -761,7 +762,7 @@ export function TestisGermCellIhcAssistant() {
                       <div style={{ marginTop: '10px' }}>
                         {(['afp', 'betaHcg', 'ldh'] as const).map(m => {
                           const s = serumMarkers[m].status;
-                          if (s === 'unknown' || s === 'normal') return null;
+                           if (s === 'unknown' || s === 'normal') return null;
                           const interp = SERUM_INTERPRETATIONS[m];
                           return (
                             <div key={m} style={{
@@ -798,13 +799,13 @@ export function TestisGermCellIhcAssistant() {
                 >
                   <Eye size={16} color="#0d9488" />
                   <span style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a' }}>
-                    Morfoloji / Klinik Bilgi
+                    Morfoloji / Klinik
                   </span>
                   {showMorphologyPanel ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                 </div>
                 {showMorphologyPanel && (
                   <div style={{ padding: '14px 18px' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '4px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '4px' }}>
                       {MORPHOLOGY_FLAGS.map(flag => (
                         <label
                           key={flag.key}
@@ -830,60 +831,9 @@ export function TestisGermCellIhcAssistant() {
                 )}
               </div>
 
-
-              {/* ─── Main Panel Antibodies ─── */}
-              <div style={cardStyle}>
-                <div style={{
-                  ...sectionHeaderStyle, cursor: 'default',
-                }}>
-                  <Microscope size={16} color="#0d9488" />
-                  <span style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a' }}>
-                    Ana Panel Antikorları
-                  </span>
-                </div>
-                {MAIN_PANEL_ANTIBODIES.map(ab => (
-                  <AntibodyRow
-                    key={ab.id}
-                    antibody={ab}
-                    selectedKey={observedResults[ab.id] || 'not_done'}
-                    onSelect={handleAntibodySelect}
-                    onInfoClick={handleAntibodyInfoClick}
-                    referenceExpected={getRefExpected(ab.id)}
-                  />
-                ))}
-              </div>
-
-              {/* ─── Mimic/Safety Panel ─── */}
-              <div style={cardStyle}>
-                <div
-                  style={sectionHeaderStyle}
-                  onClick={() => setShowMimicPanel(p => !p)}
-                >
-                  <AlertTriangle size={16} color="#ec4899" />
-                  <span style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a' }}>
-                    {showMimicPanel ? 'Mimik / güvenlik panelini kapat' : 'Mimik / güvenlik panelini aç'}
-                  </span>
-                  {showMimicPanel ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                </div>
-                {showMimicPanel && (
-                  <>
-                    {MIMIC_PANEL_ANTIBODIES.map(ab => (
-                      <AntibodyRow
-                        key={ab.id}
-                        antibody={ab}
-                        selectedKey={observedResults[ab.id] || 'not_done'}
-                        onSelect={handleAntibodySelect}
-                        onInfoClick={handleAntibodyInfoClick}
-                        referenceExpected={getRefExpected(ab.id)}
-                      />
-                    ))}
-                  </>
-                )}
-              </div>
-
               {/* ─── Action Buttons ─── */}
               <div style={{
-                display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px',
+                display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px',
               }}>
                 <button
                   onClick={handleClearAntibodies}
@@ -914,7 +864,7 @@ export function TestisGermCellIhcAssistant() {
                     backgroundColor: '#ffffff', color: '#475569', fontFamily: 'inherit',
                   }}
                 >
-                  {showMimicPanel ? 'Mimik Paneli Kapat' : 'Mimik Paneli Aç'}
+                  {showMimicPanel ? 'Mimik Panel Kapat' : 'Mimik Panel Aç'}
                 </button>
                 <button
                   onClick={handleClearAll}
@@ -926,13 +876,66 @@ export function TestisGermCellIhcAssistant() {
                   }}
                 >
                   <X size={12} style={{ marginRight: '4px', display: 'inline' }} />
-                  Tüm Sonuçları Temizle
+                  Tümünü Temizle
                 </button>
               </div>
-
             </div>
 
-            {/* ═══ MIDDLE COLUMN (Uyumlar) ═══ */}
+            {/* ═══ COLUMN 2: Ana Panel Antikorları ═══ */}
+            <div>
+              <div style={cardStyle}>
+                <div style={{
+                  ...sectionHeaderStyle, cursor: 'default',
+                }}>
+                  <Microscope size={16} color="#0d9488" />
+                  <span style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a' }}>
+                    Ana Panel Antikorları
+                  </span>
+                </div>
+                {MAIN_PANEL_ANTIBODIES.map(ab => (
+                  <AntibodyRow
+                    key={ab.id}
+                    antibody={ab}
+                    selectedKey={observedResults[ab.id] || 'not_done'}
+                    onSelect={handleAntibodySelect}
+                    onInfoClick={handleAntibodyInfoClick}
+                    referenceExpected={getRefExpected(ab.id)}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* ═══ COLUMN 3: Mimik / Güvenlik Paneli ═══ */}
+            <div>
+              <div style={cardStyle}>
+                <div
+                  style={sectionHeaderStyle}
+                  onClick={() => setShowMimicPanel(p => !p)}
+                >
+                  <AlertTriangle size={16} color="#ec4899" />
+                  <span style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a' }}>
+                    Mimik / Güvenlik Paneli
+                  </span>
+                  {showMimicPanel ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                </div>
+                {showMimicPanel && (
+                  <>
+                    {MIMIC_PANEL_ANTIBODIES.map(ab => (
+                      <AntibodyRow
+                        key={ab.id}
+                        antibody={ab}
+                        selectedKey={observedResults[ab.id] || 'not_done'}
+                        onSelect={handleAntibodySelect}
+                        onInfoClick={handleAntibodyInfoClick}
+                        referenceExpected={getRefExpected(ab.id)}
+                      />
+                    ))}
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* ═══ COLUMN 4: Sonuçlar & Kartlar ═══ */}
             <div>
               <div
                 className="testis-ght-sidebar"
@@ -982,21 +985,7 @@ export function TestisGermCellIhcAssistant() {
                     ))}
                   </div>
                 </div>
-              </div>
-            </div>
 
-            {/* ═══ RIGHT COLUMN (Detaylar & Kartlar) ═══ */}
-            <div>
-              <div
-                className="testis-ght-sidebar"
-                style={{
-                  position: 'sticky',
-                  top: '16px',
-                  maxHeight: 'calc(100vh - 32px)',
-                  overflowY: 'auto',
-                  paddingRight: '6px',
-                }}
-              >
                 {/* Info/Reference Panel */}
                 {selectedAntibodyDef && (
                   <InfoPanel antibody={selectedAntibodyDef} />
@@ -1008,6 +997,7 @@ export function TestisGermCellIhcAssistant() {
                   <div style={{
                     ...cardStyle, padding: '20px',
                     textAlign: 'center', color: '#94a3b8',
+                    maxWidth: '450px',
                   }}>
                     <Info size={32} color="#cbd5e1" style={{ margin: '0 auto 8px' }} />
                     <div style={{ fontSize: '13px', fontWeight: '600', marginBottom: '4px', color: '#64748b' }}>
