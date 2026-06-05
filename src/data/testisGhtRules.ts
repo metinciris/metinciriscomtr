@@ -785,12 +785,12 @@ export function generateMimicWarnings(
   if (cd45Positive && bCellMarkerPositive && germCellNotSupported) {
     const bCellText =
       cd20Positive && pax5Positive
-        ? 'CD20 ve PAX5 B hücre belirteçleri'
+        ? 'CD20/PAX5 B hücre belirteci'
         : cd20Positive
           ? 'CD20 B hücre belirteci'
           : 'PAX5 B hücre belirteci';
 
-    const text = `GHT dışı/mimik uyarısı: CD45 pozitifliği ve ${bCellText} desteği, germ hücre belirteçlerinin negatif veya destekleyici olmaması ile birlikte testiküler lenfoma/hematolenfoid süreç açısından güçlü uyarı oluşturur. Seminom benzeri görünüm varsa lenfoma dışlanmadan germ hücreli tümör lehine yorum yapılmamalıdır.`;
+    const text = `GHT dışı/mimik uyarısı: CD45 pozitifliği ile ${bCellText} desteği, germ hücre belirteçlerinin negatif veya destekleyici olmaması ile birlikte testiküler lenfoma/hematolenfoid süreç açısından güçlü uyarı oluşturur. Seminom benzeri görünüm varsa lenfoma dışlanmadan germ hücreli tümör lehine yorum yapılmamalıdır.`;
 
     cards.push({
       id: 'mimic_lymphoma',
