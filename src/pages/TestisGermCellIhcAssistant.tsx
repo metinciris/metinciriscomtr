@@ -2,7 +2,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { PageContainer } from '../components/PageContainer';
 import {
   Copy, Check, ChevronDown, ChevronUp, Shield, AlertTriangle,
-  RefreshCw, Clipboard, X, Eye, Microscope
+  X, Eye, Microscope
 } from 'lucide-react';
 import {
   type AntibodyDefinition,
@@ -262,6 +262,114 @@ const SAMPLE_SCENARIOS: ScenarioDefinition[] = [
       SALL4: 'focal_weak_nuclear',
     },
     morphologyFlags: { gcnisAbsent: true },
+  },
+  {
+    id: 'sample_seminoma_hcg_pitfall',
+    label: 'Seminom + hCG pitfall',
+    note: 'Seminom profili içinde yalnız sinsityotrofoblastik dev hücrelerde beta-hCG pozitifliği.',
+    heImpression: 'seminoma',
+    ageRange: '20-45',
+    observedResults: {
+      SALL4: 'diffuse_strong_nuclear',
+      OCT4: 'diffuse_strong_nuclear',
+      CD117: 'diffuse_membranous',
+      SOX17: 'diffuse_nuclear',
+      D2_40: 'diffuse_membranous',
+      betaHCG: 'syncytial_only',
+      CD30: 'negative',
+      SOX2: 'negative',
+      AFP: 'negative',
+      GPC3: 'negative',
+    },
+    morphologyFlags: { gcnisPresent: true, syncytiotrophoblasticGiantCells: true },
+  },
+  {
+    id: 'sample_yolk_sac_afp_negative',
+    label: 'Yolk sac AFP−',
+    note: 'GPC3 pozitif, AFP negatif; AFP negatifliğinin dışlayıcı olmadığı örnek.',
+    heImpression: 'yolk_sac',
+    ageRange: '20-45',
+    observedResults: {
+      SALL4: 'diffuse_strong_nuclear',
+      GPC3: 'diffuse_positive',
+      PanCK: 'diffuse_positive',
+      AFP: 'negative',
+      OCT4: 'negative',
+      CD30: 'negative',
+      SOX2: 'negative',
+    },
+    morphologyFlags: { schillerDuvalPattern: true },
+  },
+  {
+    id: 'sample_choriocarcinoma',
+    label: 'Koryo/trofoblastik',
+    note: 'Yaygın beta-hCG ve trofoblastik destek markerları.',
+    heImpression: 'choriocarcinoma',
+    ageRange: '20-45',
+    observedResults: {
+      betaHCG: 'widespread_trophoblastic',
+      GATA3: 'diffuse_nuclear',
+      p63: 'focal_nuclear',
+      Inhibin: 'syncytiotrophoblastic_only',
+      PanCK: 'diffuse_positive',
+      SALL4: 'focal_weak_nuclear',
+      OCT4: 'negative',
+      CD30: 'negative',
+      AFP: 'negative',
+    },
+    morphologyFlags: { hemorrhageNecrosisDominant: true, biphasicTrophoblasticPattern: true },
+  },
+  {
+    id: 'sample_sex_cord',
+    label: 'Sex-cord stromal',
+    note: 'SF1 nükleer pozitifliği ve inhibin/calretinin desteği; germ marker negatif.',
+    heImpression: 'non_gct',
+    ageRange: '46-60',
+    observedResults: {
+      SF1: 'diffuse_nuclear',
+      Inhibin: 'widespread_tumor',
+      Calretinin: 'diffuse_positive',
+      SALL4: 'negative',
+      OCT4: 'negative',
+      CD30: 'negative',
+      GPC3: 'negative',
+      AFP: 'negative',
+    },
+  },
+  {
+    id: 'sample_melanoma_mimic',
+    label: 'Melanom mimiki',
+    note: 'SOX10/S100 ve melanotik markerlar pozitif, germ marker negatif.',
+    heImpression: 'non_gct',
+    ageRange: '>60',
+    observedResults: {
+      SOX10: 'diffuse_strong',
+      S100: 'diffuse_strong',
+      HMB45: 'positive',
+      MelanA: 'positive',
+      SALL4: 'negative',
+      OCT4: 'negative',
+      CD30: 'negative',
+      GPC3: 'negative',
+      AFP: 'negative',
+    },
+  },
+  {
+    id: 'sample_teratoma_somatic',
+    label: 'Teratom/somatik komponent',
+    note: 'Teratomda İHK tanı koydurucu değil; somatik komponent karakterizasyonu örneği.',
+    heImpression: 'teratoma',
+    ageRange: '20-45',
+    observedResults: {
+      PanCK: 'diffuse_positive',
+      EMA: 'focal_positive',
+      SALL4: 'negative',
+      OCT4: 'negative',
+      CD30: 'negative',
+      GPC3: 'negative',
+      AFP: 'negative',
+    },
+    morphologyFlags: { matureSomaticComponent: true, somaticTypeMalignancySuspicion: true, associatedNonTeratomatousGct: true },
   },
 ];
 
@@ -960,7 +1068,6 @@ export function TestisGermCellIhcAssistant() {
   const [showMorphologyPanel, setShowMorphologyPanel] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => new Set(['first_lineage', 'seminoma_ec', 'ec_yolk', 'yolk_chorio', 'seminoma_safety', 'teratoma_somatic']));
   const [editingRows, setEditingRows] = useState<Set<string>>(() => new Set());
-  const [clearConfirm, setClearConfirm] = useState(false);
   const [copyMode, setCopyMode] = useState<'short' | 'detailed'>('short');
 
   const handleAntibodySelect = useCallback((antibodyId: string, optionKey: string) => {
@@ -1052,41 +1159,6 @@ export function TestisGermCellIhcAssistant() {
   const handleMorphologyChange = useCallback((key: keyof MorphologyFlags) => {
     setMorphologyFlags((prev) => ({ ...prev, [key]: !prev[key] }));
   }, []);
-
-  const handleClearAll = useCallback(() => {
-    setObservedResults({});
-    setSerumMarkers({
-      afp: { value: '', unit: 'ng/mL', status: 'unknown' },
-      betaHcg: { value: '', unit: 'mIU/mL', status: 'unknown' },
-      ldh: { value: '', unit: 'xULN', status: 'unknown' },
-    });
-    setAgeRange('unknown');
-    setMorphologyFlags({});
-    setHeImpression('unknown');
-    setSelectedTumorReference(null);
-    setSelectedAntibodyInfo(null);
-    setSelectedGroupId(null);
-    setSelectedDifferentialId(null);
-    setEditingRows(new Set());
-    setClearConfirm(false);
-  }, []);
-
-  const handleClearSerum = useCallback(() => {
-    setSerumMarkers({
-      afp: { value: '', unit: 'ng/mL', status: 'unknown' },
-      betaHcg: { value: '', unit: 'mIU/mL', status: 'unknown' },
-      ldh: { value: '', unit: 'xULN', status: 'unknown' },
-    });
-  }, []);
-
-  const handleClearAllRequest = useCallback(() => {
-    if (clearConfirm) {
-      handleClearAll();
-      return;
-    }
-    setClearConfirm(true);
-    window.setTimeout(() => setClearConfirm(false), 3000);
-  }, [clearConfirm, handleClearAll]);
 
   const handleLoadScenario = useCallback((scenario: ScenarioDefinition) => {
     setObservedResults(scenario.observedResults);
@@ -1348,8 +1420,8 @@ export function TestisGermCellIhcAssistant() {
 
           <div style={{ ...cardStyle, padding: '10px 12px', marginBottom: '12px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-              <div style={{ fontSize: '11px', fontWeight: 900, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.45px' }}>Örnek profiller</div>
-              <span style={{ fontSize: '10px', color: '#64748b' }}>Eğitim/test amaçlı hızlı doldurma</span>
+              <div style={{ fontSize: '11px', fontWeight: 900, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.45px' }}>Demo / test profilleri</div>
+              <span style={{ fontSize: '10px', color: '#64748b' }}>Eğitim/test amaçlıdır; tıklanınca mevcut girişleri değiştirir</span>
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px' }}>
               {SAMPLE_SCENARIOS.map((scenario) => (
@@ -1363,7 +1435,7 @@ export function TestisGermCellIhcAssistant() {
                     cursor: 'pointer', fontFamily: 'inherit',
                   }}
                 >
-                  {scenario.label}
+                  Demo: {scenario.label}
                 </button>
               ))}
             </div>
@@ -1401,11 +1473,6 @@ export function TestisGermCellIhcAssistant() {
                       {[...mimicWarnings, ...combinationCards].slice(0, 5).map((card) => <CardDisplay key={card.id} card={card} />)}
                     </MiniPanel>
                   )}
-                </div>
-                <div className="rail-footer">
-                  <button onClick={() => setObservedResults({})} style={secondaryButtonStyle}><RefreshCw size={12} /> Antikorları temizle</button>
-                  <button onClick={handleClearSerum} style={secondaryButtonStyle}>Serum temizle</button>
-                  <button onClick={handleClearAllRequest} style={{ ...secondaryButtonStyle, color: '#b91c1c', borderColor: '#fecaca', backgroundColor: clearConfirm ? '#fef2f2' : '#ffffff' }}><X size={12} /> {clearConfirm ? 'Emin misiniz?' : 'Tümünü temizle'}</button>
                 </div>
               </div>
             </aside>
@@ -1559,24 +1626,18 @@ export function TestisGermCellIhcAssistant() {
         .testis-left-rail {
           min-width: 0;
           align-self: start;
-          position: sticky;
-          top: calc(var(--site-header-height, 72px) + 8px);
-          max-height: calc(100vh - var(--site-header-height, 72px) - 16px);
+          position: relative;
           z-index: 5;
         }
         .testis-left-sticky {
-          height: calc(100vh - var(--site-header-height, 72px) - 16px);
-          max-height: inherit;
-          display: flex;
-          flex-direction: column;
+          display: block;
           border: 1px solid #e2e8f0;
           border-radius: 14px;
           background: #ffffff;
           box-shadow: 0 1px 3px rgba(15,23,42,0.05);
-          overflow: hidden;
+          overflow: visible;
         }
         .rail-header, .right-column-header {
-          flex: 0 0 auto;
           padding: 12px 14px;
           background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
           border-bottom: 1px solid #e2e8f0;
@@ -1584,26 +1645,18 @@ export function TestisGermCellIhcAssistant() {
           font-weight: 900;
           color: #0f172a;
           letter-spacing: 0.2px;
-          z-index: 2;
+          z-index: 10;
+        }
+        .rail-header {
+          position: sticky;
+          top: calc(var(--site-header-height, 72px) + 8px);
+          border-top-left-radius: 14px;
+          border-top-right-radius: 14px;
         }
         .rail-scroll {
-          flex: 1 1 auto;
-          min-height: 0;
-          overflow-y: auto;
+          overflow: visible;
           padding: 10px;
         }
-        .rail-footer {
-          flex: 0 0 auto;
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 7px;
-          padding: 10px;
-          border-top: 1px solid #e2e8f0;
-          background: #ffffff;
-        }
-        .rail-scroll::-webkit-scrollbar { width: 6px; }
-        .rail-scroll::-webkit-scrollbar-track { background: transparent; }
-        .rail-scroll::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 3px; }
         .testis-right-column {
           min-width: 0;
           align-self: stretch;
@@ -1620,10 +1673,10 @@ export function TestisGermCellIhcAssistant() {
         }
         @media (max-width: 1040px) {
           .testis-ght-layout-pro { grid-template-columns: 1fr; }
-          .testis-left-rail { position: static; max-height: none; z-index: auto; }
-          .testis-left-sticky { height: auto; max-height: none; overflow: visible; }
+          .testis-left-rail { position: static; z-index: auto; }
+          .testis-left-sticky { overflow: visible; }
+          .rail-header { position: static; }
           .rail-scroll { overflow: visible; padding: 0; }
-          .rail-footer { border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 12px; }
           .right-column-header { position: static; }
         }
         @media (max-width: 720px) {
@@ -1690,13 +1743,6 @@ function stripButtonStyle(active: boolean): React.CSSProperties {
     fontFamily: 'inherit',
   };
 }
-
-const secondaryButtonStyle: React.CSSProperties = {
-  display: 'inline-flex', alignItems: 'center', gap: '5px',
-  padding: '8px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 800,
-  border: '1px solid #e2e8f0', backgroundColor: '#ffffff', color: '#475569',
-  cursor: 'pointer', fontFamily: 'inherit',
-};
 
 function toggleButtonStyle(active: boolean): React.CSSProperties {
   return {
