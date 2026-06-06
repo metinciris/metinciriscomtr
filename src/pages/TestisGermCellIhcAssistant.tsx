@@ -2,7 +2,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { PageContainer } from '../components/PageContainer';
 import {
   Copy, Check, ChevronDown, ChevronUp, Shield, AlertTriangle,
-  RefreshCw, Clipboard, X, Eye, Microscope
+  RefreshCw, X, Eye, Microscope
 } from 'lucide-react';
 import {
   type AntibodyDefinition,
@@ -69,7 +69,7 @@ interface DifferentialDefinition {
   title: string;
   markerIds: string[];
   heHint: string;
-  minimalPanel: string[];
+  priorityMarkers: string[];
   pitfall: string;
   missingMarkerHint: string;
 }
@@ -78,7 +78,9 @@ interface HeImpressionDefinition {
   id: HeImpressionKey;
   label: string;
   summary: string;
-  minimalPanel: string[];
+  positiveMarkers: string[];
+  negativeMarkers: string[];
+  safetyMarkers: string[];
   pitfalls: string[];
   markerIds: string[];
 }
@@ -90,31 +92,39 @@ const HE_IMPRESSIONS: HeImpressionDefinition[] = [
     id: 'unknown',
     label: 'Girilmedi',
     summary: 'HE ön izlenimi girilmedi. İHK paternleri ve klinik bağlam birlikte değerlendirilebilir.',
-    minimalPanel: ['SALL4', 'OCT3/4', 'CD117', 'CD30', 'GPC3', 'AFP'],
-    pitfalls: ['Morfoloji olmadan geniş panel yerine en kritik ayrımı hedefleyen minimal panel tercih edilmelidir.'],
+    positiveMarkers: ['SALL4+', 'OCT3/4 yönü', 'CD117/CD30 yönü', 'GPC3/AFP yönü'],
+    negativeMarkers: [],
+    safetyMarkers: ['Klinik hedefe göre seç'],
+    pitfalls: ['Morfoloji olmadan geniş panel yerine en kritik ayrımı hedefleyen öncelikli boya yaklaşımı tercih edilmelidir.'],
     markerIds: ['SALL4', 'OCT4', 'CD117', 'CD30', 'GPC3', 'AFP'],
   },
   {
     id: 'seminoma',
     label: 'Seminom lehine',
-    summary: 'HE seminom lehine ise İHK destekleyici ve ayırıcı tanı dışlayıcı amaçla kullanılmalıdır.',
-    minimalPanel: ['SALL4', 'OCT3/4', 'CD117', 'SOX17 veya D2-40', 'CD30', 'SOX2'],
+    summary: 'HE seminom lehineyse İHK destekleyici ve mimik dışlayıcı amaçla kullanılmalıdır.',
+    positiveMarkers: ['SALL4+', 'OCT3/4+', 'CD117+', 'SOX17+', 'D2-40+'],
+    negativeMarkers: ['CD30−', 'SOX2−', 'AFP/GPC3−'],
+    safetyMarkers: ['İleri yaşta CD45/CD20/PAX5'],
     pitfalls: ['İleri yaşta seminom benzeri tümörde lenfoma dışlanmalıdır.', 'AFP yüksekliği saf seminom ile uyumlu değildir.'],
     markerIds: ['SALL4', 'OCT4', 'CD117', 'SOX17', 'D2_40', 'CD30', 'SOX2', 'CD45_LCA', 'CD20', 'PAX5'],
   },
   {
     id: 'embryonal',
     label: 'Embriyonel karsinom lehine',
-    summary: 'HE embriyonel karsinom lehine ise OCT3/4-CD30-SOX2-PanCK ekseni ve seminom/yolk sac ayrımı önemlidir.',
-    minimalPanel: ['OCT3/4', 'CD30', 'SOX2', 'PanCK', 'CD117', 'SOX17', 'GPC3', 'AFP'],
+    summary: 'HE embriyonel karsinom lehineyse OCT3/4-CD30-SOX2-PanCK ekseni ve seminom/yolk sac ayrımı önemlidir.',
+    positiveMarkers: ['OCT3/4+', 'CD30+', 'SOX2+', 'PanCK+'],
+    negativeMarkers: ['CD117−/zayıf', 'SOX17−'],
+    safetyMarkers: ['GPC3/AFP ile yolk sac ayrımı'],
     pitfalls: ['Seyrek CD30 pozitifliği tek başına yeterli değildir; patern ve morfoloji ile değerlendirilmelidir.'],
     markerIds: ['OCT4', 'CD30', 'SOX2', 'PanCK', 'CD117', 'SOX17', 'GPC3', 'AFP'],
   },
   {
     id: 'yolk_sac',
     label: 'Yolk sac tümör lehine',
-    summary: 'HE yolk sac lehine ise GPC3/AFP desteği, OCT3/4-CD30-SOX2 negatifliği ve serum AFP korelasyonu önemlidir.',
-    minimalPanel: ['SALL4', 'GPC3', 'AFP', 'PanCK', 'OCT3/4', 'CD30', 'SOX2'],
+    summary: 'HE yolk sac lehineyse GPC3/AFP desteği, OCT3/4-CD30-SOX2 negatifliği ve serum AFP korelasyonu önemlidir.',
+    positiveMarkers: ['SALL4+', 'GPC3+', 'AFP değişken+', 'PanCK+'],
+    negativeMarkers: ['OCT3/4−', 'CD30−', 'SOX2−'],
+    safetyMarkers: ['Serum AFP korelasyonu'],
     pitfalls: ['AFP negatifliği yolk sac tümörü dışlamaz; GPC3 ve morfoloji ile korelasyon gerekir.'],
     markerIds: ['SALL4', 'GPC3', 'AFP', 'PanCK', 'OCT4', 'CD30', 'SOX2'],
   },
@@ -122,7 +132,9 @@ const HE_IMPRESSIONS: HeImpressionDefinition[] = [
     id: 'choriocarcinoma',
     label: 'Koryokarsinom/trofoblastik komponent lehine',
     summary: 'Trofoblastik komponent kuşkusunda yaygın beta-hCG paterni, GATA3/p63/inhibin ve hemoraji-nekroz/bifazik morfoloji birlikte değerlendirilir.',
-    minimalPanel: ['beta-hCG patern detayı', 'GATA3', 'p63', 'İnhibin', 'PanCK'],
+    positiveMarkers: ['Yaygın beta-hCG+', 'GATA3+', 'p63+', 'İnhibin+', 'PanCK+'],
+    negativeMarkers: ['OCT3/4−'],
+    safetyMarkers: ['Hemoraji/nekroz', 'Bifazik patern'],
     pitfalls: ['Seminomda yalnız sinsityotrofoblastik dev hücrelerde beta-hCG pozitifliği koryokarsinom anlamına gelmez.'],
     markerIds: ['betaHCG', 'GATA3', 'p63', 'Inhibin', 'PanCK'],
   },
@@ -130,7 +142,9 @@ const HE_IMPRESSIONS: HeImpressionDefinition[] = [
     id: 'teratoma',
     label: 'Teratom lehine',
     summary: 'Teratom sabit İHK profiliyle tanınmaz; matür/immatür somatik dokuların morfolojik gösterilmesi, yaş, GCNIS ve 12p/i12p bilgisi önemlidir.',
-    minimalPanel: ['Morfoloji', 'Yaş', 'GCNIS', '12p/i12p', 'Eşlik eden GHT komponentleri', 'Somatik malign komponent için hedefli İHK'],
+    positiveMarkers: ['Matür/immatür somatik doku', '12p/i12p bağlamı', 'GCNIS durumu'],
+    negativeMarkers: [],
+    safetyMarkers: ['Somatik tip malignite için hedefli İHK'],
     pitfalls: ['Erişkin saf matür teratomda prepubertal tip yorumu dikkatli yapılmalıdır.'],
     markerIds: ['PanCK', 'EMA', 'SOX2', 'CDX2', 'SATB2', 'PAX8', 'Desmin', 'Myogenin', 'MyoD1', 'MDM2', 'CDK4'],
   },
@@ -138,7 +152,9 @@ const HE_IMPRESSIONS: HeImpressionDefinition[] = [
     id: 'spermatocytic',
     label: 'Spermatositik tümör lehine',
     summary: 'Spermatositik tümör yorumu ileri yaş, GCNIS yokluğu, OCT3/4-CD30-AFP-GPC3 negatifliği ve CD117/SALL4 değişkenliği ile anlam kazanır.',
-    minimalPanel: ['OCT3/4', 'CD30', 'GPC3', 'AFP', 'CD117', 'SALL4', 'GCNIS durumu'],
+    positiveMarkers: ['CD117 değişken+', 'SALL4 zayıf/değişken+'],
+    negativeMarkers: ['OCT3/4−', 'CD30−', 'GPC3/AFP−'],
+    safetyMarkers: ['İleri yaş', 'GCNIS yok', 'CD45/CD20/PAX5'],
     pitfalls: ['İleri yaşta lenfoma ayırıcı tanıda kalmalıdır.'],
     markerIds: ['OCT4', 'CD30', 'GPC3', 'AFP', 'CD117', 'SALL4', 'CD45_LCA', 'CD20', 'PAX5'],
   },
@@ -146,7 +162,9 @@ const HE_IMPRESSIONS: HeImpressionDefinition[] = [
     id: 'non_gct',
     label: 'Lenfoma/metastaz/GHT dışı kuşku',
     summary: 'GHT dışı kuşkuda germ hücre markerlarının negatifliği, CD45/CD20/PAX5, SF1/inhibin/calretinin ve PanCK/EMA-organ spesifik panel birlikte değerlendirilir.',
-    minimalPanel: ['CD45', 'CD20', 'PAX5', 'SF1', 'İnhibin', 'Calretinin', 'PanCK', 'EMA', 'NKX3.1/PAX8/TTF-1/CDX2/SATB2'],
+    positiveMarkers: ['CD45/CD20/PAX5', 'SF1/İnhibin/Calretinin', 'PanCK/EMA'],
+    negativeMarkers: ['SALL4−', 'OCT3/4−', 'CD30/GPC3/AFP−'],
+    safetyMarkers: ['Organ-spesifik panel'],
     pitfalls: ['Germ markerları negatif olguda düşük GHT skorları mimik uyarısını gölgelememelidir.'],
     markerIds: ['CD45_LCA', 'CD20', 'PAX5', 'SF1', 'Inhibin', 'Calretinin', 'PanCK', 'EMA', 'NKX3_1', 'PAX8', 'TTF1', 'CDX2', 'SATB2'],
   },
@@ -154,12 +172,13 @@ const HE_IMPRESSIONS: HeImpressionDefinition[] = [
     id: 'mixed_uncertain',
     label: 'Kararsız / mikst alanlar var',
     summary: 'Mikst tümör kuşkusunda her morfolojik komponent alanı kendi sınırları içinde ayrı analiz edilmelidir.',
-    minimalPanel: ['Alan bazlı SALL4/OCT3/4/CD30/CD117/GPC3/AFP/beta-hCG', 'Morfoloji ve serum korelasyonu'],
+    positiveMarkers: ['Alan bazlı marker seçimi'],
+    negativeMarkers: [],
+    safetyMarkers: ['Morfoloji ve serum korelasyonu'],
     pitfalls: ['Farklı alanların İHK paternleri tek bir ortalama profile indirgenmemelidir.'],
     markerIds: ['SALL4', 'OCT4', 'CD30', 'CD117', 'GPC3', 'AFP', 'betaHCG'],
   },
 ];
-
 const ANTIBODY_GROUPS: AntibodyGroupDefinition[] = [
   {
     id: 'first_lineage',
@@ -255,7 +274,7 @@ const DIFFERENTIALS: DifferentialDefinition[] = [
     title: 'Seminom ↔ Embriyonel',
     markerIds: ['OCT4', 'CD117', 'SOX17', 'D2_40', 'CD30', 'SOX2', 'PanCK'],
     heHint: 'Seminomda şeffaf sitoplazmalı tabakalar ve lenfoid stroma; embriyonel karsinomda daha belirgin atipi, solid/glandüler/papiller patern ve nekroz görülebilir.',
-    minimalPanel: ['OCT3/4 ortak olabilir', 'Seminom: CD117, SOX17, D2-40', 'Embriyonel: CD30, SOX2, PanCK'],
+    priorityMarkers: ['OCT3/4 ortak olabilir', 'Seminom: CD117, SOX17, D2-40', 'Embriyonel: CD30, SOX2, PanCK'],
     pitfall: 'OCT3/4 tek başına ayırıcı değildir; SOX17/SOX2 ve CD117/CD30 karşıtlığı daha değerlidir.',
     missingMarkerHint: 'SOX17, SOX2, CD30 veya CD117 eksikse ayrım için önerilir.',
   },
@@ -264,7 +283,7 @@ const DIFFERENTIALS: DifferentialDefinition[] = [
     title: 'Embriyonel ↔ Yolk sac',
     markerIds: ['OCT4', 'CD30', 'SOX2', 'GPC3', 'AFP', 'SALL4', 'PanCK'],
     heHint: 'Embriyonel karsinomda solid/glandüler/papiller patern ve nekroz; yolk sac tümörde mikrokistik/retiküler patern, Schiller-Duval benzeri yapılar ve hyalin globüller destekleyicidir.',
-    minimalPanel: ['Embriyonel: OCT3/4, CD30, SOX2', 'Yolk sac: GPC3, AFP', 'Ortak: SALL4, PanCK'],
+    priorityMarkers: ['Embriyonel: OCT3/4, CD30, SOX2', 'Yolk sac: GPC3, AFP', 'Ortak: SALL4, PanCK'],
     pitfall: 'AFP negatifliği yolk sac tümörü dışlamaz; GPC3 pozitifliği ve uygun morfoloji varsa yolk sac yönü devam eder.',
     missingMarkerHint: 'GPC3 veya AFP çalışılmadıysa önerilir; OCT3/4/CD30/SOX2 negatifliği yolk sac lehine yardımcıdır.',
   },
@@ -273,7 +292,7 @@ const DIFFERENTIALS: DifferentialDefinition[] = [
     title: 'Yolk sac ↔ Koryo',
     markerIds: ['GPC3', 'AFP', 'betaHCG', 'GATA3', 'p63', 'Inhibin', 'PanCK'],
     heHint: 'Yolk sac tümörde retiküler/mikrokistik alanlar; koryokarsinomda hemoraji-nekroz ve bifazik trofoblastik popülasyon aranır.',
-    minimalPanel: ['Yolk sac: GPC3, AFP', 'Trofoblastik/koryo: yaygın beta-hCG, GATA3, p63, inhibin', 'Ortak: PanCK'],
+    priorityMarkers: ['Yolk sac: GPC3, AFP', 'Trofoblastik/koryo: yaygın beta-hCG, GATA3, p63, inhibin', 'Ortak: PanCK'],
     pitfall: 'Seminomda sadece sinsityotrofoblastik dev hücrelerde beta-hCG pozitifliği koryokarsinom değildir.',
     missingMarkerHint: 'beta-hCG patern detayı, GATA3, p63 ve inhibin eksikse önerilebilir.',
   },
@@ -282,7 +301,7 @@ const DIFFERENTIALS: DifferentialDefinition[] = [
     title: 'Seminom ↔ Lenfoma',
     markerIds: ['SALL4', 'OCT4', 'CD117', 'SOX17', 'D2_40', 'CD45_LCA', 'CD20', 'PAX5', 'CD3'],
     heHint: 'İleri yaşta solid/seminom benzeri görünümde lenfoma klinik olarak kritik mimiktir; bilateralite ve diffüz infiltratif büyüme uyarıcıdır.',
-    minimalPanel: ['Seminom: SALL4, OCT3/4, CD117/SOX17/D2-40', 'Lenfoma: CD45, CD20, PAX5, CD3'],
+    priorityMarkers: ['Seminom: SALL4, OCT3/4, CD117/SOX17/D2-40', 'Lenfoma: CD45, CD20, PAX5, CD3'],
     pitfall: 'Lenfoma dışlanmadan ileri yaş seminom benzeri tümör germ hücreli tümör lehine yorumlanmamalıdır.',
     missingMarkerHint: 'CD45/CD20/PAX5 eksikse özellikle >60 yaşta önerilir.',
   },
@@ -291,7 +310,7 @@ const DIFFERENTIALS: DifferentialDefinition[] = [
     title: 'Seminom ↔ Spermatositik',
     markerIds: ['OCT4', 'CD117', 'SALL4', 'CD30', 'GPC3', 'AFP', 'D2_40', 'SOX17'],
     heHint: 'Spermatositik tümör genellikle ileri yaşta, GCNIS yokluğu ve OCT3/4 negatifliği ile desteklenir.',
-    minimalPanel: ['Seminom: OCT3/4, CD117, SOX17/D2-40', 'Spermatositik: OCT3/4−, CD30−, GPC3/AFP−, CD117 değişken+', 'GCNIS durumu'],
+    priorityMarkers: ['Seminom: OCT3/4, CD117, SOX17/D2-40', 'Spermatositik: OCT3/4−, CD30−, GPC3/AFP−, CD117 değişken+', 'GCNIS durumu'],
     pitfall: 'Spermatositik tümör yorumu yaş ve GCNIS yokluğu olmadan yalnız negatif markerlarla yükselmemelidir.',
     missingMarkerHint: 'GCNIS durumu, OCT3/4, CD30, GPC3, AFP ve CD117 tamamlanabilir.',
   },
@@ -300,7 +319,7 @@ const DIFFERENTIALS: DifferentialDefinition[] = [
     title: 'GHT ↔ Sex-cord stromal',
     markerIds: ['SALL4', 'OCT4', 'CD30', 'GPC3', 'AFP', 'SF1', 'Inhibin', 'Calretinin', 'MelanA'],
     heHint: 'Germ markerları negatif ve sex-cord stromal morfoloji/klinik varsa SF1 ekseni önemlidir.',
-    minimalPanel: ['GHT dışlama: SALL4, OCT3/4, CD30, GPC3/AFP', 'Sex-cord: SF1, inhibin, calretinin, Melan-A'],
+    priorityMarkers: ['GHT dışlama: SALL4, OCT3/4, CD30, GPC3/AFP', 'Sex-cord: SF1, inhibin, calretinin, Melan-A'],
     pitfall: 'SF1 nükleer pozitifliği GHT skorundan çok sex-cord stromal tümör uyarısı üretmelidir.',
     missingMarkerHint: 'SF1 pozitifse inhibin/calretinin/Melan-A ve retikülin paterni düşünülebilir.',
   },
@@ -309,7 +328,7 @@ const DIFFERENTIALS: DifferentialDefinition[] = [
     title: 'GHT ↔ Metastaz',
     markerIds: ['SALL4', 'OCT4', 'CD30', 'GPC3', 'AFP', 'PanCK', 'EMA', 'NKX3_1', 'PSA', 'PSAP', 'PSMA', 'PAX8', 'CAIX', 'TTF1', 'NapsinA', 'CDX2', 'SATB2', 'GATA3', 'p40', 'CK5_6', 'Uroplakin'],
     heHint: 'İleri yaş, bilinen malignite öyküsü, GCNIS yokluğu, germ marker negatifliği, PanCK/EMA diffüz pozitifliği ve bilateral/paratestiküler/infiltratif büyüme metastazı düşündürür.',
-    minimalPanel: ['Germ markerlar: SALL4, OCT3/4, CD30, GPC3/AFP', 'Epitelyal: PanCK, EMA', 'Primer: NKX3.1/PSA/PSMA, PAX8/CAIX, TTF-1/Napsin A, CDX2/SATB2, GATA3/p40/Uroplakin'],
+    priorityMarkers: ['Germ markerlar: SALL4, OCT3/4, CD30, GPC3/AFP', 'Epitelyal: PanCK, EMA', 'Primer: NKX3.1/PSA/PSMA, PAX8/CAIX, TTF-1/Napsin A, CDX2/SATB2, GATA3/p40/Uroplakin'],
     pitfall: 'PanCK/EMA pozitifliği tek başına primeri belirlemez; organ-spesifik panel klinik bilgiyle seçilmelidir.',
     missingMarkerHint: 'PanCK/EMA pozitif ve germ markerları negatifse primer odak paneli önerilir.',
   },
@@ -318,7 +337,7 @@ const DIFFERENTIALS: DifferentialDefinition[] = [
     title: 'Teratom tipi',
     markerIds: ['PanCK', 'EMA', 'SOX2'],
     heHint: 'Matür veya immatür somatik doku komponentleri; epitel, kıkırdak, nöral doku, skuamöz/glandüler yapılar aranır.',
-    minimalPanel: ['İHK değil; yaş, GCNIS, 12p/i12p ve eşlik eden GHT komponenti değerlendirilir.'],
+    priorityMarkers: ['İHK değil; yaş, GCNIS, 12p/i12p ve eşlik eden GHT komponenti değerlendirilir.'],
     pitfall: 'Erişkin saf matür teratomda prepubertal tip yorumu dikkatli yapılmalıdır; GCNIS, 12p/i12p ve klinik korelasyon gerekir.',
     missingMarkerHint: '12p/i12p, GCNIS durumu ve eşlik eden non-teratom GHT komponenti bilgisi değerlidir.',
   },
@@ -327,7 +346,7 @@ const DIFFERENTIALS: DifferentialDefinition[] = [
     title: 'Teratom ↔ Somatik malign transformasyon',
     markerIds: ['PanCK', 'EMA', 'p40', 'CDX2', 'SATB2', 'PAX8', 'TTF1', 'Desmin', 'Myogenin', 'MyoD1', 'MDM2', 'CDK4'],
     heHint: 'Teratom içinde belirgin malign epitelyal, mezenkimal, nöroektodermal veya sarkomatöz komponent kuşkusu.',
-    minimalPanel: ['Morfolojiye göre hedefli marker seç: PanCK/EMA, p40, CDX2/SATB2, PAX8, TTF-1, Desmin/Myogenin/MyoD1, MDM2/CDK4'],
+    priorityMarkers: ['Morfolojiye göre hedefli marker seç: PanCK/EMA, p40, CDX2/SATB2, PAX8, TTF-1, Desmin/Myogenin/MyoD1, MDM2/CDK4'],
     pitfall: 'İHK teratom tanısı koymak için değil, somatik malign komponentin tipini belirlemek için kullanılır.',
     missingMarkerHint: 'Şüpheli somatik komponentin morfolojisine göre hedefli panel seçilmelidir.',
   },
@@ -438,6 +457,69 @@ function getResultTone(opt?: AntibodyDefinition['options'][number] | null): { bg
   if (opt.isPositive && (opt.patternCoefficient ?? 0) >= 0.7) return { bg: '#b45309', border: '#92400e', text: '#fff7ed' };
   if (opt.isPositive) return { bg: '#fef3c7', border: '#f59e0b', text: '#78350f' };
   return { bg: '#ffffff', border: '#e2e8f0', text: '#334155' };
+}
+
+type MarkerTone = 'positive' | 'negative' | 'warning' | 'neutral' | 'mimic';
+
+function markerToneStyle(tone: MarkerTone): React.CSSProperties {
+  if (tone === 'positive') return { backgroundColor: '#dcfce7', borderColor: '#86efac', color: '#166534' };
+  if (tone === 'negative') return { backgroundColor: '#f1f5f9', borderColor: '#cbd5e1', color: '#334155' };
+  if (tone === 'warning') return { backgroundColor: '#fef3c7', borderColor: '#fcd34d', color: '#92400e' };
+  if (tone === 'mimic') return { backgroundColor: '#f3e8ff', borderColor: '#d8b4fe', color: '#6b21a8' };
+  return { backgroundColor: '#f8fafc', borderColor: '#e2e8f0', color: '#475569' };
+}
+
+function MarkerBadge({ label, tone = 'neutral' }: { label: string; tone?: MarkerTone }) {
+  return (
+    <span style={{
+      ...markerToneStyle(tone),
+      display: 'inline-flex', alignItems: 'center', gap: '4px',
+      border: '1px solid', borderRadius: '999px', padding: '4px 7px',
+      fontSize: '10px', fontWeight: 900, lineHeight: 1.1,
+    }}>
+      {label}
+    </span>
+  );
+}
+
+function MarkerBadgeList({ label, items, tone }: { label: string; items: string[]; tone: MarkerTone }) {
+  if (!items.length) return null;
+  return (
+    <div style={{ marginBottom: '10px' }}>
+      <div style={{ fontSize: '10px', fontWeight: 900, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '5px' }}>{label}</div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+        {items.map((item, index) => <MarkerBadge key={`${item}-${index}`} label={item} tone={tone} />)}
+      </div>
+    </div>
+  );
+}
+
+function ReferenceMarkerBadge({ marker, expected }: { marker: string; expected: string }) {
+  const low = expected.toLocaleLowerCase('tr-TR');
+  const tone: MarkerTone = low.includes('beklenmez') || low.includes('negatif') ? 'negative' : low.includes('olabilir') || low.includes('değişken') ? 'neutral' : 'positive';
+  return <MarkerBadge label={`${marker}: ${expected}`} tone={tone} />;
+}
+
+function HeImpressionCard({ definition }: { definition: HeImpressionDefinition }) {
+  return (
+    <MiniPanel title={`${definition.label} — HE ön izlenim kartı`}>
+      <InfoBlock label="Yaklaşım" text={definition.summary} />
+      <MarkerBadgeList label="Öncelikli boyalar" items={definition.positiveMarkers} tone="positive" />
+      <MarkerBadgeList label="Dışlama / negatif beklenenler" items={definition.negativeMarkers} tone="negative" />
+      <MarkerBadgeList label="Güvenlik / mimik kontrolü" items={definition.safetyMarkers} tone="mimic" />
+      <InfoList label="Pitfall" items={definition.pitfalls} warning />
+    </MiniPanel>
+  );
+}
+
+function RailPanel({ title, children, footer }: { title: string; children: React.ReactNode; footer?: React.ReactNode }) {
+  return (
+    <div className="rail-sticky">
+      <div className="rail-header">{title}</div>
+      <div className="rail-scroll">{children}</div>
+      {footer ? <div className="rail-footer">{footer}</div> : null}
+    </div>
+  );
 }
 
 function CopyButton({ text, label }: { text: string; label: string }) {
@@ -671,6 +753,7 @@ export function TestisGermCellIhcAssistant() {
   const [showMorphologyPanel, setShowMorphologyPanel] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => new Set(['first_lineage', 'seminoma_ec', 'ec_yolk', 'yolk_chorio', 'seminoma_safety', 'teratoma_somatic']));
   const [editingRows, setEditingRows] = useState<Set<string>>(() => new Set());
+  const [confirmClearAll, setConfirmClearAll] = useState(false);
 
   const handleAntibodySelect = useCallback((antibodyId: string, optionKey: string) => {
     setObservedResults((prev) => ({ ...prev, [antibodyId]: optionKey }));
@@ -777,7 +860,30 @@ export function TestisGermCellIhcAssistant() {
     setSelectedGroupId(null);
     setSelectedDifferentialId(null);
     setEditingRows(new Set());
+    setConfirmClearAll(false);
   }, []);
+
+  const handleClearAntibodies = useCallback(() => {
+    setObservedResults({});
+    setEditingRows(new Set());
+  }, []);
+
+  const handleClearSerum = useCallback(() => {
+    setSerumMarkers({
+      afp: { value: '', unit: 'ng/mL', status: 'unknown' },
+      betaHcg: { value: '', unit: 'mIU/mL', status: 'unknown' },
+      ldh: { value: '', unit: 'xULN', status: 'unknown' },
+    });
+  }, []);
+
+  const handleClearAllWithConfirm = useCallback(() => {
+    if (!confirmClearAll) {
+      setConfirmClearAll(true);
+      window.setTimeout(() => setConfirmClearAll(false), 3000);
+      return;
+    }
+    handleClearAll();
+  }, [confirmClearAll, handleClearAll]);
 
   const scores = useMemo(() =>
     calculateTumorScores(observedResults, serumMarkers, ageRange, morphologyFlags),
@@ -851,69 +957,69 @@ export function TestisGermCellIhcAssistant() {
         : 'unknown';
 
   const renderLeftPanel = () => {
-    if (selectedAntibodyDef) {
-      const info = selectedAntibodyDef.infoCard;
-      return (
-        <MiniPanel title={`${selectedAntibodyDef.name} — antikor bilgisi`}>
-          <InfoBlock label="Doğru boyanma paterni" text={info.stainingPattern} />
-          <InfoBlock label="Neyi / hangi komponenti destekler?" text={info.mainUse} />
-          {!!info.expectedPositive.length && <InfoBlock label="Pozitif beklenenler" text={info.expectedPositive.join(', ')} />}
-          {!!info.expectedNegative.length && <InfoBlock label="Beklenen negatifler" text={info.expectedNegative.join(', ')} />}
-          {info.pitfall && <WarningText text={info.pitfall} />}
-        </MiniPanel>
-      );
-    }
-
-    if (selectedTumorDef) {
-      return (
-        <MiniPanel title={`${selectedTumorDef.name} — referans profil`}>
-          {Object.entries(selectedTumorDef.referenceProfile.expectedMarkers).map(([marker, info]) => (
-            <div key={marker} style={{ fontSize: '11px', marginBottom: '5px', color: '#334155' }}>
-              <strong>{marker}:</strong> {info.expected}{info.note ? <span style={{ color: '#64748b' }}> ({info.note})</span> : null}
-            </div>
-          ))}
-          {selectedTumorDef.referenceProfile.notes.map((n, i) => <InfoBlock key={i} label={`Not ${i + 1}`} text={n} />)}
-          {selectedTumorDef.referenceProfile.pitfalls.map((p, i) => <WarningText key={i} text={p} />)}
-        </MiniPanel>
-      );
-    }
-
-    if (selectedDiff) {
-      return (
-        <MiniPanel title={`${selectedDiff.title} — sık ayrım`}>
-          <InfoBlock label="HE ipucu" text={selectedDiff.heHint} />
-          <InfoList label="Minimal antikor yaklaşımı" items={selectedDiff.minimalPanel} />
-          <WarningText text={selectedDiff.pitfall} />
-          <InfoBlock label="Eksikse önerilen marker" text={selectedDiff.missingMarkerHint} />
-        </MiniPanel>
-      );
-    }
-
-    if (selectedGroup) {
-      return (
-        <MiniPanel title={selectedGroup.title}>
-          <InfoBlock label="Bu grup neyi çözer?" text={selectedGroup.description} />
-          <InfoList label="Pratik okuma" items={selectedGroup.bullets} />
-          {selectedGroup.pitfall && <WarningText text={selectedGroup.pitfall} />}
-        </MiniPanel>
-      );
-    }
-
-    if (heImpression !== 'unknown') {
-      return (
-        <MiniPanel title={`${heDef.label} — HE ön izlenim kartı`}>
-          <InfoBlock label="Yaklaşım" text={heDef.summary} />
-          <InfoList label="Minimal panel" items={heDef.minimalPanel} />
-          <InfoList label="Pitfall" items={heDef.pitfalls} warning />
-        </MiniPanel>
-      );
-    }
+    const hasContextSelection =
+      heImpression !== 'unknown' ||
+      !!selectedDiff ||
+      !!selectedGroup ||
+      !!selectedAntibodyDef ||
+      !!selectedTumorDef;
 
     return (
-      <MiniPanel title="Yardım / Sistem Uyarıları">
-        <InfoBlock label="Kullanım" text="HE ön izlenimini seçin, sık ayrım çiplerinden birini açın ve yalnız gerekli antikor paternlerini girin. Skorlar tanı değil, profil uyumu üretir." />
-        <InfoList label="Güvenlik" items={[MEDICAL_DISCLAIMER, WEIGHT_DISCLAIMER, 'Mikst tümörde farklı morfolojik komponentler ayrı ayrı değerlendirilmelidir.', 'İHK; morfoloji, serum markerları, yaş, GCNIS ve klinik bilgi ile birlikte yorumlanmalıdır.']} warning />
-      </MiniPanel>
+      <>
+        {heImpression !== 'unknown' && <HeImpressionCard definition={heDef} />}
+
+        {selectedDiff && (
+          <MiniPanel title={`${selectedDiff.title} — sık ayrım`}>
+            <InfoBlock label="HE ipucu" text={selectedDiff.heHint} />
+            <InfoList label="Öncelikli boya yaklaşımı" items={selectedDiff.priorityMarkers} />
+            <WarningText text={selectedDiff.pitfall} />
+            <InfoBlock label="Eksikse önerilen marker" text={selectedDiff.missingMarkerHint} />
+          </MiniPanel>
+        )}
+
+        {selectedGroup && (
+          <MiniPanel title={selectedGroup.title}>
+            <InfoBlock label="Bu grup neyi çözer?" text={selectedGroup.description} />
+            <InfoList label="Pratik okuma" items={selectedGroup.bullets} />
+            {selectedGroup.pitfall && <WarningText text={selectedGroup.pitfall} />}
+          </MiniPanel>
+        )}
+
+        {selectedAntibodyDef && (
+          <MiniPanel title={`${selectedAntibodyDef.name} — antikor bilgisi`}>
+            <InfoBlock label="Doğru boyanma paterni" text={selectedAntibodyDef.infoCard.stainingPattern} />
+            <InfoBlock label="Neyi / hangi komponenti destekler?" text={selectedAntibodyDef.infoCard.mainUse} />
+            <MarkerBadgeList label="Pozitif beklenenler" items={selectedAntibodyDef.infoCard.expectedPositive} tone="positive" />
+            <MarkerBadgeList label="Beklenen negatifler" items={selectedAntibodyDef.infoCard.expectedNegative} tone="negative" />
+            {selectedAntibodyDef.infoCard.pitfall && <WarningText text={selectedAntibodyDef.infoCard.pitfall} />}
+          </MiniPanel>
+        )}
+
+        {selectedTumorDef && (
+          <MiniPanel title={`${selectedTumorDef.name} — referans profil`}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginBottom: '10px' }}>
+              {Object.entries(selectedTumorDef.referenceProfile.expectedMarkers).map(([marker, info]) => (
+                <ReferenceMarkerBadge key={marker} marker={marker} expected={info.expected} />
+              ))}
+            </div>
+            {selectedTumorDef.referenceProfile.notes.map((n, i) => <InfoBlock key={i} label={`Not ${i + 1}`} text={n} />)}
+            {selectedTumorDef.referenceProfile.pitfalls.map((p, i) => <WarningText key={i} text={p} />)}
+          </MiniPanel>
+        )}
+
+        {(combinationCards.length > 0 || mimicWarnings.length > 0) && (
+          <MiniPanel title="Aktif akıllı kartlar">
+            {[...mimicWarnings, ...combinationCards].slice(0, 5).map((card) => <CardDisplay key={card.id} card={card} />)}
+          </MiniPanel>
+        )}
+
+        {(!hasContextSelection || activeCriticalCards.length === 0) && (
+          <MiniPanel title="Yardım / Sistem Uyarıları">
+            <InfoBlock label="Kullanım" text="HE ön izlenimini seçin, sık ayrım çiplerinden birini açın ve yalnız gerekli antikor paternlerini girin. Skorlar tanı değil, profil uyumu üretir." />
+            <InfoList label="Güvenlik" items={[MEDICAL_DISCLAIMER, WEIGHT_DISCLAIMER, 'Mikst tümörde farklı morfolojik komponentler ayrı ayrı değerlendirilmelidir.', 'İHK; morfoloji, serum markerları, yaş, GCNIS ve klinik bilgi ile birlikte yorumlanmalıdır.']} warning />
+          </MiniPanel>
+        )}
+      </>
     );
   };
 
@@ -932,7 +1038,7 @@ export function TestisGermCellIhcAssistant() {
               </div>
               <div>
                 <h1 style={{ fontSize: '23px', fontWeight: 900, color: '#ffffff', margin: 0 }}>Testis GHT İHK Uyum Yardımcısı</h1>
-                <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.78)', margin: '3px 0 0' }}>HE ön izlenimi, minimal paneli ve İHK patern uyumunu birlikte gösterir; tanı koymaz.</p>
+                <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.78)', margin: '3px 0 0' }}>HE ön izlenimi, öncelikli boya yaklaşımını ve İHK patern uyumunu birlikte gösterir; tanı koymaz.</p>
               </div>
             </div>
           </div>
@@ -1031,13 +1137,27 @@ export function TestisGermCellIhcAssistant() {
           </div>
 
           <div className="testis-ght-layout-pro">
-            <aside className="testis-sticky-panel">
-              {renderLeftPanel()}
-              {(combinationCards.length > 0 || mimicWarnings.length > 0) && (
-                <MiniPanel title="Aktif akıllı kartlar">
-                  {[...mimicWarnings, ...combinationCards].slice(0, 5).map((card) => <CardDisplay key={card.id} card={card} />)}
-                </MiniPanel>
-              )}
+            <aside className="testis-rail">
+              <RailPanel
+                title="Akıllı Bilgi Paneli"
+                footer={(
+                  <div style={{ display: 'grid', gap: '7px' }}>
+                    <button onClick={handleClearAntibodies} style={secondaryButtonStyle}><RefreshCw size={12} /> Antikorları temizle</button>
+                    <button onClick={handleClearSerum} style={secondaryButtonStyle}>Serum temizle</button>
+                    <button onClick={() => setShowMimicPanel((p) => !p)} style={secondaryButtonStyle}>
+                      {showMimicPanel ? 'Mimik paneli kapat' : 'Mimik paneli aç'}
+                    </button>
+                    <button
+                      onClick={handleClearAllWithConfirm}
+                      style={{ ...secondaryButtonStyle, color: '#b91c1c', borderColor: '#fecaca', opacity: 0.82 }}
+                    >
+                      <X size={12} /> {confirmClearAll ? 'Emin misiniz?' : 'Tümünü temizle'}
+                    </button>
+                  </div>
+                )}
+              >
+                {renderLeftPanel()}
+              </RailPanel>
             </aside>
 
             <main>
@@ -1106,15 +1226,11 @@ export function TestisGermCellIhcAssistant() {
                 })}
               </div>
 
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px' }}>
-                <button onClick={() => setObservedResults({})} style={secondaryButtonStyle}><RefreshCw size={12} /> Antikorları temizle</button>
-                <button onClick={() => setSerumMarkers({ afp: { value: '', unit: 'ng/mL', status: 'unknown' }, betaHcg: { value: '', unit: 'mIU/mL', status: 'unknown' }, ldh: { value: '', unit: 'xULN', status: 'unknown' } })} style={secondaryButtonStyle}>Serum temizle</button>
-                <button onClick={handleClearAll} style={{ ...secondaryButtonStyle, color: '#b91c1c', borderColor: '#fecaca', opacity: 0.75 }}><X size={12} /> Tüm sonuçları temizle</button>
-              </div>
             </main>
 
-            <aside className="testis-sticky-panel">
-              <MiniPanel title="Profil uyumu ve rapor özeti">
+            <aside className="testis-rail">
+              <RailPanel title="Profil Uyumu ve Rapor">
+              <MiniPanel title="Rapor özeti">
                 <div style={{ display: 'grid', gap: '7px', marginBottom: '10px' }}>
                   <div style={summaryLineStyle}><span>HE ön izlenim</span><strong>{heDef.label}</strong></div>
                   <div style={summaryLineStyle}><span>Girilen İHK</span><strong>{enteredCount}</strong></div>
@@ -1165,6 +1281,7 @@ export function TestisGermCellIhcAssistant() {
                   <CopyButton text={fullCopyText} label="Hepsini kopyala" />
                 </div>
               </MiniPanel>
+              </RailPanel>
             </aside>
           </div>
         </div>
@@ -1183,20 +1300,48 @@ export function TestisGermCellIhcAssistant() {
           gap: 14px;
           align-items: start;
         }
-        .testis-sticky-panel {
+        .rail-sticky {
           position: sticky;
-          top: 12px;
-          max-height: calc(100vh - 24px);
-          overflow-y: auto;
-          padding-right: 4px;
+          top: calc(var(--site-header-height, 72px) + 12px);
+          max-height: calc(100vh - var(--site-header-height, 72px) - 24px);
+          display: flex;
+          flex-direction: column;
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 12px;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+          overflow: hidden;
         }
-        .testis-sticky-panel::-webkit-scrollbar { width: 6px; }
-        .testis-sticky-panel::-webkit-scrollbar-track { background: transparent; }
-        .testis-sticky-panel::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 3px; }
+        .rail-header {
+          flex: 0 0 auto;
+          background: #f8fafc;
+          border-bottom: 1px solid #e2e8f0;
+          padding: 12px 14px;
+          font-size: 13px;
+          font-weight: 900;
+          color: #0f172a;
+          letter-spacing: 0.2px;
+        }
+        .rail-scroll {
+          flex: 1 1 auto;
+          min-height: 0;
+          overflow-y: auto;
+          padding: 10px 10px 0;
+        }
+        .rail-footer {
+          flex: 0 0 auto;
+          border-top: 1px solid #e2e8f0;
+          background: #ffffff;
+          padding: 10px;
+        }
+        .rail-scroll::-webkit-scrollbar { width: 6px; }
+        .rail-scroll::-webkit-scrollbar-track { background: transparent; }
+        .rail-scroll::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 3px; }
         @media (max-width: 1320px) {
           .testis-clinical-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
           .testis-ght-layout-pro { grid-template-columns: 1fr; }
-          .testis-sticky-panel { position: static; max-height: none; overflow: visible; padding-right: 0; }
+          .rail-sticky { position: static; max-height: none; display: block; overflow: visible; }
+          .rail-scroll { overflow: visible; padding: 10px; }
         }
         @media (max-width: 720px) {
           .testis-clinical-strip { grid-template-columns: 1fr; }
