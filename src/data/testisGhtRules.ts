@@ -293,7 +293,7 @@ export function calculateTumorScores(
       }
 
       if (
-        (option as Record<string, unknown>).isSuspicious === true ||
+        ((option as unknown) as Record<string, unknown>).isSuspicious === true ||
         option.key === 'suspicious' ||
         option.key === 'smudge' ||
         option.key === 'nonspecific'
@@ -416,6 +416,12 @@ export function calculateTumorScores(
           else if (ageRange === '>60') score -= 10;
 
           if (morphologyFlags.matureSomaticComponent) score += 35;
+          if (morphologyFlags.immatureSomaticNeuroectodermal) score += 20;
+          if (morphologyFlags.somaticTypeMalignancySuspicion || morphologyFlags.immatureSomaticMalignancy) score += 20;
+          if (morphologyFlags.twelvepGainPositive) score += 20;
+          if (morphologyFlags.associatedNonTeratomatousGct) score += 15;
+          if (morphologyFlags.metastaticTeratoma) score += 15;
+          if (ageRange === '0-5' && morphologyFlags.twelvepGainNegative) score += 15;
         }
 
         if (tumor === 'spermatocytic') {
@@ -607,6 +613,44 @@ export function generateCombinationCards(
     });
   }
 
+  // --- Teratoma type / somatic component context ---
+  if (
+    morphologyFlags.matureSomaticComponent ||
+    morphologyFlags.immatureSomaticNeuroectodermal ||
+    morphologyFlags.twelvepGainPositive ||
+    morphologyFlags.twelvepGainNegative ||
+    morphologyFlags.associatedNonTeratomatousGct ||
+    morphologyFlags.metastaticTeratoma
+  ) {
+    cards.push({
+      id: 'teratoma_type_context',
+      title: 'Teratom tipi / somatik komponent bağlamı',
+      text: 'Teratom sabit bir İHK profiliyle tanınmaz; matür/immatür somatik doku komponentlerinin morfolojik gösterilmesi, yaş, GCNIS ve 12p/i12p bilgisi ile birlikte değerlendirilmelidir.',
+      type: 'supportive',
+      priority: 78,
+      suggestions: [
+        'Prepubertal tip: çocuk yaş, GCNIS yokluğu, 12p gain/i12p yokluğu',
+        'Postpubertal tip: erişkin yaş, GCNIS ilişkisi, 12p gain/i12p desteği, eşlik eden GHT komponenti',
+      ],
+    });
+  }
+
+  if (morphologyFlags.somaticTypeMalignancySuspicion || morphologyFlags.immatureSomaticMalignancy) {
+    cards.push({
+      id: 'teratoma_somatic_malignancy_context',
+      title: 'Somatik tip malign transformasyon uyarısı',
+      text: 'Teratom içinde belirgin malign epitelyal, mezenkimal, nöroektodermal veya sarkomatöz komponent kuşkusu varsa İHK teratom tanısı için değil, somatik malign komponentin tipini belirlemek için hedefli kullanılmalıdır.',
+      type: 'pitfall',
+      priority: 83,
+      suggestions: [
+        'Epitelyal: PanCK, EMA, p40, CK7/CK20',
+        'GİS: CDX2, SATB2, CK20',
+        'Renal/Müllerian: PAX8, CAIX',
+        'Mezenkimal: Desmin, Myogenin, MyoD1, SMA, MDM2, CDK4',
+      ],
+    });
+  }
+
   // --- Card 4: Yolk sac tumor profile ---
   const afpPositiveOrSerumHigh =
     isPositive(observedResults, 'AFP') ||
@@ -774,13 +818,11 @@ export function generateMimicWarnings(
 
   const germCellNotSupported =
     (isNegativeOrNotDone(observedResults, 'SALL4') &&
-     isNegativeOrNotDone(observedResults, 'OCT4')) ||
-    (
-      (scores.seminoma?.overall ?? 0) < 50 &&
+      isNegativeOrNotDone(observedResults, 'OCT4')) ||
+    ((scores.seminoma?.overall ?? 0) < 50 &&
       (scores.embryonal_carcinoma?.overall ?? 0) < 50 &&
       (scores.yolk_sac?.overall ?? 0) < 50 &&
-      (scores.choriocarcinoma?.overall ?? 0) < 50
-    );
+      (scores.choriocarcinoma?.overall ?? 0) < 50);
 
   if (cd45Positive && bCellMarkerPositive && germCellNotSupported) {
     const bCellText =
@@ -790,12 +832,10 @@ export function generateMimicWarnings(
           ? 'CD20 B hücre belirteci'
           : 'PAX5 B hücre belirteci';
 
-    const text = `GHT dışı/mimik uyarısı: CD45 pozitifliği ile ${bCellText} desteği, germ hücre belirteçlerinin negatif veya destekleyici olmaması ile birlikte testiküler lenfoma/hematolenfoid süreç açısından güçlü uyarı oluşturur. Seminom benzeri görünüm varsa lenfoma dışlanmadan germ hücreli tümör lehine yorum yapılmamalıdır.`;
-
     cards.push({
       id: 'mimic_lymphoma',
       title: 'Lenfoma (Mimik Uyarısı)',
-      text,
+      text: `GHT dışı/mimik uyarısı: CD45 pozitifliği ile ${bCellText} desteği, germ hücre belirteçlerinin negatif veya destekleyici olmaması ile birlikte testiküler lenfoma/hematolenfoid süreç açısından güçlü uyarı oluşturur. Seminom benzeri görünüm varsa lenfoma dışlanmadan germ hücreli tümör lehine yorum yapılmamalıdır.`,
       type: 'non_gct_warning',
       priority: 95,
       suggestions: [
@@ -856,11 +896,12 @@ export function generateMimicWarnings(
       type: 'non_gct_warning',
       priority: 88,
       suggestions: [
-        'Prostat: NKX3.1, PSA, PSAP',
+        'Prostat: NKX3.1, PSA, PSAP, PSMA',
         'Renal: PAX8, CAIX, CD10, RCC marker',
         'Ürotelyal: GATA3, p63/p40, uroplakin',
-        'Akciğer adenokarsinomu: TTF-1, Napsin A',
-        'Kolorektal: CDX2, SATB2, CK20',
+        'Akciğer adenokarsinomu: TTF-1, Napsin A, CK7',
+        'Akciğer skuamöz: p40, p63, CK5/6',
+        'Kolorektal: CDX2, SATB2, CK20, CK7/CK20',
         'Genel: CK7/CK20 paterni',
       ],
     });
@@ -1212,7 +1253,7 @@ export function buildInterpretationCopyText(
   // 2. GCNIS (Sorun 6)
   const hasGcnisSupport = scores.gcnis && scores.gcnis.overall >= 50;
 
-  // 3. GHT Component Profiles (Sorun 8 & New refinements)
+  // 3. GHT Component Profiles
   const componentThreshold = nonGctWarnings.length > 0 ? 75 : 50;
   const componentLimit = nonGctWarnings.length > 0 ? 1 : 2;
 
@@ -1243,13 +1284,13 @@ export function buildInterpretationCopyText(
       }
     }
   } else if (nonGctWarnings.length === 0) {
-    // Eğer hiçbir GHT profili >= componentThreshold değilse ve mimik uyarısı yoksa
+    // Eğer hiçbir GHT profili >= 50 değilse ve mimik uyarısı yoksa
     parts.push(`Girilen İHK profili belirgin bir germ hücreli tümör komponenti ile güçlü uyum göstermemektedir; morfoloji ve mimik paneli ile korelasyon önerilir.`);
   }
 
-  // GCNIS support as a separate statement (Sorun 6 & New refinement)
+  // GCNIS support as a separate statement (Sorun 6)
   if (hasGcnisSupport && nonGctWarnings.length === 0) {
-    parts.push('GCNIS ilişkili profil açısından destekleyici bulgular mevcuttur.');
+    parts.push(`GCNIS ilişkili profil açısından destekleyici bulgular mevcuttur.`);
   }
 
   // 4. Clinical context details (Sorun 1 & 2 & 7)
