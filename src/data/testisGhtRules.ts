@@ -1317,3 +1317,4 @@ export function buildInterpretationCopyText(
 
   return parts.join(' ');
 }
+ 
