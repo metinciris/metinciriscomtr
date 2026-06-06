@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { PageContainer } from '../components/PageContainer';
 import {
-  Copy, Check, ChevronDown, ChevronUp, Info, Shield, AlertTriangle,
+  Copy, Check, ChevronDown, ChevronUp, Shield, AlertTriangle,
   RefreshCw, Clipboard, X, Eye, Microscope
 } from 'lucide-react';
 import {
@@ -33,50 +33,412 @@ import {
   type ScoreBreakdown,
 } from '../data/testisGhtRules';
 
-// ─── Inline style constants ───
+// ─── Types & constants ─────────────────────────────────────
+
+type SerumKey = 'afp' | 'betaHcg' | 'ldh';
+type HeImpressionKey =
+  | 'unknown'
+  | 'seminoma'
+  | 'embryonal'
+  | 'yolk_sac'
+  | 'choriocarcinoma'
+  | 'teratoma'
+  | 'spermatocytic'
+  | 'non_gct'
+  | 'mixed_uncertain';
+
+type InfoMode =
+  | { type: 'help' }
+  | { type: 'antibody'; id: string }
+  | { type: 'group'; id: string }
+  | { type: 'differential'; id: string }
+  | { type: 'tumor'; id: TumorType }
+  | { type: 'he'; id: HeImpressionKey };
+
+interface AntibodyGroupDefinition {
+  id: string;
+  title: string;
+  markerIds: string[];
+  description: string;
+  bullets: string[];
+  pitfall?: string;
+}
+
+interface DifferentialDefinition {
+  id: string;
+  title: string;
+  markerIds: string[];
+  heHint: string;
+  minimalPanel: string[];
+  pitfall: string;
+  missingMarkerHint: string;
+}
+
+interface HeImpressionDefinition {
+  id: HeImpressionKey;
+  label: string;
+  summary: string;
+  minimalPanel: string[];
+  pitfalls: string[];
+  markerIds: string[];
+}
+
+const allAntibodyDefinitions = [...MAIN_PANEL_ANTIBODIES, ...MIMIC_PANEL_ANTIBODIES];
+
+const HE_IMPRESSIONS: HeImpressionDefinition[] = [
+  {
+    id: 'unknown',
+    label: 'Girilmedi',
+    summary: 'HE ön izlenimi girilmedi. İHK paternleri ve klinik bağlam birlikte değerlendirilebilir.',
+    minimalPanel: ['SALL4', 'OCT3/4', 'CD117', 'CD30', 'GPC3', 'AFP'],
+    pitfalls: ['Morfoloji olmadan geniş panel yerine en kritik ayrımı hedefleyen minimal panel tercih edilmelidir.'],
+    markerIds: ['SALL4', 'OCT4', 'CD117', 'CD30', 'GPC3', 'AFP'],
+  },
+  {
+    id: 'seminoma',
+    label: 'Seminom lehine',
+    summary: 'HE seminom lehine ise İHK destekleyici ve ayırıcı tanı dışlayıcı amaçla kullanılmalıdır.',
+    minimalPanel: ['SALL4', 'OCT3/4', 'CD117', 'SOX17 veya D2-40', 'CD30', 'SOX2'],
+    pitfalls: ['İleri yaşta seminom benzeri tümörde lenfoma dışlanmalıdır.', 'AFP yüksekliği saf seminom ile uyumlu değildir.'],
+    markerIds: ['SALL4', 'OCT4', 'CD117', 'SOX17', 'D2_40', 'CD30', 'SOX2', 'CD45_LCA', 'CD20', 'PAX5'],
+  },
+  {
+    id: 'embryonal',
+    label: 'Embriyonel karsinom lehine',
+    summary: 'HE embriyonel karsinom lehine ise OCT3/4-CD30-SOX2-PanCK ekseni ve seminom/yolk sac ayrımı önemlidir.',
+    minimalPanel: ['OCT3/4', 'CD30', 'SOX2', 'PanCK', 'CD117', 'SOX17', 'GPC3', 'AFP'],
+    pitfalls: ['Seyrek CD30 pozitifliği tek başına yeterli değildir; patern ve morfoloji ile değerlendirilmelidir.'],
+    markerIds: ['OCT4', 'CD30', 'SOX2', 'PanCK', 'CD117', 'SOX17', 'GPC3', 'AFP'],
+  },
+  {
+    id: 'yolk_sac',
+    label: 'Yolk sac tümör lehine',
+    summary: 'HE yolk sac lehine ise GPC3/AFP desteği, OCT3/4-CD30-SOX2 negatifliği ve serum AFP korelasyonu önemlidir.',
+    minimalPanel: ['SALL4', 'GPC3', 'AFP', 'PanCK', 'OCT3/4', 'CD30', 'SOX2'],
+    pitfalls: ['AFP negatifliği yolk sac tümörü dışlamaz; GPC3 ve morfoloji ile korelasyon gerekir.'],
+    markerIds: ['SALL4', 'GPC3', 'AFP', 'PanCK', 'OCT4', 'CD30', 'SOX2'],
+  },
+  {
+    id: 'choriocarcinoma',
+    label: 'Koryokarsinom/trofoblastik komponent lehine',
+    summary: 'Trofoblastik komponent kuşkusunda yaygın beta-hCG paterni, GATA3/p63/inhibin ve hemoraji-nekroz/bifazik morfoloji birlikte değerlendirilir.',
+    minimalPanel: ['beta-hCG patern detayı', 'GATA3', 'p63', 'İnhibin', 'PanCK'],
+    pitfalls: ['Seminomda yalnız sinsityotrofoblastik dev hücrelerde beta-hCG pozitifliği koryokarsinom anlamına gelmez.'],
+    markerIds: ['betaHCG', 'GATA3', 'p63', 'Inhibin', 'PanCK'],
+  },
+  {
+    id: 'teratoma',
+    label: 'Teratom lehine',
+    summary: 'Teratom sabit İHK profiliyle tanınmaz; matür/immatür somatik dokuların morfolojik gösterilmesi, yaş, GCNIS ve 12p/i12p bilgisi önemlidir.',
+    minimalPanel: ['Morfoloji', 'Yaş', 'GCNIS', '12p/i12p', 'Eşlik eden GHT komponentleri', 'Somatik malign komponent için hedefli İHK'],
+    pitfalls: ['Erişkin saf matür teratomda prepubertal tip yorumu dikkatli yapılmalıdır.'],
+    markerIds: ['PanCK', 'EMA', 'SOX2', 'CDX2', 'SATB2', 'PAX8', 'Desmin', 'Myogenin', 'MyoD1', 'MDM2', 'CDK4'],
+  },
+  {
+    id: 'spermatocytic',
+    label: 'Spermatositik tümör lehine',
+    summary: 'Spermatositik tümör yorumu ileri yaş, GCNIS yokluğu, OCT3/4-CD30-AFP-GPC3 negatifliği ve CD117/SALL4 değişkenliği ile anlam kazanır.',
+    minimalPanel: ['OCT3/4', 'CD30', 'GPC3', 'AFP', 'CD117', 'SALL4', 'GCNIS durumu'],
+    pitfalls: ['İleri yaşta lenfoma ayırıcı tanıda kalmalıdır.'],
+    markerIds: ['OCT4', 'CD30', 'GPC3', 'AFP', 'CD117', 'SALL4', 'CD45_LCA', 'CD20', 'PAX5'],
+  },
+  {
+    id: 'non_gct',
+    label: 'Lenfoma/metastaz/GHT dışı kuşku',
+    summary: 'GHT dışı kuşkuda germ hücre markerlarının negatifliği, CD45/CD20/PAX5, SF1/inhibin/calretinin ve PanCK/EMA-organ spesifik panel birlikte değerlendirilir.',
+    minimalPanel: ['CD45', 'CD20', 'PAX5', 'SF1', 'İnhibin', 'Calretinin', 'PanCK', 'EMA', 'NKX3.1/PAX8/TTF-1/CDX2/SATB2'],
+    pitfalls: ['Germ markerları negatif olguda düşük GHT skorları mimik uyarısını gölgelememelidir.'],
+    markerIds: ['CD45_LCA', 'CD20', 'PAX5', 'SF1', 'Inhibin', 'Calretinin', 'PanCK', 'EMA', 'NKX3_1', 'PAX8', 'TTF1', 'CDX2', 'SATB2'],
+  },
+  {
+    id: 'mixed_uncertain',
+    label: 'Kararsız / mikst alanlar var',
+    summary: 'Mikst tümör kuşkusunda her morfolojik komponent alanı kendi sınırları içinde ayrı analiz edilmelidir.',
+    minimalPanel: ['Alan bazlı SALL4/OCT3/4/CD30/CD117/GPC3/AFP/beta-hCG', 'Morfoloji ve serum korelasyonu'],
+    pitfalls: ['Farklı alanların İHK paternleri tek bir ortalama profile indirgenmemelidir.'],
+    markerIds: ['SALL4', 'OCT4', 'CD30', 'CD117', 'GPC3', 'AFP', 'betaHCG'],
+  },
+];
+
+const ANTIBODY_GROUPS: AntibodyGroupDefinition[] = [
+  {
+    id: 'first_lineage',
+    title: 'Germ hücre kökeni ve ilk yönlendirme',
+    markerIds: ['SALL4', 'OCT4', 'CD117', 'CD30'],
+    description: 'Bu grup ilk soruyu cevaplar: lezyon germ hücreli tümör profiline giriyor mu ve ilk yön seminom/embriyonel/yolk sac ekseninde nereye kayıyor?',
+    bullets: [
+      'SALL4 germ hücre kökenini destekler; yalnız uygun nükleer boyanma anlamlıdır.',
+      'OCT3/4 seminom ve embriyonel karsinom tarafını açar; yolk sac/koryo/teratom/spermatositik tümörde beklenmez.',
+      'CD117 seminom/GCNIS ve spermatositik tümörde destekleyici olabilir.',
+      'CD30 embriyonel karsinom yönünü güçlendirir; seyrek pozitif hücre tek başına yeterli değildir.',
+    ],
+    pitfall: 'SALL4 negatifse GHT dışı mimikler ve metastaz güvenlik paneli daha görünür düşünülmelidir.',
+  },
+  {
+    id: 'seminoma_ec',
+    title: 'Seminom ↔ Embriyonel karsinom ayrımı',
+    markerIds: ['SOX17', 'SOX2', 'D2_40', 'PanCK'],
+    description: 'OCT3/4 pozitif tümörde en sık gereken ayrımı hedefler: seminom mu, embriyonel karsinom mu?',
+    bullets: [
+      'Seminom lehine: SOX17+, CD117+, D2-40+, CD30−, SOX2−.',
+      'Embriyonel lehine: SOX2+, CD30+, PanCK+, CD117 genellikle negatif/zayıf, SOX17−.',
+      'OCT3/4 ikisinde de pozitif olabileceği için tek başına ayırıcı değildir.',
+    ],
+    pitfall: 'SOX17/SOX2 birlikteliğinde boyanan alanlar morfoloji ile ayrı ayrı kontrol edilmelidir.',
+  },
+  {
+    id: 'ec_yolk',
+    title: 'Embriyonel karsinom ↔ Yolk sac tümör ayrımı',
+    markerIds: ['GPC3', 'AFP'],
+    description: 'SALL4 ve PanCK pozitif tümörlerde embriyonel karsinom ile yolk sac tümör ayrımına odaklanır.',
+    bullets: [
+      'Embriyonel lehine: OCT3/4+, CD30+, SOX2+, PanCK+.',
+      'Yolk sac lehine: GPC3+, AFP değişken+, OCT3/4−, CD30−, SOX2−.',
+      'SALL4 ve PanCK iki tarafta da pozitif olabileceği için tek başına ayırıcı değildir.',
+    ],
+    pitfall: 'AFP negatifliği yolk sac tümörü dışlamaz; GPC3 pozitifliği ve uygun morfoloji varsa yolk sac yönü devam eder.',
+  },
+  {
+    id: 'yolk_chorio',
+    title: 'Yolk sac ↔ Trofoblastik/koryokarsinom ayrımı',
+    markerIds: ['betaHCG', 'GATA3', 'p63', 'Inhibin'],
+    description: 'GPC3/AFP ekseni ile beta-hCG/GATA3/p63/inhibin eksenini ayırır.',
+    bullets: [
+      'Yolk sac yönü: GPC3+, AFP değişken+, PanCK+, OCT3/4−.',
+      'Trofoblastik/koryo yönü: yaygın beta-hCG+, GATA3+, p63/inhibin desteği, hemoraji/nekroz ve bifazik patern.',
+    ],
+    pitfall: 'Seminomdaki sinsityotrofoblastik dev hücre beta-hCG pozitifliği tek başına koryokarsinom değildir.',
+  },
+  {
+    id: 'seminoma_safety',
+    title: 'Seminom benzeri tümörde güvenlik kontrolü',
+    markerIds: ['SF1', 'Calretinin', 'EMA'],
+    description: 'Seminom benzeri görünümde spermatositik tümör, lenfoma, sex-cord stromal tümör ve metastaz güvenlik kontrolünü hatırlatır.',
+    bullets: [
+      'Seminom lehine: SALL4+, OCT3/4+, CD117+, SOX17/D2-40+, GCNIS desteği.',
+      'Spermatositik lehine: ileri yaş, GCNIS yokluğu, OCT3/4−, CD30−, GPC3/AFP−, CD117 değişken+.',
+      'Lenfoma lehine: CD45+, CD20/PAX5+, germ markerları negatif.',
+      'Sex-cord stromal yönü: SF1 nükleer+, inhibin/calretinin+, germ markerları negatif.',
+    ],
+    pitfall: 'İleri yaşta seminom benzeri tümörde CD45/CD20/PAX5 çalışılmamışsa lenfoma dışlanmamış olabilir.',
+  },
+  {
+    id: 'teratoma_somatic',
+    title: 'Teratom / somatik komponent değerlendirmesi',
+    markerIds: [],
+    description: 'Teratom sabit İHK profiliyle tanınmaz; bu bölüm morfoloji, yaş, GCNIS, 12p/i12p ve somatik komponent bilgisini öne çıkarır.',
+    bullets: [
+      'Prepubertal tip lehine: çocuk yaş, GCNIS yokluğu, 12p gain/i12p yokluğu, genellikle benign davranış.',
+      'Postpubertal tip lehine: erişkin/postpubertal hasta, GCNIS ilişkisi, 12p gain/i12p desteği, metastatik potansiyel.',
+      'Somatik tip malign transformasyonda İHK malign komponentin tipini belirlemek için hedefli seçilir.',
+    ],
+    pitfall: 'Erişkin saf matür teratomda prepubertal tip yorumu dikkatli yapılmalıdır.',
+  },
+  {
+    id: 'mimic_safety',
+    title: 'GHT dışı mimikler / metastaz güvenlik paneli',
+    markerIds: MIMIC_PANEL_ANTIBODIES.map((ab) => ab.id),
+    description: 'Bu grup “bu gerçekten germ hücreli tümör mü?” sorusunu güvenlik açısından kontrol eder.',
+    bullets: [
+      'Lenfoma/lösemi: CD45, CD20, PAX5, CD3, CD79a.',
+      'Metastatik karsinom / somatik tip malignite: PanCK/EMA diffüz+, germ markerları negatif, organ-spesifik panel.',
+      'Melanom: SOX10/S100 ve HMB45/Melan-A.',
+      'Paratestiküler sarkom: Desmin, Myogenin, MyoD1, SMA, MDM2/CDK4, ERG/CD31.',
+    ],
+    pitfall: 'Güçlü GHT dışı uyarı varsa düşük/orta GHT uyumları yorum metnini gölgelememelidir.',
+  },
+];
+
+const DIFFERENTIALS: DifferentialDefinition[] = [
+  {
+    id: 'seminoma_ec',
+    title: 'Seminom ↔ Embriyonel',
+    markerIds: ['OCT4', 'CD117', 'SOX17', 'D2_40', 'CD30', 'SOX2', 'PanCK'],
+    heHint: 'Seminomda şeffaf sitoplazmalı tabakalar ve lenfoid stroma; embriyonel karsinomda daha belirgin atipi, solid/glandüler/papiller patern ve nekroz görülebilir.',
+    minimalPanel: ['OCT3/4 ortak olabilir', 'Seminom: CD117, SOX17, D2-40', 'Embriyonel: CD30, SOX2, PanCK'],
+    pitfall: 'OCT3/4 tek başına ayırıcı değildir; SOX17/SOX2 ve CD117/CD30 karşıtlığı daha değerlidir.',
+    missingMarkerHint: 'SOX17, SOX2, CD30 veya CD117 eksikse ayrım için önerilir.',
+  },
+  {
+    id: 'ec_yolk',
+    title: 'Embriyonel ↔ Yolk sac',
+    markerIds: ['OCT4', 'CD30', 'SOX2', 'GPC3', 'AFP', 'SALL4', 'PanCK'],
+    heHint: 'Embriyonel karsinomda solid/glandüler/papiller patern ve nekroz; yolk sac tümörde mikrokistik/retiküler patern, Schiller-Duval benzeri yapılar ve hyalin globüller destekleyicidir.',
+    minimalPanel: ['Embriyonel: OCT3/4, CD30, SOX2', 'Yolk sac: GPC3, AFP', 'Ortak: SALL4, PanCK'],
+    pitfall: 'AFP negatifliği yolk sac tümörü dışlamaz; GPC3 pozitifliği ve uygun morfoloji varsa yolk sac yönü devam eder.',
+    missingMarkerHint: 'GPC3 veya AFP çalışılmadıysa önerilir; OCT3/4/CD30/SOX2 negatifliği yolk sac lehine yardımcıdır.',
+  },
+  {
+    id: 'yolk_chorio',
+    title: 'Yolk sac ↔ Koryo',
+    markerIds: ['GPC3', 'AFP', 'betaHCG', 'GATA3', 'p63', 'Inhibin', 'PanCK'],
+    heHint: 'Yolk sac tümörde retiküler/mikrokistik alanlar; koryokarsinomda hemoraji-nekroz ve bifazik trofoblastik popülasyon aranır.',
+    minimalPanel: ['Yolk sac: GPC3, AFP', 'Trofoblastik/koryo: yaygın beta-hCG, GATA3, p63, inhibin', 'Ortak: PanCK'],
+    pitfall: 'Seminomda sadece sinsityotrofoblastik dev hücrelerde beta-hCG pozitifliği koryokarsinom değildir.',
+    missingMarkerHint: 'beta-hCG patern detayı, GATA3, p63 ve inhibin eksikse önerilebilir.',
+  },
+  {
+    id: 'seminoma_lymphoma',
+    title: 'Seminom ↔ Lenfoma',
+    markerIds: ['SALL4', 'OCT4', 'CD117', 'SOX17', 'D2_40', 'CD45_LCA', 'CD20', 'PAX5', 'CD3'],
+    heHint: 'İleri yaşta solid/seminom benzeri görünümde lenfoma klinik olarak kritik mimiktir; bilateralite ve diffüz infiltratif büyüme uyarıcıdır.',
+    minimalPanel: ['Seminom: SALL4, OCT3/4, CD117/SOX17/D2-40', 'Lenfoma: CD45, CD20, PAX5, CD3'],
+    pitfall: 'Lenfoma dışlanmadan ileri yaş seminom benzeri tümör germ hücreli tümör lehine yorumlanmamalıdır.',
+    missingMarkerHint: 'CD45/CD20/PAX5 eksikse özellikle >60 yaşta önerilir.',
+  },
+  {
+    id: 'seminoma_spermatocytic',
+    title: 'Seminom ↔ Spermatositik',
+    markerIds: ['OCT4', 'CD117', 'SALL4', 'CD30', 'GPC3', 'AFP', 'D2_40', 'SOX17'],
+    heHint: 'Spermatositik tümör genellikle ileri yaşta, GCNIS yokluğu ve OCT3/4 negatifliği ile desteklenir.',
+    minimalPanel: ['Seminom: OCT3/4, CD117, SOX17/D2-40', 'Spermatositik: OCT3/4−, CD30−, GPC3/AFP−, CD117 değişken+', 'GCNIS durumu'],
+    pitfall: 'Spermatositik tümör yorumu yaş ve GCNIS yokluğu olmadan yalnız negatif markerlarla yükselmemelidir.',
+    missingMarkerHint: 'GCNIS durumu, OCT3/4, CD30, GPC3, AFP ve CD117 tamamlanabilir.',
+  },
+  {
+    id: 'gct_sexcord',
+    title: 'GHT ↔ Sex-cord stromal',
+    markerIds: ['SALL4', 'OCT4', 'CD30', 'GPC3', 'AFP', 'SF1', 'Inhibin', 'Calretinin', 'MelanA'],
+    heHint: 'Germ markerları negatif ve sex-cord stromal morfoloji/klinik varsa SF1 ekseni önemlidir.',
+    minimalPanel: ['GHT dışlama: SALL4, OCT3/4, CD30, GPC3/AFP', 'Sex-cord: SF1, inhibin, calretinin, Melan-A'],
+    pitfall: 'SF1 nükleer pozitifliği GHT skorundan çok sex-cord stromal tümör uyarısı üretmelidir.',
+    missingMarkerHint: 'SF1 pozitifse inhibin/calretinin/Melan-A ve retikülin paterni düşünülebilir.',
+  },
+  {
+    id: 'gct_metastasis',
+    title: 'GHT ↔ Metastaz',
+    markerIds: ['SALL4', 'OCT4', 'CD30', 'GPC3', 'AFP', 'PanCK', 'EMA', 'NKX3_1', 'PSA', 'PSAP', 'PSMA', 'PAX8', 'CAIX', 'TTF1', 'NapsinA', 'CDX2', 'SATB2', 'GATA3', 'p40', 'CK5_6', 'Uroplakin'],
+    heHint: 'İleri yaş, bilinen malignite öyküsü, GCNIS yokluğu, germ marker negatifliği, PanCK/EMA diffüz pozitifliği ve bilateral/paratestiküler/infiltratif büyüme metastazı düşündürür.',
+    minimalPanel: ['Germ markerlar: SALL4, OCT3/4, CD30, GPC3/AFP', 'Epitelyal: PanCK, EMA', 'Primer: NKX3.1/PSA/PSMA, PAX8/CAIX, TTF-1/Napsin A, CDX2/SATB2, GATA3/p40/Uroplakin'],
+    pitfall: 'PanCK/EMA pozitifliği tek başına primeri belirlemez; organ-spesifik panel klinik bilgiyle seçilmelidir.',
+    missingMarkerHint: 'PanCK/EMA pozitif ve germ markerları negatifse primer odak paneli önerilir.',
+  },
+  {
+    id: 'teratoma_type',
+    title: 'Teratom tipi',
+    markerIds: ['PanCK', 'EMA', 'SOX2'],
+    heHint: 'Matür veya immatür somatik doku komponentleri; epitel, kıkırdak, nöral doku, skuamöz/glandüler yapılar aranır.',
+    minimalPanel: ['İHK değil; yaş, GCNIS, 12p/i12p ve eşlik eden GHT komponenti değerlendirilir.'],
+    pitfall: 'Erişkin saf matür teratomda prepubertal tip yorumu dikkatli yapılmalıdır; GCNIS, 12p/i12p ve klinik korelasyon gerekir.',
+    missingMarkerHint: '12p/i12p, GCNIS durumu ve eşlik eden non-teratom GHT komponenti bilgisi değerlidir.',
+  },
+  {
+    id: 'teratoma_somatic_malignancy',
+    title: 'Teratom ↔ Somatik malign transformasyon',
+    markerIds: ['PanCK', 'EMA', 'p40', 'CDX2', 'SATB2', 'PAX8', 'TTF1', 'Desmin', 'Myogenin', 'MyoD1', 'MDM2', 'CDK4'],
+    heHint: 'Teratom içinde belirgin malign epitelyal, mezenkimal, nöroektodermal veya sarkomatöz komponent kuşkusu.',
+    minimalPanel: ['Morfolojiye göre hedefli marker seç: PanCK/EMA, p40, CDX2/SATB2, PAX8, TTF-1, Desmin/Myogenin/MyoD1, MDM2/CDK4'],
+    pitfall: 'İHK teratom tanısı koymak için değil, somatik malign komponentin tipini belirlemek için kullanılır.',
+    missingMarkerHint: 'Şüpheli somatik komponentin morfolojisine göre hedefli panel seçilmelidir.',
+  },
+];
+
+// ─── Inline style constants ────────────────────────────────
+
 const cardStyle: React.CSSProperties = {
   backgroundColor: '#ffffff',
-  borderRadius: '12px',
+  borderRadius: '14px',
   border: '1px solid #e2e8f0',
-  boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+  boxShadow: '0 1px 3px rgba(15,23,42,0.05)',
   overflow: 'hidden',
-  marginBottom: '16px',
+  marginBottom: '14px',
 };
 
-const sectionHeaderStyle: React.CSSProperties = {
+const panelHeaderStyle: React.CSSProperties = {
+  padding: '12px 14px',
   backgroundColor: '#f8fafc',
   borderBottom: '1px solid #e2e8f0',
-  padding: '14px 18px',
+  fontSize: '13px',
+  fontWeight: 800,
+  color: '#0f172a',
   display: 'flex',
+  justifyContent: 'space-between',
   alignItems: 'center',
-  gap: '10px',
-  cursor: 'pointer',
-  userSelect: 'none',
+  gap: '8px',
 };
 
 const labelStyle: React.CSSProperties = {
   display: 'block',
-  fontSize: '11px',
-  fontWeight: '700',
+  fontSize: '10px',
+  fontWeight: 800,
   textTransform: 'uppercase',
-  letterSpacing: '0.5px',
+  letterSpacing: '0.45px',
   color: '#64748b',
-  marginBottom: '8px',
+  marginBottom: '5px',
 };
 
 const inputStyle: React.CSSProperties = {
   width: '100%',
-  padding: '8px 12px',
+  padding: '7px 9px',
   borderRadius: '8px',
-  border: '1px solid #e2e8f0',
-  backgroundColor: '#f8fafc',
-  fontSize: '14px',
+  border: '1px solid #dbe3ef',
+  backgroundColor: '#ffffff',
+  fontSize: '12px',
   color: '#0f172a',
   outline: 'none',
   fontFamily: 'inherit',
 };
 
-// ─── Sub-Components ───
+// ─── Utility helpers ───────────────────────────────────────
+
+function getAntibodyById(id: string): AntibodyDefinition | undefined {
+  return allAntibodyDefinitions.find((ab) => ab.id === id);
+}
+
+function getHeDefinition(id: HeImpressionKey): HeImpressionDefinition {
+  return HE_IMPRESSIONS.find((x) => x.id === id) || HE_IMPRESSIONS[0];
+}
+
+function getDifferential(id: string | null): DifferentialDefinition | undefined {
+  if (!id) return undefined;
+  return DIFFERENTIALS.find((x) => x.id === id);
+}
+
+function getGroup(id: string | null): AntibodyGroupDefinition | undefined {
+  if (!id) return undefined;
+  return ANTIBODY_GROUPS.find((x) => x.id === id);
+}
+
+function serumStatusLabel(status: string | undefined): string {
+  switch (status) {
+    case 'normal': return 'Normal';
+    case 'mild_high': return 'Hafif yüksek';
+    case 'significant_high': return 'Anlamlı yüksek';
+    case 'very_high': return 'Çok yüksek';
+    default: return 'Girilmedi';
+  }
+}
+
+function morphologyCount(flags: MorphologyFlags): number {
+  return Object.values(flags).filter(Boolean).length;
+}
+
+function enteredAntibodyCount(results: Record<string, string>, ids?: string[]): number {
+  const keys = ids ?? Object.keys(results);
+  return keys.filter((id) => results[id] && results[id] !== 'not_done').length;
+}
+
+function isSuspiciousOptionKey(key: string): boolean {
+  return key.includes('suspicious') || key.includes('smudge') || key.includes('nonspecific') || key === 'suspicious';
+}
+
+function optionSortWeight(opt: AntibodyDefinition['options'][number]): number {
+  if (opt.key === 'negative') return 1;
+  if (opt.isWrongPattern || isSuspiciousOptionKey(opt.key)) return 2;
+  if (opt.isPositive) return 10 + Math.round((opt.patternCoefficient ?? 0) * 10);
+  return 5;
+}
+
+function getResultTone(opt?: AntibodyDefinition['options'][number] | null): { bg: string; border: string; text: string } {
+  if (!opt) return { bg: '#f8fafc', border: '#e2e8f0', text: '#475569' };
+  if (opt.key === 'negative') return { bg: '#eff6ff', border: '#bfdbfe', text: '#1e3a8a' };
+  if (opt.isWrongPattern) return { bg: '#f5f3ff', border: '#c4b5fd', text: '#5b21b6' };
+  if (isSuspiciousOptionKey(opt.key)) return { bg: '#f1f5f9', border: '#cbd5e1', text: '#475569' };
+  if (opt.isPositive && (opt.patternCoefficient ?? 0) >= 1) return { bg: '#78350f', border: '#78350f', text: '#fff7ed' };
+  if (opt.isPositive && (opt.patternCoefficient ?? 0) >= 0.7) return { bg: '#b45309', border: '#92400e', text: '#fff7ed' };
+  if (opt.isPositive) return { bg: '#fef3c7', border: '#f59e0b', text: '#78350f' };
+  return { bg: '#ffffff', border: '#e2e8f0', text: '#334155' };
+}
 
 function CopyButton({ text, label }: { text: string; label: string }) {
   const [copied, setCopied] = useState(false);
@@ -95,8 +457,8 @@ function CopyButton({ text, label }: { text: string; label: string }) {
         document.body.removeChild(ta);
       }
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch { /* fallback handled */ }
+      setTimeout(() => setCopied(false), 1800);
+    } catch { /* no-op */ }
   }, [text]);
 
   return (
@@ -104,116 +466,48 @@ function CopyButton({ text, label }: { text: string; label: string }) {
       onClick={handleCopy}
       style={{
         display: 'inline-flex', alignItems: 'center', gap: '6px',
-        padding: '8px 14px', borderRadius: '8px', fontSize: '13px',
-        fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s',
-        border: '1px solid', fontFamily: 'inherit',
+        padding: '7px 10px', borderRadius: '8px', fontSize: '11px',
+        fontWeight: 700, cursor: 'pointer', border: '1px solid', fontFamily: 'inherit',
         backgroundColor: copied ? '#dcfce7' : '#f8fafc',
         color: copied ? '#166534' : '#475569',
         borderColor: copied ? '#86efac' : '#e2e8f0',
       }}
     >
-      {copied ? <Check size={14} /> : <Copy size={14} />}
+      {copied ? <Check size={13} /> : <Copy size={13} />}
       {copied ? 'Kopyalandı' : label}
     </button>
   );
 }
 
-function AntibodyRow({
-  antibody,
-  selectedKey,
-  onSelect,
-  onInfoClick,
-  referenceExpected,
-}: {
-  antibody: AntibodyDefinition;
-  selectedKey: string;
-  onSelect: (antibodyId: string, optionKey: string) => void;
-  onInfoClick: (antibodyId: string) => void;
-  referenceExpected?: string;
-}) {
+function MiniPanel({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div style={cardStyle}>
+      <div style={panelHeaderStyle}>{title}</div>
+      <div style={{ padding: '13px 14px' }}>{children}</div>
+    </div>
+  );
+}
+
+function CardDisplay({ card }: { card: CardOutput }) {
+  const colors = CARD_COLORS[card.type];
   return (
     <div style={{
-      padding: '10px 16px',
-      borderBottom: '1px solid #f1f5f9',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '6px',
+      padding: '11px 12px', borderRadius: '10px', marginBottom: '8px',
+      backgroundColor: colors.bg, borderLeft: `4px solid ${colors.border}`,
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-        <button
-          onClick={() => onInfoClick(antibody.id)}
-          style={{
-            background: 'none', border: 'none', cursor: 'pointer',
-            color: '#6366f1', fontWeight: '700', fontSize: '13px',
-            padding: '2px 4px', borderRadius: '4px',
-            display: 'flex', alignItems: 'center', gap: '4px',
-          }}
-          title={`${antibody.name} bilgi kartı`}
-        >
-          <Info size={13} />
-          {antibody.name}
-        </button>
-        {antibody.isNuclearMarker && (
-          <span style={{
-            fontSize: '10px', fontWeight: '600', color: '#7c3aed',
-            backgroundColor: '#ede9fe', padding: '1px 6px', borderRadius: '4px',
-          }}>NÜK</span>
-        )}
-        {referenceExpected && (
-          <span style={{
-            fontSize: '10px', fontWeight: '500', color: '#0369a1',
-            backgroundColor: '#e0f2fe', padding: '1px 6px', borderRadius: '10px',
-            marginLeft: 'auto',
-          }} title="Seçili referans tümör beklentisi">
-            📌 {referenceExpected}
-          </span>
-        )}
-      </div>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-        {antibody.options
-          .filter(opt => {
-            const keysToHide = [
-              'not_done',
-              'suspicious',
-              'suspicious_nonspecific',
-              'cytoplasmic_suspicious',
-              'smudgy_suspicious',
-              'smudge_suspicious'
-            ];
-            return !keysToHide.includes(opt.key);
-          })
-          .map((opt) => {
-            const isSelected = selectedKey === opt.key;
-            let bgColor = '#ffffff';
-            let textColor = '#475569';
-            let borderColor = '#e2e8f0';
-            if (isSelected) {
-              if (opt.key === 'negative') {
-                bgColor = '#fef2f2'; textColor = '#991b1b'; borderColor = '#fca5a5';
-              } else if (opt.isWrongPattern) {
-                bgColor = '#fef3c7'; textColor = '#92400e'; borderColor = '#fcd34d';
-              } else if (opt.isPositive) {
-                bgColor = '#dcfce7'; textColor = '#166534'; borderColor = '#86efac';
-              } else {
-                bgColor = '#e0e7ff'; textColor = '#3730a3'; borderColor = '#a5b4fc';
-              }
-            }
-            return (
-              <button
-                key={opt.key}
-                onClick={() => onSelect(antibody.id, opt.key)}
-                style={{
-                  padding: '5px 10px', borderRadius: '6px', fontSize: '11px',
-                  fontWeight: isSelected ? '700' : '500', cursor: 'pointer',
-                  transition: 'all 0.15s', border: '1px solid',
-                  fontFamily: 'inherit', whiteSpace: 'nowrap',
-                  backgroundColor: bgColor, color: textColor, borderColor,
-                }}
-              >
-                {opt.label}
-              </button>
-            );
-          })}
+      <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
+        <span style={{ fontSize: '15px', flexShrink: 0 }}>{colors.icon}</span>
+        <div>
+          <div style={{ fontSize: '12px', fontWeight: 800, color: '#0f172a', marginBottom: '3px' }}>{card.title}</div>
+          <div style={{ fontSize: '11px', color: '#334155', lineHeight: 1.55 }}>{card.text}</div>
+          {!!card.suggestions?.length && (
+            <div style={{ marginTop: '6px', display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+              {card.suggestions.map((s, i) => (
+                <span key={i} style={{ fontSize: '10px', padding: '3px 6px', borderRadius: '999px', backgroundColor: 'rgba(255,255,255,0.7)', color: '#475569' }}>{s}</span>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -232,226 +526,134 @@ function ScoreBar({
   isSelected: boolean;
   onClick: () => void;
 }) {
-  const colors = getScoreColor(breakdown.overall); // Base color threshold on overall score
+  const colors = getScoreColor(breakdown.overall);
   return (
     <button
       onClick={onClick}
       style={{
-        width: '100%', textAlign: 'left', cursor: 'pointer',
-        padding: '12px 16px', borderRadius: '10px', marginBottom: '8px',
+        width: '100%', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit',
+        padding: '9px 10px', borderRadius: '10px', marginBottom: '7px',
         border: isSelected ? '2px solid #2563eb' : '1px solid #e2e8f0',
-        borderLeft: isSelected ? '6px solid #2563eb' : '1px solid #e2e8f0',
-        backgroundColor: isSelected ? '#f8fafc' : '#ffffff',
-        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-        fontFamily: 'inherit',
-        boxShadow: isSelected ? '0 4px 12px rgba(37,99,235,0.15)' : 'none',
-        transform: isSelected ? 'scale(1.02)' : 'scale(1)',
+        backgroundColor: isSelected ? '#eff6ff' : '#ffffff',
       }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-        <span style={{ fontSize: '13px', fontWeight: '700', color: isSelected ? '#1e3a8a' : '#0f172a' }}>{name}</span>
-        <span style={{
-          fontSize: '11px', fontWeight: '700', color: colors.text,
-          backgroundColor: colors.bg, padding: '1px 6px', borderRadius: '4px',
-          border: `1px solid ${colors.border}`,
-        }}>
-          {colors.label}
-        </span>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', marginBottom: '5px' }}>
+        <span style={{ fontSize: '12px', fontWeight: 800, color: '#0f172a' }}>{name}</span>
+        <span style={{ fontSize: '10px', fontWeight: 800, color: colors.text, backgroundColor: colors.bg, border: `1px solid ${colors.border}`, padding: '1px 6px', borderRadius: '999px' }}>{Math.round(breakdown.overall)}%</span>
       </div>
-
-      {/* Bar 1: IHC Compatibility */}
-      <div style={{ marginBottom: '6px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px', color: '#64748b', marginBottom: '2px' }}>
-          <span>🔵 İHK Uyumu</span>
-          <span style={{ fontWeight: '700', color: '#1e40af' }}>%{Math.round(breakdown.ihc)}</span>
-        </div>
-        <div style={{ height: '6px', backgroundColor: '#f1f5f9', borderRadius: '3px', overflow: 'hidden' }}>
-          <div style={{
-            height: '100%', width: `${breakdown.ihc}%`,
-            backgroundColor: '#3b82f6',
-            transition: 'width 0.4s ease',
-          }} />
-        </div>
+      <div style={{ height: '6px', backgroundColor: '#f1f5f9', borderRadius: '99px', overflow: 'hidden' }}>
+        <div style={{ height: '100%', width: `${Math.max(0, Math.min(100, breakdown.overall))}%`, backgroundColor: colors.border, transition: 'width 0.3s ease' }} />
       </div>
-
-      {/* Bar 2: Clinical/Serum Compatibility */}
-      <div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px', color: '#64748b', marginBottom: '2px' }}>
-          <span>🟡 Klinik & Serum</span>
-          <span style={{ fontWeight: '700', color: breakdown.clinicalActive ? '#b45309' : '#64748b' }}>
-            {breakdown.clinicalActive ? `%${Math.round(breakdown.clinical)}` : 'Veri yok'}
-          </span>
-        </div>
-        <div style={{ height: '6px', backgroundColor: '#f1f5f9', borderRadius: '3px', overflow: 'hidden' }}>
-          <div style={{
-            height: '100%',
-            width: `${breakdown.clinicalActive ? breakdown.clinical : 0}%`,
-            backgroundColor: breakdown.clinicalActive ? '#f59e0b' : '#cbd5e1',
-            transition: 'width 0.4s ease',
-          }} />
-        </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px', color: '#64748b', marginTop: '4px' }}>
+        <span>İHK %{Math.round(breakdown.ihc)}</span>
+        <span>{breakdown.clinicalActive ? `Klinik/serum %${Math.round(breakdown.clinical)}` : 'Klinik/serum yok'}</span>
       </div>
     </button>
   );
 }
 
-function CardDisplay({ card }: { card: CardOutput }) {
-  const colors = CARD_COLORS[card.type];
+function AntibodyRow({
+  antibody,
+  selectedKey,
+  onSelect,
+  onClear,
+  onNameClick,
+  isHighlighted,
+  referenceExpected,
+  isEditing,
+  onEditToggle,
+}: {
+  antibody: AntibodyDefinition;
+  selectedKey: string | undefined;
+  onSelect: (antibodyId: string, optionKey: string) => void;
+  onClear: (antibodyId: string) => void;
+  onNameClick: (antibodyId: string) => void;
+  isHighlighted: boolean;
+  referenceExpected?: string;
+  isEditing: boolean;
+  onEditToggle: (antibodyId: string) => void;
+}) {
+  const selectedOption = selectedKey ? antibody.options.find((o) => o.key === selectedKey) : undefined;
+  const visibleOptions = antibody.options.filter((opt) => opt.key !== 'not_done').sort((a, b) => optionSortWeight(a) - optionSortWeight(b));
+  const tone = getResultTone(selectedOption);
+  const showSummary = !!selectedOption && !isEditing;
+
   return (
     <div style={{
-      padding: '14px 16px', borderRadius: '10px', marginBottom: '8px',
-      backgroundColor: colors.bg, borderLeft: `4px solid ${colors.border}`,
+      display: 'grid', gridTemplateColumns: '132px minmax(0,1fr)', gap: '8px',
+      padding: '7px 10px', borderBottom: '1px solid #edf2f7', alignItems: 'center',
+      backgroundColor: isHighlighted ? '#fff7ed' : '#ffffff',
+      boxShadow: isHighlighted ? 'inset 3px 0 0 #f59e0b' : 'none',
     }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
-        <span style={{ fontSize: '16px', flexShrink: 0 }}>{colors.icon}</span>
-        <div>
-          <div style={{ fontSize: '13px', fontWeight: '700', color: '#0f172a', marginBottom: '4px' }}>
-            {card.title}
+      <button
+        onClick={() => onNameClick(antibody.id)}
+        style={{
+          background: 'none', border: 'none', textAlign: 'left', cursor: 'pointer',
+          color: '#312e81', fontWeight: 800, fontSize: '12px', padding: 0, fontFamily: 'inherit',
+          display: 'flex', alignItems: 'center', gap: '5px', minWidth: 0,
+        }}
+        title={`${antibody.name} bilgi kartı`}
+      >
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{antibody.name}</span>
+        {antibody.isNuclearMarker && <span style={{ fontSize: '9px', color: '#7c3aed', backgroundColor: '#ede9fe', borderRadius: '4px', padding: '1px 4px' }}>NÜK</span>}
+      </button>
+
+      <div>
+        {showSummary ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <button
+              onClick={() => onEditToggle(antibody.id)}
+              style={{
+                flex: 1, border: `1px solid ${tone.border}`, backgroundColor: tone.bg, color: tone.text,
+                borderRadius: '8px', padding: '6px 9px', fontSize: '11px', fontWeight: 800,
+                textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', minWidth: 0,
+              }}
+            >
+              {selectedOption.label}
+            </button>
+            <button
+              onClick={() => onClear(antibody.id)}
+              style={{ border: '1px solid #e2e8f0', background: '#fff', color: '#64748b', borderRadius: '8px', width: '26px', height: '26px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+              title="Bu antikoru temizle"
+            >
+              <X size={12} />
+            </button>
           </div>
-          <div style={{ fontSize: '12px', color: '#334155', lineHeight: '1.5' }}>
-            {card.text}
+        ) : (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+            {visibleOptions.map((opt) => {
+              const optTone = getResultTone(opt);
+              const isSelected = selectedKey === opt.key;
+              return (
+                <button
+                  key={opt.key}
+                  onClick={() => onSelect(antibody.id, opt.key)}
+                  style={{
+                    border: `1px solid ${isSelected ? optTone.border : '#e2e8f0'}`,
+                    backgroundColor: isSelected ? optTone.bg : '#ffffff',
+                    color: isSelected ? optTone.text : '#475569',
+                    padding: '5px 8px', borderRadius: '7px', fontSize: '10px',
+                    fontWeight: isSelected ? 800 : 600, cursor: 'pointer', fontFamily: 'inherit',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {opt.label.replace(' pozitif', ' +')}
+                </button>
+              );
+            })}
           </div>
-          {card.suggestions && card.suggestions.length > 0 && (
-            <div style={{ marginTop: '8px' }}>
-              {card.suggestions.map((s, i) => (
-                <div key={i} style={{
-                  fontSize: '11px', color: '#475569', padding: '3px 8px',
-                  backgroundColor: 'rgba(255,255,255,0.6)', borderRadius: '4px',
-                  marginBottom: '3px', display: 'inline-block', marginRight: '4px',
-                }}>
-                  💊 {s}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        )}
+        {referenceExpected && (
+          <div style={{ marginTop: '3px', fontSize: '9px', color: '#0369a1' }}>Referans beklenti: {referenceExpected}</div>
+        )}
       </div>
     </div>
   );
 }
 
-function InfoPanel({ antibody }: { antibody: AntibodyDefinition | null }) {
-  if (!antibody) return null;
-  const info = antibody.infoCard;
-  return (
-    <div style={{
-      ...cardStyle, border: '2px solid #c7d2fe', marginBottom: '12px',
-      maxWidth: '450px',
-    }}>
-      <div style={{
-        padding: '14px 18px', backgroundColor: '#eef2ff',
-        borderBottom: '1px solid #c7d2fe',
-      }}>
-        <div style={{ fontSize: '15px', fontWeight: '800', color: '#3730a3' }}>
-          📋 {antibody.name}
-        </div>
-      </div>
-      <div style={{ padding: '14px 18px', fontSize: '12px', lineHeight: '1.6', color: '#334155' }}>
-        <div style={{ marginBottom: '8px' }}>
-          <strong>Boyanma paterni:</strong> {info.stainingPattern}
-        </div>
-        <div style={{ marginBottom: '8px' }}>
-          <strong>Ana kullanım:</strong> {info.mainUse}
-        </div>
-        {info.expectedPositive.length > 0 && (
-          <div style={{ marginBottom: '8px' }}>
-            <strong>Güçlü beklenen:</strong> {info.expectedPositive.join(', ')}
-          </div>
-        )}
-        {info.expectedNegative.length > 0 && (
-          <div style={{ marginBottom: '8px' }}>
-            <strong>Beklenen negatif:</strong> {info.expectedNegative.join(', ')}
-          </div>
-        )}
-        {info.pitfall && (
-          <div style={{
-            padding: '8px 10px', backgroundColor: '#fef9c3', borderRadius: '6px',
-            fontSize: '11px', color: '#854d0e',
-          }}>
-            ⚠️ <strong>Pitfall:</strong> {info.pitfall}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
+// ─── Main Component ────────────────────────────────────────
 
-function ReferencePanel({ tumorId }: { tumorId: TumorType | null }) {
-  if (!tumorId) return null;
-  const tumor = TUMOR_DEFINITIONS.find(t => t.id === tumorId);
-  if (!tumor) return null;
-  const ref = tumor.referenceProfile;
-  return (
-    <div style={{
-      ...cardStyle, border: '2px solid #bfdbfe', marginBottom: '12px',
-      maxWidth: '450px',
-    }}>
-      <div style={{
-        padding: '14px 18px', backgroundColor: '#dbeafe',
-        borderBottom: '1px solid #bfdbfe',
-      }}>
-        <div style={{ fontSize: '15px', fontWeight: '800', color: '#1e40af' }}>
-          📖 {tumor.name} – Referans Profil
-        </div>
-      </div>
-      <div style={{ padding: '14px 18px', fontSize: '12px', lineHeight: '1.6', color: '#334155' }}>
-        {Object.entries(ref.expectedMarkers).map(([marker, info]) => (
-          <div key={marker} style={{ marginBottom: '4px' }}>
-            <strong>{marker}:</strong> {info.expected}
-            {info.note && <span style={{ color: '#64748b' }}> ({info.note})</span>}
-          </div>
-        ))}
-        {ref.pitfalls.length > 0 && (
-          <div style={{
-            marginTop: '10px', padding: '8px 10px', backgroundColor: '#fef9c3',
-            borderRadius: '6px', fontSize: '11px', color: '#854d0e',
-          }}>
-            ⚠️ <strong>Pitfall:</strong>
-            {ref.pitfalls.map((p, i) => <div key={i}>• {p}</div>)}
-          </div>
-        )}
-        {ref.notes.length > 0 && ref.notes.map((n, i) => (
-          <div key={i} style={{
-            marginTop: '6px', padding: '6px 10px', backgroundColor: '#f0f9ff',
-            borderRadius: '6px', fontSize: '11px', color: '#0369a1',
-          }}>
-            ℹ️ {n}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function getAutoStatusSuggestion(marker: 'afp' | 'betaHcg' | 'ldh', valStr: string) {
-  const cleanVal = valStr.replace(',', '.').trim();
-  const num = parseFloat(cleanVal);
-  if (isNaN(num) || num <= 0) return null;
-
-  if (marker === 'afp') {
-    if (num < 10) return { key: 'normal', label: 'Normal' };
-    if (num < 1000) return { key: 'mild_high', label: 'Hafif Yüksek' };
-    if (num <= 10000) return { key: 'significant_high', label: 'Anlamlı Yüksek' };
-    return { key: 'very_high', label: 'Çok Yüksek' };
-  }
-  if (marker === 'betaHcg') {
-    if (num < 5) return { key: 'normal', label: 'Normal' };
-    if (num < 5000) return { key: 'mild_high', label: 'Hafif Yüksek' };
-    if (num <= 50000) return { key: 'significant_high', label: 'Anlamlı Yüksek' };
-    return { key: 'very_high', label: 'Çok Yüksek' };
-  }
-  if (marker === 'ldh') {
-    if (num <= 1.0) return { key: 'normal', label: 'Normal' };
-    if (num < 1.5) return { key: 'mild_high', label: 'Hafif Yüksek' };
-    if (num <= 10.0) return { key: 'significant_high', label: 'Anlamlı Yüksek' };
-    return { key: 'very_high', label: 'Çok Yüksek' };
-  }
-  return null;
-}
-
-// ─── Main Component ───
 export function TestisGermCellIhcAssistant() {
-  // ─── State ───
   const [observedResults, setObservedResults] = useState<Record<string, string>>({});
   const [serumMarkers, setSerumMarkers] = useState<SerumMarkers>({
     afp: { value: '', unit: 'ng/mL', status: 'unknown' },
@@ -460,45 +662,104 @@ export function TestisGermCellIhcAssistant() {
   });
   const [ageRange, setAgeRange] = useState<AgeRange>('unknown');
   const [morphologyFlags, setMorphologyFlags] = useState<MorphologyFlags>({});
+  const [heImpression, setHeImpression] = useState<HeImpressionKey>('unknown');
   const [selectedTumorReference, setSelectedTumorReference] = useState<TumorType | null>(null);
   const [selectedAntibodyInfo, setSelectedAntibodyInfo] = useState<string | null>(null);
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+  const [selectedDifferentialId, setSelectedDifferentialId] = useState<string | null>(null);
   const [showMimicPanel, setShowMimicPanel] = useState(false);
-  const [showSerumPanel, setShowSerumPanel] = useState(false);
   const [showMorphologyPanel, setShowMorphologyPanel] = useState(false);
-  const [showCopyPanel, setShowCopyPanel] = useState(false);
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => new Set(['first_lineage', 'seminoma_ec', 'ec_yolk', 'yolk_chorio', 'seminoma_safety', 'teratoma_somatic']));
+  const [editingRows, setEditingRows] = useState<Set<string>>(() => new Set());
 
-  // ─── Handlers ───
   const handleAntibodySelect = useCallback((antibodyId: string, optionKey: string) => {
-    setObservedResults(prev => {
-      const next = { ...prev };
-      if (next[antibodyId] === optionKey) {
-        delete next[antibodyId];
-      } else {
-        next[antibodyId] = optionKey;
-      }
+    setObservedResults((prev) => ({ ...prev, [antibodyId]: optionKey }));
+    setEditingRows((prev) => {
+      const next = new Set(prev);
+      next.delete(antibodyId);
       return next;
     });
   }, []);
 
-  const handleTumorClick = useCallback((tumorId: TumorType) => {
-    setSelectedTumorReference(prev => prev === tumorId ? null : tumorId);
-    setSelectedAntibodyInfo(null);
+  const handleAntibodyClear = useCallback((antibodyId: string) => {
+    setObservedResults((prev) => {
+      const next = { ...prev };
+      delete next[antibodyId];
+      return next;
+    });
+    setEditingRows((prev) => {
+      const next = new Set(prev);
+      next.delete(antibodyId);
+      return next;
+    });
+  }, []);
+
+  const handleEditToggle = useCallback((antibodyId: string) => {
+    setEditingRows((prev) => {
+      const next = new Set(prev);
+      if (next.has(antibodyId)) next.delete(antibodyId);
+      else next.add(antibodyId);
+      return next;
+    });
   }, []);
 
   const handleAntibodyInfoClick = useCallback((antibodyId: string) => {
-    setSelectedAntibodyInfo(prev => prev === antibodyId ? null : antibodyId);
+    setSelectedAntibodyInfo(antibodyId);
     setSelectedTumorReference(null);
+    setSelectedGroupId(null);
+    setSelectedDifferentialId(null);
   }, []);
 
-  const handleSerumChange = useCallback((marker: 'afp' | 'betaHcg' | 'ldh', field: string, value: string) => {
-    setSerumMarkers(prev => ({
+  const handleTumorClick = useCallback((tumorId: TumorType) => {
+    setSelectedTumorReference((prev) => prev === tumorId ? null : tumorId);
+    setSelectedAntibodyInfo(null);
+    setSelectedGroupId(null);
+    setSelectedDifferentialId(null);
+  }, []);
+
+  const handleGroupHeaderClick = useCallback((groupId: string) => {
+    setSelectedGroupId(groupId);
+    setSelectedAntibodyInfo(null);
+    setSelectedTumorReference(null);
+    setSelectedDifferentialId(null);
+    setExpandedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(groupId)) next.delete(groupId);
+      else next.add(groupId);
+      return next;
+    });
+  }, []);
+
+  const handleDifferentialClick = useCallback((diffId: string) => {
+    setSelectedDifferentialId(diffId);
+    setSelectedAntibodyInfo(null);
+    setSelectedTumorReference(null);
+    setSelectedGroupId(null);
+  }, []);
+
+  const handleHeChange = useCallback((value: HeImpressionKey) => {
+    setHeImpression(value);
+    setSelectedDifferentialId(null);
+    setSelectedAntibodyInfo(null);
+    setSelectedTumorReference(null);
+    setSelectedGroupId(null);
+  }, []);
+
+  const handleSerumChange = useCallback((marker: SerumKey, field: string, value: string) => {
+    setSerumMarkers((prev) => ({ ...prev, [marker]: { ...prev[marker], [field]: value } }));
+  }, []);
+
+  const handleGcnisStatusChange = useCallback((value: string) => {
+    setMorphologyFlags((prev) => ({
       ...prev,
-      [marker]: { ...prev[marker], [field]: value },
+      gcnisPresent: value === 'present',
+      gcnisAbsent: value === 'absent',
+      gcnisNotEvaluable: value === 'not_evaluable',
     }));
   }, []);
 
   const handleMorphologyChange = useCallback((key: keyof MorphologyFlags) => {
-    setMorphologyFlags(prev => ({ ...prev, [key]: !prev[key] }));
+    setMorphologyFlags((prev) => ({ ...prev, [key]: !prev[key] }));
   }, []);
 
   const handleClearAll = useCallback(() => {
@@ -510,23 +771,14 @@ export function TestisGermCellIhcAssistant() {
     });
     setAgeRange('unknown');
     setMorphologyFlags({});
+    setHeImpression('unknown');
     setSelectedTumorReference(null);
     setSelectedAntibodyInfo(null);
+    setSelectedGroupId(null);
+    setSelectedDifferentialId(null);
+    setEditingRows(new Set());
   }, []);
 
-  const handleClearAntibodies = useCallback(() => {
-    setObservedResults({});
-  }, []);
-
-  const handleClearSerum = useCallback(() => {
-    setSerumMarkers({
-      afp: { value: '', unit: 'ng/mL', status: 'unknown' },
-      betaHcg: { value: '', unit: 'mIU/mL', status: 'unknown' },
-      ldh: { value: '', unit: 'xULN', status: 'unknown' },
-    });
-  }, []);
-
-  // ─── Computed ───
   const scores = useMemo(() =>
     calculateTumorScores(observedResults, serumMarkers, ageRange, morphologyFlags),
     [observedResults, serumMarkers, ageRange, morphologyFlags]
@@ -548,666 +800,478 @@ export function TestisGermCellIhcAssistant() {
   );
 
   const allAntibodies = useMemo(() => [...MAIN_PANEL_ANTIBODIES, ...MIMIC_PANEL_ANTIBODIES], []);
-
   const ihcCopyText = useMemo(() => buildIhcCopyText(observedResults, allAntibodies), [observedResults, allAntibodies]);
   const serumCopyText = useMemo(() => buildSerumCopyText(serumMarkers), [serumMarkers]);
   const allCards = useMemo(() => [...combinationCards, ...mimicWarnings], [combinationCards, mimicWarnings]);
   const interpretationCopyText = useMemo(() => buildInterpretationCopyText(allCards, scores, ageRange), [allCards, scores, ageRange]);
   const fullCopyText = useMemo(() => `${ihcCopyText}\n\n${serumCopyText}\n\n${interpretationCopyText}`, [ihcCopyText, serumCopyText, interpretationCopyText]);
 
-  // Determine if any results entered
-  const hasResults = Object.keys(observedResults).some(k => observedResults[k] && observedResults[k] !== 'not_done');
+  const enteredCount = useMemo(() => enteredAntibodyCount(observedResults), [observedResults]);
+  const morphCount = morphologyCount(morphologyFlags);
+  const heDef = getHeDefinition(heImpression);
+  const selectedDiff = getDifferential(selectedDifferentialId);
+  const selectedGroup = getGroup(selectedGroupId);
+  const selectedAntibodyDef = selectedAntibodyInfo ? getAntibodyById(selectedAntibodyInfo) : undefined;
+  const selectedTumorDef = selectedTumorReference ? TUMOR_DEFINITIONS.find((t) => t.id === selectedTumorReference) : undefined;
 
-  // Reference expected marker for antibody rows
+  const highlightedMarkers = useMemo(() => {
+    const ids = new Set<string>();
+    if (selectedDiff) selectedDiff.markerIds.forEach((id) => ids.add(id));
+    else if (heImpression !== 'unknown') heDef.markerIds.forEach((id) => ids.add(id));
+    else if (selectedGroup) selectedGroup.markerIds.forEach((id) => ids.add(id));
+    return ids;
+  }, [selectedDiff, heImpression, heDef.markerIds, selectedGroup]);
+
   const getRefExpected = useCallback((antibodyId: string): string | undefined => {
     if (!selectedTumorReference) return undefined;
-    const tumor = TUMOR_DEFINITIONS.find(t => t.id === selectedTumorReference);
-    if (!tumor) return undefined;
-    const entry = tumor.referenceProfile.expectedMarkers[antibodyId];
+    const tumor = TUMOR_DEFINITIONS.find((t) => t.id === selectedTumorReference);
+    const entry = tumor?.referenceProfile.expectedMarkers[antibodyId];
     return entry?.expected;
   }, [selectedTumorReference]);
 
-  // Find antibody definition for info panel
-  const selectedAntibodyDef = useMemo(() => {
-    if (!selectedAntibodyInfo) return null;
-    return allAntibodies.find(a => a.id === selectedAntibodyInfo) || null;
-  }, [selectedAntibodyInfo, allAntibodies]);
+  const sortedComponents = useMemo(() =>
+    TUMOR_DEFINITIONS
+      .filter((t) => t.id !== 'gcnis')
+      .map((t) => ({ id: t.id, name: t.name, breakdown: scores[t.id] }))
+      .sort((a, b) => (b.breakdown?.overall ?? 0) - (a.breakdown?.overall ?? 0)),
+    [scores]
+  );
 
-  // Sorted scores
-  const sortedScores = useMemo(() => {
-    const others = TUMOR_DEFINITIONS
-      .filter(t => t.id !== 'gcnis')
-      .map(t => ({ id: t.id, name: t.name, score: scores[t.id]?.overall || 0 }))
-      .sort((a, b) => b.score - a.score);
-    const gcnis = TUMOR_DEFINITIONS
-      .filter(t => t.id === 'gcnis')
-      .map(t => ({ id: t.id, name: t.name, score: scores[t.id]?.overall || 0 }));
-    return [...others, ...gcnis];
-  }, [scores]);
+  const topThree = sortedComponents.slice(0, 3);
+  const gcnisScore = scores.gcnis;
 
-  const serumStatusOptions: { key: string; label: string }[] = [
-    { key: 'unknown', label: 'Bilinmiyor' },
-    { key: 'normal', label: 'Normal' },
-    { key: 'mild_high', label: 'Hafif yüksek' },
-    { key: 'significant_high', label: 'Anlamlı yüksek' },
-    { key: 'very_high', label: 'Çok yüksek' },
-  ];
+  const activeCriticalCards = [...mimicWarnings, ...combinationCards.filter((c) => c.type === 'conflict' || c.type === 'pitfall')];
+
+  const gcnisStatus = morphologyFlags.gcnisPresent
+    ? 'present'
+    : morphologyFlags.gcnisAbsent
+      ? 'absent'
+      : morphologyFlags.gcnisNotEvaluable
+        ? 'not_evaluable'
+        : 'unknown';
+
+  const renderLeftPanel = () => {
+    if (selectedAntibodyDef) {
+      const info = selectedAntibodyDef.infoCard;
+      return (
+        <MiniPanel title={`${selectedAntibodyDef.name} — antikor bilgisi`}>
+          <InfoBlock label="Doğru boyanma paterni" text={info.stainingPattern} />
+          <InfoBlock label="Neyi / hangi komponenti destekler?" text={info.mainUse} />
+          {!!info.expectedPositive.length && <InfoBlock label="Pozitif beklenenler" text={info.expectedPositive.join(', ')} />}
+          {!!info.expectedNegative.length && <InfoBlock label="Beklenen negatifler" text={info.expectedNegative.join(', ')} />}
+          {info.pitfall && <WarningText text={info.pitfall} />}
+        </MiniPanel>
+      );
+    }
+
+    if (selectedTumorDef) {
+      return (
+        <MiniPanel title={`${selectedTumorDef.name} — referans profil`}>
+          {Object.entries(selectedTumorDef.referenceProfile.expectedMarkers).map(([marker, info]) => (
+            <div key={marker} style={{ fontSize: '11px', marginBottom: '5px', color: '#334155' }}>
+              <strong>{marker}:</strong> {info.expected}{info.note ? <span style={{ color: '#64748b' }}> ({info.note})</span> : null}
+            </div>
+          ))}
+          {selectedTumorDef.referenceProfile.notes.map((n, i) => <InfoBlock key={i} label={`Not ${i + 1}`} text={n} />)}
+          {selectedTumorDef.referenceProfile.pitfalls.map((p, i) => <WarningText key={i} text={p} />)}
+        </MiniPanel>
+      );
+    }
+
+    if (selectedDiff) {
+      return (
+        <MiniPanel title={`${selectedDiff.title} — sık ayrım`}>
+          <InfoBlock label="HE ipucu" text={selectedDiff.heHint} />
+          <InfoList label="Minimal antikor yaklaşımı" items={selectedDiff.minimalPanel} />
+          <WarningText text={selectedDiff.pitfall} />
+          <InfoBlock label="Eksikse önerilen marker" text={selectedDiff.missingMarkerHint} />
+        </MiniPanel>
+      );
+    }
+
+    if (selectedGroup) {
+      return (
+        <MiniPanel title={selectedGroup.title}>
+          <InfoBlock label="Bu grup neyi çözer?" text={selectedGroup.description} />
+          <InfoList label="Pratik okuma" items={selectedGroup.bullets} />
+          {selectedGroup.pitfall && <WarningText text={selectedGroup.pitfall} />}
+        </MiniPanel>
+      );
+    }
+
+    if (heImpression !== 'unknown') {
+      return (
+        <MiniPanel title={`${heDef.label} — HE ön izlenim kartı`}>
+          <InfoBlock label="Yaklaşım" text={heDef.summary} />
+          <InfoList label="Minimal panel" items={heDef.minimalPanel} />
+          <InfoList label="Pitfall" items={heDef.pitfalls} warning />
+        </MiniPanel>
+      );
+    }
+
+    return (
+      <MiniPanel title="Yardım / Sistem Uyarıları">
+        <InfoBlock label="Kullanım" text="HE ön izlenimini seçin, sık ayrım çiplerinden birini açın ve yalnız gerekli antikor paternlerini girin. Skorlar tanı değil, profil uyumu üretir." />
+        <InfoList label="Güvenlik" items={[MEDICAL_DISCLAIMER, WEIGHT_DISCLAIMER, 'Mikst tümörde farklı morfolojik komponentler ayrı ayrı değerlendirilmelidir.', 'İHK; morfoloji, serum markerları, yaş, GCNIS ve klinik bilgi ile birlikte yorumlanmalıdır.']} warning />
+      </MiniPanel>
+    );
+  };
 
   return (
     <PageContainer>
-      <div style={{ minHeight: '100vh', padding: '8px 0' }}>
-        <div style={{ maxWidth: '1600px', margin: '0 auto' }}>
-
-          {/* ─── Header ─── */}
+      <div style={{ minHeight: '100vh', padding: '8px 0 28px', background: '#f8fafc' }}>
+        <div style={{ maxWidth: '1680px', margin: '0 auto' }}>
           <div style={{
-            background: 'linear-gradient(135deg, #0d9488 0%, #0f766e 50%, #115e59 100%)',
-            borderRadius: '16px', padding: '28px 28px 20px', marginBottom: '16px',
-            boxShadow: '0 4px 12px rgba(13,148,136,0.3)',
+            background: 'linear-gradient(135deg, #0d9488 0%, #0f766e 55%, #115e59 100%)',
+            borderRadius: '16px', padding: '20px 22px', marginBottom: '12px',
+            boxShadow: '0 4px 12px rgba(13,148,136,0.22)',
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-              <div style={{
-                width: '40px', height: '40px', borderRadius: '10px',
-                backgroundColor: 'rgba(255,255,255,0.15)', display: 'flex',
-                alignItems: 'center', justifyContent: 'center',
-              }}>
-                <Shield size={22} color="#ffffff" />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ width: '38px', height: '38px', borderRadius: '10px', backgroundColor: 'rgba(255,255,255,0.16)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Shield size={21} color="#ffffff" />
               </div>
               <div>
-                <h1 style={{ fontSize: '24px', fontWeight: '800', color: '#ffffff', margin: 0 }}>
-                  Testis GHT İHK Uyum Yardımcısı
-                </h1>
-                <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)', margin: '2px 0 0' }}>
-                  WHO 2022 terminolojisi temelinde statik karar destek aracı
-                </p>
+                <h1 style={{ fontSize: '23px', fontWeight: 900, color: '#ffffff', margin: 0 }}>Testis GHT İHK Uyum Yardımcısı</h1>
+                <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.78)', margin: '3px 0 0' }}>HE ön izlenimi, minimal paneli ve İHK patern uyumunu birlikte gösterir; tanı koymaz.</p>
               </div>
             </div>
           </div>
 
-          {/* ─── Mixed Tumor Warning ─── */}
-          <div style={{
-            padding: '12px 16px', borderRadius: '10px', marginBottom: '12px',
-            backgroundColor: '#fffbeb', border: '1px solid #fef3c7',
-            display: 'flex', alignItems: 'flex-start', gap: '8px',
-          }}>
-            <Info size={16} color="#d97706" style={{ flexShrink: 0, marginTop: '1px' }} />
-            <div style={{ fontSize: '12px', color: '#92400e', lineHeight: '1.5' }}>
-              <strong>⚠️ Mikst Tümör Uyarısı:</strong> Bu sistem tek başına mikst germ hücreli tümör (MGHT) tanısı koymaz. Mikst tümör kuşkusu olan olgularda, her bir farklı morfolojik komponent alanı (örneğin embriyonel karsinom ve seminom alanları) kendi sınırları içinde ayrı ayrı analiz edilmeli ve immün profilleri sisteme bağımsız olarak girilmelidir.
+          <div style={{ ...cardStyle, padding: '12px 14px', marginBottom: '12px' }}>
+            <div className="testis-clinical-strip">
+              <div>
+                <label style={labelStyle}>HE ön izlenim</label>
+                <select value={heImpression} onChange={(e) => handleHeChange(e.target.value as HeImpressionKey)} style={inputStyle}>
+                  {HE_IMPRESSIONS.map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={labelStyle}>Yaş</label>
+                <select value={ageRange} onChange={(e) => setAgeRange(e.target.value as AgeRange)} style={inputStyle}>
+                  {AGE_RANGES.map((a) => <option key={a.key} value={a.key}>{a.label}</option>)}
+                </select>
+              </div>
+              {(['afp', 'betaHcg', 'ldh'] as const).map((marker) => (
+                <div key={marker}>
+                  <label style={labelStyle}>{marker === 'afp' ? 'AFP' : marker === 'betaHcg' ? 'β-hCG' : 'LDH'}</label>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 98px', gap: '5px' }}>
+                    <input
+                      value={serumMarkers[marker].value}
+                      onChange={(e) => handleSerumChange(marker, 'value', e.target.value)}
+                      placeholder="Değer"
+                      inputMode="decimal"
+                      style={inputStyle}
+                    />
+                    <select value={serumMarkers[marker].status} onChange={(e) => handleSerumChange(marker, 'status', e.target.value)} style={inputStyle}>
+                      <option value="unknown">Girilmedi</option>
+                      <option value="normal">Normal</option>
+                      <option value="mild_high">Hafif</option>
+                      <option value="significant_high">Anlamlı</option>
+                      <option value="very_high">Çok yüksek</option>
+                    </select>
+                  </div>
+                </div>
+              ))}
+              <div>
+                <label style={labelStyle}>GCNIS</label>
+                <select value={gcnisStatus} onChange={(e) => handleGcnisStatusChange(e.target.value)} style={inputStyle}>
+                  <option value="unknown">Girilmedi</option>
+                  <option value="present">Var</option>
+                  <option value="absent">Yok</option>
+                  <option value="not_evaluable">Değerlendirilemedi</option>
+                </select>
+              </div>
+              <div>
+                <label style={labelStyle}>Özet</label>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+                  <button onClick={() => setShowMorphologyPanel((p) => !p)} style={stripButtonStyle(showMorphologyPanel)}><Eye size={12} /> Morfoloji: {morphCount}</button>
+                  <button onClick={() => setShowMimicPanel((p) => !p)} style={stripButtonStyle(showMimicPanel)}><AlertTriangle size={12} /> Mimik: {showMimicPanel ? 'Açık' : 'Kapalı'}</button>
+                  <span style={{ ...pillStyle, backgroundColor: '#eff6ff', color: '#1e40af' }}><Microscope size={12} /> İHK: {enteredCount}</span>
+                </div>
+              </div>
+            </div>
+            <div style={{ marginTop: '8px', fontSize: '11px', color: '#64748b', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+              <span><strong>HE:</strong> {heDef.label}</span>
+              <span>|</span>
+              <span><strong>AFP:</strong> {serumStatusLabel(serumMarkers.afp.status)}</span>
+              <span><strong>β-hCG:</strong> {serumStatusLabel(serumMarkers.betaHcg.status)}</span>
+              <span><strong>LDH:</strong> {serumStatusLabel(serumMarkers.ldh.status)}</span>
+            </div>
+            {showMorphologyPanel && (
+              <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px dashed #e2e8f0', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '5px' }}>
+                {MORPHOLOGY_FLAGS.map((flag) => (
+                  <label key={flag.key} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#334155', padding: '5px 7px', borderRadius: '8px', border: morphologyFlags[flag.key] ? '1px solid #99f6e4' : '1px solid #edf2f7', backgroundColor: morphologyFlags[flag.key] ? '#f0fdfa' : '#ffffff' }}>
+                    <input type="checkbox" checked={!!morphologyFlags[flag.key]} onChange={() => handleMorphologyChange(flag.key)} style={{ accentColor: '#0d9488' }} />
+                    {flag.label}
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div style={{ ...cardStyle, padding: '10px 12px', marginBottom: '12px' }}>
+            <div style={{ fontSize: '11px', fontWeight: 900, color: '#475569', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.45px' }}>Sık ayrımlar</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px' }}>
+              {DIFFERENTIALS.map((diff) => (
+                <button
+                  key={diff.id}
+                  onClick={() => handleDifferentialClick(diff.id)}
+                  style={{
+                    border: selectedDifferentialId === diff.id ? '1px solid #0d9488' : '1px solid #dbe3ef',
+                    backgroundColor: selectedDifferentialId === diff.id ? '#ccfbf1' : '#ffffff',
+                    color: selectedDifferentialId === diff.id ? '#0f766e' : '#475569',
+                    borderRadius: '999px', padding: '6px 10px', fontSize: '11px', fontWeight: 800,
+                    cursor: 'pointer', fontFamily: 'inherit',
+                  }}
+                >
+                  {diff.title}
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* ─── Medical Disclaimer ─── */}
-          <div style={{
-            padding: '12px 16px', borderRadius: '10px', marginBottom: '12px',
-            backgroundColor: '#fef2f2', border: '1px solid #fecaca',
-            display: 'flex', alignItems: 'flex-start', gap: '8px',
-          }}>
-            <AlertTriangle size={16} color="#dc2626" style={{ flexShrink: 0, marginTop: '1px' }} />
-            <div style={{ fontSize: '12px', color: '#991b1b', lineHeight: '1.5' }}>
-              <strong>{MEDICAL_DISCLAIMER}</strong>
-              <br />
-              <span style={{ color: '#b91c1c', fontSize: '11px' }}>{WEIGHT_DISCLAIMER}</span>
-            </div>
-          </div>
+          <div className="testis-ght-layout-pro">
+            <aside className="testis-sticky-panel">
+              {renderLeftPanel()}
+              {(combinationCards.length > 0 || mimicWarnings.length > 0) && (
+                <MiniPanel title="Aktif akıllı kartlar">
+                  {[...mimicWarnings, ...combinationCards].slice(0, 5).map((card) => <CardDisplay key={card.id} card={card} />)}
+                </MiniPanel>
+              )}
+            </aside>
 
-          {/* ─── Usage Flow Guide ─── */}
-          <div style={{
-            padding: '10px 16px', borderRadius: '10px', marginBottom: '12px',
-            backgroundColor: '#f8fafc', border: '1px dashed #cbd5e1',
-            display: 'flex', alignItems: 'center', gap: '8px',
-          }}>
-            <div style={{ fontSize: '11px', fontWeight: '500', color: '#475569', lineHeight: '1.4' }}>
-              <strong>📋 Kullanım Akışı:</strong> 1) Yaş, serum ve morfoloji bilgisini girin → 2) Antikor paternlerini seçin → 3) Komponent profil uyumu, mimik uyarıları ve kopyalanabilir yorumu inceleyin.
-            </div>
-          </div>
-
-          {/* ─── Main Layout ─── */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: '280px 310px 310px 1fr',
-            gap: '16px',
-          }} className="testis-ght-layout">
-
-            {/* ═══ COLUMN 1: Klinik Bilgiler & Butonlar ═══ */}
-            <div>
-              {/* ─── Age Range ─── */}
+            <main>
               <div style={cardStyle}>
-                <div style={{ padding: '14px 18px' }}>
-                  <label style={labelStyle}>Yaş Aralığı</label>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                    {AGE_RANGES.map(a => (
+                <div style={panelHeaderStyle}>
+                  <span>Antikor giriş barları</span>
+                  <span style={{ fontSize: '10px', color: '#64748b' }}>{enteredCount} sonuç girildi</span>
+                </div>
+                {ANTIBODY_GROUPS.map((group) => {
+                  if (group.id === 'mimic_safety' && !showMimicPanel) {
+                    return (
+                      <div key={group.id} style={{ padding: '10px 12px', borderTop: '1px solid #edf2f7' }}>
+                        <button onClick={() => setShowMimicPanel(true)} style={{ width: '100%', border: '1px dashed #f9a8d4', background: '#fdf2f8', color: '#831843', borderRadius: '10px', padding: '10px', fontWeight: 900, cursor: 'pointer', fontFamily: 'inherit' }}>
+                          Mimik / metastaz güvenlik panelini aç
+                        </button>
+                      </div>
+                    );
+                  }
+
+                  const expanded = expandedGroups.has(group.id);
+                  const groupEntered = enteredAntibodyCount(observedResults, group.markerIds);
+                  return (
+                    <section key={group.id}>
                       <button
-                        key={a.key}
-                        onClick={() => setAgeRange(a.key)}
+                        onClick={() => handleGroupHeaderClick(group.id)}
                         style={{
-                          padding: '6px 12px', borderRadius: '6px', fontSize: '12px',
-                          fontWeight: ageRange === a.key ? '700' : '500',
-                          cursor: 'pointer', border: '1px solid',
-                          fontFamily: 'inherit', transition: 'all 0.15s',
-                          backgroundColor: ageRange === a.key ? '#0d9488' : '#ffffff',
-                          color: ageRange === a.key ? '#ffffff' : '#475569',
-                          borderColor: ageRange === a.key ? '#0d9488' : '#e2e8f0',
+                          width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                          border: 'none', borderTop: '1px solid #e2e8f0', background: selectedGroupId === group.id ? '#ecfeff' : '#f8fafc',
+                          padding: '10px 12px', cursor: 'pointer', fontFamily: 'inherit', color: '#0f172a',
                         }}
                       >
-                        {a.label}
+                        <span style={{ fontSize: '13px', fontWeight: 900 }}>{group.title}</span>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '10px', color: '#64748b' }}>
+                          {group.markerIds.length ? `${groupEntered}/${group.markerIds.length} girildi` : 'morfoloji/klinik'}
+                          {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                        </span>
                       </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* ─── Serum Markers ─── */}
-              <div style={cardStyle}>
-                <div
-                  style={sectionHeaderStyle}
-                  onClick={() => setShowSerumPanel(p => !p)}
-                >
-                  <Microscope size={16} color="#0d9488" />
-                  <span style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a' }}>
-                    Serum Markerları
-                  </span>
-                  {showSerumPanel ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                </div>
-                {showSerumPanel && (
-                  <div style={{ padding: '14px 18px' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px' }}>
-                      {(['afp', 'betaHcg', 'ldh'] as const).map(marker => (
-                        <div key={marker}>
-                          <label style={labelStyle}>
-                            {marker === 'afp' ? 'AFP' : marker === 'betaHcg' ? 'beta-hCG' : 'LDH'}
-                          </label>
-                          <input
-                            type="text"
-                            inputMode="decimal"
-                            placeholder="Değer"
-                            value={serumMarkers[marker].value}
-                            onChange={e => handleSerumChange(marker, 'value', e.target.value)}
-                            style={{ ...inputStyle, marginBottom: '6px' }}
-                          />
-                          {(() => {
-                            const sug = getAutoStatusSuggestion(marker, serumMarkers[marker].value);
-                            if (!sug) return null;
-                            const isCurrent = serumMarkers[marker].status === sug.key;
-                            return (
-                              <div style={{ marginBottom: '6px', fontSize: '10px' }}>
-                                <span style={{ color: '#64748b', marginRight: '4px' }}>Öneri:</span>
-                                <button
-                                  onClick={() => handleSerumChange(marker, 'status', sug.key)}
-                                  style={{
-                                    border: 'none',
-                                    background: isCurrent ? '#dcfce7' : '#f1f5f9',
-                                    color: isCurrent ? '#15803d' : '#2563eb',
-                                    padding: '2px 6px',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer',
-                                    fontWeight: '600',
-                                    fontFamily: 'inherit',
-                                    textDecoration: isCurrent ? 'none' : 'underline',
-                                  }}
-                                  title="Seçmek için tıklayın"
-                                >
-                                  {sug.label} {isCurrent && '✓'}
-                                </button>
-                              </div>
-                            );
-                          })()}
-                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px' }}>
-                            {serumStatusOptions.map(opt => (
-                              <button
-                                key={opt.key}
-                                onClick={() => handleSerumChange(marker, 'status', opt.key)}
-                                style={{
-                                  padding: '3px 7px', borderRadius: '4px', fontSize: '10px',
-                                  fontWeight: serumMarkers[marker].status === opt.key ? '700' : '500',
-                                  cursor: 'pointer', border: '1px solid',
-                                  fontFamily: 'inherit',
-                                  backgroundColor: serumMarkers[marker].status === opt.key ? '#0d9488' : '#fff',
-                                  color: serumMarkers[marker].status === opt.key ? '#fff' : '#64748b',
-                                  borderColor: serumMarkers[marker].status === opt.key ? '#0d9488' : '#e2e8f0',
-                                }}
-                              >
-                                {opt.label}
-                              </button>
-                            ))}
-                          </div>
-                          <div style={{ fontSize: '10px', color: '#94a3b8', marginTop: '3px' }}>
-                            {serumMarkers[marker].unit}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    {/* Serum interpretation */}
-                    {(['afp', 'betaHcg', 'ldh'] as const).some(m => serumMarkers[m].status !== 'unknown' && serumMarkers[m].status !== 'normal') && (
-                      <div style={{ marginTop: '10px' }}>
-                        {(['afp', 'betaHcg', 'ldh'] as const).map(m => {
-                          const s = serumMarkers[m].status;
-                           if (s === 'unknown' || s === 'normal') return null;
-                          const interp = SERUM_INTERPRETATIONS[m];
-                          return (
-                            <div key={m} style={{
-                              fontSize: '11px', color: '#854d0e', padding: '6px 10px',
-                              backgroundColor: '#fef9c3', borderRadius: '6px', marginBottom: '4px',
-                            }}>
-                              ⚠️ {interp}
+                      {expanded && (
+                        <div>
+                          {group.markerIds.length === 0 ? (
+                            <div style={{ padding: '11px 12px', fontSize: '11px', color: '#475569', backgroundColor: '#fff' }}>
+                              {group.description} Morfoloji/klinik kutucuklarını klinik şeritten işaretleyin.
                             </div>
-                          );
-                        })}
-                      </div>
-                    )}
-
-                    {/* Faint safety disclaimer note */}
-                    <div style={{
-                      marginTop: '12px',
-                      paddingTop: '8px',
-                      borderTop: '1px dashed #e2e8f0',
-                      fontSize: '11px',
-                      color: '#64748b',
-                      lineHeight: '1.4',
-                    }}>
-                      ℹ️ Otomatik serum sınıflaması pratik eşik önerisidir; lokal laboratuvar referans aralığı ve klinik bağlam ile birlikte değerlendirilmelidir.
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* ─── Morphology Flags ─── */}
-              <div style={cardStyle}>
-                <div
-                  style={sectionHeaderStyle}
-                  onClick={() => setShowMorphologyPanel(p => !p)}
-                >
-                  <Eye size={16} color="#0d9488" />
-                  <span style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a' }}>
-                    Morfoloji / Klinik
-                  </span>
-                  {showMorphologyPanel ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                </div>
-                {showMorphologyPanel && (
-                  <div style={{ padding: '14px 18px' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '4px' }}>
-                      {MORPHOLOGY_FLAGS.map(flag => (
-                        <label
-                          key={flag.key}
-                          style={{
-                            display: 'flex', alignItems: 'center', gap: '6px',
-                            fontSize: '12px', color: '#334155', cursor: 'pointer',
-                            padding: '5px 8px', borderRadius: '6px',
-                            backgroundColor: morphologyFlags[flag.key] ? '#f0fdfa' : 'transparent',
-                            border: morphologyFlags[flag.key] ? '1px solid #99f6e4' : '1px solid transparent',
-                          }}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={!!morphologyFlags[flag.key]}
-                            onChange={() => handleMorphologyChange(flag.key)}
-                            style={{ accentColor: '#0d9488' }}
-                          />
-                          {flag.label}
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* ─── Mimic/Safety Panel ─── */}
-              <div style={cardStyle}>
-                <div
-                  style={sectionHeaderStyle}
-                  onClick={() => setShowMimicPanel(p => !p)}
-                >
-                  <AlertTriangle size={16} color="#ec4899" />
-                  <span style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a' }}>
-                    Mimik / Güvenlik Paneli
-                  </span>
-                  {showMimicPanel ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                </div>
-                {showMimicPanel && (
-                  <>
-                    {MIMIC_PANEL_ANTIBODIES.map(ab => (
-                      <AntibodyRow
-                        key={ab.id}
-                        antibody={ab}
-                        selectedKey={observedResults[ab.id] || 'not_done'}
-                        onSelect={handleAntibodySelect}
-                        onInfoClick={handleAntibodyInfoClick}
-                        referenceExpected={getRefExpected(ab.id)}
-                      />
-                    ))}
-                  </>
-                )}
-              </div>
-
-              {/* ─── Action Buttons ─── */}
-              <div style={{
-                display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px',
-              }}>
-                <button
-                  onClick={handleClearAntibodies}
-                  style={{
-                    padding: '8px 14px', borderRadius: '8px', fontSize: '12px',
-                    fontWeight: '600', cursor: 'pointer', border: '1px solid #e2e8f0',
-                    backgroundColor: '#ffffff', color: '#475569', fontFamily: 'inherit',
-                  }}
-                >
-                  <RefreshCw size={12} style={{ marginRight: '4px', display: 'inline' }} />
-                  Antikorları Temizle
-                </button>
-                <button
-                  onClick={handleClearSerum}
-                  style={{
-                    padding: '8px 14px', borderRadius: '8px', fontSize: '12px',
-                    fontWeight: '600', cursor: 'pointer', border: '1px solid #e2e8f0',
-                    backgroundColor: '#ffffff', color: '#475569', fontFamily: 'inherit',
-                  }}
-                >
-                  Serum Temizle
-                </button>
-                <button
-                  onClick={() => setShowMimicPanel(p => !p)}
-                  style={{
-                    padding: '8px 14px', borderRadius: '8px', fontSize: '12px',
-                    fontWeight: '600', cursor: 'pointer', border: '1px solid #e2e8f0',
-                    backgroundColor: '#ffffff', color: '#475569', fontFamily: 'inherit',
-                  }}
-                >
-                  {showMimicPanel ? 'Mimik Panel Kapat' : 'Mimik Panel Aç'}
-                </button>
-                <button
-                  onClick={handleClearAll}
-                  style={{
-                    padding: '8px 14px', borderRadius: '8px', fontSize: '12px',
-                    fontWeight: '500', cursor: 'pointer', border: '1px solid #fecaca',
-                    backgroundColor: '#fff', color: '#b91c1c', fontFamily: 'inherit',
-                    opacity: 0.7,
-                  }}
-                >
-                  <X size={12} style={{ marginRight: '4px', display: 'inline' }} />
-                  Tümünü Temizle
-                </button>
-              </div>
-            </div>
-
-            {/* ═══ COLUMN 2: Ana Panel Antikorları (Grup 1) ═══ */}
-            <div>
-              <div style={cardStyle}>
-                <div style={{
-                  ...sectionHeaderStyle, cursor: 'default',
-                }}>
-                  <Microscope size={16} color="#0d9488" />
-                  <span style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a' }}>
-                    Ana Panel Antikorları
-                  </span>
-                </div>
-                {MAIN_PANEL_ANTIBODIES.slice(0, 7).map(ab => (
-                  <AntibodyRow
-                    key={ab.id}
-                    antibody={ab}
-                    selectedKey={observedResults[ab.id] || 'not_done'}
-                    onSelect={handleAntibodySelect}
-                    onInfoClick={handleAntibodyInfoClick}
-                    referenceExpected={getRefExpected(ab.id)}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* ═══ COLUMN 3: Ana Panel Antikorları (Devamı) ═══ */}
-            <div>
-              <div style={cardStyle}>
-                <div style={{
-                  ...sectionHeaderStyle, cursor: 'default',
-                }}>
-                  <Microscope size={16} color="#0d9488" />
-                  <span style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a' }}>
-                    Ana Panel (Devamı)
-                  </span>
-                </div>
-                {MAIN_PANEL_ANTIBODIES.slice(7).map(ab => (
-                  <AntibodyRow
-                    key={ab.id}
-                    antibody={ab}
-                    selectedKey={observedResults[ab.id] || 'not_done'}
-                    onSelect={handleAntibodySelect}
-                    onInfoClick={handleAntibodyInfoClick}
-                    referenceExpected={getRefExpected(ab.id)}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* ═══ COLUMN 4: Sonuçlar & Kartlar ═══ */}
-            <div>
-              <div
-                className="testis-ght-sidebar"
-                style={{
-                  position: 'sticky',
-                  top: '16px',
-                  maxHeight: 'calc(100vh - 32px)',
-                  overflowY: 'auto',
-                  paddingRight: '6px',
-                }}
-              >
-                {/* ─── Tumor Scores ─── */}
-                <div style={cardStyle}>
-                  <div style={{
-                    ...sectionHeaderStyle, cursor: 'default',
-                    backgroundColor: '#f8fafc',
-                  }}>
-                    <Shield size={16} color="#0d9488" />
-                    <span style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a' }}>
-                      Komponent Profil Uyumu
-                    </span>
-                  </div>
-                  <div style={{ padding: '14px 18px' }}>
-                    {!hasResults && (
-                      <div style={{
-                        padding: '10px 12px',
-                        backgroundColor: '#eff6ff',
-                        border: '1px solid #bfdbfe',
-                        borderRadius: '8px',
-                        marginBottom: '12px',
-                        fontSize: '11px',
-                        color: '#1e40af',
-                        lineHeight: '1.4',
-                      }}>
-                        ℹ️ <strong>İHK Verisi Girilmedi:</strong> Henüz antikor sonucu seçmediniz. Aşağıdaki barlar sadece girilen klinik/yaş/serum verilerine göre geçici profil uyumunu göstermektedir.
-                      </div>
-                    )}
-                    {sortedScores.map(s => (
-                      <ScoreBar
-                        key={s.id}
-                        tumorId={s.id}
-                        name={s.name}
-                        breakdown={scores[s.id as TumorType]}
-                        isSelected={selectedTumorReference === s.id}
-                        onClick={() => handleTumorClick(s.id as TumorType)}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                {/* Info/Reference Panel */}
-                {selectedAntibodyDef && (
-                  <InfoPanel antibody={selectedAntibodyDef} />
-                )}
-                {selectedTumorReference && (
-                  <ReferencePanel tumorId={selectedTumorReference} />
-                )}
-                {!selectedAntibodyDef && !selectedTumorReference && (
-                  <div style={{
-                    ...cardStyle, padding: '20px',
-                    textAlign: 'center', color: '#94a3b8',
-                    maxWidth: '450px',
-                  }}>
-                    <Info size={32} color="#cbd5e1" style={{ margin: '0 auto 8px' }} />
-                    <div style={{ fontSize: '13px', fontWeight: '600', marginBottom: '4px', color: '#64748b' }}>
-                      Bilgi Paneli
-                    </div>
-                    <div style={{ fontSize: '11px', lineHeight: '1.5' }}>
-                      Antikor adına tıklayarak bilgi kartını,
-                      tümör başlığına tıklayarak referans profilini görüntüleyin.
-                    </div>
-                  </div>
-                )}
-
-                {/* ─── Combination Cards ─── */}
-                {combinationCards.length > 0 && (
-                  <div style={cardStyle}>
-                    <div style={{
-                      ...sectionHeaderStyle, cursor: 'default',
-                    }}>
-                      <span style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a' }}>
-                        🔬 Kombinasyon Kartları
-                      </span>
-                    </div>
-                    <div style={{ padding: '14px 18px' }}>
-                      {combinationCards.map((card, i) => (
-                        <CardDisplay key={i} card={card} />
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* ─── Mimic Warnings ─── */}
-                {mimicWarnings.length > 0 && (
-                  <div style={cardStyle}>
-                    <div style={{
-                      ...sectionHeaderStyle, cursor: 'default',
-                      backgroundColor: '#fdf2f8',
-                    }}>
-                      <span style={{ fontSize: '14px', fontWeight: '700', color: '#831843' }}>
-                        🔴 GHT Dışı / Mimik Uyarıları
-                      </span>
-                    </div>
-                    <div style={{ padding: '14px 18px' }}>
-                      {mimicWarnings.map((card, i) => (
-                        <CardDisplay key={i} card={card} />
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* ─── Next Marker Suggestions ─── */}
-                {nextSuggestions.length > 0 && (
-                  <div style={cardStyle}>
-                    <div style={{
-                      ...sectionHeaderStyle, cursor: 'default',
-                      backgroundColor: '#eff6ff',
-                    }}>
-                      <span style={{ fontSize: '14px', fontWeight: '700', color: '#1e40af' }}>
-                        💡 Sonraki Önerilen Markerlar
-                      </span>
-                    </div>
-                    <div style={{ padding: '14px 18px' }}>
-                      {nextSuggestions.map((card, i) => (
-                        <CardDisplay key={i} card={card} />
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* ─── Copy Section ─── */}
-                <div style={cardStyle}>
-                  <div
-                    style={sectionHeaderStyle}
-                    onClick={() => setShowCopyPanel(p => !p)}
-                  >
-                    <Clipboard size={16} color="#0d9488" />
-                    <span style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a' }}>
-                      Kopyalanabilir Metinler
-                    </span>
-                    {showCopyPanel ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                  </div>
-                  {showCopyPanel && (
-                    <div style={{ padding: '14px 18px' }}>
-                      <div style={{ marginBottom: '14px' }}>
-                        <label style={labelStyle}>İHK Sonucu</label>
-                        <div style={{
-                          padding: '10px', backgroundColor: '#f8fafc', borderRadius: '8px',
-                          border: '1px solid #e2e8f0', fontSize: '12px', lineHeight: '1.6',
-                          color: '#334155', marginBottom: '6px', maxHeight: '120px', overflow: 'auto',
-                        }}>
-                          {ihcCopyText || 'Henüz sonuç girilmemiş.'}
-                        </div>
-                        <CopyButton text={ihcCopyText} label="Kopyala: İHK" />
-                      </div>
-                      <div style={{ marginBottom: '14px' }}>
-                        <label style={labelStyle}>Serum Sonucu</label>
-                        <div style={{
-                          padding: '10px', backgroundColor: '#f8fafc', borderRadius: '8px',
-                          border: '1px solid #e2e8f0', fontSize: '12px', lineHeight: '1.6',
-                          color: '#334155', marginBottom: '6px',
-                        }}>
-                          {serumCopyText}
-                        </div>
-                        <CopyButton text={serumCopyText} label="Kopyala: Serum" />
-                      </div>
-                      <div style={{ marginBottom: '14px' }}>
-                        <label style={labelStyle}>Uyum Yorumu</label>
-                        <div style={{
-                          padding: '10px', backgroundColor: '#f8fafc', borderRadius: '8px',
-                          border: '1px solid #e2e8f0', fontSize: '12px', lineHeight: '1.6',
-                          color: '#334155', marginBottom: '6px', maxHeight: '120px', overflow: 'auto',
-                        }}>
-                          {interpretationCopyText || 'Yeterli veri girilmemiş.'}
-                        </div>
-                        <CopyButton text={interpretationCopyText} label="Kopyala: Uyum Yorumu" />
-                      </div>
-                      <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '10px' }}>
-                        <CopyButton text={fullCopyText} label="Hepsini Kopyala" />
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Active warnings count summary */}
-                {(combinationCards.length > 0 || mimicWarnings.length > 0) && (
-                  <div style={{ ...cardStyle, marginTop: '8px' }}>
-                    <div style={{ padding: '10px 14px' }}>
-                      <div style={{
-                        fontSize: '11px', fontWeight: '700', color: '#64748b',
-                        textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px',
-                      }}>
-                        Aktif Kart Özetleri
-                      </div>
-                      {combinationCards.length > 0 && (
-                        <div style={{ fontSize: '12px', color: '#166534', marginBottom: '2px' }}>
-                          ✅ {combinationCards.length} kombinasyon kartı aktif
+                          ) : group.markerIds.map((id) => {
+                            const ab = getAntibodyById(id);
+                            if (!ab) return null;
+                            return (
+                              <AntibodyRow
+                                key={ab.id}
+                                antibody={ab}
+                                selectedKey={observedResults[ab.id]}
+                                onSelect={handleAntibodySelect}
+                                onClear={handleAntibodyClear}
+                                onNameClick={handleAntibodyInfoClick}
+                                isHighlighted={highlightedMarkers.has(ab.id)}
+                                referenceExpected={getRefExpected(ab.id)}
+                                isEditing={editingRows.has(ab.id)}
+                                onEditToggle={handleEditToggle}
+                              />
+                            );
+                          })}
                         </div>
                       )}
-                      {mimicWarnings.length > 0 && (
-                        <div style={{ fontSize: '12px', color: '#831843' }}>
-                          🔴 {mimicWarnings.length} GHT dışı uyarı aktif
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
+                    </section>
+                  );
+                })}
               </div>
-            </div>
+
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px' }}>
+                <button onClick={() => setObservedResults({})} style={secondaryButtonStyle}><RefreshCw size={12} /> Antikorları temizle</button>
+                <button onClick={() => setSerumMarkers({ afp: { value: '', unit: 'ng/mL', status: 'unknown' }, betaHcg: { value: '', unit: 'mIU/mL', status: 'unknown' }, ldh: { value: '', unit: 'xULN', status: 'unknown' } })} style={secondaryButtonStyle}>Serum temizle</button>
+                <button onClick={handleClearAll} style={{ ...secondaryButtonStyle, color: '#b91c1c', borderColor: '#fecaca', opacity: 0.75 }}><X size={12} /> Tüm sonuçları temizle</button>
+              </div>
+            </main>
+
+            <aside className="testis-sticky-panel">
+              <MiniPanel title="Profil uyumu ve rapor özeti">
+                <div style={{ display: 'grid', gap: '7px', marginBottom: '10px' }}>
+                  <div style={summaryLineStyle}><span>HE ön izlenim</span><strong>{heDef.label}</strong></div>
+                  <div style={summaryLineStyle}><span>Girilen İHK</span><strong>{enteredCount}</strong></div>
+                  {gcnisScore && <div style={summaryLineStyle}><span>GCNIS destek skoru</span><strong>{Math.round(gcnisScore.overall)}%</strong></div>}
+                </div>
+                <div style={{ fontSize: '11px', fontWeight: 900, color: '#475569', margin: '9px 0 6px' }}>En güçlü 3 profil</div>
+                {topThree.map((item) => (
+                  <ScoreBar
+                    key={item.id}
+                    tumorId={item.id}
+                    name={item.name}
+                    breakdown={item.breakdown}
+                    isSelected={selectedTumorReference === item.id}
+                    onClick={() => handleTumorClick(item.id as TumorType)}
+                  />
+                ))}
+                <div style={{ fontSize: '11px', fontWeight: 900, color: '#475569', margin: '12px 0 6px' }}>Tüm komponent skorları</div>
+                <div style={{ display: 'grid', gap: '4px' }}>
+                  {sortedComponents.map((item) => {
+                    const colors = getScoreColor(item.breakdown.overall);
+                    return (
+                      <button key={item.id} onClick={() => handleTumorClick(item.id as TumorType)} style={{ border: '1px solid #e2e8f0', background: '#fff', borderRadius: '8px', padding: '5px 7px', display: 'flex', justifyContent: 'space-between', fontFamily: 'inherit', cursor: 'pointer', fontSize: '11px', color: '#334155' }}>
+                        <span>{item.name}</span>
+                        <strong style={{ color: colors.text }}>{Math.round(item.breakdown.overall)}%</strong>
+                      </button>
+                    );
+                  })}
+                </div>
+              </MiniPanel>
+
+              {activeCriticalCards.length > 0 && (
+                <MiniPanel title="Uyarı rozetleri">
+                  {activeCriticalCards.slice(0, 4).map((card) => <CardDisplay key={card.id} card={card} />)}
+                </MiniPanel>
+              )}
+
+              {nextSuggestions.length > 0 && (
+                <MiniPanel title="Eksik / yararlı marker önerileri">
+                  {nextSuggestions.slice(0, 4).map((card) => <CardDisplay key={card.id} card={card} />)}
+                </MiniPanel>
+              )}
+
+              <MiniPanel title="Kopyalanabilir metinler">
+                <CopyTextBlock title="İHK sonucu" text={ihcCopyText || 'Henüz İHK sonucu girilmemiştir.'} label="Kopyala: İHK" />
+                <CopyTextBlock title="Serum sonucu" text={serumCopyText} label="Kopyala: Serum" />
+                <CopyTextBlock title="Uyum / uyarı yorumu" text={interpretationCopyText || 'Yeterli veri girilmemiştir.'} label="Kopyala: Yorum" />
+                <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '8px', marginTop: '8px' }}>
+                  <CopyButton text={fullCopyText} label="Hepsini kopyala" />
+                </div>
+              </MiniPanel>
+            </aside>
           </div>
         </div>
       </div>
 
-      {/* ─── Mobile responsive override ─── */}
       <style>{`
-        @media (max-width: 1200px) {
-          .testis-ght-layout {
-            grid-template-columns: 1fr !important;
-          }
+        .testis-clinical-strip {
+          display: grid;
+          grid-template-columns: minmax(210px, 1.5fr) 110px repeat(3, minmax(170px, 1fr)) 125px minmax(220px, 1.2fr);
+          gap: 8px;
+          align-items: end;
         }
-        .testis-ght-sidebar::-webkit-scrollbar {
-          width: 6px;
+        .testis-ght-layout-pro {
+          display: grid;
+          grid-template-columns: 330px minmax(0, 1fr) 360px;
+          gap: 14px;
+          align-items: start;
         }
-        .testis-ght-sidebar::-webkit-scrollbar-track {
-          background: transparent;
+        .testis-sticky-panel {
+          position: sticky;
+          top: 12px;
+          max-height: calc(100vh - 24px);
+          overflow-y: auto;
+          padding-right: 4px;
         }
-        .testis-ght-sidebar::-webkit-scrollbar-thumb {
-          background-color: #cbd5e1;
-          border-radius: 3px;
+        .testis-sticky-panel::-webkit-scrollbar { width: 6px; }
+        .testis-sticky-panel::-webkit-scrollbar-track { background: transparent; }
+        .testis-sticky-panel::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 3px; }
+        @media (max-width: 1320px) {
+          .testis-clinical-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+          .testis-ght-layout-pro { grid-template-columns: 1fr; }
+          .testis-sticky-panel { position: static; max-height: none; overflow: visible; padding-right: 0; }
+        }
+        @media (max-width: 720px) {
+          .testis-clinical-strip { grid-template-columns: 1fr; }
         }
       `}</style>
     </PageContainer>
   );
 }
+
+function InfoBlock({ label, text }: { label: string; text: string }) {
+  return (
+    <div style={{ marginBottom: '9px' }}>
+      <div style={{ fontSize: '10px', fontWeight: 900, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '3px' }}>{label}</div>
+      <div style={{ fontSize: '12px', color: '#334155', lineHeight: 1.55 }}>{text}</div>
+    </div>
+  );
+}
+
+function InfoList({ label, items, warning }: { label: string; items: string[]; warning?: boolean }) {
+  return (
+    <div style={{ marginBottom: '9px' }}>
+      <div style={{ fontSize: '10px', fontWeight: 900, color: warning ? '#b45309' : '#64748b', textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '4px' }}>{label}</div>
+      <div style={{ display: 'grid', gap: '4px' }}>
+        {items.map((item, index) => (
+          <div key={index} style={{ fontSize: '11px', color: '#334155', lineHeight: 1.45, padding: '5px 7px', borderRadius: '7px', backgroundColor: warning ? '#fffbeb' : '#f8fafc', border: warning ? '1px solid #fde68a' : '1px solid #edf2f7' }}>{item}</div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function WarningText({ text }: { text: string }) {
+  return (
+    <div style={{ fontSize: '11px', color: '#854d0e', lineHeight: 1.5, padding: '8px 9px', borderRadius: '8px', backgroundColor: '#fef9c3', border: '1px solid #fde68a', marginTop: '6px' }}>
+      ⚠️ {text}
+    </div>
+  );
+}
+
+function CopyTextBlock({ title, text, label }: { title: string; text: string; label: string }) {
+  return (
+    <div style={{ marginBottom: '11px' }}>
+      <div style={{ fontSize: '10px', fontWeight: 900, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '5px' }}>{title}</div>
+      <div style={{ maxHeight: '110px', overflow: 'auto', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px', fontSize: '11px', color: '#334155', lineHeight: 1.55, marginBottom: '6px' }}>{text}</div>
+      <CopyButton text={text} label={label} />
+    </div>
+  );
+}
+
+const pillStyle: React.CSSProperties = {
+  display: 'inline-flex', alignItems: 'center', gap: '4px',
+  padding: '6px 8px', borderRadius: '999px', fontSize: '11px', fontWeight: 800,
+};
+
+function stripButtonStyle(active: boolean): React.CSSProperties {
+  return {
+    ...pillStyle,
+    border: '1px solid',
+    borderColor: active ? '#0d9488' : '#dbe3ef',
+    backgroundColor: active ? '#ccfbf1' : '#ffffff',
+    color: active ? '#0f766e' : '#475569',
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+  };
+}
+
+const secondaryButtonStyle: React.CSSProperties = {
+  display: 'inline-flex', alignItems: 'center', gap: '5px',
+  padding: '8px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: 800,
+  border: '1px solid #e2e8f0', backgroundColor: '#ffffff', color: '#475569',
+  cursor: 'pointer', fontFamily: 'inherit',
+};
+
+const summaryLineStyle: React.CSSProperties = {
+  display: 'flex', justifyContent: 'space-between', gap: '8px',
+  padding: '6px 8px', borderRadius: '8px', backgroundColor: '#f8fafc',
+  border: '1px solid #edf2f7', fontSize: '11px', color: '#475569',
+};
