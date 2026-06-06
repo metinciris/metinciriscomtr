@@ -83,10 +83,19 @@ interface ScenarioDefinition {
   heImpression: HeImpressionKey;
   ageRange: AgeRange;
   observedResults: Record<string, string>;
+  serumMarkers?: SerumMarkers;
   morphologyFlags?: MorphologyFlags;
 }
 
 const allAntibodyDefinitions = [...MAIN_PANEL_ANTIBODIES, ...MIMIC_PANEL_ANTIBODIES];
+
+function createEmptySerumMarkers(): SerumMarkers {
+  return {
+    afp: { value: '', unit: 'ng/mL', status: 'unknown' },
+    betaHcg: { value: '', unit: 'mIU/mL', status: 'unknown' },
+    ldh: { value: '', unit: 'xULN', status: 'unknown' },
+  };
+}
 
 const HE_IMPRESSIONS: HeImpressionDefinition[] = [
   {
@@ -171,6 +180,11 @@ const SAMPLE_SCENARIOS: ScenarioDefinition[] = [
     note: 'Klasik seminom destek profili ve GCNIS ilişkili aks.',
     heImpression: 'seminoma',
     ageRange: '20-45',
+    serumMarkers: {
+      afp: { value: '3.0', unit: 'ng/mL', status: 'normal' },
+      betaHcg: { value: '', unit: 'mIU/mL', status: 'unknown' },
+      ldh: { value: '', unit: 'xULN', status: 'unknown' },
+    },
     observedResults: {
       SALL4: 'diffuse_strong_nuclear',
       OCT4: 'diffuse_strong_nuclear',
@@ -190,6 +204,11 @@ const SAMPLE_SCENARIOS: ScenarioDefinition[] = [
     note: 'OCT3/4-CD30-SOX2-PanCK ekseni.',
     heImpression: 'embryonal',
     ageRange: '20-45',
+    serumMarkers: {
+      afp: { value: '', unit: 'ng/mL', status: 'unknown' },
+      betaHcg: { value: '', unit: 'mIU/mL', status: 'unknown' },
+      ldh: { value: '1.4', unit: 'xULN', status: 'mild_high' },
+    },
     observedResults: {
       SALL4: 'diffuse_strong_nuclear',
       OCT4: 'diffuse_strong_nuclear',
@@ -206,6 +225,11 @@ const SAMPLE_SCENARIOS: ScenarioDefinition[] = [
     note: 'GPC3/AFP pozitif, OCT3/4-CD30 negatif profil.',
     heImpression: 'yolk_sac',
     ageRange: '0-5',
+    serumMarkers: {
+      afp: { value: '1800', unit: 'ng/mL', status: 'significant_high' },
+      betaHcg: { value: '', unit: 'mIU/mL', status: 'unknown' },
+      ldh: { value: '', unit: 'xULN', status: 'unknown' },
+    },
     observedResults: {
       SALL4: 'diffuse_strong_nuclear',
       GPC3: 'diffuse_positive',
@@ -222,6 +246,11 @@ const SAMPLE_SCENARIOS: ScenarioDefinition[] = [
     note: 'CD45 ve B hücre belirteci pozitif, germ marker negatif.',
     heImpression: 'non_gct',
     ageRange: '>60',
+    serumMarkers: {
+      afp: { value: '', unit: 'ng/mL', status: 'unknown' },
+      betaHcg: { value: '', unit: 'mIU/mL', status: 'unknown' },
+      ldh: { value: '2.2', unit: 'xULN', status: 'significant_high' },
+    },
     observedResults: {
       CD45_LCA: 'diffuse_strong',
       CD20: 'diffuse_strong',
@@ -235,6 +264,11 @@ const SAMPLE_SCENARIOS: ScenarioDefinition[] = [
     note: 'Diffüz PanCK/EMA pozitif, germ marker negatif.',
     heImpression: 'non_gct',
     ageRange: '>60',
+    serumMarkers: {
+      afp: { value: '', unit: 'ng/mL', status: 'unknown' },
+      betaHcg: { value: '', unit: 'mIU/mL', status: 'unknown' },
+      ldh: { value: '1.7', unit: 'xULN', status: 'significant_high' },
+    },
     observedResults: {
       PanCK: 'diffuse_positive',
       EMA: 'diffuse_positive',
@@ -269,6 +303,11 @@ const SAMPLE_SCENARIOS: ScenarioDefinition[] = [
     note: 'Seminom profili içinde yalnız sinsityotrofoblastik dev hücrelerde beta-hCG pozitifliği.',
     heImpression: 'seminoma',
     ageRange: '20-45',
+    serumMarkers: {
+      afp: { value: '3.0', unit: 'ng/mL', status: 'normal' },
+      betaHcg: { value: '80', unit: 'mIU/mL', status: 'mild_high' },
+      ldh: { value: '0.9', unit: 'xULN', status: 'normal' },
+    },
     observedResults: {
       SALL4: 'diffuse_strong_nuclear',
       OCT4: 'diffuse_strong_nuclear',
@@ -306,6 +345,11 @@ const SAMPLE_SCENARIOS: ScenarioDefinition[] = [
     note: 'Yaygın beta-hCG ve trofoblastik destek markerları.',
     heImpression: 'choriocarcinoma',
     ageRange: '20-45',
+    serumMarkers: {
+      afp: { value: '', unit: 'ng/mL', status: 'unknown' },
+      betaHcg: { value: '70000', unit: 'mIU/mL', status: 'very_high' },
+      ldh: { value: '', unit: 'xULN', status: 'unknown' },
+    },
     observedResults: {
       betaHCG: 'widespread_trophoblastic',
       GATA3: 'diffuse_nuclear',
@@ -325,6 +369,11 @@ const SAMPLE_SCENARIOS: ScenarioDefinition[] = [
     note: 'SF1 nükleer pozitifliği ve inhibin/calretinin desteği; germ marker negatif.',
     heImpression: 'non_gct',
     ageRange: '46-60',
+    serumMarkers: {
+      afp: { value: '3.2', unit: 'ng/mL', status: 'normal' },
+      betaHcg: { value: '1.0', unit: 'mIU/mL', status: 'normal' },
+      ldh: { value: '', unit: 'xULN', status: 'unknown' },
+    },
     observedResults: {
       SF1: 'diffuse_nuclear',
       Inhibin: 'widespread_tumor',
@@ -1052,11 +1101,7 @@ function AntibodyRow({
 
 export function TestisGermCellIhcAssistant() {
   const [observedResults, setObservedResults] = useState<Record<string, string>>({});
-  const [serumMarkers, setSerumMarkers] = useState<SerumMarkers>({
-    afp: { value: '', unit: 'ng/mL', status: 'unknown' },
-    betaHcg: { value: '', unit: 'mIU/mL', status: 'unknown' },
-    ldh: { value: '', unit: 'xULN', status: 'unknown' },
-  });
+  const [serumMarkers, setSerumMarkers] = useState<SerumMarkers>(() => createEmptySerumMarkers());
   const [ageRange, setAgeRange] = useState<AgeRange>('unknown');
   const [morphologyFlags, setMorphologyFlags] = useState<MorphologyFlags>({});
   const [heImpression, setHeImpression] = useState<HeImpressionKey>('unknown');
@@ -1069,8 +1114,10 @@ export function TestisGermCellIhcAssistant() {
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => new Set(['first_lineage', 'seminoma_ec', 'ec_yolk', 'yolk_chorio', 'seminoma_safety', 'teratoma_somatic']));
   const [editingRows, setEditingRows] = useState<Set<string>>(() => new Set());
   const [copyMode, setCopyMode] = useState<'short' | 'detailed'>('short');
+  const [activeScenarioId, setActiveScenarioId] = useState<string | null>(null);
 
   const handleAntibodySelect = useCallback((antibodyId: string, optionKey: string) => {
+    setActiveScenarioId(null);
     setObservedResults((prev) => ({ ...prev, [antibodyId]: optionKey }));
     setEditingRows((prev) => {
       const next = new Set(prev);
@@ -1080,6 +1127,7 @@ export function TestisGermCellIhcAssistant() {
   }, []);
 
   const handleAntibodyClear = useCallback((antibodyId: string) => {
+    setActiveScenarioId(null);
     setObservedResults((prev) => {
       const next = { ...prev };
       delete next[antibodyId];
@@ -1136,6 +1184,7 @@ export function TestisGermCellIhcAssistant() {
   }, []);
 
   const handleHeChange = useCallback((value: HeImpressionKey) => {
+    setActiveScenarioId(null);
     setHeImpression(value);
     setSelectedDifferentialId(null);
     setSelectedAntibodyInfo(null);
@@ -1143,11 +1192,18 @@ export function TestisGermCellIhcAssistant() {
     setSelectedGroupId(null);
   }, []);
 
+  const handleAgeChange = useCallback((value: AgeRange) => {
+    setActiveScenarioId(null);
+    setAgeRange(value);
+  }, []);
+
   const handleSerumChange = useCallback((marker: SerumKey, field: string, value: string) => {
+    setActiveScenarioId(null);
     setSerumMarkers((prev) => ({ ...prev, [marker]: { ...prev[marker], [field]: value } }));
   }, []);
 
   const handleGcnisStatusChange = useCallback((value: string) => {
+    setActiveScenarioId(null);
     setMorphologyFlags((prev) => ({
       ...prev,
       gcnisPresent: value === 'present',
@@ -1157,16 +1213,13 @@ export function TestisGermCellIhcAssistant() {
   }, []);
 
   const handleMorphologyChange = useCallback((key: keyof MorphologyFlags) => {
+    setActiveScenarioId(null);
     setMorphologyFlags((prev) => ({ ...prev, [key]: !prev[key] }));
   }, []);
 
   const handleLoadScenario = useCallback((scenario: ScenarioDefinition) => {
     setObservedResults(scenario.observedResults);
-    setSerumMarkers({
-      afp: { value: '', unit: 'ng/mL', status: 'unknown' },
-      betaHcg: { value: '', unit: 'mIU/mL', status: 'unknown' },
-      ldh: { value: '', unit: 'xULN', status: 'unknown' },
-    });
+    setSerumMarkers(scenario.serumMarkers ?? createEmptySerumMarkers());
     setAgeRange(scenario.ageRange);
     setMorphologyFlags(scenario.morphologyFlags ?? {});
     setHeImpression(scenario.heImpression);
@@ -1176,6 +1229,7 @@ export function TestisGermCellIhcAssistant() {
     setSelectedDifferentialId(null);
     setEditingRows(new Set());
     setShowMimicPanel(scenario.heImpression === 'non_gct');
+    setActiveScenarioId(scenario.id);
   }, []);
 
   const scores = useMemo(() =>
@@ -1356,7 +1410,7 @@ export function TestisGermCellIhcAssistant() {
               </div>
               <div>
                 <label style={labelStyle}>Yaş</label>
-                <select value={ageRange} onChange={(e) => setAgeRange(e.target.value as AgeRange)} style={inputStyle}>
+                <select value={ageRange} onChange={(e) => handleAgeChange(e.target.value as AgeRange)} style={inputStyle}>
                   {AGE_RANGES.map((a) => <option key={a.key} value={a.key}>{a.label}</option>)}
                 </select>
               </div>
@@ -1421,23 +1475,33 @@ export function TestisGermCellIhcAssistant() {
           <div style={{ ...cardStyle, padding: '10px 12px', marginBottom: '12px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
               <div style={{ fontSize: '11px', fontWeight: 900, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.45px' }}>Demo / test profilleri</div>
-              <span style={{ fontSize: '10px', color: '#64748b' }}>Eğitim/test amaçlıdır; tıklanınca mevcut girişleri değiştirir</span>
+              <span style={{ fontSize: '10px', color: '#64748b' }}>Eğitim/test amaçlıdır; tıklanınca mevcut girişleri, yaş ve anlamlı serum değerlerini değiştirir</span>
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px' }}>
-              {SAMPLE_SCENARIOS.map((scenario) => (
-                <button
-                  key={scenario.id}
-                  onClick={() => handleLoadScenario(scenario)}
-                  title={scenario.note}
-                  style={{
-                    border: '1px solid #dbe3ef', backgroundColor: '#ffffff', color: '#334155',
-                    borderRadius: '999px', padding: '7px 10px', fontSize: '11px', fontWeight: 900,
-                    cursor: 'pointer', fontFamily: 'inherit',
-                  }}
-                >
-                  Demo: {scenario.label}
-                </button>
-              ))}
+              {SAMPLE_SCENARIOS.map((scenario) => {
+                const isActiveDemo = activeScenarioId === scenario.id;
+                return (
+                  <button
+                    key={scenario.id}
+                    onClick={() => handleLoadScenario(scenario)}
+                    title={scenario.note}
+                    style={{
+                      border: isActiveDemo ? '1px solid #0d9488' : '1px solid #dbe3ef',
+                      backgroundColor: isActiveDemo ? '#ccfbf1' : '#ffffff',
+                      color: isActiveDemo ? '#0f766e' : '#334155',
+                      boxShadow: isActiveDemo ? '0 0 0 2px rgba(13,148,136,0.12)' : 'none',
+                      borderRadius: '999px',
+                      padding: '7px 10px',
+                      fontSize: '11px',
+                      fontWeight: 900,
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                    }}
+                  >
+                    {isActiveDemo ? '✓ ' : ''}Demo: {scenario.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
