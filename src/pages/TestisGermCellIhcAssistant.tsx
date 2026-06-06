@@ -1131,7 +1131,14 @@ export function TestisGermCellIhcAssistant() {
   const serumCopyText = useMemo(() => buildSerumCopyText(serumMarkers), [serumMarkers]);
   const allCards = useMemo(() => [...combinationCards, ...mimicWarnings], [combinationCards, mimicWarnings]);
   const interpretationCopyText = useMemo(() => buildInterpretationCopyText(allCards, scores, ageRange), [allCards, scores, ageRange]);
-  const fullCopyText = useMemo(() => `${ihcCopyText}\n\n${serumCopyText}\n\n${interpretationCopyText}`, [ihcCopyText, serumCopyText, interpretationCopyText]);
+  const shortInterpretationText = useMemo(() => {
+    const clean = interpretationCopyText.trim();
+    if (!clean) return '';
+    const sentences = clean.split(/(?<=\.)\s+/).filter(Boolean);
+    return sentences.slice(0, 2).join(' ');
+  }, [interpretationCopyText]);
+  const selectedInterpretationText = copyMode === 'short' ? shortInterpretationText : interpretationCopyText;
+  const fullCopyText = useMemo(() => `${ihcCopyText}\n\n${serumCopyText}\n\n${selectedInterpretationText}`, [ihcCopyText, serumCopyText, selectedInterpretationText]);
 
   const enteredCount = useMemo(() => enteredAntibodyCount(observedResults), [observedResults]);
   const morphCount = morphologyCount(morphologyFlags);
