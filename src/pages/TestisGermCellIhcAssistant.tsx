@@ -1278,11 +1278,17 @@ export function TestisGermCellIhcAssistant() {
           gap: 14px;
           align-items: start;
         }
-        .testis-left-rail { min-width: 0; }
-        .testis-left-sticky {
+        .testis-left-rail {
+          min-width: 0;
+          align-self: start;
           position: sticky;
-          top: 12px;
-          max-height: calc(100vh - 24px);
+          top: calc(var(--site-header-height, 72px) + 8px);
+          max-height: calc(100vh - var(--site-header-height, 72px) - 16px);
+          z-index: 5;
+        }
+        .testis-left-sticky {
+          height: calc(100vh - var(--site-header-height, 72px) - 16px);
+          max-height: inherit;
           display: flex;
           flex-direction: column;
           border: 1px solid #e2e8f0;
@@ -1333,8 +1339,11 @@ export function TestisGermCellIhcAssistant() {
         }
         @media (max-width: 1320px) {
           .testis-clinical-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        @media (max-width: 1040px) {
           .testis-ght-layout-pro { grid-template-columns: 1fr; }
-          .testis-left-sticky { position: static; max-height: none; overflow: visible; }
+          .testis-left-rail { position: static; max-height: none; z-index: auto; }
+          .testis-left-sticky { height: auto; max-height: none; overflow: visible; }
           .rail-scroll { overflow: visible; padding: 0; }
           .rail-footer { border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 12px; }
           .right-column-header { position: static; }
