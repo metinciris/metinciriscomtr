@@ -671,6 +671,36 @@ function serumStatusLabel(status: string | undefined): string {
   }
 }
 
+
+function serumVisualStyle(status: string | undefined, value?: string): React.CSSProperties {
+  const hasValue = !!value && value.trim().length > 0;
+  switch (status) {
+    case 'normal':
+      return { backgroundColor: '#ecfdf5', borderColor: '#86efac', boxShadow: '0 0 0 1px rgba(34,197,94,0.16)' };
+    case 'mild_high':
+      return { backgroundColor: '#fffbeb', borderColor: '#fcd34d', boxShadow: '0 0 0 1px rgba(245,158,11,0.18)' };
+    case 'significant_high':
+      return { backgroundColor: '#fff7ed', borderColor: '#fdba74', boxShadow: '0 0 0 1px rgba(249,115,22,0.20)' };
+    case 'very_high':
+      return { backgroundColor: '#fef2f2', borderColor: '#fca5a5', boxShadow: '0 0 0 1px rgba(239,68,68,0.20)' };
+    default:
+      return hasValue
+        ? { backgroundColor: '#eff6ff', borderColor: '#93c5fd', boxShadow: '0 0 0 1px rgba(59,130,246,0.16)' }
+        : { backgroundColor: '#ffffff', borderColor: '#dbe3ef', boxShadow: 'none' };
+  }
+}
+
+function serumStatusDotStyle(status: string | undefined, value?: string): React.CSSProperties {
+  const hasValue = !!value && value.trim().length > 0;
+  let bg = '#cbd5e1';
+  if (status === 'normal') bg = '#22c55e';
+  else if (status === 'mild_high') bg = '#f59e0b';
+  else if (status === 'significant_high') bg = '#f97316';
+  else if (status === 'very_high') bg = '#ef4444';
+  else if (hasValue) bg = '#3b82f6';
+  return { width: '8px', height: '8px', borderRadius: '999px', backgroundColor: bg, boxShadow: `0 0 0 3px ${bg}22`, flex: '0 0 auto' };
+}
+
 function morphologyCount(flags: MorphologyFlags): number {
   return Object.values(flags).filter(Boolean).length;
 }
@@ -1414,27 +1444,46 @@ export function TestisGermCellIhcAssistant() {
                   {AGE_RANGES.map((a) => <option key={a.key} value={a.key}>{a.label}</option>)}
                 </select>
               </div>
-              {(['afp', 'betaHcg', 'ldh'] as const).map((marker) => (
-                <div key={marker}>
-                  <label style={labelStyle}>{marker === 'afp' ? 'AFP' : marker === 'betaHcg' ? 'β-hCG' : 'LDH'}</label>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 98px', gap: '5px' }}>
-                    <input
-                      value={serumMarkers[marker].value}
-                      onChange={(e) => handleSerumChange(marker, 'value', e.target.value)}
-                      placeholder="Değer"
-                      inputMode="decimal"
-                      style={inputStyle}
-                    />
-                    <select value={serumMarkers[marker].status} onChange={(e) => handleSerumChange(marker, 'status', e.target.value)} style={inputStyle}>
-                      <option value="unknown">Girilmedi</option>
-                      <option value="normal">Normal</option>
-                      <option value="mild_high">Hafif</option>
-                      <option value="significant_high">Anlamlı</option>
-                      <option value="very_high">Çok yüksek</option>
-                    </select>
+              {(['afp', 'betaHcg', 'ldh'] as const).map((marker) => {
+                const serumVisual = serumVisualStyle(serumMarkers[marker].status, serumMarkers[marker].value);
+                return (
+                  <div
+                    key={marker}
+                    style={{
+                      padding: '7px',
+                      borderRadius: '10px',
+                      border: '1px solid',
+                      transition: 'background-color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease',
+                      ...serumVisual,
+                    }}
+                  >
+                    <label style={{ ...labelStyle, display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                      <span style={serumStatusDotStyle(serumMarkers[marker].status, serumMarkers[marker].value)} />
+                      {marker === 'afp' ? 'AFP' : marker === 'betaHcg' ? 'β-hCG' : 'LDH'}
+                    </label>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 98px', gap: '5px' }}>
+                      <input
+                        value={serumMarkers[marker].value}
+                        onChange={(e) => handleSerumChange(marker, 'value', e.target.value)}
+                        placeholder="Değer"
+                        inputMode="decimal"
+                        style={{ ...inputStyle, backgroundColor: 'rgba(255,255,255,0.84)', borderColor: serumVisual.borderColor as string }}
+                      />
+                      <select
+                        value={serumMarkers[marker].status}
+                        onChange={(e) => handleSerumChange(marker, 'status', e.target.value)}
+                        style={{ ...inputStyle, backgroundColor: 'rgba(255,255,255,0.84)', borderColor: serumVisual.borderColor as string, fontWeight: 800 }}
+                      >
+                        <option value="unknown">Girilmedi</option>
+                        <option value="normal">Normal</option>
+                        <option value="mild_high">Hafif</option>
+                        <option value="significant_high">Anlamlı</option>
+                        <option value="very_high">Çok yüksek</option>
+                      </select>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
               <div>
                 <label style={labelStyle}>GCNIS</label>
                 <select value={gcnisStatus} onChange={(e) => handleGcnisStatusChange(e.target.value)} style={inputStyle}>
