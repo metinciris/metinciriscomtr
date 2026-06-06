@@ -929,6 +929,92 @@ function getAmbiguityText(sortedComponents: { id: TumorType; name: string; break
   return null;
 }
 
+
+function hasEnteredMarker(results: Record<string, string>, markerId: string): boolean {
+  return !!results[markerId] && results[markerId] !== 'not_done';
+}
+
+function missingMarkers(results: Record<string, string>, markerIds: string[]): string[] {
+  return markerIds.filter((id) => !hasEnteredMarker(results, id));
+}
+
+function markerLabel(markerId: string): string {
+  return getAntibodyById(markerId)?.name || markerId;
+}
+
+function serumCompletionWarnings(serumMarkers: SerumMarkers): string[] {
+  const definitions: { key: SerumKey; label: string }[] = [
+    { key: 'afp', label: 'AFP' },
+    { key: 'betaHcg', label: 'β-hCG' },
+    { key: 'ldh', label: 'LDH' },
+  ];
+  return definitions
+    .filter(({ key }) => serumMarkers[key].value.trim().length > 0 && serumMarkers[key].status === 'unknown')
+    .map(({ label }) => `${label} değeri girildi; sınıfı seçerseniz serum/klinik yoruma katılır.`);
+}
+
+function getCriticalGaps(
+  heImpression: HeImpressionKey,
+  ageRange: AgeRange,
+  observedResults: Record<string, string>,
+  serumMarkers: SerumMarkers,
+  morphologyFlags: MorphologyFlags,
+  scores: Record<TumorType, ScoreBreakdown>,
+): string[] {
+  const gaps: string[] = [];
+  const pushMissing = (label: string, ids: string[]) => {
+    const missing = missingMarkers(observedResults, ids);
+    if (missing.length > 0) gaps.push(`${label}: ${missing.map(markerLabel).join(', ')} eksik olabilir.`);
+  };
+
+  if (heImpression === 'seminoma') {
+    pushMissing('Seminom ön izlenimi için destek/dışlama', ['SALL4', 'OCT4', 'CD117', 'CD30', 'SOX2']);
+    if (ageRange === '>60' || ageRange === '46-60') pushMissing('İleri yaşta lenfoma güvenlik paneli', ['CD45_LCA', 'CD20', 'PAX5']);
+    if (serumMarkers.afp.status === 'significant_high' || serumMarkers.afp.status === 'very_high') {
+      gaps.push('AFP anlamlı/çok yüksek: saf seminom yorumu için nonseminomatöz komponent açısından korelasyon gerekir.');
+    }
+  }
+
+  if (heImpression === 'embryonal') {
+    pushMissing('Embriyonel karsinom ön izlenimi', ['OCT4', 'CD30', 'SOX2', 'PanCK']);
+    pushMissing('Yolk sac ayrımı için', ['GPC3', 'AFP']);
+  }
+
+  if (heImpression === 'yolk_sac') {
+    pushMissing('Yolk sac tümör ön izlenimi', ['SALL4', 'GPC3', 'AFP', 'PanCK', 'OCT4', 'CD30']);
+    if (serumMarkers.afp.status === 'unknown') gaps.push('Yolk sac ön izleniminde serum AFP korelasyonu girilmemiş.');
+  }
+
+  if (heImpression === 'choriocarcinoma') {
+    pushMissing('Trofoblastik/koryokarsinom ön izlenimi', ['betaHCG', 'GATA3', 'p63', 'Inhibin', 'PanCK']);
+    if (serumMarkers.betaHcg.status === 'unknown') gaps.push('Trofoblastik ön izlenimde serum β-hCG korelasyonu girilmemiş.');
+  }
+
+  if (heImpression === 'spermatocytic') {
+    pushMissing('Spermatositik tümör ayrımı', ['OCT4', 'CD30', 'GPC3', 'AFP', 'CD117']);
+    if (!morphologyFlags.gcnisAbsent && !morphologyFlags.gcnisNotEvaluable) gaps.push('Spermatositik profil için GCNIS yokluğu/değerlendirilememesi bilgisi önemli olabilir.');
+    if (ageRange !== '46-60' && ageRange !== '>60') gaps.push('Spermatositik profil ileri yaş ve klinik bağlamla daha anlamlıdır.');
+  }
+
+  if (heImpression === 'non_gct') {
+    pushMissing('GHT dışı/mimik kuşku için güvenlik paneli', ['CD45_LCA', 'CD20', 'PAX5', 'SF1', 'PanCK', 'EMA']);
+  }
+
+  if (heImpression === 'teratoma') {
+    if (!morphologyFlags.matureSomaticComponent && !morphologyFlags.immatureSomaticNeuroectodermal && !morphologyFlags.somaticTypeMalignancySuspicion) {
+      gaps.push('Teratom ön izleniminde matür/immatür/somatik malign komponent bilgisi işaretlenmemiş.');
+    }
+    if (!morphologyFlags.twelvepGainPositive && !morphologyFlags.twelvepGainNegative) gaps.push('Teratom tip ayrımı için 12p/i12p bilgisi varsa eklenebilir.');
+  }
+
+  const semScore = scores.seminoma?.overall ?? 0;
+  if ((ageRange === '>60' || ageRange === '46-60') && semScore >= 50 && !hasEnteredMarker(observedResults, 'CD45_LCA')) {
+    gaps.push('İleri yaş + seminom benzeri uyumda CD45/CD20/PAX5 ile lenfoma dışlama paneli görünür olmalı.');
+  }
+
+  return gaps.slice(0, 5);
+}
+
 function makeConciseInterpretation(
   scores: Record<TumorType, ScoreBreakdown>,
   cards: CardOutput[],
@@ -1334,6 +1420,11 @@ export function TestisGermCellIhcAssistant() {
   const heIhkRelation = getHeIhkRelation(heImpression, scores, mimicWarnings);
   const sufficiency = getDataSufficiency(enteredCount, ageRange, serumMarkers, morphologyFlags, heImpression);
   const ambiguityText = getAmbiguityText(sortedComponents);
+  const criticalGaps = useMemo(() =>
+    getCriticalGaps(heImpression, ageRange, observedResults, serumMarkers, morphologyFlags, scores),
+    [heImpression, ageRange, observedResults, serumMarkers, morphologyFlags, scores]
+  );
+  const serumWarnings = useMemo(() => serumCompletionWarnings(serumMarkers), [serumMarkers]);
 
   const gcnisStatus = morphologyFlags.gcnisPresent
     ? 'present'
@@ -1481,6 +1572,11 @@ export function TestisGermCellIhcAssistant() {
                         <option value="very_high">Çok yüksek</option>
                       </select>
                     </div>
+                    {serumMarkers[marker].value.trim().length > 0 && serumMarkers[marker].status === 'unknown' && (
+                      <div style={{ marginTop: '5px', fontSize: '10px', fontWeight: 700, color: '#1d4ed8', lineHeight: 1.25 }}>
+                        Değer girildi; sınıf seçilirse yoruma katılır.
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -1551,6 +1647,9 @@ export function TestisGermCellIhcAssistant() {
                   </button>
                 );
               })}
+            </div>
+            <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px dashed #e2e8f0', fontSize: '10.5px', color: '#64748b', lineHeight: 1.4 }}>
+              Not: Tüm girişleri sıfırlamak için sayfayı yenileyebilirsiniz.
             </div>
           </div>
 
@@ -1668,6 +1767,8 @@ export function TestisGermCellIhcAssistant() {
                 </div>
                 <CompactSignalCard title="HE–İHK ilişkisi" text={heIhkRelation.text} tone={heIhkRelation.tone} />
                 <CompactSignalCard title={`Veri yeterliliği: ${sufficiency.label}`} text={sufficiency.text} tone={sufficiency.tone} />
+                {serumWarnings.length > 0 && <CompactSignalCard title="Serum sınıfı eksik" text={serumWarnings.join(' ')} tone="warning" />}
+                {criticalGaps.length > 0 && <CompactSignalCard title="Kritik eksikler" text={criticalGaps.join(' ')} tone="warning" />}
                 {ambiguityText && <CompactSignalCard title="Belirsiz / mikst uyarısı" text={ambiguityText} tone="warning" />}
                 <div style={{ fontSize: '11px', fontWeight: 900, color: '#475569', margin: '9px 0 6px' }}>En güçlü 3 profil</div>
                 {topThree.map((item) => (
@@ -1789,7 +1890,9 @@ export function TestisGermCellIhcAssistant() {
         }
         @media (max-width: 1040px) {
           .testis-ght-layout-pro { grid-template-columns: 1fr; }
-          .testis-left-rail { position: static; z-index: auto; height: auto; }
+          .testis-ght-layout-pro > main { order: 1; }
+          .testis-right-column { order: 2; }
+          .testis-left-rail { order: 3; position: static; z-index: auto; height: auto; }
           .testis-left-sticky { position: static; overflow: visible; }
           .rail-header { position: static; }
           .rail-scroll { overflow: visible; padding: 0; }
