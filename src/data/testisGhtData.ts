@@ -105,6 +105,12 @@ export interface MorphologyFlags {
   biphasicTrophoblasticPattern?: boolean;
   matureSomaticComponent?: boolean;
   immatureSomaticMalignancy?: boolean;
+  immatureSomaticNeuroectodermal?: boolean;
+  somaticTypeMalignancySuspicion?: boolean;
+  twelvepGainPositive?: boolean;
+  twelvepGainNegative?: boolean;
+  associatedNonTeratomatousGct?: boolean;
+  metastaticTeratoma?: boolean;
   bilateralTestisMass?: boolean;
   paratesticular?: boolean;
   extraTesticularPrimaryHistory?: boolean;
@@ -112,6 +118,7 @@ export interface MorphologyFlags {
 }
 
 export interface CardOutput {
+  id?: string;
   type:
     | 'strong_match'
     | 'supportive'
@@ -180,6 +187,21 @@ export const MORPHOLOGY_FLAGS: { key: keyof MorphologyFlags; label: string }[] =
       key: 'immatureSomaticMalignancy',
       label: 'İmmatür/somatik malign komponent kuşkusu',
     },
+    {
+      key: 'immatureSomaticNeuroectodermal',
+      label: 'İmmatür somatik/nöroektodermal doku var',
+    },
+    {
+      key: 'somaticTypeMalignancySuspicion',
+      label: 'Somatik tip malignite kuşkusu var',
+    },
+    { key: 'twelvepGainPositive', label: '12p gain/i12p pozitif' },
+    { key: 'twelvepGainNegative', label: '12p gain/i12p negatif' },
+    {
+      key: 'associatedNonTeratomatousGct',
+      label: 'Eşlik eden non-teratom GHT komponenti var',
+    },
+    { key: 'metastaticTeratoma', label: 'Metastatik odakta teratom var' },
     { key: 'bilateralTestisMass', label: 'Bilateral testis kitlesi' },
     { key: 'paratesticular', label: 'Paratestiküler yerleşim' },
     {
@@ -203,6 +225,7 @@ export const NUCLEAR_MARKERS: string[] = [
   'SOX2',
   'GATA3',
   'p63',
+  'p40',
   'SF1',
   'PAX5',
   'CDX2',
@@ -844,6 +867,38 @@ export const MIMIC_PANEL_ANTIBODIES: AntibodyDefinition[] = [
     },
   },
 
+
+  {
+    id: 'PSAP',
+    name: 'PSAP',
+    panel: 'mimic',
+    isNuclearMarker: false,
+    options: mimicOptions(),
+    infoCard: {
+      stainingPattern: 'Sitoplazmik',
+      mainUse: 'Prostat kökenini destekleyen yardımcı belirteç. PSA/NKX3.1/PSMA ile birlikte yorumlanır.',
+      expectedPositive: ['Prostat karsinomu'],
+      expectedNegative: ['GHT'],
+      pitfall: 'Tek başına spesifik değildir; organ-spesifik panel içinde değerlendirilmelidir.',
+      copyName: 'PSAP',
+    },
+  },
+  {
+    id: 'PSMA',
+    name: 'PSMA',
+    panel: 'mimic',
+    isNuclearMarker: false,
+    options: mimicOptions(),
+    infoCard: {
+      stainingPattern: 'Membranöz / sitoplazmik',
+      mainUse: 'Prostat karsinomu metastazı yönünde destekleyici belirteç.',
+      expectedPositive: ['Prostat karsinomu'],
+      expectedNegative: ['GHT'],
+      pitfall: 'Neovasküler yapılarda ve bazı non-prostatik tümörlerde pozitiflik görülebilir.',
+      copyName: 'PSMA',
+    },
+  },
+
   // Renal metastasis
   {
     id: 'PAX8',
@@ -970,6 +1025,53 @@ export const MIMIC_PANEL_ANTIBODIES: AntibodyDefinition[] = [
       expectedNegative: ['GHT'],
       pitfall: 'Teratom matür komponentinde pozitif olabilir.',
       copyName: 'CK20',
+    },
+  },
+
+
+  {
+    id: 'p40',
+    name: 'p40',
+    panel: 'mimic',
+    isNuclearMarker: true,
+    options: mimicOptions(),
+    infoCard: {
+      stainingPattern: 'Nükleer',
+      mainUse: 'Skuamöz diferansiyasyon ve ürotelyal karsinom ayrımında p63 ile birlikte kullanılır.',
+      expectedPositive: ['Skuamöz hücreli karsinom', 'Ürotelyal karsinom'],
+      expectedNegative: ['GHT'],
+      pitfall: 'Teratom içindeki skuamöz epitelde pozitif olabilir; morfoloji ve klinikle birlikte değerlendirilmelidir.',
+      copyName: 'p40',
+    },
+  },
+  {
+    id: 'CK5_6',
+    name: 'CK5/6',
+    panel: 'mimic',
+    isNuclearMarker: false,
+    options: mimicOptions(),
+    infoCard: {
+      stainingPattern: 'Sitoplazmik / membranöz',
+      mainUse: 'Skuamöz veya bazal diferansiyasyon gösteren karsinomlarda destekleyici belirteç.',
+      expectedPositive: ['Skuamöz hücreli karsinom', 'Ürotelyal karsinom'],
+      expectedNegative: ['GHT'],
+      pitfall: 'Tek başına primer odak belirlemez; p40/p63 ve klinik bilgi ile birlikte yorumlanmalıdır.',
+      copyName: 'CK5/6',
+    },
+  },
+  {
+    id: 'Uroplakin',
+    name: 'Uroplakin',
+    panel: 'mimic',
+    isNuclearMarker: false,
+    options: mimicOptions(),
+    infoCard: {
+      stainingPattern: 'Membranöz / sitoplazmik',
+      mainUse: 'Ürotelyal karsinom kökenini desteklemek için kullanılır.',
+      expectedPositive: ['Ürotelyal karsinom'],
+      expectedNegative: ['GHT'],
+      pitfall: 'Duyarlılığı sınırlı olabilir; GATA3/p63/p40 ve klinik bilgi ile birlikte değerlendirilmelidir.',
+      copyName: 'Uroplakin',
     },
   },
 
@@ -1263,11 +1365,14 @@ export const TUMOR_DEFINITIONS: TumorDefinition[] = [
       expectedMarkers: {},
       pitfalls: [
         'Sabit tek bir İHK profili yoktur.',
-        'İmmatür komponent veya somatik malignite gelişimi araştırılmalıdır.',
+        'İHK teratom tanısı koymak için değil; komponent karakterizasyonu, somatik tip malign transformasyon veya metastaz ayrımı için kullanılır.',
+        'Erişkin saf matür teratomda prepubertal tip yorumu dikkatli yapılmalıdır; GCNIS, 12p/i12p ve klinik korelasyon gerekir.',
       ],
       notes: [
         'Komponent profil uyumu immünohistokimyadan çok morfolojik somatik doku komponentlerinin gösterilmesine dayanır.',
-        'Matür/immatür somatik doku komponentine göre boyanır; epitelyal, mezenkimal, nöral komponentler farklı belirteçlerle pozitif olabilir.',
+        'Prepubertal tip teratomda çocuk yaş, GCNIS yokluğu ve 12p gain/i12p yokluğu destekleyicidir.',
+        'Postpubertal tip teratom erişkinde GCNIS ilişkili spektrum içinde değerlendirilir; 12p gain/i12p ve eşlik eden non-teratom GHT komponenti destekleyici olabilir.',
+        'Somatik tip malign transformasyon kuşkusunda İHK hedefli olarak malign komponentin tipini belirlemek için kullanılır.',
       ],
     },
   },
