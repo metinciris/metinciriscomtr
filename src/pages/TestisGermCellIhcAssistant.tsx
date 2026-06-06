@@ -1626,13 +1626,14 @@ export function TestisGermCellIhcAssistant() {
         .testis-left-rail {
           min-width: 0;
           align-self: start;
-          position: relative;
+          position: sticky;
+          top: calc(var(--site-header-height, 72px) + 8px);
           z-index: 5;
+          height: max-content;
         }
         .testis-left-sticky {
           display: block;
-          position: sticky;
-          top: calc(var(--site-header-height, 72px) + 8px);
+          position: relative;
           border: 1px solid #e2e8f0;
           border-radius: 14px;
           background: #ffffff;
@@ -1675,7 +1676,7 @@ export function TestisGermCellIhcAssistant() {
         }
         @media (max-width: 1040px) {
           .testis-ght-layout-pro { grid-template-columns: 1fr; }
-          .testis-left-rail { position: static; z-index: auto; }
+          .testis-left-rail { position: static; z-index: auto; height: auto; }
           .testis-left-sticky { position: static; overflow: visible; }
           .rail-header { position: static; }
           .rail-scroll { overflow: visible; padding: 0; }
