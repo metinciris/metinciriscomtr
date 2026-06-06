@@ -76,6 +76,16 @@ interface HeImpressionDefinition {
   markerIds: string[];
 }
 
+interface ScenarioDefinition {
+  id: string;
+  label: string;
+  note: string;
+  heImpression: HeImpressionKey;
+  ageRange: AgeRange;
+  observedResults: Record<string, string>;
+  morphologyFlags?: MorphologyFlags;
+}
+
 const allAntibodyDefinitions = [...MAIN_PANEL_ANTIBODIES, ...MIMIC_PANEL_ANTIBODIES];
 
 const HE_IMPRESSIONS: HeImpressionDefinition[] = [
@@ -150,6 +160,108 @@ const HE_IMPRESSIONS: HeImpressionDefinition[] = [
     minimalPanel: ['Alan bazlı SALL4/OCT3/4/CD30/CD117/GPC3/AFP/beta-hCG', 'Morfoloji ve serum korelasyonu'],
     pitfalls: ['Farklı alanların İHK paternleri tek bir ortalama profile indirgenmemelidir.'],
     markerIds: ['SALL4', 'OCT4', 'CD30', 'CD117', 'GPC3', 'AFP', 'betaHCG'],
+  },
+];
+
+
+const SAMPLE_SCENARIOS: ScenarioDefinition[] = [
+  {
+    id: 'sample_seminoma',
+    label: 'Seminom',
+    note: 'Klasik seminom destek profili ve GCNIS ilişkili aks.',
+    heImpression: 'seminoma',
+    ageRange: '20-45',
+    observedResults: {
+      SALL4: 'diffuse_strong_nuclear',
+      OCT4: 'diffuse_strong_nuclear',
+      CD117: 'diffuse_membranous',
+      D2_40: 'diffuse_membranous',
+      SOX17: 'diffuse_nuclear',
+      CD30: 'negative',
+      SOX2: 'negative',
+      AFP: 'negative',
+      GPC3: 'negative',
+    },
+    morphologyFlags: { gcnisPresent: true },
+  },
+  {
+    id: 'sample_embryonal',
+    label: 'Embriyonel',
+    note: 'OCT3/4-CD30-SOX2-PanCK ekseni.',
+    heImpression: 'embryonal',
+    ageRange: '20-45',
+    observedResults: {
+      SALL4: 'diffuse_strong_nuclear',
+      OCT4: 'diffuse_strong_nuclear',
+      CD30: 'diffuse_membranous_golgi',
+      SOX2: 'diffuse_nuclear',
+      PanCK: 'diffuse_positive',
+      CD117: 'negative',
+      SOX17: 'negative',
+    },
+  },
+  {
+    id: 'sample_yolk_sac',
+    label: 'Yolk sac',
+    note: 'GPC3/AFP pozitif, OCT3/4-CD30 negatif profil.',
+    heImpression: 'yolk_sac',
+    ageRange: '0-5',
+    observedResults: {
+      SALL4: 'diffuse_strong_nuclear',
+      GPC3: 'diffuse_positive',
+      AFP: 'diffuse_positive',
+      PanCK: 'diffuse_positive',
+      OCT4: 'negative',
+      CD30: 'negative',
+    },
+    morphologyFlags: { schillerDuvalPattern: true },
+  },
+  {
+    id: 'sample_lymphoma',
+    label: 'Lenfoma mimiki',
+    note: 'CD45 ve B hücre belirteci pozitif, germ marker negatif.',
+    heImpression: 'non_gct',
+    ageRange: '>60',
+    observedResults: {
+      CD45_LCA: 'diffuse_strong',
+      CD20: 'diffuse_strong',
+      PAX5: 'diffuse_strong',
+      SALL4: 'negative',
+    },
+  },
+  {
+    id: 'sample_metastasis',
+    label: 'Metastaz',
+    note: 'Diffüz PanCK/EMA pozitif, germ marker negatif.',
+    heImpression: 'non_gct',
+    ageRange: '>60',
+    observedResults: {
+      PanCK: 'diffuse_positive',
+      EMA: 'diffuse_positive',
+      SALL4: 'negative',
+      OCT4: 'negative',
+      CD30: 'negative',
+      GPC3: 'negative',
+      AFP: 'negative',
+    },
+    morphologyFlags: { advancedAgeAtypicalClinical: true },
+  },
+  {
+    id: 'sample_spermatocytic',
+    label: 'Spermatositik',
+    note: 'İleri yaş, GCNIS yokluğu ve OCT3/4 negatifliği bağlamı.',
+    heImpression: 'spermatocytic',
+    ageRange: '46-60',
+    observedResults: {
+      CD117: 'diffuse_membranous',
+      OCT4: 'negative',
+      CD30: 'negative',
+      GPC3: 'negative',
+      AFP: 'negative',
+      SOX2: 'negative',
+      SALL4: 'focal_weak_nuclear',
+    },
+    morphologyFlags: { gcnisAbsent: true },
   },
 ];
 
@@ -558,6 +670,113 @@ function HeImpressionCard({ heDef }: { heDef: HeImpressionDefinition }) {
   );
 }
 
+
+function getTargetTumorForHe(he: HeImpressionKey): TumorType | null {
+  switch (he) {
+    case 'seminoma': return 'seminoma';
+    case 'embryonal': return 'embryonal_carcinoma';
+    case 'yolk_sac': return 'yolk_sac';
+    case 'choriocarcinoma': return 'choriocarcinoma';
+    case 'teratoma': return 'teratoma';
+    case 'spermatocytic': return 'spermatocytic';
+    default: return null;
+  }
+}
+
+function getHeIhkRelation(
+  he: HeImpressionKey,
+  scores: Record<TumorType, ScoreBreakdown>,
+  warnings: CardOutput[],
+): { tone: MarkerTone; text: string } {
+  if (he === 'unknown') return { tone: 'neutral', text: 'HE ön izlenimi girilmedi; İHK profili bağımsız yorumlanıyor.' };
+  if (he === 'mixed_uncertain') return { tone: 'warning', text: 'Mikst/kararsız HE alanları varsa her morfolojik komponent ayrı ayrı girilmelidir.' };
+  if (he === 'non_gct') {
+    return warnings.some((w) => w.type === 'non_gct_warning')
+      ? { tone: 'mimic', text: 'HE GHT dışı/mimik kuşkusu, mevcut güvenlik uyarılarıyla destekleniyor.' }
+      : { tone: 'warning', text: 'HE GHT dışı/mimik kuşkusu var; güvenlik paneli ve klinik bağlamla korelasyon önerilir.' };
+  }
+
+  const target = getTargetTumorForHe(he);
+  if (!target) return { tone: 'neutral', text: 'HE–İHK ilişkisi değerlendirilemedi.' };
+  const targetScore = scores[target]?.overall ?? 0;
+  const topOther = Object.entries(scores)
+    .filter(([id]) => id !== 'gcnis' && id !== target)
+    .sort(([, a], [, b]) => b.overall - a.overall)[0];
+  const topOtherScore = topOther?.[1]?.overall ?? 0;
+
+  if (targetScore >= 70) return { tone: 'positive', text: 'HE ön izlenimi, girilen İHK profiliyle güçlü şekilde destekleniyor.' };
+  if (targetScore >= 50) return { tone: 'neutral', text: 'HE ön izlenimi ile İHK profili kısmen uyumlu; eksik marker ve morfoloji korelasyonu önerilir.' };
+  if (topOtherScore >= 60) return { tone: 'warning', text: 'HE ön izlenimi ile İHK profilinde çelişki olabilir; farklı komponent veya mimik olasılığı gözden geçirilmelidir.' };
+  return { tone: 'neutral', text: 'HE ön izlenimi için yeterli İHK desteği henüz oluşmamış.' };
+}
+
+function getDataSufficiency(
+  enteredCount: number,
+  ageRange: AgeRange,
+  serumMarkers: SerumMarkers,
+  morphologyFlags: MorphologyFlags,
+  heImpression: HeImpressionKey,
+): { tone: MarkerTone; label: string; text: string } {
+  const contextCount =
+    (ageRange !== 'unknown' ? 1 : 0) +
+    (heImpression !== 'unknown' ? 1 : 0) +
+    (Object.values(morphologyFlags).some(Boolean) ? 1 : 0) +
+    ([serumMarkers.afp.status, serumMarkers.betaHcg.status, serumMarkers.ldh.status].some((s) => s !== 'unknown') ? 1 : 0);
+
+  if (enteredCount >= 6 && contextCount >= 2) {
+    return { tone: 'positive', label: 'İyi', text: 'Hedefli İHK ve klinik/serum-morfoloji bağlamı birlikte girilmiş.' };
+  }
+  if (enteredCount >= 3 || (enteredCount >= 2 && contextCount >= 1)) {
+    return { tone: 'neutral', label: 'Orta', text: 'İlk profil yorumu yapılabilir; eksik kritik markerlar sağ panelde kontrol edilmelidir.' };
+  }
+  return { tone: 'warning', label: 'Düşük', text: 'Az sayıda veri girilmiş; tek boya veya sınırlı bilgiyle güçlü yorumdan kaçınılmalıdır.' };
+}
+
+function getAmbiguityText(sortedComponents: { id: TumorType; name: string; breakdown: ScoreBreakdown }[]): string | null {
+  const first = sortedComponents[0];
+  const second = sortedComponents[1];
+  if (!first || !second) return null;
+  if ((first.breakdown.overall ?? 0) >= 50 && (second.breakdown.overall ?? 0) >= 50 && Math.abs(first.breakdown.overall - second.breakdown.overall) <= 12) {
+    return `${first.name} ve ${second.name} profilleri birbirine yakın. Mikst tümör, farklı morfolojik alanlar veya eksik kritik marker açısından alan bazlı değerlendirme önerilir.`;
+  }
+  return null;
+}
+
+function makeConciseInterpretation(
+  scores: Record<TumorType, ScoreBreakdown>,
+  cards: CardOutput[],
+  ageRange: AgeRange,
+): string {
+  const parts: string[] = [];
+  const nonGctWarning = cards.find((c) => c.type === 'non_gct_warning');
+  if (nonGctWarning) parts.push(nonGctWarning.text);
+
+  const top = (Object.entries(scores) as [TumorType, ScoreBreakdown][])
+    .filter(([id]) => id !== 'gcnis')
+    .sort(([, a], [, b]) => b.overall - a.overall)[0];
+
+  if (top && top[1].overall >= (nonGctWarning ? 75 : 50)) {
+    const tumor = TUMOR_DEFINITIONS.find((t) => t.id === top[0]);
+    if (tumor) parts.push(`İmmün profil ${tumor.name} profili ile ${top[1].overall >= 80 ? 'güçlü uyumludur' : 'uyumlu olabilir'}.`);
+  }
+  if (!nonGctWarning && (scores.gcnis?.overall ?? 0) >= 50) {
+    parts.push('GCNIS ilişkili profil açısından destekleyici bulgular mevcuttur.');
+  }
+  parts.push(ageRange === 'unknown' ? 'Klinik/serum verisi girilmemiştir.' : 'Klinik/serum ve morfoloji bağlamı ile korelasyon önerilir.');
+  return parts.join(' ');
+}
+
+function CompactSignalCard({ title, text, tone }: { title: string; text: string; tone: MarkerTone }) {
+  return (
+    <div style={{ padding: '8px 9px', borderRadius: '10px', border: '1px solid #e2e8f0', backgroundColor: '#ffffff', marginBottom: '7px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+        <MarkerBadge label={title} tone={tone} />
+      </div>
+      <div style={{ fontSize: '11px', color: '#334155', lineHeight: 1.45 }}>{text}</div>
+    </div>
+  );
+}
+
 function CardDisplay({ card }: { card: CardOutput }) {
   const colors = CARD_COLORS[card.type];
   return (
@@ -742,6 +961,7 @@ export function TestisGermCellIhcAssistant() {
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => new Set(['first_lineage', 'seminoma_ec', 'ec_yolk', 'yolk_chorio', 'seminoma_safety', 'teratoma_somatic']));
   const [editingRows, setEditingRows] = useState<Set<string>>(() => new Set());
   const [clearConfirm, setClearConfirm] = useState(false);
+  const [copyMode, setCopyMode] = useState<'short' | 'detailed'>('short');
 
   const handleAntibodySelect = useCallback((antibodyId: string, optionKey: string) => {
     setObservedResults((prev) => ({ ...prev, [antibodyId]: optionKey }));
@@ -868,6 +1088,24 @@ export function TestisGermCellIhcAssistant() {
     window.setTimeout(() => setClearConfirm(false), 3000);
   }, [clearConfirm, handleClearAll]);
 
+  const handleLoadScenario = useCallback((scenario: ScenarioDefinition) => {
+    setObservedResults(scenario.observedResults);
+    setSerumMarkers({
+      afp: { value: '', unit: 'ng/mL', status: 'unknown' },
+      betaHcg: { value: '', unit: 'mIU/mL', status: 'unknown' },
+      ldh: { value: '', unit: 'xULN', status: 'unknown' },
+    });
+    setAgeRange(scenario.ageRange);
+    setMorphologyFlags(scenario.morphologyFlags ?? {});
+    setHeImpression(scenario.heImpression);
+    setSelectedTumorReference(null);
+    setSelectedAntibodyInfo(null);
+    setSelectedGroupId(null);
+    setSelectedDifferentialId(null);
+    setEditingRows(new Set());
+    setShowMimicPanel(scenario.heImpression === 'non_gct');
+  }, []);
+
   const scores = useMemo(() =>
     calculateTumorScores(observedResults, serumMarkers, ageRange, morphologyFlags),
     [observedResults, serumMarkers, ageRange, morphologyFlags]
@@ -930,6 +1168,9 @@ export function TestisGermCellIhcAssistant() {
   const gcnisScore = scores.gcnis;
 
   const activeCriticalCards = [...mimicWarnings, ...combinationCards.filter((c) => c.type === 'conflict' || c.type === 'pitfall')];
+  const heIhkRelation = getHeIhkRelation(heImpression, scores, mimicWarnings);
+  const sufficiency = getDataSufficiency(enteredCount, ageRange, serumMarkers, morphologyFlags, heImpression);
+  const ambiguityText = getAmbiguityText(sortedComponents);
 
   const gcnisStatus = morphologyFlags.gcnisPresent
     ? 'present'
@@ -1099,6 +1340,29 @@ export function TestisGermCellIhcAssistant() {
           </div>
 
           <div style={{ ...cardStyle, padding: '10px 12px', marginBottom: '12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+              <div style={{ fontSize: '11px', fontWeight: 900, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.45px' }}>Örnek profiller</div>
+              <span style={{ fontSize: '10px', color: '#64748b' }}>Eğitim/test amaçlı hızlı doldurma</span>
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px' }}>
+              {SAMPLE_SCENARIOS.map((scenario) => (
+                <button
+                  key={scenario.id}
+                  onClick={() => handleLoadScenario(scenario)}
+                  title={scenario.note}
+                  style={{
+                    border: '1px solid #dbe3ef', backgroundColor: '#ffffff', color: '#334155',
+                    borderRadius: '999px', padding: '7px 10px', fontSize: '11px', fontWeight: 900,
+                    cursor: 'pointer', fontFamily: 'inherit',
+                  }}
+                >
+                  {scenario.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ ...cardStyle, padding: '10px 12px', marginBottom: '12px' }}>
             <div style={{ fontSize: '11px', fontWeight: 900, color: '#475569', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.45px' }}>Sık ayrımlar</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px' }}>
               {DIFFERENTIALS.map((diff) => (
@@ -1215,6 +1479,9 @@ export function TestisGermCellIhcAssistant() {
                   <div style={summaryLineStyle}><span>Girilen İHK</span><strong>{enteredCount}</strong></div>
                   {gcnisScore && <div style={summaryLineStyle}><span>GCNIS destek skoru</span><strong>{Math.round(gcnisScore.overall)}%</strong></div>}
                 </div>
+                <CompactSignalCard title="HE–İHK ilişkisi" text={heIhkRelation.text} tone={heIhkRelation.tone} />
+                <CompactSignalCard title={`Veri yeterliliği: ${sufficiency.label}`} text={sufficiency.text} tone={sufficiency.tone} />
+                {ambiguityText && <CompactSignalCard title="Belirsiz / mikst uyarısı" text={ambiguityText} tone="warning" />}
                 <div style={{ fontSize: '11px', fontWeight: 900, color: '#475569', margin: '9px 0 6px' }}>En güçlü 3 profil</div>
                 {topThree.map((item) => (
                   <ScoreBar
@@ -1255,7 +1522,11 @@ export function TestisGermCellIhcAssistant() {
               <MiniPanel title="Kopyalanabilir metinler">
                 <CopyTextBlock title="İHK sonucu" text={ihcCopyText || 'Henüz İHK sonucu girilmemiştir.'} label="Kopyala: İHK" />
                 <CopyTextBlock title="Serum sonucu" text={serumCopyText} label="Kopyala: Serum" />
-                <CopyTextBlock title="Uyum / uyarı yorumu" text={interpretationCopyText || 'Yeterli veri girilmemiştir.'} label="Kopyala: Yorum" />
+                <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
+                  <button onClick={() => setCopyMode('short')} style={toggleButtonStyle(copyMode === 'short')}>Kısa yorum</button>
+                  <button onClick={() => setCopyMode('detailed')} style={toggleButtonStyle(copyMode === 'detailed')}>Detaylı yorum</button>
+                </div>
+                <CopyTextBlock title={copyMode === 'short' ? 'Kısa uyum / uyarı yorumu' : 'Detaylı uyum / uyarı yorumu'} text={selectedInterpretationText || 'Yeterli veri girilmemiştir.'} label="Kopyala: Yorum" />
                 <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '8px', marginTop: '8px' }}>
                   <CopyButton text={fullCopyText} label="Hepsini kopyala" />
                 </div>
@@ -1419,6 +1690,21 @@ const secondaryButtonStyle: React.CSSProperties = {
   border: '1px solid #e2e8f0', backgroundColor: '#ffffff', color: '#475569',
   cursor: 'pointer', fontFamily: 'inherit',
 };
+
+function toggleButtonStyle(active: boolean): React.CSSProperties {
+  return {
+    border: '1px solid',
+    borderColor: active ? '#0d9488' : '#e2e8f0',
+    backgroundColor: active ? '#ccfbf1' : '#ffffff',
+    color: active ? '#0f766e' : '#475569',
+    borderRadius: '999px',
+    padding: '6px 9px',
+    fontSize: '11px',
+    fontWeight: 900,
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+  };
+}
 
 const summaryLineStyle: React.CSSProperties = {
   display: 'flex', justifyContent: 'space-between', gap: '8px',
