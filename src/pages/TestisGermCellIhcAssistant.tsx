@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
+import { PageContainer } from '../components/PageContainer';
 import {
   Copy, Check, ChevronDown, ChevronUp, Shield, AlertTriangle,
   X, Eye, Microscope
@@ -1410,7 +1411,7 @@ export function TestisGermCellIhcAssistant() {
   };
 
   return (
-    <>
+    <PageContainer>
       <div style={{ minHeight: '100vh', padding: '8px 0 28px', background: '#f8fafc' }}>
         <div style={{ maxWidth: '1680px', margin: '0 auto' }}>
           <div style={{
@@ -1798,7 +1799,7 @@ export function TestisGermCellIhcAssistant() {
           .testis-clinical-strip { grid-template-columns: 1fr; }
         }
       `}</style>
-    </>
+    </PageContainer>
   );
 }
 
