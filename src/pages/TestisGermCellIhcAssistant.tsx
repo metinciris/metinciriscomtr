@@ -36,6 +36,7 @@ import {
 // ─── Types & constants ─────────────────────────────────────
 
 type SerumKey = 'afp' | 'betaHcg' | 'ldh';
+type SerumStatusKey = SerumMarkers[SerumKey]['status'];
 type HeImpressionKey =
   | 'unknown'
   | 'seminoma'
@@ -669,6 +670,58 @@ function serumStatusLabel(status: string | undefined): string {
     case 'very_high': return 'Çok yüksek';
     default: return 'Girilmedi';
   }
+}
+
+function getAutoSerumStatus(marker: SerumKey, value: string): SerumStatusKey {
+  const num = Number.parseFloat(value.replace(',', '.').trim());
+  if (!Number.isFinite(num) || num <= 0) return 'unknown';
+
+  if (marker === 'afp') {
+    if (num < 10) return 'normal';
+    if (num < 1000) return 'mild_high';
+    if (num <= 10000) return 'significant_high';
+    return 'very_high';
+  }
+
+  if (marker === 'betaHcg') {
+    if (num < 5) return 'normal';
+    if (num < 5000) return 'mild_high';
+    if (num <= 50000) return 'significant_high';
+    return 'very_high';
+  }
+
+  if (num <= 1.0) return 'normal';
+  if (num < 1.5) return 'mild_high';
+  if (num <= 10.0) return 'significant_high';
+  return 'very_high';
+}
+
+function ageVisualStyle(ageRange: AgeRange): React.CSSProperties {
+  switch (ageRange) {
+    case '0-5':
+    case '6-12':
+      return { backgroundColor: '#eff6ff', borderColor: '#93c5fd', boxShadow: '0 0 0 1px rgba(59,130,246,0.14)' };
+    case '13-19':
+      return { backgroundColor: '#f0fdfa', borderColor: '#5eead4', boxShadow: '0 0 0 1px rgba(20,184,166,0.14)' };
+    case '20-45':
+      return { backgroundColor: '#ecfdf5', borderColor: '#86efac', boxShadow: '0 0 0 1px rgba(34,197,94,0.14)' };
+    case '46-60':
+      return { backgroundColor: '#fff7ed', borderColor: '#fdba74', boxShadow: '0 0 0 1px rgba(249,115,22,0.16)' };
+    case '>60':
+      return { backgroundColor: '#fdf2f8', borderColor: '#f9a8d4', boxShadow: '0 0 0 1px rgba(236,72,153,0.16)' };
+    default:
+      return { backgroundColor: '#ffffff', borderColor: '#dbe3ef', boxShadow: 'none' };
+  }
+}
+
+function ageStatusDotStyle(ageRange: AgeRange): React.CSSProperties {
+  let bg = '#cbd5e1';
+  if (ageRange === '0-5' || ageRange === '6-12') bg = '#3b82f6';
+  else if (ageRange === '13-19') bg = '#14b8a6';
+  else if (ageRange === '20-45') bg = '#22c55e';
+  else if (ageRange === '46-60') bg = '#f97316';
+  else if (ageRange === '>60') bg = '#ec4899';
+  return { width: '8px', height: '8px', borderRadius: '999px', backgroundColor: bg, boxShadow: `0 0 0 3px ${bg}22`, flex: '0 0 auto' };
 }
 
 
@@ -1315,7 +1368,22 @@ export function TestisGermCellIhcAssistant() {
 
   const handleSerumChange = useCallback((marker: SerumKey, field: string, value: string) => {
     setActiveScenarioId(null);
-    setSerumMarkers((prev) => ({ ...prev, [marker]: { ...prev[marker], [field]: value } }));
+    setSerumMarkers((prev) => {
+      const current = prev[marker];
+      if (field === 'value') {
+        const trimmed = value.trim();
+        return {
+          ...prev,
+          [marker]: {
+            ...current,
+            value,
+            status: trimmed ? getAutoSerumStatus(marker, trimmed) : current.status,
+          },
+        };
+      }
+
+      return { ...prev, [marker]: { ...current, [field]: value as SerumStatusKey } };
+    });
   }, []);
 
   const handleGcnisStatusChange = useCallback((value: string) => {
@@ -1529,9 +1597,24 @@ export function TestisGermCellIhcAssistant() {
                   {HE_IMPRESSIONS.map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}
                 </select>
               </div>
-              <div>
-                <label style={labelStyle}>Yaş</label>
-                <select value={ageRange} onChange={(e) => handleAgeChange(e.target.value as AgeRange)} style={inputStyle}>
+              <div
+                style={{
+                  padding: '7px',
+                  borderRadius: '10px',
+                  border: '1px solid',
+                  transition: 'background-color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease',
+                  ...ageVisualStyle(ageRange),
+                }}
+              >
+                <label style={{ ...labelStyle, display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                  <span style={ageStatusDotStyle(ageRange)} />
+                  Yaş
+                </label>
+                <select
+                  value={ageRange}
+                  onChange={(e) => handleAgeChange(e.target.value as AgeRange)}
+                  style={{ ...inputStyle, backgroundColor: 'rgba(255,255,255,0.84)', borderColor: ageVisualStyle(ageRange).borderColor as string, fontWeight: 800 }}
+                >
                   {AGE_RANGES.map((a) => <option key={a.key} value={a.key}>{a.label}</option>)}
                 </select>
               </div>
@@ -1574,7 +1657,7 @@ export function TestisGermCellIhcAssistant() {
                     </div>
                     {serumMarkers[marker].value.trim().length > 0 && serumMarkers[marker].status === 'unknown' && (
                       <div style={{ marginTop: '5px', fontSize: '10px', fontWeight: 700, color: '#1d4ed8', lineHeight: 1.25 }}>
-                        Değer girildi; sınıf seçilirse yoruma katılır.
+                        Değer girildi; otomatik sınıflanamadıysa sınıfı manuel seçebilirsiniz.
                       </div>
                     )}
                   </div>
