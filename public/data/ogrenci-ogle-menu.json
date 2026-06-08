@@ -1,7 +1,13 @@
 {
-  "date": "07.06.2026",
-  "items": [],
-  "kcal": null,
+  "date": "08.06.2026",
+  "items": [
+    "GEMİCİ ÇORBASI",
+    "TAS KEBABI",
+    "TEL ŞEHRİYELİ PİRİNÇ PİLAVI",
+    "ÇİLEK",
+    "GEMİCİ ÇORBASI"
+  ],
+  "kcal": "1000",
   "source": "https://w3.sdu.edu.tr/aylik-yemek-listesi?dosya=yemekler_ogle&tur=2",
-  "updatedAt": "2026-06-07T10:11:01.713Z"
+  "updatedAt": "2026-06-08T09:12:12.082Z"
 }
