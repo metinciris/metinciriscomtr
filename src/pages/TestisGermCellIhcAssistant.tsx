@@ -1818,62 +1818,6 @@ export function TestisGermCellIhcAssistant() {
             )}
           </div>
 
-          <div style={{ ...cardStyle, padding: '10px 12px', marginBottom: '12px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-              <div style={{ fontSize: '11px', fontWeight: 900, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.45px' }}>Demo / test profilleri</div>
-              <span style={{ fontSize: '10px', color: '#64748b' }}>Eğitim/test amaçlıdır; tıklanınca mevcut girişleri, yaş ve anlamlı serum değerlerini değiştirir</span>
-            </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px' }}>
-              {SAMPLE_SCENARIOS.map((scenario) => {
-                const isActiveDemo = activeScenarioId === scenario.id;
-                return (
-                  <button
-                    key={scenario.id}
-                    onClick={() => handleLoadScenario(scenario)}
-                    title={scenario.note}
-                    style={{
-                      border: isActiveDemo ? '1px solid #0d9488' : '1px solid #dbe3ef',
-                      backgroundColor: isActiveDemo ? '#ccfbf1' : '#ffffff',
-                      color: isActiveDemo ? '#0f766e' : '#334155',
-                      boxShadow: isActiveDemo ? '0 0 0 2px rgba(13,148,136,0.12)' : 'none',
-                      borderRadius: '999px',
-                      padding: '7px 10px',
-                      fontSize: '11px',
-                      fontWeight: 900,
-                      cursor: 'pointer',
-                      fontFamily: 'inherit',
-                    }}
-                  >
-                    {isActiveDemo ? '✓ ' : ''}Demo: {scenario.label}
-                  </button>
-                );
-              })}
-            </div>
-            <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px dashed #e2e8f0', fontSize: '10.5px', color: '#64748b', lineHeight: 1.4 }}>
-              Not: Tüm girişleri sıfırlamak için sayfayı yenileyebilirsiniz.
-            </div>
-          </div>
-
-          <div style={{ ...cardStyle, padding: '10px 12px', marginBottom: '12px' }}>
-            <div style={{ fontSize: '11px', fontWeight: 900, color: '#475569', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.45px' }}>Sık ayrımlar</div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px' }}>
-              {DIFFERENTIALS.map((diff) => (
-                <button
-                  key={diff.id}
-                  onClick={() => handleDifferentialClick(diff.id)}
-                  style={{
-                    border: selectedDifferentialId === diff.id ? '1px solid #0d9488' : '1px solid #dbe3ef',
-                    backgroundColor: selectedDifferentialId === diff.id ? '#ccfbf1' : '#ffffff',
-                    color: selectedDifferentialId === diff.id ? '#0f766e' : '#475569',
-                    borderRadius: '999px', padding: '6px 10px', fontSize: '11px', fontWeight: 800,
-                    cursor: 'pointer', fontFamily: 'inherit',
-                  }}
-                >
-                  {diff.title}
-                </button>
-              ))}
-            </div>
-          </div>
 
           <div className="testis-ght-layout-pro">
             <aside className="testis-left-rail">
@@ -1960,6 +1904,65 @@ export function TestisGermCellIhcAssistant() {
 
             <aside className="testis-right-column">
               <div className="right-column-header">Profil Uyumu ve Rapor</div>
+              <div className="testis-right-tools">
+          <div className="testis-right-tool-card">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+              <div style={{ fontSize: '11px', fontWeight: 900, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.45px' }}>Demo / test profilleri</div>
+              <span style={{ fontSize: '10px', color: '#64748b' }}>Eğitim/test amaçlıdır; tıklanınca mevcut girişleri, yaş ve anlamlı serum değerlerini değiştirir</span>
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px' }}>
+              {SAMPLE_SCENARIOS.map((scenario) => {
+                const isActiveDemo = activeScenarioId === scenario.id;
+                return (
+                  <button
+                    key={scenario.id}
+                    onClick={() => handleLoadScenario(scenario)}
+                    title={scenario.note}
+                    style={{
+                      border: isActiveDemo ? '1px solid #0d9488' : '1px solid #dbe3ef',
+                      backgroundColor: isActiveDemo ? '#ccfbf1' : '#ffffff',
+                      color: isActiveDemo ? '#0f766e' : '#334155',
+                      boxShadow: isActiveDemo ? '0 0 0 2px rgba(13,148,136,0.12)' : 'none',
+                      borderRadius: '999px',
+                      padding: '7px 10px',
+                      fontSize: '11px',
+                      fontWeight: 900,
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                    }}
+                  >
+                    {isActiveDemo ? '✓ ' : ''}Demo: {scenario.label}
+                  </button>
+                );
+              })}
+            </div>
+            <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px dashed #e2e8f0', fontSize: '10.5px', color: '#64748b', lineHeight: 1.4 }}>
+              Not: Tüm girişleri sıfırlamak için sayfayı yenileyebilirsiniz.
+            </div>
+          </div>
+
+          <div className="testis-right-tool-card">
+            <div style={{ fontSize: '11px', fontWeight: 900, color: '#475569', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.45px' }}>Sık ayrımlar</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px' }}>
+              {DIFFERENTIALS.map((diff) => (
+                <button
+                  key={diff.id}
+                  onClick={() => handleDifferentialClick(diff.id)}
+                  style={{
+                    border: selectedDifferentialId === diff.id ? '1px solid #0d9488' : '1px solid #dbe3ef',
+                    backgroundColor: selectedDifferentialId === diff.id ? '#ccfbf1' : '#ffffff',
+                    color: selectedDifferentialId === diff.id ? '#0f766e' : '#475569',
+                    borderRadius: '999px', padding: '6px 10px', fontSize: '11px', fontWeight: 800,
+                    cursor: 'pointer', fontFamily: 'inherit',
+                  }}
+                >
+                  {diff.title}
+                </button>
+              ))}
+            </div>
+          </div>
+
+              </div>
               <MiniPanel title="Profil uyumu ve rapor özeti">
                 <div style={{ display: 'grid', gap: '7px', marginBottom: '10px' }}>
                   <div style={summaryLineStyle}><span>HE ön izlenim</span><strong>{heDef.label}</strong></div>
@@ -2079,6 +2082,18 @@ export function TestisGermCellIhcAssistant() {
           min-width: 0;
           align-self: stretch;
         }
+        .testis-right-tools {
+          display: grid;
+          gap: 10px;
+          margin-bottom: 12px;
+        }
+        .testis-right-tool-card {
+          border: 1px solid #e2e8f0;
+          border-radius: 14px;
+          background: #ffffff;
+          box-shadow: 0 1px 3px rgba(15,23,42,0.05);
+          padding: 10px 12px;
+        }
         .right-column-header {
           position: sticky;
           top: 12px;
@@ -2091,9 +2106,9 @@ export function TestisGermCellIhcAssistant() {
         }
         @media (max-width: 1040px) {
           .testis-ght-layout-pro { grid-template-columns: 1fr; }
-          .testis-ght-layout-pro > main { order: 1; }
-          .testis-right-column { order: 2; }
-          .testis-left-rail { order: 3; position: static; z-index: auto; height: auto; }
+          .testis-left-rail { order: 1; position: static; z-index: auto; height: auto; }
+          .testis-ght-layout-pro > main { order: 2; }
+          .testis-right-column { order: 3; }
           .testis-left-sticky { position: static; overflow: visible; }
           .rail-header { position: static; }
           .rail-scroll { overflow: visible; padding: 0; }
