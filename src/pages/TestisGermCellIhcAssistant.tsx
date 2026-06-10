@@ -36,6 +36,8 @@ import {
 // ─── Types & constants ─────────────────────────────────────
 
 type SerumKey = 'afp' | 'betaHcg' | 'ldh';
+type SerumStatusKey = SerumMarkers[SerumKey]['status'];
+type ClinicalInfoKey = 'age' | SerumKey;
 type HeImpressionKey =
   | 'unknown'
   | 'seminoma'
@@ -672,6 +674,148 @@ function serumStatusLabel(status: string | undefined): string {
 }
 
 
+function serumMarkerLabel(marker: SerumKey): string {
+  if (marker === 'afp') return 'AFP';
+  if (marker === 'betaHcg') return 'β-hCG';
+  return 'LDH';
+}
+
+function serumUnitLabel(marker: SerumKey): string {
+  if (marker === 'afp') return 'ng/mL';
+  if (marker === 'betaHcg') return 'mIU/mL';
+  return 'xULN';
+}
+
+function selectedAgeLabel(ageRange: AgeRange): string {
+  return AGE_RANGES.find((a) => a.key === ageRange)?.label ?? 'Girilmedi';
+}
+
+function serumThresholdText(marker: SerumKey): string[] {
+  if (marker === 'afp') {
+    return [
+      '<10 ng/mL: normal önerisi',
+      '10–999 ng/mL: hafif yüksek önerisi',
+      '1000–10000 ng/mL: anlamlı yüksek önerisi',
+      '>10000 ng/mL: çok yüksek önerisi',
+    ];
+  }
+  if (marker === 'betaHcg') {
+    return [
+      '<5 mIU/mL: normal önerisi',
+      '5–4999 mIU/mL: hafif yüksek önerisi',
+      '5000–50000 mIU/mL: anlamlı yüksek önerisi',
+      '>50000 mIU/mL: çok yüksek önerisi',
+    ];
+  }
+  return [
+    '≤1.0 × ULN: normal önerisi',
+    '>1.0 ve <1.5 × ULN: hafif yüksek önerisi',
+    '1.5–10 × ULN: anlamlı yüksek önerisi',
+    '>10 × ULN: çok yüksek önerisi',
+  ];
+}
+
+function serumMarkerUseText(marker: SerumKey): string {
+  if (marker === 'afp') {
+    return 'AFP yüksekliği yolk sac tümör / nonseminomatöz komponent lehine destekleyici olabilir. Saf seminom ile anlamlı AFP yüksekliği uyumlu kabul edilmemelidir.';
+  }
+  if (marker === 'betaHcg') {
+    return 'β-hCG yüksekliği trofoblastik farklılaşma veya koryokarsinom/trofoblastik komponent açısından destekleyici olabilir. Seminomda sinsityotrofoblastik dev hücrelere bağlı hafif yükseklik görülebilir.';
+  }
+  return 'LDH histolojik tipten çok tümör yükü, yaygınlık veya proliferasyonla ilişkilidir; tek başına komponent ayrımı yaptırmaz.';
+}
+
+function serumPitfallText(marker: SerumKey): string {
+  if (marker === 'afp') {
+    return 'Lokal laboratuvar referans aralığı, hepatik durumlar ve klinik bağlam dikkate alınmalıdır. Değer girilirse sınıf otomatik önerilir; değer yoksa manuel sınıf seçilebilir.';
+  }
+  if (marker === 'betaHcg') {
+    return 'Sadece hafif yükseklik veya seminomdaki seyrek sinsityotrofoblastik dev hücre pozitifliği koryokarsinom anlamına gelmez; morfoloji ve İHK paterni gerekir.';
+  }
+  return 'LDH değerleri laboratuvar üst sınırına göre xULN olarak yorumlanmalıdır; mutlak değer yerine lokal üst sınırla oranlama daha güvenlidir.';
+}
+
+function renderClinicalInfoPanel(
+  selectedClinicalInfo: ClinicalInfoKey,
+  ageRange: AgeRange,
+  serumMarkers: SerumMarkers,
+): React.ReactNode {
+  if (selectedClinicalInfo === 'age') {
+    return (
+      <MiniPanel title="Yaş — klinik bağlam bilgisi">
+        <InfoBlock label="Seçili yaş" text={selectedAgeLabel(ageRange)} />
+        <InfoBlock label="Neden önemli?" text="Testis tümörlerinde yaş; prepubertal tip yolk sac/teratom, klasik GCNIS ilişkili postpubertal GHT, spermatositik tümör, lenfoma ve metastaz olasılıklarını bağlama yerleştirir." />
+        <BadgeList label="Pratik yaş bağlamı" tone="neutral" items={['0–12: prepubertal tip YST/teratom bağlamı', '20–45: klasik GCNIS ilişkili GHT bağlamı', '46–60: spermatositik ve mimikler görünür', '>60: lenfoma/metastaz güvenlik kontrolü']} />
+        <WarningText text="Yaş tek başına tanısal değildir; morfoloji, GCNIS durumu, serum markerları ve İHK profiliyle birlikte değerlendirilmelidir." />
+      </MiniPanel>
+    );
+  }
+
+  const marker = selectedClinicalInfo;
+  const current = serumMarkers[marker];
+  return (
+    <MiniPanel title={`${serumMarkerLabel(marker)} — serum marker bilgisi`}>
+      <InfoBlock label="Mevcut değer / sınıf" text={`${current.value?.trim() ? `${current.value} ${serumUnitLabel(marker)}` : 'Değer girilmedi'}; durum: ${serumStatusLabel(current.status)}`} />
+      <InfoBlock label="Klinik kullanım" text={serumMarkerUseText(marker)} />
+      <BadgeList label="Otomatik sınıflama eşikleri" tone="neutral" items={serumThresholdText(marker)} />
+      <WarningText text={serumPitfallText(marker)} />
+    </MiniPanel>
+  );
+}
+
+function getAutoSerumStatus(marker: SerumKey, value: string): SerumStatusKey {
+  const num = Number.parseFloat(value.replace(',', '.').trim());
+  if (!Number.isFinite(num) || num <= 0) return 'unknown';
+
+  if (marker === 'afp') {
+    if (num < 10) return 'normal';
+    if (num < 1000) return 'mild_high';
+    if (num <= 10000) return 'significant_high';
+    return 'very_high';
+  }
+
+  if (marker === 'betaHcg') {
+    if (num < 5) return 'normal';
+    if (num < 5000) return 'mild_high';
+    if (num <= 50000) return 'significant_high';
+    return 'very_high';
+  }
+
+  if (num <= 1.0) return 'normal';
+  if (num < 1.5) return 'mild_high';
+  if (num <= 10.0) return 'significant_high';
+  return 'very_high';
+}
+
+function ageVisualStyle(ageRange: AgeRange): React.CSSProperties {
+  switch (ageRange) {
+    case '0-5':
+    case '6-12':
+      return { backgroundColor: '#eff6ff', borderColor: '#93c5fd', boxShadow: '0 0 0 1px rgba(59,130,246,0.14)' };
+    case '13-19':
+      return { backgroundColor: '#f0fdfa', borderColor: '#5eead4', boxShadow: '0 0 0 1px rgba(20,184,166,0.14)' };
+    case '20-45':
+      return { backgroundColor: '#ecfdf5', borderColor: '#86efac', boxShadow: '0 0 0 1px rgba(34,197,94,0.14)' };
+    case '46-60':
+      return { backgroundColor: '#fff7ed', borderColor: '#fdba74', boxShadow: '0 0 0 1px rgba(249,115,22,0.16)' };
+    case '>60':
+      return { backgroundColor: '#fdf2f8', borderColor: '#f9a8d4', boxShadow: '0 0 0 1px rgba(236,72,153,0.16)' };
+    default:
+      return { backgroundColor: '#ffffff', borderColor: '#dbe3ef', boxShadow: 'none' };
+  }
+}
+
+function ageStatusDotStyle(ageRange: AgeRange): React.CSSProperties {
+  let bg = '#cbd5e1';
+  if (ageRange === '0-5' || ageRange === '6-12') bg = '#3b82f6';
+  else if (ageRange === '13-19') bg = '#14b8a6';
+  else if (ageRange === '20-45') bg = '#22c55e';
+  else if (ageRange === '46-60') bg = '#f97316';
+  else if (ageRange === '>60') bg = '#ec4899';
+  return { width: '8px', height: '8px', borderRadius: '999px', backgroundColor: bg, boxShadow: `0 0 0 3px ${bg}22`, flex: '0 0 auto' };
+}
+
+
 function serumVisualStyle(status: string | undefined, value?: string): React.CSSProperties {
   const hasValue = !!value && value.trim().length > 0;
   switch (status) {
@@ -1225,6 +1369,7 @@ export function TestisGermCellIhcAssistant() {
   const [selectedAntibodyInfo, setSelectedAntibodyInfo] = useState<string | null>(null);
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [selectedDifferentialId, setSelectedDifferentialId] = useState<string | null>(null);
+  const [selectedClinicalInfo, setSelectedClinicalInfo] = useState<ClinicalInfoKey | null>(null);
   const [showMimicPanel, setShowMimicPanel] = useState(false);
   const [showMorphologyPanel, setShowMorphologyPanel] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => new Set(['first_lineage', 'seminoma_ec', 'ec_yolk', 'yolk_chorio', 'seminoma_safety', 'teratoma_somatic']));
@@ -1270,6 +1415,7 @@ export function TestisGermCellIhcAssistant() {
     setSelectedTumorReference(null);
     setSelectedGroupId(null);
     setSelectedDifferentialId(null);
+    setSelectedClinicalInfo(null);
   }, []);
 
   const handleTumorClick = useCallback((tumorId: TumorType) => {
@@ -1277,6 +1423,7 @@ export function TestisGermCellIhcAssistant() {
     setSelectedAntibodyInfo(null);
     setSelectedGroupId(null);
     setSelectedDifferentialId(null);
+    setSelectedClinicalInfo(null);
   }, []);
 
   const handleGroupHeaderClick = useCallback((groupId: string) => {
@@ -1284,6 +1431,7 @@ export function TestisGermCellIhcAssistant() {
     setSelectedAntibodyInfo(null);
     setSelectedTumorReference(null);
     setSelectedDifferentialId(null);
+    setSelectedClinicalInfo(null);
     setExpandedGroups((prev) => {
       const next = new Set(prev);
       if (next.has(groupId)) next.delete(groupId);
@@ -1297,6 +1445,15 @@ export function TestisGermCellIhcAssistant() {
     setSelectedAntibodyInfo(null);
     setSelectedTumorReference(null);
     setSelectedGroupId(null);
+    setSelectedClinicalInfo(null);
+  }, []);
+
+  const handleClinicalInfoClick = useCallback((info: ClinicalInfoKey) => {
+    setSelectedClinicalInfo(info);
+    setSelectedAntibodyInfo(null);
+    setSelectedTumorReference(null);
+    setSelectedGroupId(null);
+    setSelectedDifferentialId(null);
   }, []);
 
   const handleHeChange = useCallback((value: HeImpressionKey) => {
@@ -1306,46 +1463,33 @@ export function TestisGermCellIhcAssistant() {
     setSelectedAntibodyInfo(null);
     setSelectedTumorReference(null);
     setSelectedGroupId(null);
+    setSelectedClinicalInfo(null);
   }, []);
 
   const handleAgeChange = useCallback((value: AgeRange) => {
     setActiveScenarioId(null);
+    setSelectedClinicalInfo('age');
     setAgeRange(value);
   }, []);
 
   const handleSerumChange = useCallback((marker: SerumKey, field: string, value: string) => {
     setActiveScenarioId(null);
+    setSelectedClinicalInfo(marker);
     setSerumMarkers((prev) => {
-      const updatedMarker = { ...prev[marker], [field]: value };
-      
+      const current = prev[marker];
       if (field === 'value') {
-        const valStr = value.trim();
-        if (valStr.length === 0) {
-          updatedMarker.status = 'unknown';
-        } else {
-          const num = parseFloat(valStr.replace(',', '.'));
-          if (!isNaN(num) && num >= 0) {
-            if (marker === 'afp') {
-              if (num <= 10) updatedMarker.status = 'normal';
-              else if (num <= 1000) updatedMarker.status = 'mild_high';
-              else if (num <= 10000) updatedMarker.status = 'significant_high';
-              else updatedMarker.status = 'very_high';
-            } else if (marker === 'betaHcg') {
-              if (num <= 5) updatedMarker.status = 'normal';
-              else if (num <= 5000) updatedMarker.status = 'mild_high';
-              else if (num <= 50000) updatedMarker.status = 'significant_high';
-              else updatedMarker.status = 'very_high';
-            } else if (marker === 'ldh') {
-              if (num <= 1.0) updatedMarker.status = 'normal';
-              else if (num <= 1.5) updatedMarker.status = 'mild_high';
-              else if (num <= 10.0) updatedMarker.status = 'significant_high';
-              else updatedMarker.status = 'very_high';
-            }
-          }
-        }
+        const trimmed = value.trim();
+        return {
+          ...prev,
+          [marker]: {
+            ...current,
+            value,
+            status: trimmed ? getAutoSerumStatus(marker, trimmed) : current.status,
+          },
+        };
       }
-      
-      return { ...prev, [marker]: updatedMarker };
+
+      return { ...prev, [marker]: { ...current, [field]: value as SerumStatusKey } };
     });
   }, []);
 
@@ -1374,6 +1518,7 @@ export function TestisGermCellIhcAssistant() {
     setSelectedAntibodyInfo(null);
     setSelectedGroupId(null);
     setSelectedDifferentialId(null);
+    setSelectedClinicalInfo(null);
     setEditingRows(new Set());
     setShowMimicPanel(scenario.heImpression === 'non_gct');
     setActiveScenarioId(scenario.id);
@@ -1466,6 +1611,10 @@ export function TestisGermCellIhcAssistant() {
         : 'unknown';
 
   const renderLeftPanel = () => {
+    if (selectedClinicalInfo) {
+      return renderClinicalInfoPanel(selectedClinicalInfo, ageRange, serumMarkers);
+    }
+
     if (selectedAntibodyDef) {
       const info = selectedAntibodyDef.infoCard;
       return (
@@ -1561,46 +1710,48 @@ export function TestisGermCellIhcAssistant() {
                 </select>
               </div>
               <div
+                onClick={() => handleClinicalInfoClick('age')}
                 style={{
                   padding: '7px',
                   borderRadius: '10px',
                   border: '1px solid',
                   transition: 'background-color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease',
-                  ...(ageRange !== 'unknown'
-                    ? { backgroundColor: '#f0fdfa', borderColor: '#99f6e4', boxShadow: '0 0 0 1px rgba(13,148,136,0.16)' }
-                    : { backgroundColor: '#ffffff', borderColor: '#dbe3ef', boxShadow: 'none' })
+                  cursor: 'pointer',
+                  ...ageVisualStyle(ageRange),
                 }}
               >
-                <label style={labelStyle}>Yaş</label>
+                <label style={{ ...labelStyle, display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                  <span style={ageStatusDotStyle(ageRange)} />
+                  Yaş
+                  <span style={{ marginLeft: 'auto', fontSize: '9px', fontWeight: 800, color: '#0f766e' }}>bilgi</span>
+                </label>
                 <select
                   value={ageRange}
                   onChange={(e) => handleAgeChange(e.target.value as AgeRange)}
-                  style={{
-                    ...inputStyle,
-                    backgroundColor: ageRange !== 'unknown' ? '#ffffff' : 'rgba(255,255,255,0.84)',
-                    borderColor: ageRange !== 'unknown' ? '#99f6e4' : '#dbe3ef',
-                  }}
+                  style={{ ...inputStyle, backgroundColor: 'rgba(255,255,255,0.84)', borderColor: ageVisualStyle(ageRange).borderColor as string, fontWeight: 800 }}
                 >
                   {AGE_RANGES.map((a) => <option key={a.key} value={a.key}>{a.label}</option>)}
                 </select>
               </div>
               {(['afp', 'betaHcg', 'ldh'] as const).map((marker) => {
                 const serumVisual = serumVisualStyle(serumMarkers[marker].status, serumMarkers[marker].value);
-                const hasValue = serumMarkers[marker].value.trim().length > 0;
                 return (
                   <div
                     key={marker}
+                    onClick={() => handleClinicalInfoClick(marker)}
                     style={{
                       padding: '7px',
                       borderRadius: '10px',
                       border: '1px solid',
                       transition: 'background-color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease',
+                      cursor: 'pointer',
                       ...serumVisual,
                     }}
                   >
                     <label style={{ ...labelStyle, display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
                       <span style={serumStatusDotStyle(serumMarkers[marker].status, serumMarkers[marker].value)} />
                       {marker === 'afp' ? 'AFP' : marker === 'betaHcg' ? 'β-hCG' : 'LDH'}
+                      <span style={{ marginLeft: 'auto', fontSize: '9px', fontWeight: 800, color: '#0f766e' }}>bilgi</span>
                     </label>
                     <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 98px', gap: '5px' }}>
                       <input
@@ -1608,23 +1759,12 @@ export function TestisGermCellIhcAssistant() {
                         onChange={(e) => handleSerumChange(marker, 'value', e.target.value)}
                         placeholder="Değer"
                         inputMode="decimal"
-                        style={{
-                          ...inputStyle,
-                          backgroundColor: hasValue ? '#ffffff' : 'rgba(255,255,255,0.84)',
-                          borderColor: serumVisual.borderColor as string,
-                        }}
+                        style={{ ...inputStyle, backgroundColor: 'rgba(255,255,255,0.84)', borderColor: serumVisual.borderColor as string }}
                       />
                       <select
                         value={serumMarkers[marker].status}
                         onChange={(e) => handleSerumChange(marker, 'status', e.target.value)}
-                        disabled={hasValue}
-                        style={{
-                          ...inputStyle,
-                          backgroundColor: hasValue ? '#f1f5f9' : 'rgba(255,255,255,0.84)',
-                          borderColor: serumVisual.borderColor as string,
-                          fontWeight: 800,
-                          cursor: hasValue ? 'not-allowed' : 'default',
-                        }}
+                        style={{ ...inputStyle, backgroundColor: 'rgba(255,255,255,0.84)', borderColor: serumVisual.borderColor as string, fontWeight: 800 }}
                       >
                         <option value="unknown">Girilmedi</option>
                         <option value="normal">Normal</option>
@@ -1633,9 +1773,9 @@ export function TestisGermCellIhcAssistant() {
                         <option value="very_high">Çok yüksek</option>
                       </select>
                     </div>
-                    {hasValue && (
-                      <div style={{ marginTop: '5px', fontSize: '10px', fontWeight: 700, color: '#0f766e', lineHeight: 1.25, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <span>⚡ Otomatik seçildi</span>
+                    {serumMarkers[marker].value.trim().length > 0 && serumMarkers[marker].status === 'unknown' && (
+                      <div style={{ marginTop: '5px', fontSize: '10px', fontWeight: 700, color: '#1d4ed8', lineHeight: 1.25 }}>
+                        Değer girildi; otomatik sınıflanamadıysa sınıfı manuel seçebilirsiniz.
                       </div>
                     )}
                   </div>
@@ -1678,62 +1818,6 @@ export function TestisGermCellIhcAssistant() {
             )}
           </div>
 
-          <div style={{ ...cardStyle, padding: '10px 12px', marginBottom: '12px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-              <div style={{ fontSize: '11px', fontWeight: 900, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.45px' }}>Demo / test profilleri</div>
-              <span style={{ fontSize: '10px', color: '#64748b' }}>Eğitim/test amaçlıdır; tıklanınca mevcut girişleri, yaş ve anlamlı serum değerlerini değiştirir</span>
-            </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px' }}>
-              {SAMPLE_SCENARIOS.map((scenario) => {
-                const isActiveDemo = activeScenarioId === scenario.id;
-                return (
-                  <button
-                    key={scenario.id}
-                    onClick={() => handleLoadScenario(scenario)}
-                    title={scenario.note}
-                    style={{
-                      border: isActiveDemo ? '1px solid #0d9488' : '1px solid #dbe3ef',
-                      backgroundColor: isActiveDemo ? '#ccfbf1' : '#ffffff',
-                      color: isActiveDemo ? '#0f766e' : '#334155',
-                      boxShadow: isActiveDemo ? '0 0 0 2px rgba(13,148,136,0.12)' : 'none',
-                      borderRadius: '999px',
-                      padding: '7px 10px',
-                      fontSize: '11px',
-                      fontWeight: 900,
-                      cursor: 'pointer',
-                      fontFamily: 'inherit',
-                    }}
-                  >
-                    {isActiveDemo ? '✓ ' : ''}Demo: {scenario.label}
-                  </button>
-                );
-              })}
-            </div>
-            <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px dashed #e2e8f0', fontSize: '10.5px', color: '#64748b', lineHeight: 1.4 }}>
-              Not: Tüm girişleri sıfırlamak için sayfayı yenileyebilirsiniz.
-            </div>
-          </div>
-
-          <div style={{ ...cardStyle, padding: '10px 12px', marginBottom: '12px' }}>
-            <div style={{ fontSize: '11px', fontWeight: 900, color: '#475569', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.45px' }}>Sık ayrımlar</div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px' }}>
-              {DIFFERENTIALS.map((diff) => (
-                <button
-                  key={diff.id}
-                  onClick={() => handleDifferentialClick(diff.id)}
-                  style={{
-                    border: selectedDifferentialId === diff.id ? '1px solid #0d9488' : '1px solid #dbe3ef',
-                    backgroundColor: selectedDifferentialId === diff.id ? '#ccfbf1' : '#ffffff',
-                    color: selectedDifferentialId === diff.id ? '#0f766e' : '#475569',
-                    borderRadius: '999px', padding: '6px 10px', fontSize: '11px', fontWeight: 800,
-                    cursor: 'pointer', fontFamily: 'inherit',
-                  }}
-                >
-                  {diff.title}
-                </button>
-              ))}
-            </div>
-          </div>
 
           <div className="testis-ght-layout-pro">
             <aside className="testis-left-rail">
@@ -1820,6 +1904,65 @@ export function TestisGermCellIhcAssistant() {
 
             <aside className="testis-right-column">
               <div className="right-column-header">Profil Uyumu ve Rapor</div>
+              <div className="testis-right-tools">
+          <div className="testis-right-tool-card">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+              <div style={{ fontSize: '11px', fontWeight: 900, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.45px' }}>Demo / test profilleri</div>
+              <span style={{ fontSize: '10px', color: '#64748b' }}>Eğitim/test amaçlıdır; tıklanınca mevcut girişleri, yaş ve anlamlı serum değerlerini değiştirir</span>
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px' }}>
+              {SAMPLE_SCENARIOS.map((scenario) => {
+                const isActiveDemo = activeScenarioId === scenario.id;
+                return (
+                  <button
+                    key={scenario.id}
+                    onClick={() => handleLoadScenario(scenario)}
+                    title={scenario.note}
+                    style={{
+                      border: isActiveDemo ? '1px solid #0d9488' : '1px solid #dbe3ef',
+                      backgroundColor: isActiveDemo ? '#ccfbf1' : '#ffffff',
+                      color: isActiveDemo ? '#0f766e' : '#334155',
+                      boxShadow: isActiveDemo ? '0 0 0 2px rgba(13,148,136,0.12)' : 'none',
+                      borderRadius: '999px',
+                      padding: '7px 10px',
+                      fontSize: '11px',
+                      fontWeight: 900,
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                    }}
+                  >
+                    {isActiveDemo ? '✓ ' : ''}Demo: {scenario.label}
+                  </button>
+                );
+              })}
+            </div>
+            <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px dashed #e2e8f0', fontSize: '10.5px', color: '#64748b', lineHeight: 1.4 }}>
+              Not: Tüm girişleri sıfırlamak için sayfayı yenileyebilirsiniz.
+            </div>
+          </div>
+
+          <div className="testis-right-tool-card">
+            <div style={{ fontSize: '11px', fontWeight: 900, color: '#475569', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.45px' }}>Sık ayrımlar</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px' }}>
+              {DIFFERENTIALS.map((diff) => (
+                <button
+                  key={diff.id}
+                  onClick={() => handleDifferentialClick(diff.id)}
+                  style={{
+                    border: selectedDifferentialId === diff.id ? '1px solid #0d9488' : '1px solid #dbe3ef',
+                    backgroundColor: selectedDifferentialId === diff.id ? '#ccfbf1' : '#ffffff',
+                    color: selectedDifferentialId === diff.id ? '#0f766e' : '#475569',
+                    borderRadius: '999px', padding: '6px 10px', fontSize: '11px', fontWeight: 800,
+                    cursor: 'pointer', fontFamily: 'inherit',
+                  }}
+                >
+                  {diff.title}
+                </button>
+              ))}
+            </div>
+          </div>
+
+              </div>
               <MiniPanel title="Profil uyumu ve rapor özeti">
                 <div style={{ display: 'grid', gap: '7px', marginBottom: '10px' }}>
                   <div style={summaryLineStyle}><span>HE ön izlenim</span><strong>{heDef.label}</strong></div>
@@ -1939,6 +2082,18 @@ export function TestisGermCellIhcAssistant() {
           min-width: 0;
           align-self: stretch;
         }
+        .testis-right-tools {
+          display: grid;
+          gap: 10px;
+          margin-bottom: 12px;
+        }
+        .testis-right-tool-card {
+          border: 1px solid #e2e8f0;
+          border-radius: 14px;
+          background: #ffffff;
+          box-shadow: 0 1px 3px rgba(15,23,42,0.05);
+          padding: 10px 12px;
+        }
         .right-column-header {
           position: sticky;
           top: 12px;
@@ -1951,9 +2106,9 @@ export function TestisGermCellIhcAssistant() {
         }
         @media (max-width: 1040px) {
           .testis-ght-layout-pro { grid-template-columns: 1fr; }
-          .testis-ght-layout-pro > main { order: 1; }
-          .testis-right-column { order: 2; }
-          .testis-left-rail { order: 3; position: static; z-index: auto; height: auto; }
+          .testis-left-rail { order: 1; position: static; z-index: auto; height: auto; }
+          .testis-ght-layout-pro > main { order: 2; }
+          .testis-right-column { order: 3; }
           .testis-left-sticky { position: static; overflow: visible; }
           .rail-header { position: static; }
           .rail-scroll { overflow: visible; padding: 0; }
