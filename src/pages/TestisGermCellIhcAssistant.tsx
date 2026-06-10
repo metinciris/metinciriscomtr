@@ -1315,7 +1315,38 @@ export function TestisGermCellIhcAssistant() {
 
   const handleSerumChange = useCallback((marker: SerumKey, field: string, value: string) => {
     setActiveScenarioId(null);
-    setSerumMarkers((prev) => ({ ...prev, [marker]: { ...prev[marker], [field]: value } }));
+    setSerumMarkers((prev) => {
+      const updatedMarker = { ...prev[marker], [field]: value };
+      
+      if (field === 'value') {
+        const valStr = value.trim();
+        if (valStr.length === 0) {
+          updatedMarker.status = 'unknown';
+        } else {
+          const num = parseFloat(valStr.replace(',', '.'));
+          if (!isNaN(num) && num >= 0) {
+            if (marker === 'afp') {
+              if (num <= 10) updatedMarker.status = 'normal';
+              else if (num <= 1000) updatedMarker.status = 'mild_high';
+              else if (num <= 10000) updatedMarker.status = 'significant_high';
+              else updatedMarker.status = 'very_high';
+            } else if (marker === 'betaHcg') {
+              if (num <= 5) updatedMarker.status = 'normal';
+              else if (num <= 5000) updatedMarker.status = 'mild_high';
+              else if (num <= 50000) updatedMarker.status = 'significant_high';
+              else updatedMarker.status = 'very_high';
+            } else if (marker === 'ldh') {
+              if (num <= 1.0) updatedMarker.status = 'normal';
+              else if (num <= 1.5) updatedMarker.status = 'mild_high';
+              else if (num <= 10.0) updatedMarker.status = 'significant_high';
+              else updatedMarker.status = 'very_high';
+            }
+          }
+        }
+      }
+      
+      return { ...prev, [marker]: updatedMarker };
+    });
   }, []);
 
   const handleGcnisStatusChange = useCallback((value: string) => {
@@ -1529,14 +1560,33 @@ export function TestisGermCellIhcAssistant() {
                   {HE_IMPRESSIONS.map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}
                 </select>
               </div>
-              <div>
+              <div
+                style={{
+                  padding: '7px',
+                  borderRadius: '10px',
+                  border: '1px solid',
+                  transition: 'background-color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease',
+                  ...(ageRange !== 'unknown'
+                    ? { backgroundColor: '#f0fdfa', borderColor: '#99f6e4', boxShadow: '0 0 0 1px rgba(13,148,136,0.16)' }
+                    : { backgroundColor: '#ffffff', borderColor: '#dbe3ef', boxShadow: 'none' })
+                }}
+              >
                 <label style={labelStyle}>Yaş</label>
-                <select value={ageRange} onChange={(e) => handleAgeChange(e.target.value as AgeRange)} style={inputStyle}>
+                <select
+                  value={ageRange}
+                  onChange={(e) => handleAgeChange(e.target.value as AgeRange)}
+                  style={{
+                    ...inputStyle,
+                    backgroundColor: ageRange !== 'unknown' ? '#ffffff' : 'rgba(255,255,255,0.84)',
+                    borderColor: ageRange !== 'unknown' ? '#99f6e4' : '#dbe3ef',
+                  }}
+                >
                   {AGE_RANGES.map((a) => <option key={a.key} value={a.key}>{a.label}</option>)}
                 </select>
               </div>
               {(['afp', 'betaHcg', 'ldh'] as const).map((marker) => {
                 const serumVisual = serumVisualStyle(serumMarkers[marker].status, serumMarkers[marker].value);
+                const hasValue = serumMarkers[marker].value.trim().length > 0;
                 return (
                   <div
                     key={marker}
@@ -1558,12 +1608,23 @@ export function TestisGermCellIhcAssistant() {
                         onChange={(e) => handleSerumChange(marker, 'value', e.target.value)}
                         placeholder="Değer"
                         inputMode="decimal"
-                        style={{ ...inputStyle, backgroundColor: 'rgba(255,255,255,0.84)', borderColor: serumVisual.borderColor as string }}
+                        style={{
+                          ...inputStyle,
+                          backgroundColor: hasValue ? '#ffffff' : 'rgba(255,255,255,0.84)',
+                          borderColor: serumVisual.borderColor as string,
+                        }}
                       />
                       <select
                         value={serumMarkers[marker].status}
                         onChange={(e) => handleSerumChange(marker, 'status', e.target.value)}
-                        style={{ ...inputStyle, backgroundColor: 'rgba(255,255,255,0.84)', borderColor: serumVisual.borderColor as string, fontWeight: 800 }}
+                        disabled={hasValue}
+                        style={{
+                          ...inputStyle,
+                          backgroundColor: hasValue ? '#f1f5f9' : 'rgba(255,255,255,0.84)',
+                          borderColor: serumVisual.borderColor as string,
+                          fontWeight: 800,
+                          cursor: hasValue ? 'not-allowed' : 'default',
+                        }}
                       >
                         <option value="unknown">Girilmedi</option>
                         <option value="normal">Normal</option>
@@ -1572,9 +1633,9 @@ export function TestisGermCellIhcAssistant() {
                         <option value="very_high">Çok yüksek</option>
                       </select>
                     </div>
-                    {serumMarkers[marker].value.trim().length > 0 && serumMarkers[marker].status === 'unknown' && (
-                      <div style={{ marginTop: '5px', fontSize: '10px', fontWeight: 700, color: '#1d4ed8', lineHeight: 1.25 }}>
-                        Değer girildi; sınıf seçilirse yoruma katılır.
+                    {hasValue && (
+                      <div style={{ marginTop: '5px', fontSize: '10px', fontWeight: 700, color: '#0f766e', lineHeight: 1.25, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <span>⚡ Otomatik seçildi</span>
                       </div>
                     )}
                   </div>
