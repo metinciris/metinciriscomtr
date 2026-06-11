@@ -257,7 +257,7 @@ export function MeetingCard({
                             title="Afişi büyüt"
                         >
                             <div className={`w-full flex-1 rounded-2xl overflow-hidden border bg-white shadow-sm ${isLive ? 'border-green-200' : 'border-indigo-200'}`}>
-                                <img src={meeting.poster_url!} alt="Toplantı afişi" className="w-full h-full object-cover" loading="lazy" />
+                                <img src={meeting.poster_url!} alt="Toplantı afişi" className="w-full h-full object-contain" loading="lazy" />
                             </div>
                         </button>
                     </div>
