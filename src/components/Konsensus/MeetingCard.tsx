@@ -129,7 +129,7 @@ export function MeetingCard({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
-                <div className={`${hasPoster && !isActuallyPast ? 'md:col-span-7' : 'md:col-span-12'} flex flex-col`}>
+                <div className={`${hasPoster && !isActuallyPast ? 'md:col-span-6' : 'md:col-span-12'} flex flex-col`}>
                     <h3 className={`text-[20px] sm:text-[22px] md:text-[24px] font-black tracking-tight leading-snug ${isActuallyPast ? 'text-gray-700' : 'text-gray-900'}`}>
                         {meeting.title}
                     </h3>
@@ -250,7 +250,7 @@ export function MeetingCard({
                 </div>
 
                 {hasPoster && !isActuallyPast ? (
-                    <div className="md:col-span-5 flex h-full">
+                    <div className="md:col-span-6 flex h-full">
                         <button
                             onClick={() => onPosterClick(meeting.poster_url!)}
                             className={`w-full h-full rounded-3xl border-2 bg-white/70 hover:bg-white transition p-4 shadow-md hover:shadow-lg flex flex-col ${isLive ? 'border-green-300' : 'border-indigo-200'}`}
@@ -262,7 +262,7 @@ export function MeetingCard({
                         </button>
                     </div>
                 ) : (
-                    <div className="hidden md:block md:col-span-5" />
+                    <div className="hidden md:block md:col-span-6" />
                 )}
             </div>
         </div>
