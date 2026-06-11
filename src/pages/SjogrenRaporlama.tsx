@@ -50,25 +50,23 @@ export default function SjogrenRaporlama() {
     };
 
     const resetForm = () => {
-        if (window.confirm("Tüm seçimler sıfırlanacak. Emin misiniz?")) {
-            setStains(["Masson Trikrom boyası"]);
-            setYeterlilik("yeterli");
-            setIzlenenMm2("1");
-            setFokus("az");
-            setFibrozis("yok");
-            setYaglanma("yok");
-            setOtherFindings({
-                enYogun: true,
-                plazmaNadir: false,
-                plazmaTopluluk: false,
-                onkositik: false,
-                devKonfluen: false,
-                germinal: false,
-                mukozal: false,
-            });
-            setCustomOther("");
-            toast.success("Form sıfırlandı");
-        }
+        setStains(["Masson Trikrom boyası"]);
+        setYeterlilik("yeterli");
+        setIzlenenMm2("1");
+        setFokus("az");
+        setFibrozis("yok");
+        setYaglanma("yok");
+        setOtherFindings({
+            enYogun: true,
+            plazmaNadir: false,
+            plazmaTopluluk: false,
+            onkositik: false,
+            devKonfluen: false,
+            germinal: false,
+            mukozal: false,
+        });
+        setCustomOther("");
+        toast.success("Form sıfırlandı");
     };
 
     // --- Report Calculation ---
