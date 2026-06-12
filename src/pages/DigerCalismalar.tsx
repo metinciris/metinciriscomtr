@@ -46,6 +46,14 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
             page: 'endoskopi-raporlama',
             category: 'raporlama'
         },
+        {
+            title: "Tiroid Papiller Raporlama",
+            subtitle: "Tiroid papiller karsinom rapor oluşturucu",
+            icon: <Microscope size={40} />,
+            color: "bg-indigo-700",
+            page: 'tiroid-papiller-karsinom',
+            category: 'raporlama'
+        },
         // Patoloji & Eğitim Araçları
         {
             title: "Sınav Analizi",

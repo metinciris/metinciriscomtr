@@ -47,5 +47,6 @@ export const validPages = [
     'geri-sayim',
     'mitoz-donusturucu',
     'hematoloji-hesaplayici',
-    'testis-ght-ihk'
+    'testis-ght-ihk',
+    'tiroid-papiller-karsinom'
 ];

@@ -426,6 +426,15 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         priority: 0.8,
         changefreq: 'monthly'
     },
+    'tiroid-papiller-karsinom': {
+        slug: 'tiroid-papiller-karsinom',
+        title: 'Tiroid Papiller Karsinom Rapor Oluşturucu | Prof Dr Metin Çiriş',
+        description: 'Tiroid papiller karsinom vakaları için histopatolojik bulgulara dayalı, tümör odakları ve lenf nodu metastazı hesaplayıp raporlayan otomatik rapor oluşturucu.',
+        keywords: 'tiroid kanseri, papiller karsinom, patoloji raporu, tiroid patolojisi, lenf nodu metastazı, tümör odağı',
+        lastmod: '2026-06-12',
+        priority: 0.8,
+        changefreq: 'monthly'
+    },
 };
 
 export const getPages = () => Object.values(PAGE_REGISTRY);

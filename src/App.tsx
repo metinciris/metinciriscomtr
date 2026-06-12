@@ -171,6 +171,9 @@ const HematolojiHesaplayici = React.lazy(() =>
 const TestisGhtIhk = React.lazy(() =>
   import('./pages/TestisGermCellIhcAssistant').then((m) => ({ default: m.TestisGermCellIhcAssistant })),
 );
+const TiroidPapillerKarsinom = React.lazy(() =>
+  import('./pages/TiroidPapillerKarsinom').then((m) => ({ default: m.TiroidPapillerKarsinom })),
+);
 
 import { trackPageView } from './utils/analytics';
 
@@ -364,6 +367,9 @@ export default function App() {
 
       case 'testis-ght-ihk':
         return <TestisGhtIhk />;
+
+      case 'tiroid-papiller-karsinom':
+        return <TiroidPapillerKarsinom />;
 
       case '404':
         return <NotFound onNavigate={navigate} />;
