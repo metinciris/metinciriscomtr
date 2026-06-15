@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { PageContainer } from '../components/PageContainer';
-import { Calendar, Clock, Tag, Search, ExternalLink } from 'lucide-react';
+import { Calendar, Clock, Tag, Search, ChevronDown, ChevronUp } from 'lucide-react';
 import { Input } from '../components/ui/input';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -46,6 +46,14 @@ export function Blog() {
   const [searchTerm, setSearchTerm] = useState('');
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const [expandedPosts, setExpandedPosts] = useState<Record<number, boolean>>({});
+
+  const toggleExpand = (id: number) => {
+    setExpandedPosts(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
 
   useEffect(() => {
     if (!rateLimiter.check()) {
@@ -148,28 +156,41 @@ export function Blog() {
 
                 <h3 className="text-xl font-bold mb-3 text-gray-900 line-clamp-2">{post.title}</h3>
 
-                <div className="text-gray-600 mb-4 line-clamp-6 text-sm prose prose-sm">
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                    rehypePlugins={[rehypeRaw]}
-                  >
-                    {DOMPurify.sanitize(post.body).split('\n').slice(0, 6).join('\n')}
-                  </ReactMarkdown>
-                </div>
+                {expandedPosts[post.id] ? (
+                  <div className="text-gray-600 mb-4 text-sm prose prose-sm max-w-none">
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      rehypePlugins={[rehypeRaw]}
+                    >
+                      {DOMPurify.sanitize(post.body)}
+                    </ReactMarkdown>
+                  </div>
+                ) : (
+                  <div className="text-gray-600 mb-4 line-clamp-6 text-sm prose prose-sm max-w-none">
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      rehypePlugins={[rehypeRaw]}
+                    >
+                      {DOMPurify.sanitize(post.body).split('\n').slice(0, 6).join('\n')}
+                    </ReactMarkdown>
+                  </div>
+                )}
 
                 <div className="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between text-sm text-gray-500">
                   <div className="flex items-center gap-1">
                     <Calendar size={14} />
                     <span>{new Date(post.created_at).toLocaleDateString('tr-TR')}</span>
                   </div>
-                  <a
-                    href={post.html_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1 text-[#27AE60] hover:underline font-medium"
+                  <button
+                    onClick={() => toggleExpand(post.id)}
+                    className="flex items-center gap-1 text-[#27AE60] hover:underline font-medium cursor-pointer focus:outline-none"
                   >
-                    Devamını Oku <ExternalLink size={14} />
-                  </a>
+                    {expandedPosts[post.id] ? (
+                      <>Daha Az Göster <ChevronUp size={14} /></>
+                    ) : (
+                      <>Devamını Oku <ChevronDown size={14} /></>
+                    )}
+                  </button>
                 </div>
               </div>
             </div>
