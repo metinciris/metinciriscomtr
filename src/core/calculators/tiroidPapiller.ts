@@ -184,9 +184,22 @@ export function generateThyroidReport(state: ThyroidReportState): string {
     let report = '';
 
     report += state.specimenType + ':\n';
-    const numericTumorSizes = tumorsCopy.map(t => Number(t.size)).filter(v => Number.isFinite(v) && v > 0);
-    const maxSize = numericTumorSizes.length ? Math.max(...numericTumorSizes) : 0;
-    report += sentence(maxSize > 0 ? getTumorDiagnosisName(maxSize) : 'Tiroid papiller karsinom') + '\n';
+    
+    const carcinomaTumors = tumorsCopy.filter(t => !(t.subtypes || []).includes('NIFTP'));
+    const niftpTumors = tumorsCopy.filter(t => (t.subtypes || []).includes('NIFTP'));
+
+    let diagnosis = '';
+    if (carcinomaTumors.length > 0) {
+        const numericCarcinomaSizes = carcinomaTumors.map(t => Number(t.size)).filter(v => Number.isFinite(v) && v > 0);
+        const maxCarcinomaSize = numericCarcinomaSizes.length ? Math.max(...numericCarcinomaSizes) : 0;
+        diagnosis = maxCarcinomaSize > 0 ? getTumorDiagnosisName(maxCarcinomaSize) : 'Tiroid papiller karsinom';
+    } else if (niftpTumors.length > 0) {
+        diagnosis = 'Papiller benzeri nükleer özellikler gösteren non-invaziv folliküler tiroid neoplazisi (NIFTP)';
+    } else {
+        diagnosis = 'Tiroid papiller karsinom';
+    }
+
+    report += sentence(diagnosis) + '\n';
     if (state.freeNote && state.freeNote.trim()) {
         report += sentence(state.freeNote.trim()) + '\n';
     }
@@ -195,18 +208,29 @@ export function generateThyroidReport(state: ThyroidReportState): string {
         const t = tumorsCopy[0];
         if (t.location) report += sentence('Tümör ' + t.location + ' yerleşimlidir') + '\n';
         if (Number(t.size) > 0) report += sentence("Tümör çapı " + t.size + " mm'dir") + '\n';
-        if (t.subtypes.length) report += sentence('Tümör ' + t.subtypes.join(' ve ') + ' histolojisindedir') + '\n';
+        
+        const displaySubtypes = (t.subtypes || []).filter(s => s !== 'NIFTP');
+        if (displaySubtypes.length) report += sentence('Tümör ' + displaySubtypes.join(' ve ') + ' histolojisindedir') + '\n';
+        
         if (t.sample) report += sentence('Örnek No: ' + t.sample) + '\n';
         report += '\n' + generateFindingsText(t);
     } else if (tumorsCopy.length > 1) {
-        report += sentence('Tümör odaklılığı ' + tumorsCopy.length + ' odaklıdır. Multifokal tümör VARDIR') + '\n\n';
+        if (carcinomaTumors.length > 1) {
+            report += sentence('Tümör odaklılığı ' + carcinomaTumors.length + ' odaklıdır. Multifokal tümör VARDIR') + '\n\n';
+        }
         report += 'Tümör odakları:\n';
         tumorsCopy.forEach((t, i) => {
-            const dx = getTumorDiagnosisName(Number(t.size));
+            const isNiftp = (t.subtypes || []).includes('NIFTP');
+            const dx = isNiftp 
+                ? 'Papiller benzeri nükleer özellikler gösteren non-invaziv folliküler tiroid neoplazisi (NIFTP)'
+                : getTumorDiagnosisName(Number(t.size));
             report += (i + 1) + '. Tümör: ' + dx + '\n';
             if (t.location) report += '  ' + sentence('Yerleşim: ' + t.location) + '\n';
             if (Number(t.size) > 0) report += '  ' + sentence('Çap: ' + t.size + ' mm') + '\n';
-            if (t.subtypes.length) report += '  ' + sentence('Histoloji: ' + t.subtypes.join(' ve ')) + '\n';
+            
+            const displaySubtypes = (t.subtypes || []).filter(s => s !== 'NIFTP');
+            if (displaySubtypes.length) report += '  ' + sentence('Histoloji: ' + displaySubtypes.join(' ve ')) + '\n';
+            
             if (t.sample) report += '  ' + sentence('Örnek No: ' + t.sample) + '\n';
             report += generateFindingsText(t, '  ');
             report += '\n';
