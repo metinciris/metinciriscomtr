@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { PageContainer } from '../components/PageContainer';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { Microscope, ArrowRight, Eye, AlertCircle } from 'lucide-react';
 
 export function AyinVakasi() {

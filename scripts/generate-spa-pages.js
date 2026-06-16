@@ -151,4 +151,15 @@ console.log('🤖 robots.txt oluşturuldu.');
 writeFileSync(join(distDir, '404.html'), indexContent, 'utf8');
 console.log('🚧 404.html oluşturuldu (SPA fallback).');
 
+// --- 5. SW Cache Sürümünü Güncelle ---
+const swPath = join(distDir, 'sw.js');
+if (existsSync(swPath)) {
+    let swContent = readFileSync(swPath, 'utf8');
+    const buildId = Date.now();
+    swContent = swContent.replace('metinciris-assets-v1', `metinciris-assets-v${buildId}`);
+    swContent = swContent.replace('metinciris-static-v1', `metinciris-static-v${buildId}`);
+    writeFileSync(swPath, swContent, 'utf8');
+    console.log(`🔄 sw.js cache sürümü güncellendi (v${buildId}).`);
+}
+
 console.log(`\n✅ İşlem tamamlandı! ${created} sayfa üretildi.`);

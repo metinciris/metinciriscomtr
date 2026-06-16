@@ -21,6 +21,37 @@ export class ErrorBoundary extends Component<Props, State> {
 
     public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
         console.error('[ErrorBoundary]', error, errorInfo);
+
+        // Chunk load / dynamic import hatası tespiti
+        const isChunkError =
+            error.message?.includes('Failed to fetch dynamically imported module') ||
+            error.message?.includes('Loading chunk') ||
+            error.message?.includes('Loading CSS chunk') ||
+            error.name === 'ChunkLoadError';
+
+        if (isChunkError) {
+            const lastReload = sessionStorage.getItem('chunk-error-reload');
+            const now = Date.now();
+            // Son 10 saniye içinde yenileme yapılmadıysa otomatik kurtar
+            if (!lastReload || now - parseInt(lastReload, 10) > 10000) {
+                sessionStorage.setItem('chunk-error-reload', String(now));
+                // Service Worker'ları temizle
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.getRegistrations().then(registrations => {
+                        registrations.forEach(reg => reg.unregister());
+                    });
+                }
+                // Cache'leri temizle
+                if ('caches' in window) {
+                    caches.keys().then(names => {
+                        names.forEach(name => caches.delete(name));
+                    });
+                }
+                // Sayfayı yenile
+                window.location.reload();
+                return;
+            }
+        }
     }
 
     handleReload = () => {

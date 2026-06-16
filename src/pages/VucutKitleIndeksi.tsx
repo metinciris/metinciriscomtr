@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { PageContainer } from '../components/PageContainer';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { Calculator, Info, CheckCircle2, AlertCircle } from 'lucide-react';
 import { calculateBMI, getBmiBodyWidth } from '../core/calculators/bmi';
 
