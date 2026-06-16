@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { PageContainer } from '../components/PageContainer';
 import { MetroTile } from '../components/MetroTile';
-import { FileBarChart, Activity, FileText, AlertCircle, Microscope, Box, BookOpen, Calculator, TrendingUp, Trophy, Users, Facebook, Search, Briefcase, Calendar, Image, Globe, Timer, Shield } from 'lucide-react';
+import { FileBarChart, Activity, FileText, AlertCircle, Microscope, Box, BookOpen, Calculator, TrendingUp, Trophy, Users, Facebook, Github, Search, Briefcase, Calendar, Image, Globe, Timer, Shield } from 'lucide-react';
 
 
 interface DigerCalismalarProps {
@@ -105,7 +105,7 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
         },
         {
             title: "Blog",
-            subtitle: "Vaka yazıları & notlar",
+            subtitle: "Bilimsel takip ve notlarım",
             icon: <FileText size={40} />,
             color: "bg-[#8E44AD]",
             page: 'blog',
@@ -181,6 +181,14 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
             icon: <Facebook size={40} />,
             color: "bg-[#3B5998]",
             page: 'facebook',
+            category: 'diger'
+        },
+        {
+            title: "GitHub",
+            subtitle: "Açık kaynak projelerim",
+            icon: <Github size={40} />,
+            color: "bg-[#333333]",
+            page: 'github',
             category: 'diger'
         },
         {

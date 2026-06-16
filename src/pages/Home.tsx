@@ -13,7 +13,6 @@ import {
   Building2,
   FolderOpen,
   Linkedin,
-  Github,
   Phone,
   Headphones,
   Microscope,
@@ -283,12 +282,12 @@ export function Home({ onNavigate }: HomeProps) {
                 onClick={() => onNavigate('linkedin')}
               />
               <MetroTile
-                title="GitHub"
-                subtitle=""
-                icon={<Github size={40} />}
-                color="bg-[#333333] text-white"
+                title="Blog"
+                subtitle="Bilimsel takip ve notlarım"
+                icon={<FileText size={40} />}
+                color="bg-[#8E44AD]"
                 size="medium"
-                onClick={() => onNavigate('github')}
+                onClick={() => onNavigate('blog')}
               />
               <MetroTile
                 title="Diğer Çalışmalar"
