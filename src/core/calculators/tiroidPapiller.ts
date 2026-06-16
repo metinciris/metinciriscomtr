@@ -188,18 +188,22 @@ export function generateThyroidReport(state: ThyroidReportState): string {
     const carcinomaTumors = tumorsCopy.filter(t => !(t.subtypes || []).includes('NIFTP'));
     const niftpTumors = tumorsCopy.filter(t => (t.subtypes || []).includes('NIFTP'));
 
-    let diagnosis = '';
+    const diagnosisLines: string[] = [];
     if (carcinomaTumors.length > 0) {
         const numericCarcinomaSizes = carcinomaTumors.map(t => Number(t.size)).filter(v => Number.isFinite(v) && v > 0);
         const maxCarcinomaSize = numericCarcinomaSizes.length ? Math.max(...numericCarcinomaSizes) : 0;
-        diagnosis = maxCarcinomaSize > 0 ? getTumorDiagnosisName(maxCarcinomaSize) : 'Tiroid papiller karsinom';
-    } else if (niftpTumors.length > 0) {
-        diagnosis = 'Papiller benzeri nükleer özellikler gösteren non-invaziv folliküler tiroid neoplazisi (NIFTP)';
-    } else {
-        diagnosis = 'Tiroid papiller karsinom';
+        diagnosisLines.push(maxCarcinomaSize > 0 ? getTumorDiagnosisName(maxCarcinomaSize) : 'Tiroid papiller karsinom');
+    }
+    if (niftpTumors.length > 0) {
+        diagnosisLines.push('Papiller benzeri nükleer özellikler gösteren non-invaziv folliküler tiroid neoplazisi (NIFTP)');
+    }
+    if (diagnosisLines.length === 0) {
+        diagnosisLines.push('Tiroid papiller karsinom');
     }
 
-    report += sentence(diagnosis) + '\n';
+    diagnosisLines.forEach(line => {
+        report += sentence(line) + '\n';
+    });
     if (state.freeNote && state.freeNote.trim()) {
         report += sentence(state.freeNote.trim()) + '\n';
     }
