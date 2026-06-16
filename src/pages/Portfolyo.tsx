@@ -590,6 +590,7 @@ export function Portfolyo() {
           )}
         </div>
 
+        {/* /portfolyo sayfasında 10 Yıllık Patoloji İstatistikleri (Giderek Artmakta) kısmını aşağıdaki sayılar ve gruplar ile güncelle. */}
         {/* Konsültasyon, Frozen ve Moleküler İnceleme */}
         <div className="bg-white rounded-2xl mb-4 shadow-sm border border-gray-100 overflow-hidden">
           <button
@@ -611,9 +612,10 @@ export function Portfolyo() {
             <div className="p-6 pt-0 border-t">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-muted-foreground mt-4">
                 <div>• Histokimyasal, immünohistokimyasal ve immünfloresan incelemeler: 188.924</div>
-                <div>• Hazır preparat, blok, imprint ve filtre preparat işlemleri: 6.604</div>
+                <div>• Konsültasyon, hazır preparat ve/veya parafin blok değerlendirmeleri: 4.450</div>
                 <div>• Lenf nodu biyopsi, diseksiyon ve sentinel lenf nodu incelemeleri: 3.743</div>
-                <div>• Konsültasyon ve frozen inceleme: 2.659</div>
+                <div>• Frozen inceleme: 2.411</div>
+                <div>• İmprint ve filtre preparat işlemleri: 2.307</div>
                 <div>• Moleküler testler, dizi analizleri, PCR, NGS, MSI, HPV ve füzyon analizleri: 726</div>
                 <div>• İn situ hibridizasyon ve FISH: 134</div>
                 <div>• Otopsi: 150</div>
