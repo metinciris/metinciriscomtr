@@ -6,6 +6,12 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import DOMPurify from 'dompurify';
+import './Blog.css';
+
+const formatMarkdown = (text: string) => {
+  if (!text) return '';
+  return text.replace(/\r\n/g, '\n').replace(/\n/g, '  \n');
+};
 
 // Rate Limiting Logic
 class RateLimiter {
@@ -157,21 +163,21 @@ export function Blog() {
                 <h3 className="text-xl font-bold mb-3 text-gray-900 line-clamp-2">{post.title}</h3>
 
                 {expandedPosts[post.id] ? (
-                  <div className="text-gray-600 mb-4 text-sm prose prose-sm max-w-none">
+                  <div className="text-gray-600 mb-4 text-sm blog-content-markdown max-w-none">
                     <ReactMarkdown
                       remarkPlugins={[remarkGfm]}
                       rehypePlugins={[rehypeRaw]}
                     >
-                      {DOMPurify.sanitize(post.body)}
+                      {formatMarkdown(DOMPurify.sanitize(post.body))}
                     </ReactMarkdown>
                   </div>
                 ) : (
-                  <div className="text-gray-600 mb-4 line-clamp-6 text-sm prose prose-sm max-w-none">
+                  <div className="text-gray-600 mb-4 line-clamp-6 text-sm blog-content-markdown max-w-none">
                     <ReactMarkdown
                       remarkPlugins={[remarkGfm]}
                       rehypePlugins={[rehypeRaw]}
                     >
-                      {DOMPurify.sanitize(post.body).split('\n').slice(0, 6).join('\n')}
+                      {formatMarkdown(DOMPurify.sanitize(post.body).split('\n').slice(0, 6).join('\n'))}
                     </ReactMarkdown>
                   </div>
                 )}
