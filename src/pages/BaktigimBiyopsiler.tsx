@@ -61,7 +61,7 @@ export function BaktigimBiyopsiler() {
               </div>
               <div className="flex items-start gap-3 p-3 bg-white">
                 <span className="text-[#1BA1E2]">•</span>
-                <span className="text-muted-foreground">Nefropatoloji</span>
+                <span className="text-muted-foreground">Nefropatoloji, böbrek, mesane, prostat ve testis</span>
               </div>
               <div className="flex items-start gap-3 p-3 bg-[#F5F5F5]">
                 <span className="text-[#9B59B6]">•</span>
@@ -141,12 +141,12 @@ export function BaktigimBiyopsiler() {
           <div className="relative overflow-hidden group">
             <ImageWithFallback
               src="/img/nefropatoloji.avif"
-              alt="Nefropatoloji"
+              alt="Nefropatoloji, böbrek, mesane, prostat ve testis"
               className="w-full h-64 object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#1BA1E2] to-transparent opacity-80"></div>
             <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-              <h3 className="text-white mb-2">Nefropatoloji</h3>
+              <h3 className="text-white mb-2">Nefropatoloji, böbrek, mesane, prostat ve testis</h3>
               <p className="text-white/90 m-0">Böbrek patolojisi</p>
             </div>
           </div>
