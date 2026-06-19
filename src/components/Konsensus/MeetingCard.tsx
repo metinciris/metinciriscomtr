@@ -88,13 +88,13 @@ export function MeetingCard({
 
     return (
         <div
-            className={`relative overflow-hidden border-2 rounded-2xl p-5 transition-all ${isActuallyPast
+            className={`relative overflow-hidden border-4 rounded-2xl p-5 transition-all ${isActuallyPast
                 ? 'bg-gray-100/60 border-gray-200 opacity-70 shadow-none'
                 : isLive
                     ? 'bg-gradient-to-br from-green-50 to-blue-50 border-green-600 shadow-xl ring-2 ring-green-600/20'
                     : isUpcoming
-                        ? 'bg-gradient-to-br from-blue-50 to-indigo-50 border-indigo-400 shadow-lg'
-                        : 'bg-white border-gray-300 hover:border-blue-400 hover:shadow-lg'
+                        ? 'bg-gradient-to-br from-blue-50 to-indigo-50 border-indigo-500 shadow-lg'
+                        : 'bg-white border-gray-300 hover:border-blue-500 hover:shadow-lg'
                 }`}
         >
             {isLive && (
