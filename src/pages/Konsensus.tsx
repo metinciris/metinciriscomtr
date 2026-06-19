@@ -377,7 +377,7 @@ export function Konsensus() {
               <a href="https://t.me/konsensustakip" target="_blank" rel="noopener noreferrer" className="underline underline-offset-4 font-black hover:text-white">
                 (tıklayın)
               </a>{' '}
-              bildirim alın. Toplantılardan 15 dakika önce bildirim gönderilir.
+              bildirim alın. Toplantılardan önce bildirim gönderilir.
             </p>
 
             <div className="mt-6 lg:hidden text-left">
