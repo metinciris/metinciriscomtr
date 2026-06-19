@@ -12,7 +12,7 @@ import {
     Activity,
     Timer,
 } from 'lucide-react';
-import { Meeting } from './types';
+import { Meeting, IST_TZ } from './types';
 import {
     getOrganizerWithEmoji,
     formatDateTR,
@@ -22,6 +22,9 @@ import {
     shareWhatsApp,
     getMeetingStatus,
     getCountdownString,
+    parseYMD,
+    MONTH_NAMES,
+    dateKeyInTz,
 } from './utils';
 
 interface MeetingCardProps {
@@ -70,10 +73,23 @@ export function MeetingCard({
 
     const posterButtonOnly = isActuallyPast && hasPoster;
 
+    const tomorrowKey = React.useMemo(() => {
+        const { y, m, d } = parseYMD(nowKey);
+        const base = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
+        return dateKeyInTz(new Date(base.getTime() + 24 * 60 * 60 * 1000), IST_TZ);
+    }, [nowKey]);
+
+    const { dayStr, monthStr } = React.useMemo(() => {
+        const { m, d } = parseYMD(meeting.date);
+        const day = String(d).padStart(2, '0');
+        const month = MONTH_NAMES[m - 1] ? MONTH_NAMES[m - 1].slice(0, 3).toUpperCase() : '';
+        return { dayStr: day, monthStr: month };
+    }, [meeting.date]);
+
     return (
         <div
             className={`relative overflow-hidden border-2 rounded-2xl p-5 transition-all ${isActuallyPast
-                ? 'bg-gray-50 border-gray-300 opacity-80'
+                ? 'bg-gray-100/60 border-gray-200 opacity-70 shadow-none'
                 : isLive
                     ? 'bg-gradient-to-br from-green-50 to-blue-50 border-green-600 shadow-xl ring-2 ring-green-600/20'
                     : isUpcoming
@@ -90,7 +106,7 @@ export function MeetingCard({
                 </div>
             )}
 
-            <div className="flex flex-wrap items-center gap-2 mb-3">
+            <div className="flex flex-wrap items-center gap-2 mb-4">
                 {meeting.organizer && (
                     <button
                         onClick={() => onOrganizerClick(meeting.organizer || '')}
@@ -99,6 +115,18 @@ export function MeetingCard({
                     >
                         {getOrganizerWithEmoji(meeting.organizer)}
                     </button>
+                )}
+
+                {meeting.date === nowKey && (
+                    <div className="flex items-center px-2.5 py-1 rounded-full bg-amber-400 text-amber-955 text-[10px] font-black tracking-wider uppercase shadow-sm border border-amber-500 animate-pulse">
+                        BUGÜN
+                    </div>
+                )}
+
+                {meeting.date === tomorrowKey && (
+                    <div className="flex items-center px-2.5 py-1 rounded-full bg-emerald-500 text-white text-[10px] font-black tracking-wider uppercase shadow-sm border border-emerald-600">
+                        YARIN
+                    </div>
                 )}
 
                 {isUpcoming && meetingStart && (
@@ -128,142 +156,178 @@ export function MeetingCard({
                 )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
-                <div className={`${hasPoster && !isActuallyPast ? 'md:col-span-6' : 'md:col-span-12'} flex flex-col`}>
-                    <h3 className={`text-[20px] sm:text-[22px] md:text-[24px] font-black tracking-tight leading-snug ${isActuallyPast ? 'text-gray-700' : 'text-gray-900'}`}>
-                        {meeting.title}
-                    </h3>
+            <div className="flex flex-col sm:flex-row gap-5 items-start">
+                {/* Sol Taraf: Tarih Kartı */}
+                <div className={`flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-2xl flex flex-col items-center justify-center border text-center shadow-md ${
+                    isActuallyPast
+                        ? 'bg-gray-200 text-gray-400 border-gray-300'
+                        : isLive
+                            ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white border-green-600 shadow-lg animate-pulse'
+                            : meeting.date === nowKey
+                                ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-white border-orange-500 shadow-md'
+                                : meeting.date === tomorrowKey
+                                    ? 'bg-gradient-to-br from-teal-400 to-emerald-500 text-white border-emerald-500 shadow-md'
+                                    : 'bg-gradient-to-br from-blue-500 to-indigo-600 text-white border-indigo-600 shadow-md'
+                }`}>
+                    <span className="text-2xl sm:text-3xl md:text-4xl font-black leading-none">{dayStr}</span>
+                    <span className="text-[10px] sm:text-xs md:text-sm font-black tracking-widest uppercase mt-0.5 opacity-90">{monthStr}</span>
+                </div>
 
-                    <div className="mt-3 flex flex-wrap gap-2">
-                        <div className={`inline-flex items-center px-3 py-2 rounded-xl text-sm font-semibold border ${isActuallyPast ? 'bg-gray-50 border-gray-200 text-gray-700' : 'bg-blue-50 border-blue-100 text-blue-900'}`}>
-                            <Calendar className="w-4 h-4 mr-2" />
-                            {formatDateTR(meeting.date)}
-                        </div>
-                        <div className={`inline-flex items-center px-3 py-2 rounded-xl text-sm font-semibold border ${isActuallyPast ? 'bg-gray-50 border-gray-200 text-gray-700' : 'bg-indigo-50 border-indigo-100 text-indigo-900'}`}>
-                            <Clock className="w-4 h-4 mr-2" />
-                            {toTimeRange(meeting.time, duration)}
-                        </div>
-                    </div>
+                {/* Sağ Taraf: Detaylar ve Afiş Grid'i */}
+                <div className="flex-1 min-w-0 w-full">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+                        <div className={`${hasPoster && !isActuallyPast ? 'lg:col-span-6' : 'lg:col-span-12'} flex flex-col`}>
+                            <h3 className={`text-[20px] sm:text-[22px] md:text-[24px] font-black tracking-tight leading-snug ${isActuallyPast ? 'text-gray-550' : 'text-gray-900'}`}>
+                                {meeting.title}
+                            </h3>
 
-                    {meeting.description && (
-                        <div className={`mt-4 p-4 rounded-2xl border-l-[6px] ${isActuallyPast
-                            ? 'bg-gray-100/50 border-gray-300 text-gray-500 italic'
-                            : 'bg-yellow-50/60 border-blue-500 text-gray-800 shadow-sm'
-                            }`}>
-                            <p className="text-[14px] sm:text-[15px] md:text-[16px] font-medium leading-relaxed whitespace-pre-wrap">
-                                {meeting.description}
-                            </p>
-                        </div>
-                    )}
+                            <div className="mt-3 flex flex-wrap gap-2">
+                                <div className={`inline-flex items-center px-3 py-2 rounded-xl text-sm font-black border ${
+                                    isActuallyPast 
+                                        ? 'bg-gray-100 border-gray-200 text-gray-500' 
+                                        : 'bg-blue-50 border-blue-100 text-blue-900 shadow-sm'
+                                }`}>
+                                    <Calendar className="w-4 h-4 mr-2 text-blue-600" />
+                                    {formatDateTR(meeting.date)}
+                                </div>
+                                <div className={`inline-flex items-center px-3 py-2 rounded-xl text-sm font-black border ${
+                                    isActuallyPast 
+                                        ? 'bg-gray-100 border-gray-200 text-gray-500' 
+                                        : 'bg-indigo-50 border-indigo-100 text-indigo-900 shadow-sm'
+                                }`}>
+                                    <Clock className="w-4 h-4 mr-2 text-indigo-600" />
+                                    <span>{toTimeRange(meeting.time, duration)}</span>
+                                    <span className={`ml-2 px-1.5 py-0.5 rounded text-[10px] font-black tracking-wider uppercase ${
+                                        isActuallyPast
+                                            ? 'bg-gray-200 text-gray-500'
+                                            : 'bg-indigo-200 text-indigo-800'
+                                    }`}>
+                                        TSİ
+                                    </span>
+                                </div>
+                            </div>
 
-                    <div className="flex-1" />
-
-                    {posterButtonOnly && (
-                        <div className="mt-5 pt-4 border-t border-gray-100">
-                            <button
-                                onClick={() => onPosterClick(meeting.poster_url!)}
-                                className="inline-flex items-center justify-center px-4 py-3 rounded-2xl bg-indigo-50 text-indigo-800 text-sm font-black border border-indigo-100 hover:bg-indigo-100 transition"
-                            >
-                                <ImageIcon className="w-4 h-4 mr-2" />
-                                Afişi Gör
-                            </button>
-                        </div>
-                    )}
-
-                    {!isActuallyPast && (
-                        <div className="mt-5 pt-4 border-t border-gray-100">
-                            {showZoomInfo ? (
-                                <>
-                                    {showJoin && (
-                                        <a
-                                            href={meeting.zoom_link!}
-                                            className={`inline-flex items-center px-6 py-3 text-sm font-black rounded-xl transition shadow-md ${isLive
-                                                ? 'bg-green-600 hover:bg-green-700 text-white shadow-green-200'
-                                                : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-200'
-                                                }`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                        >
-                                            <Video className="w-4 h-4 mr-2" />
-                                            {isLive ? 'Canlı Yayına Katıl' : 'Zoom\'a Katıl'}
-                                        </a>
-                                    )}
-
-                                    {(hasZoomId || hasZoomPassword) && (
-                                        <div className="mt-3 flex flex-wrap gap-2">
-                                            {hasZoomId && (
-                                                <div className="bg-gray-100 px-3 py-2 rounded-xl text-sm font-semibold text-gray-700">
-                                                    <span className="font-black text-gray-900">Zoom ID:</span> {meeting.zoom_id}
-                                                </div>
-                                            )}
-
-                                            {hasZoomPassword && (
-                                                <details className="bg-gray-100 px-3 py-2 rounded-xl text-sm font-semibold text-gray-700">
-                                                    <summary className="cursor-pointer font-black text-blue-700">
-                                                        Şifreyi Göster
-                                                    </summary>
-                                                    <div className="mt-1">
-                                                        <span className="font-black text-gray-900">Şifre:</span> {meeting.zoom_password}
-                                                    </div>
-                                                </details>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    <div className="mt-3 text-xs font-semibold text-gray-500">
-                                        Toplantı bilgileri değişirse güncel ayrıntılar bu sayfada paylaşılır.
-                                    </div>
-                                </>
-                            ) : (
-                                <div className="rounded-2xl bg-gray-50 border border-gray-100 px-4 py-3 text-sm font-semibold text-gray-600">
-                                    Ayrıntıları ve güncel toplantı bilgilerini bu sayfadan takip edin.
+                            {meeting.description && (
+                                <div className={`mt-4 p-4 rounded-2xl border-l-[6px] ${isActuallyPast
+                                    ? 'bg-gray-100/40 border-gray-300 text-gray-400 italic shadow-none'
+                                    : 'bg-yellow-50/60 border-blue-500 text-gray-800 shadow-sm'
+                                    }`}>
+                                    <p className="text-[14px] sm:text-[15px] md:text-[16px] font-medium leading-relaxed whitespace-pre-wrap">
+                                        {meeting.description}
+                                    </p>
                                 </div>
                             )}
 
-                            <div className="mt-4 flex flex-wrap gap-2">
-                                <button
-                                    onClick={() => window.open(buildGoogleCalendarUrl(meeting), '_blank')}
-                                    className="inline-flex items-center px-3 py-2 rounded-xl bg-blue-50 text-blue-800 hover:bg-blue-100 text-sm font-black transition border border-blue-100"
-                                >
-                                    <ExternalLink className="w-4 h-4 mr-2" />
-                                    Takvime ekle
-                                </button>
+                            <div className="flex-1" />
 
-                                <button
-                                    onClick={() => downloadIcs(meeting)}
-                                    className="inline-flex items-center px-3 py-2 rounded-xl bg-indigo-50 text-indigo-800 hover:bg-indigo-100 text-sm font-black transition border border-indigo-100"
-                                >
-                                    <Download className="w-4 h-4 mr-2" />
-                                    iCal (.ics) indir
-                                </button>
+                            {posterButtonOnly && (
+                                <div className="mt-5 pt-4 border-t border-gray-100">
+                                    <button
+                                        onClick={() => onPosterClick(meeting.poster_url!)}
+                                        className="inline-flex items-center justify-center px-4 py-3 rounded-2xl bg-indigo-50 text-indigo-800 text-sm font-black border border-indigo-100 hover:bg-indigo-100 transition"
+                                    >
+                                        <ImageIcon className="w-4 h-4 mr-2" />
+                                        Afişi Gör
+                                    </button>
+                                </div>
+                            )}
 
-                                <button
-                                    onClick={() => shareWhatsApp(meeting)}
-                                    className="inline-flex items-center px-3 py-2 rounded-xl bg-green-50 text-green-800 hover:bg-green-100 text-sm font-black transition border border-green-100"
-                                >
-                                    <MessageCircle className="w-4 h-4 mr-2" />
-                                    WhatsApp paylaş
-                                </button>
-                            </div>
+                            {!isActuallyPast && (
+                                <div className="mt-5 pt-4 border-t border-gray-100">
+                                    {showZoomInfo ? (
+                                        <>
+                                            {showJoin && (
+                                                <a
+                                                    href={meeting.zoom_link!}
+                                                    className={`inline-flex items-center px-6 py-3 text-sm font-black rounded-xl transition shadow-md ${isLive
+                                                        ? 'bg-green-600 hover:bg-green-700 text-white shadow-green-200'
+                                                        : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-200'
+                                                        }`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                >
+                                                    <Video className="w-4 h-4 mr-2" />
+                                                    {isLive ? 'Canlı Yayına Katıl' : 'Zoom\'a Katıl'}
+                                                </a>
+                                            )}
+
+                                            {(hasZoomId || hasZoomPassword) && (
+                                                <div className="mt-3 flex flex-wrap gap-2">
+                                                    {hasZoomId && (
+                                                        <div className="bg-gray-100 px-3 py-2 rounded-xl text-sm font-semibold text-gray-700">
+                                                            <span className="font-black text-gray-900">Zoom ID:</span> {meeting.zoom_id}
+                                                        </div>
+                                                    )}
+
+                                                    {hasZoomPassword && (
+                                                        <details className="bg-gray-100 px-3 py-2 rounded-xl text-sm font-semibold text-gray-700">
+                                                            <summary className="cursor-pointer font-black text-blue-700">
+                                                                Şifreyi Göster
+                                                            </summary>
+                                                            <div className="mt-1">
+                                                                <span className="font-black text-gray-900">Şifre:</span> {meeting.zoom_password}
+                                                            </div>
+                                                        </details>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            <div className="mt-3 text-xs font-semibold text-gray-500">
+                                                Toplantı bilgileri değişirse güncel ayrıntılar bu sayfada paylaşılır.
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <div className="rounded-2xl bg-gray-50 border border-gray-100 px-4 py-3 text-sm font-semibold text-gray-600">
+                                            Ayrıntıları ve güncel toplantı bilgilerini bu sayfadan takip edin.
+                                        </div>
+                                    )}
+
+                                    <div className="mt-4 flex flex-wrap gap-2">
+                                        <button
+                                            onClick={() => window.open(buildGoogleCalendarUrl(meeting), '_blank')}
+                                            className="inline-flex items-center px-3 py-2 rounded-xl bg-blue-50 text-blue-800 hover:bg-blue-100 text-sm font-black transition border border-blue-100"
+                                        >
+                                            <ExternalLink className="w-4 h-4 mr-2" />
+                                            Takvime ekle
+                                        </button>
+
+                                        <button
+                                            onClick={() => downloadIcs(meeting)}
+                                            className="inline-flex items-center px-3 py-2 rounded-xl bg-indigo-50 text-indigo-800 hover:bg-indigo-100 text-sm font-black transition border border-indigo-100"
+                                        >
+                                            <Download className="w-4 h-4 mr-2" />
+                                            iCal (.ics) indir
+                                        </button>
+
+                                        <button
+                                            onClick={() => shareWhatsApp(meeting)}
+                                            className="inline-flex items-center px-3 py-2 rounded-xl bg-green-50 text-green-800 hover:bg-green-100 text-sm font-black transition border border-green-100"
+                                        >
+                                            <MessageCircle className="w-4 h-4 mr-2" />
+                                            WhatsApp paylaş
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
-                    )}
-                </div>
 
-                {hasPoster && !isActuallyPast ? (
-                    <div className="md:col-span-6 flex h-full">
-                        <button
-                            onClick={() => onPosterClick(meeting.poster_url!)}
-                            className={`w-full h-full rounded-3xl border-2 bg-white/70 hover:bg-white transition p-4 shadow-md hover:shadow-lg flex flex-col ${isLive ? 'border-green-300' : 'border-indigo-200'}`}
-                            title="Afişi büyüt"
-                        >
-                            <div className={`w-full flex-1 rounded-2xl overflow-hidden border bg-white shadow-sm ${isLive ? 'border-green-200' : 'border-indigo-200'}`}>
-                                <img src={meeting.poster_url!} alt="Toplantı afişi" className="w-full h-full object-contain" loading="lazy" />
+                        {hasPoster && !isActuallyPast ? (
+                            <div className="lg:col-span-6 flex h-full">
+                                <button
+                                    onClick={() => onPosterClick(meeting.poster_url!)}
+                                    className={`w-full h-full rounded-3xl border-2 bg-white/70 hover:bg-white transition p-4 shadow-md hover:shadow-lg flex flex-col ${isLive ? 'border-green-300' : 'border-indigo-200'}`}
+                                    title="Afişi büyüt"
+                                >
+                                    <div className={`w-full flex-1 rounded-2xl overflow-hidden border bg-white shadow-sm ${isLive ? 'border-green-200' : 'border-indigo-200'}`}>
+                                        <img src={meeting.poster_url!} alt="Toplantı afişi" className="w-full h-full object-contain" loading="lazy" />
+                                    </div>
+                                </button>
                             </div>
-                        </button>
+                        ) : (
+                            <div className="hidden lg:block lg:col-span-6" />
+                        )}
                     </div>
-                ) : (
-                    <div className="hidden md:block md:col-span-6" />
-                )}
+                </div>
             </div>
         </div>
     );
