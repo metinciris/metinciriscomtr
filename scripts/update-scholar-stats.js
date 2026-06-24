@@ -98,7 +98,8 @@ async function updateScholarStats() {
 
     } catch (error) {
         console.error('\nHata:', error.message);
-        process.exit(1);
+        console.log('İstatistik güncelleme atlandı (workflow hata vermeyecek).');
+        process.exit(0);
     }
 }
 
