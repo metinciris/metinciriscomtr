@@ -2,6 +2,6 @@
 name: Blog Yazısı
 about: Boş blog yazısı oluştur (otomatik blog etiketli)
 title: ''
-labels: blog
+labels: Blog
 assignees: metinciris
 ---
