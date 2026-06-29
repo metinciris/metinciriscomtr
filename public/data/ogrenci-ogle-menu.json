@@ -1,7 +1,12 @@
 {
-  "date": "28.06.2026",
-  "items": [],
-  "kcal": null,
+  "date": "29.06.2026",
+  "items": [
+    "KÖYLÜ ÇORBASI",
+    "MACAR GULAŞ",
+    "TEL ŞEHRİYELİ BULGUR PİLAVI",
+    "KASE AYRAN"
+  ],
+  "kcal": "1000",
   "source": "https://w3.sdu.edu.tr/aylik-yemek-listesi?dosya=yemekler_ogle&tur=2",
-  "updatedAt": "2026-06-28T10:09:46.657Z"
+  "updatedAt": "2026-06-29T09:15:53.228Z"
 }
