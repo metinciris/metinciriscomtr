@@ -174,6 +174,9 @@ const TestisGhtIhk = React.lazy(() =>
 const TiroidPapillerKarsinom = React.lazy(() =>
   import('./pages/TiroidPapillerKarsinom').then((m) => ({ default: m.TiroidPapillerKarsinom })),
 );
+const Ngs = React.lazy(() =>
+  import('./pages/Ngs').then((m) => ({ default: m.Ngs })),
+);
 
 import { trackPageView } from './utils/analytics';
 
@@ -370,6 +373,9 @@ export default function App() {
 
       case 'tiroid-papiller-karsinom':
         return <TiroidPapillerKarsinom />;
+
+      case 'ngs':
+        return <Ngs />;
 
       case '404':
         return <NotFound onNavigate={navigate} />;

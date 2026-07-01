@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { PageContainer } from '../components/PageContainer';
 import { MetroTile } from '../components/MetroTile';
-import { FileBarChart, Activity, FileText, AlertCircle, Microscope, Box, BookOpen, Calculator, TrendingUp, Trophy, Users, Facebook, Github, Search, Briefcase, Calendar, Image, Globe, Timer, Shield } from 'lucide-react';
+import { FileBarChart, Activity, FileText, AlertCircle, Microscope, Box, BookOpen, Calculator, TrendingUp, Trophy, Users, Facebook, Github, Search, Briefcase, Calendar, Image, Globe, Timer, Shield, Dna } from 'lucide-react';
 
 
 interface DigerCalismalarProps {
@@ -263,6 +263,15 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
             page: 'testis-ght-ihk',
             category: 'patoloji'
         },
+        {
+            title: "NGS Gen Arama",
+            subtitle: "DNA ve RNA Gen Arama Uygulaması",
+            icon: <Dna size={40} />,
+            style: { backgroundColor: '#06255b' },
+            page: 'ngs',
+            category: 'patoloji'
+        },
+
     ];
 
     const handleNavigate = (page: string) => {

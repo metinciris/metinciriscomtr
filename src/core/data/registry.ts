@@ -435,6 +435,15 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         priority: 0.8,
         changefreq: 'monthly'
     },
+    ngs: {
+        slug: 'ngs',
+        title: 'DNA ve RNA Gen Arama | Prof Dr Metin Çiriş',
+        description: 'SDÜ Patoloji Laboratuvarı DNA ve RNA Füzyon Paneli Gen Arama ve Filtreleme Uygulaması.',
+        keywords: 'ngs, dna gen arama, rna füzyon, patoloji panel, gen listesi, Isparta patoloji',
+        lastmod: '2026-07-01',
+        priority: 0.8,
+        changefreq: 'monthly'
+    },
 };
 
 export const getPages = () => Object.values(PAGE_REGISTRY);
