@@ -215,13 +215,35 @@ export function HastaneYemek() {
         timeZone: 'Europe/Istanbul'
       }).format(new Date());
 
+      const currentHour = parseInt(
+        new Intl.DateTimeFormat('tr-TR', {
+          hour: 'numeric',
+          hour12: false,
+          timeZone: 'Europe/Istanbul'
+        }).format(now)
+      );
+
+      let karsilama = '';
+      if (currentHour >= 22 && currentHour < 24) {
+        karsilama = ' İyi geceler.';
+      } else if (currentHour >= 0 && currentHour < 4) {
+        karsilama = ' Tatlı rüyalar, saat gece yarısını geçti.';
+      } else if (currentHour >= 10 && currentHour < 12) {
+        karsilama = ' Öğle yemeği vakti yaklaşıyor, afiyet olsun.';
+      } else if (currentHour >= 12 && currentHour < 14) {
+        karsilama = ' Afiyet olsun, reyting vermeyi unutma.';
+      } else if (currentHour >= 14 && currentHour < 17) {
+        karsilama = ' Menüye reyting verdiniz mi?';
+      }
+
       const msg =
         emoji + ' ' + acilis +
         ' Isparta’da hava ' + durum + ', ' + tNow + '°C. ' +
         'Hissedilen ~' + feel + '°C. ' +
         yagis + ' ' +
         tavsiye + ' ' +
-        'Rüzgar ' + wind + ' km/sa. ' +
+        'Rüzgar ' + wind + ' km/sa.' +
+        karsilama + ' ' +
         '(Güncelleme: ' + nowText + ')';
 
       setWeatherText(msg);
