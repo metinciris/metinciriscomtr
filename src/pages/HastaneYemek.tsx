@@ -52,6 +52,8 @@ export function HastaneYemek() {
   const [weatherLoading, setWeatherLoading] = useState(true);
 
   const [sheetData, setSheetData] = useState<{
+    lunchVoteCount: string;
+    dinnerVoteCount: string;
     lunchStats: string;
     lunchMenu: string[];
     dinnerStats: string;
@@ -274,7 +276,17 @@ export function HastaneYemek() {
         return row.replace(/^"|"$/g, '').replace(/""/g, '"').trim();
       });
 
+      const voteParts = cleanHtml(rows[0] || '')
+        .split(/\s+/)
+        .map(part => part.trim())
+        .filter(Boolean);
+
+      const lunchVoteCount = voteParts[0] || '';
+      const dinnerVoteCount = voteParts[1] || '';
+
       setSheetData({
+        lunchVoteCount,
+        dinnerVoteCount,
         lunchStats: rows[2] || '',
         lunchMenu: [rows[3], rows[4], rows[5]].filter(Boolean),
         dinnerStats: rows[7] || '',
@@ -524,7 +536,14 @@ export function HastaneYemek() {
               <div className="bg-[#e65100] p-6 text-white text-center">
                 <div className="flex justify-between items-center mb-2">
                   <Utensils size={24} className="opacity-90" />
-                  <span className="text-xs font-bold uppercase tracking-widest bg-black/20 px-2 py-1 rounded">ÖĞLE</span>
+                  <div className="flex items-center gap-2">
+                    {sheetData?.lunchVoteCount && (
+                      <span className="text-xs font-black bg-white/25 border border-white/30 px-2 py-1 rounded-full text-white backdrop-blur-sm">
+                        ⭐ {cleanHtml(sheetData.lunchVoteCount)} oy
+                      </span>
+                    )}
+                    <span className="text-xs font-bold uppercase tracking-widest bg-black/20 px-2 py-1 rounded">ÖĞLE</span>
+                  </div>
                 </div>
                 <h2 className="text-2xl font-black italic">Öğle Yemeği Menüsü</h2>
                 {sheetData?.lunchStats && (
@@ -581,7 +600,14 @@ export function HastaneYemek() {
               <div className="bg-[#673ab7] p-6 text-white text-center">
                 <div className="flex justify-between items-center mb-2">
                   <Moon size={24} className="opacity-90" />
-                  <span className="text-xs font-bold uppercase tracking-widest bg-black/10 px-2 py-1 rounded">AKŞAM</span>
+                  <div className="flex items-center gap-2">
+                    {sheetData?.dinnerVoteCount && (
+                      <span className="text-xs font-black bg-white/25 border border-white/30 px-2 py-1 rounded-full text-white backdrop-blur-sm">
+                        ⭐ {cleanHtml(sheetData.dinnerVoteCount)} oy
+                      </span>
+                    )}
+                    <span className="text-xs font-bold uppercase tracking-widest bg-black/10 px-2 py-1 rounded">AKŞAM</span>
+                  </div>
                 </div>
                 <h2 className="text-2xl font-black italic">Akşam Yemeği Menüsü</h2>
                 {sheetData?.dinnerStats && (
