@@ -135,25 +135,26 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
     }
   };
 
-  const updateBiopsy = (updatedBiopsy: Biopsy) => {
-    setBiopsies(prev =>
-      prev.map(biopsy => {
-        if (biopsy.id === updatedBiopsy.id) {
-          if (biopsy.location === BiopsyLocation.Mide) {
-            const hasActivation = ['+', '++', '+++'].includes(updatedBiopsy.findings.activation);
+if (biopsy.location === BiopsyLocation.Mide) {
+  const hasInflammation = ['+', '++', '+++'].includes(updatedBiopsy.findings.inflammation);
+  const hasActivation = ['+', '++', '+++'].includes(updatedBiopsy.findings.activation);
 
-            if (!updatedBiopsy.customDiagnosis ||
-              updatedBiopsy.customDiagnosis === 'Normal görünümlü mide mukozası' ||
-              updatedBiopsy.customDiagnosis === 'Kronik gastrit' ||
-              updatedBiopsy.customDiagnosis === 'Aktivasyonlu kronik gastrit') {
-              if (hasActivation) {
-                updatedBiopsy.customDiagnosis = 'Aktivasyonlu kronik gastrit';
-              } else if (['+', '++', '+++'].includes(updatedBiopsy.findings.inflammation)) {
-                updatedBiopsy.customDiagnosis = 'Kronik gastrit';
-              } else {
-                updatedBiopsy.customDiagnosis = 'Normal görünümlü mide mukozası';
-              }
-            }
+  const isAutoDiagnosis =
+    !updatedBiopsy.customDiagnosis ||
+    updatedBiopsy.customDiagnosis.includes('Normal görünümlü') ||
+    updatedBiopsy.customDiagnosis === 'Kronik gastrit' ||
+    updatedBiopsy.customDiagnosis === 'Aktivasyonlu kronik gastrit';
+
+  if (isAutoDiagnosis) {
+    if (hasActivation) {
+      updatedBiopsy.customDiagnosis = 'Aktivasyonlu kronik gastrit';
+    } else if (hasInflammation) {
+      updatedBiopsy.customDiagnosis = 'Kronik gastrit';
+    } else {
+      updatedBiopsy.customDiagnosis = 'Normal görünümlü mide mukozası';
+    }
+  }
+}
           } else if (biopsy.location === BiopsyLocation.Duodenum) {
             const mapping = DuodenumDiagnosisMappings.find(m =>
               m.location === updatedBiopsy.subLocation &&
