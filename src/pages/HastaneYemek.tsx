@@ -537,17 +537,16 @@ export function HastaneYemek() {
                 <div className="flex justify-between items-center mb-2">
                   {sheetData?.lunchVoteCount ? (
                     <motion.div
-                      animate={{ scale: [1, 1.06, 1], rotate: [0, -2, 2, 0] }}
-                      transition={{ duration: 2.6, repeat: Infinity, repeatType: 'loop', ease: 'easeInOut' }}
-                      whileHover={{ scale: 1.1, rotate: 0 }}
-                      className="min-w-[96px] px-4 py-2 rounded-2xl bg-white/25 border border-white/40 text-white backdrop-blur-sm shadow-lg shadow-black/10 flex flex-col items-center justify-center leading-tight"
+                      animate={{ scale: [1, 1.04, 1] }}
+                      transition={{ duration: 2.8, repeat: Infinity, repeatType: 'loop', ease: 'easeInOut' }}
+                      className="flex items-center gap-2 text-white select-none cursor-default"
                       title="Öğle menüsü oy sayısı"
                     >
-                      <span className="flex items-center gap-1.5 text-xl md:text-2xl font-black drop-shadow-sm">
-                        <MessageSquare size={22} className="fill-white/25 stroke-[3]" />
-                        {cleanHtml(sheetData.lunchVoteCount)}
-                      </span>
-                      <span className="text-[10px] md:text-xs font-black uppercase tracking-widest opacity-95">oy verdi</span>
+                      <MessageSquare size={30} className="drop-shadow-sm opacity-95" strokeWidth={2.4} />
+                      <div className="flex flex-col items-start leading-none">
+                        <span className="text-2xl md:text-3xl font-black drop-shadow-sm tabular-nums">{cleanHtml(sheetData.lunchVoteCount)}</span>
+                        <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.22em] opacity-90">oy</span>
+                      </div>
                     </motion.div>
                   ) : (
                     <Utensils size={24} className="opacity-90" />
@@ -610,17 +609,16 @@ export function HastaneYemek() {
                 <div className="flex justify-between items-center mb-2">
                   {sheetData?.dinnerVoteCount ? (
                     <motion.div
-                      animate={{ scale: [1, 1.06, 1], rotate: [0, 2, -2, 0] }}
-                      transition={{ duration: 2.6, repeat: Infinity, repeatType: 'loop', ease: 'easeInOut' }}
-                      whileHover={{ scale: 1.1, rotate: 0 }}
-                      className="min-w-[96px] px-4 py-2 rounded-2xl bg-white/25 border border-white/40 text-white backdrop-blur-sm shadow-lg shadow-black/10 flex flex-col items-center justify-center leading-tight"
+                      animate={{ scale: [1, 1.04, 1] }}
+                      transition={{ duration: 2.8, repeat: Infinity, repeatType: 'loop', ease: 'easeInOut' }}
+                      className="flex items-center gap-2 text-white select-none cursor-default"
                       title="Akşam menüsü oy sayısı"
                     >
-                      <span className="flex items-center gap-1.5 text-xl md:text-2xl font-black drop-shadow-sm">
-                        <MessageSquare size={22} className="fill-white/25 stroke-[3]" />
-                        {cleanHtml(sheetData.dinnerVoteCount)}
-                      </span>
-                      <span className="text-[10px] md:text-xs font-black uppercase tracking-widest opacity-95">oy verdi</span>
+                      <MessageSquare size={30} className="drop-shadow-sm opacity-95" strokeWidth={2.4} />
+                      <div className="flex flex-col items-start leading-none">
+                        <span className="text-2xl md:text-3xl font-black drop-shadow-sm tabular-nums">{cleanHtml(sheetData.dinnerVoteCount)}</span>
+                        <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.22em] opacity-90">oy</span>
+                      </div>
                     </motion.div>
                   ) : (
                     <Moon size={24} className="opacity-90" />
