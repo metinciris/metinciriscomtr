@@ -48,8 +48,10 @@ export function HastaneYemek() {
     weekday: 'long',
   });
 
+  const [weatherText, setWeatherText] = useState('');
+  const [weatherLoading, setWeatherLoading] = useState(true);
+
   const [sheetData, setSheetData] = useState<{
-    weather: string;
     lunchStats: string;
     lunchMenu: string[];
     dinnerStats: string;
@@ -59,6 +61,184 @@ export function HastaneYemek() {
   } | null>(null);
 
   const [isLoading, setIsLoading] = useState(true);
+
+  const fetchLiveWeather = useCallback(async () => {
+    setWeatherLoading(true);
+
+    try {
+      const lat = 37.7648;
+      const lon = 30.5566;
+      const tz = 'Europe/Istanbul';
+
+      const url =
+        'https://api.open-meteo.com/v1/forecast' +
+        '?latitude=' + lat +
+        '&longitude=' + lon +
+        '&hourly=temperature_2m,apparent_temperature,weathercode,precipitation,precipitation_probability,windspeed_10m' +
+        '&forecast_days=2' +
+        '&timezone=' + encodeURIComponent(tz);
+
+      const response = await fetch(url, { cache: 'no-store' });
+
+      if (!response.ok) {
+        throw new Error('Hava servisi yanıt vermedi');
+      }
+
+      const data = await response.json();
+      const h = data.hourly;
+
+      if (!h || !Array.isArray(h.time) || !h.time.length) {
+        throw new Error('Saatlik hava verisi bulunamadı');
+      }
+
+      const now = new Date();
+      const pad = (n: number) => String(n).padStart(2, '0');
+
+      const localKey =
+        now.getFullYear() + '-' +
+        pad(now.getMonth() + 1) + '-' +
+        pad(now.getDate()) + 'T' +
+        pad(now.getHours()) + ':00';
+
+      let start = h.time.indexOf(localKey);
+
+      if (start === -1) {
+        start = h.time.findIndex((t: string) => t > localKey);
+      }
+
+      if (start === -1) {
+        throw new Error('Uygun saat bulunamadı');
+      }
+
+      const win: Array<{
+        hour: string;
+        temp: number;
+        feel: number;
+        code: number;
+        rain: number;
+        pop: number;
+        wind: number;
+      }> = [];
+
+      for (let i = start; i < h.time.length && win.length < 6; i++) {
+        win.push({
+          hour: h.time[i].slice(11, 16),
+          temp: h.temperature_2m[i],
+          feel: h.apparent_temperature[i],
+          code: h.weathercode[i],
+          rain: h.precipitation[i] || 0,
+          pop: h.precipitation_probability[i] || 0,
+          wind: h.windspeed_10m[i] || 0
+        });
+      }
+
+      if (!win.length) {
+        throw new Error('Değerlendirilecek hava penceresi bulunamadı');
+      }
+
+      const first = win[0];
+
+      const tNow = Math.round(first.temp);
+      const feel = Math.round(first.feel);
+      const wind = Math.round(first.wind || 0);
+      const popMax = Math.max(...win.map(x => x.pop || 0));
+      const codes = win.map(x => x.code);
+
+      const anyRain = codes.some(c =>
+        (c >= 51 && c <= 57) ||
+        (c >= 61 && c <= 67) ||
+        (c >= 80 && c <= 82)
+      );
+
+      const anySnow = codes.some(c =>
+        (c >= 71 && c <= 77) ||
+        c === 85 ||
+        c === 86
+      );
+
+      const anyThunder = codes.some(c => c >= 95);
+      const anyFog = codes.some(c => c >= 45 && c <= 48);
+      const anyCloud = codes.some(c => c === 2 || c === 3);
+
+      let durum = 'açık';
+      let emoji = '☀️';
+      let acilis = 'Güneş yüzünü göstermiş 🌞';
+
+      if (anyThunder) {
+        durum = 'gök gürültülü';
+        emoji = '⛈️';
+        acilis = 'Gökyüzü biraz dram peşinde 😅';
+      } else if (anySnow) {
+        durum = 'karlı';
+        emoji = '❄️';
+        acilis = 'Kış “ben buradayım” diyor ❄️';
+      } else if (anyRain) {
+        durum = 'yağışlı';
+        emoji = '🌧️';
+        acilis = 'Şemsiye kulak kabartsın ☂️';
+      } else if (anyFog) {
+        durum = 'sisli';
+        emoji = '🌫️';
+        acilis = 'Şehir hafif gizem modunda 🕵️‍♂️';
+      } else if (anyCloud) {
+        durum = 'bulutlu';
+        emoji = '☁️';
+        acilis = 'Bulutlar toplantı yapmış ☁️';
+      }
+
+      let yagis = '';
+
+      if (anyRain || anySnow || anyThunder) {
+        yagis =
+          'Önümüzdeki saatlerde %' +
+          popMax +
+          ' ihtimalle ' +
+          (anySnow ? 'kar' : 'yağmur') +
+          '.';
+      } else {
+        yagis = 'Şemsiye şimdilik dinlenebilir. ☂️🙂';
+      }
+
+      let tavsiye = '';
+
+      if (feel <= 7) {
+        tavsiye = '🧥 Mont iyi fikir.';
+      } else if (popMax >= 30 && (anyRain || anySnow)) {
+        tavsiye = '☂️ Şemsiye/kapüşon mantıklı.';
+      } else {
+        tavsiye = '🙂 Rahat giy, abartma.';
+      }
+
+      const nowText = new Intl.DateTimeFormat('tr-TR', {
+        dateStyle: 'long',
+        timeStyle: 'short',
+        timeZone: 'Europe/Istanbul'
+      }).format(new Date());
+
+      const msg =
+        emoji + ' ' + acilis +
+        ' Isparta’da hava ' + durum + ', ' + tNow + '°C. ' +
+        'Hissedilen ~' + feel + '°C. ' +
+        yagis + ' ' +
+        tavsiye + ' ' +
+        'Rüzgar ' + wind + ' km/sa. ' +
+        '(Güncelleme: ' + nowText + ')';
+
+      setWeatherText(msg);
+
+    } catch (error) {
+      console.error('Hava verisi çekme hatası:', error);
+      setWeatherText(
+        '🌦️ Hava durumuna birazdan bakacağım; şu an bulutlarla toplantıdayım.'
+      );
+    } finally {
+      setWeatherLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchLiveWeather();
+  }, [fetchLiveWeather]);
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
@@ -73,7 +253,6 @@ export function HastaneYemek() {
       });
 
       setSheetData({
-        weather: rows[0] || '',
         lunchStats: rows[2] || '',
         lunchMenu: [rows[3], rows[4], rows[5]].filter(Boolean),
         dinnerStats: rows[7] || '',
@@ -271,24 +450,39 @@ export function HastaneYemek() {
         </motion.div>
 
         {/* AI Weather/Greeting Section */}
-        {sheetData?.weather && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="mb-8 bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100 relative overflow-hidden group"
-          >
-            <div className="absolute top-0 left-0 w-2 h-full bg-indigo-500"></div>
-            <div className="flex flex-col md:flex-row items-center gap-6">
-              <div className="shrink-0 w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-500 group-hover:scale-110 transition-transform duration-500">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="mb-8 bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-100 relative overflow-hidden group"
+        >
+          <div className="absolute top-0 left-0 w-2 h-full bg-indigo-500"></div>
+          <div className="flex flex-col md:flex-row items-center gap-6">
+            <div className="shrink-0 w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-500 group-hover:scale-110 transition-transform duration-500">
+              {weatherLoading ? (
+                <div className="relative w-9 h-9 flex items-center justify-center">
+                  <Cloud size={30} className="absolute animate-pulse" />
+                  <Sparkles size={16} className="absolute -top-1 -right-1 animate-bounce" />
+                </div>
+              ) : (
                 <Cloud size={32} />
-              </div>
-              <div className="text-slate-600 leading-relaxed italic font-medium">
-                "{cleanHtml(sheetData.weather)}"
-              </div>
+              )}
             </div>
-          </motion.div>
-        )}
+
+            <div className="text-slate-600 leading-relaxed italic font-medium">
+              {weatherLoading ? (
+                <div className="flex items-center gap-2">
+                  <span className="inline-block animate-spin">☀️</span>
+                  <span className="inline-block animate-bounce">☁️</span>
+                  <span className="inline-block animate-pulse">💧</span>
+                  <span>Hava durumuna bakıyorum...</span>
+                </div>
+              ) : (
+                `"${weatherText}"`
+              )}
+            </div>
+          </div>
+        </motion.div>
 
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4">
