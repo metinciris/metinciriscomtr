@@ -543,8 +543,11 @@ export function HastaneYemek() {
                       className="min-w-[96px] px-4 py-2 rounded-2xl bg-white/25 border border-white/40 text-white backdrop-blur-sm shadow-lg shadow-black/10 flex flex-col items-center justify-center leading-tight"
                       title="Öğle menüsü oy sayısı"
                     >
-                      <span className="text-xl md:text-2xl font-black drop-shadow-sm">⭐ {cleanHtml(sheetData.lunchVoteCount)}</span>
-                      <span className="text-[10px] md:text-xs font-black uppercase tracking-widest opacity-95">oy</span>
+                      <span className="flex items-center gap-1.5 text-xl md:text-2xl font-black drop-shadow-sm">
+                        <MessageSquare size={22} className="fill-white/25 stroke-[3]" />
+                        {cleanHtml(sheetData.lunchVoteCount)}
+                      </span>
+                      <span className="text-[10px] md:text-xs font-black uppercase tracking-widest opacity-95">oy verdi</span>
                     </motion.div>
                   ) : (
                     <Utensils size={24} className="opacity-90" />
@@ -613,8 +616,11 @@ export function HastaneYemek() {
                       className="min-w-[96px] px-4 py-2 rounded-2xl bg-white/25 border border-white/40 text-white backdrop-blur-sm shadow-lg shadow-black/10 flex flex-col items-center justify-center leading-tight"
                       title="Akşam menüsü oy sayısı"
                     >
-                      <span className="text-xl md:text-2xl font-black drop-shadow-sm">⭐ {cleanHtml(sheetData.dinnerVoteCount)}</span>
-                      <span className="text-[10px] md:text-xs font-black uppercase tracking-widest opacity-95">oy</span>
+                      <span className="flex items-center gap-1.5 text-xl md:text-2xl font-black drop-shadow-sm">
+                        <MessageSquare size={22} className="fill-white/25 stroke-[3]" />
+                        {cleanHtml(sheetData.dinnerVoteCount)}
+                      </span>
+                      <span className="text-[10px] md:text-xs font-black uppercase tracking-widest opacity-95">oy verdi</span>
                     </motion.div>
                   ) : (
                     <Moon size={24} className="opacity-90" />
