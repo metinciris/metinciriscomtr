@@ -117,7 +117,7 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
     setTimeout(() => {
       const element = biopsyRefs.current[newBiopsy.id];
       if (element) {
-        const headerOffset = 260; // Increased to account for sticky header + sticky organ bar
+        const headerOffset = 260;
         const elementPosition = element.getBoundingClientRect().top;
         const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
         window.scrollTo({
@@ -135,26 +135,29 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
     }
   };
 
-if (biopsy.location === BiopsyLocation.Mide) {
-  const hasInflammation = ['+', '++', '+++'].includes(updatedBiopsy.findings.inflammation);
-  const hasActivation = ['+', '++', '+++'].includes(updatedBiopsy.findings.activation);
+  const updateBiopsy = (updatedBiopsy: Biopsy) => {
+    setBiopsies(prev =>
+      prev.map(biopsy => {
+        if (biopsy.id === updatedBiopsy.id) {
+          if (biopsy.location === BiopsyLocation.Mide) {
+            const hasInflammation = ['+', '++', '+++'].includes(updatedBiopsy.findings.inflammation);
+            const hasActivation = ['+', '++', '+++'].includes(updatedBiopsy.findings.activation);
 
-  const isAutoDiagnosis =
-    !updatedBiopsy.customDiagnosis ||
-    updatedBiopsy.customDiagnosis.includes('Normal görünümlü') ||
-    updatedBiopsy.customDiagnosis === 'Kronik gastrit' ||
-    updatedBiopsy.customDiagnosis === 'Aktivasyonlu kronik gastrit';
+            const isAutoDiagnosis =
+              !updatedBiopsy.customDiagnosis ||
+              updatedBiopsy.customDiagnosis.includes('Normal görünümlü') ||
+              updatedBiopsy.customDiagnosis === 'Kronik gastrit' ||
+              updatedBiopsy.customDiagnosis === 'Aktivasyonlu kronik gastrit';
 
-  if (isAutoDiagnosis) {
-    if (hasActivation) {
-      updatedBiopsy.customDiagnosis = 'Aktivasyonlu kronik gastrit';
-    } else if (hasInflammation) {
-      updatedBiopsy.customDiagnosis = 'Kronik gastrit';
-    } else {
-      updatedBiopsy.customDiagnosis = 'Normal görünümlü mide mukozası';
-    }
-  }
-}
+            if (isAutoDiagnosis) {
+              if (hasActivation) {
+                updatedBiopsy.customDiagnosis = 'Aktivasyonlu kronik gastrit';
+              } else if (hasInflammation) {
+                updatedBiopsy.customDiagnosis = 'Kronik gastrit';
+              } else {
+                updatedBiopsy.customDiagnosis = 'Normal görünümlü mide mukozası';
+              }
+            }
           } else if (biopsy.location === BiopsyLocation.Duodenum) {
             const mapping = DuodenumDiagnosisMappings.find(m =>
               m.location === updatedBiopsy.subLocation &&
@@ -165,8 +168,10 @@ if (biopsy.location === BiopsyLocation.Mide) {
               updatedBiopsy.customDiagnosis = mapping.reportDiagnosis;
             }
           }
+
           return updatedBiopsy;
         }
+
         return biopsy;
       })
     );
@@ -210,6 +215,7 @@ if (biopsy.location === BiopsyLocation.Mide) {
               Sıfırla
             </button>
           </div>
+
           {biopsies.length > 0 && (
             <div className="flex gap-2 overflow-x-auto py-2">
               {biopsies.map((biopsy, index) => (
