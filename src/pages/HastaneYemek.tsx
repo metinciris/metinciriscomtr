@@ -658,7 +658,7 @@ export function HastaneYemek() {
                   <div className="w-8 h-8 rounded-lg bg-white/10 text-white flex items-center justify-center">
                     <Sparkles size={18} />
                   </div>
-                  Yapay Zeka Özeti
+                  🤖 Aylık Yapay Zeka Özeti
                 </h2>
                 <div className="text-slate-300 leading-relaxed font-medium" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(sheetData.monthlySummary) }} />
               </div>
