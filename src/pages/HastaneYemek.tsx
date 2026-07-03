@@ -686,7 +686,7 @@ export function HastaneYemek() {
           </div>
         </div>
 
-        {/* Disclaimer Footer - At the very bottom */}
+        {/* Disclaimer Footer - At the bottom */}
         <div className="mt-12 mb-8 bg-slate-200/50 backdrop-blur-sm rounded-3xl p-6 text-center text-slate-500 text-xs font-bold flex flex-col items-center gap-2">
           <div className="flex items-center gap-2">
             <Info size={14} />
