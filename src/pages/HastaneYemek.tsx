@@ -535,15 +535,21 @@ export function HastaneYemek() {
             >
               <div className="bg-[#e65100] p-6 text-white text-center">
                 <div className="flex justify-between items-center mb-2">
-                  <Utensils size={24} className="opacity-90" />
-                  <div className="flex items-center gap-2">
-                    {sheetData?.lunchVoteCount && (
-                      <span className="text-xs font-black bg-white/25 border border-white/30 px-2 py-1 rounded-full text-white backdrop-blur-sm">
-                        ⭐ {cleanHtml(sheetData.lunchVoteCount)} oy
-                      </span>
-                    )}
-                    <span className="text-xs font-bold uppercase tracking-widest bg-black/20 px-2 py-1 rounded">ÖĞLE</span>
-                  </div>
+                  {sheetData?.lunchVoteCount ? (
+                    <motion.div
+                      animate={{ scale: [1, 1.06, 1], rotate: [0, -2, 2, 0] }}
+                      transition={{ duration: 2.6, repeat: Infinity, repeatType: 'loop', ease: 'easeInOut' }}
+                      whileHover={{ scale: 1.1, rotate: 0 }}
+                      className="min-w-[96px] px-4 py-2 rounded-2xl bg-white/25 border border-white/40 text-white backdrop-blur-sm shadow-lg shadow-black/10 flex flex-col items-center justify-center leading-tight"
+                      title="Öğle menüsü oy sayısı"
+                    >
+                      <span className="text-xl md:text-2xl font-black drop-shadow-sm">⭐ {cleanHtml(sheetData.lunchVoteCount)}</span>
+                      <span className="text-[10px] md:text-xs font-black uppercase tracking-widest opacity-95">oy</span>
+                    </motion.div>
+                  ) : (
+                    <Utensils size={24} className="opacity-90" />
+                  )}
+                  <span className="text-xs font-bold uppercase tracking-widest bg-black/20 px-2 py-1 rounded">ÖĞLE</span>
                 </div>
                 <h2 className="text-2xl font-black italic">Öğle Yemeği Menüsü</h2>
                 {sheetData?.lunchStats && (
@@ -599,15 +605,21 @@ export function HastaneYemek() {
             >
               <div className="bg-[#673ab7] p-6 text-white text-center">
                 <div className="flex justify-between items-center mb-2">
-                  <Moon size={24} className="opacity-90" />
-                  <div className="flex items-center gap-2">
-                    {sheetData?.dinnerVoteCount && (
-                      <span className="text-xs font-black bg-white/25 border border-white/30 px-2 py-1 rounded-full text-white backdrop-blur-sm">
-                        ⭐ {cleanHtml(sheetData.dinnerVoteCount)} oy
-                      </span>
-                    )}
-                    <span className="text-xs font-bold uppercase tracking-widest bg-black/10 px-2 py-1 rounded">AKŞAM</span>
-                  </div>
+                  {sheetData?.dinnerVoteCount ? (
+                    <motion.div
+                      animate={{ scale: [1, 1.06, 1], rotate: [0, 2, -2, 0] }}
+                      transition={{ duration: 2.6, repeat: Infinity, repeatType: 'loop', ease: 'easeInOut' }}
+                      whileHover={{ scale: 1.1, rotate: 0 }}
+                      className="min-w-[96px] px-4 py-2 rounded-2xl bg-white/25 border border-white/40 text-white backdrop-blur-sm shadow-lg shadow-black/10 flex flex-col items-center justify-center leading-tight"
+                      title="Akşam menüsü oy sayısı"
+                    >
+                      <span className="text-xl md:text-2xl font-black drop-shadow-sm">⭐ {cleanHtml(sheetData.dinnerVoteCount)}</span>
+                      <span className="text-[10px] md:text-xs font-black uppercase tracking-widest opacity-95">oy</span>
+                    </motion.div>
+                  ) : (
+                    <Moon size={24} className="opacity-90" />
+                  )}
+                  <span className="text-xs font-bold uppercase tracking-widest bg-black/10 px-2 py-1 rounded">AKŞAM</span>
                 </div>
                 <h2 className="text-2xl font-black italic">Akşam Yemeği Menüsü</h2>
                 {sheetData?.dinnerStats && (
