@@ -641,7 +641,7 @@ export function HastaneYemek() {
                   <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center">
                     <MessageSquare size={18} />
                   </div>
-                  Yapay Zeka Değerlendirmesi
+                  🤖 Bugünün Yapay Zeka Değerlendirmesi
                 </h2>
                 <div className="text-slate-600 leading-relaxed font-medium relative z-10">
                   {cleanHtml(sheetData.summary)}
