@@ -142,7 +142,9 @@ export function HastaneYemek() {
 
       const feel = Math.round(first.feel);
       const wind = Math.round(first.wind || 0);
+      const windMax = Math.round(Math.max(...win.map(x => x.wind || 0)));
       const popMax = Math.max(...win.map(x => x.pop || 0));
+      const totalRain = win.reduce((sum, x) => sum + (x.rain || 0), 0);
       const codes = win.map(x => x.code);
 
       const currentHour = parseInt(
@@ -215,25 +217,41 @@ export function HastaneYemek() {
         acilis = isNight ? 'Bulutlar gece vardiyasında ☁️' : 'Bulutlar toplantı yapmış ☁️';
       }
 
+      const isVeryHot = feel >= 35;
+      const isHot = feel >= 30 && feel < 35;
+      const isVeryCold = feel <= -5;
+      const isCold = feel <= 3 && feel > -5;
+      const isStormyWind = windMax >= 50;
+      const isWindy = windMax >= 30 && windMax < 50;
+      const isWet = totalRain >= 0.2 || popMax >= 35;
+
       let yagis = '';
 
-      if (anyRain || anySnow || anyThunder) {
+      if (anyThunder) {
+        yagis = 'Gök gürültüsü ihtimali var; hava küçük çaplı dizi finali modunda.';
+      } else if (anySnow) {
+        yagis = 'Kar ihtimali var; Davraz “ben demiştim” diyebilir.';
+      } else if (anyRain) {
         yagis =
           'Önümüzdeki saatlerde %' +
           popMax +
-          ' ihtimalle ' +
-          (anySnow ? 'kar' : 'yağmur') +
-          '.';
+          ' ihtimalle yağmur.';
       } else {
         yagis = isNight
           ? 'Yağış görünmüyor; gece sakin duruyor. 🌙'
-          : 'Şemsiye şimdilik dinlenebilir. ☂️🙂';
+          : 'Şemsiye şimdilik dinlenebilir. ☂️';
       }
 
       let tavsiye = '';
 
-      if (feel <= 7) {
-        tavsiye = '🧥 Mont iyi fikir.';
+      if (isVeryHot) {
+        tavsiye = '🥵 Su + gölge iyi fikir; güneşle fazla samimi olma.';
+      } else if (isHot) {
+        tavsiye = '🌤️ Gölgeyi sev, suyu ihmal etme.';
+      } else if (isVeryCold) {
+        tavsiye = '🥶 Kat kat giyin; Isparta ayazı şaka kaldırmaz.';
+      } else if (isCold) {
+        tavsiye = '🧥 Montu al; serinlik “ben geldim” diyor.';
       } else if (popMax >= 30 && (anyRain || anySnow)) {
         tavsiye = '☂️ Şemsiye/kapüşon mantıklı.';
       } else {
@@ -246,18 +264,45 @@ export function HastaneYemek() {
         timeZone: 'Europe/Istanbul'
       }).format(new Date());
 
-      let ispartaNotu = '';
-      if (isNight && isFullMoonish && !anyRain && !anySnow && !anyFog && !anyCloud) {
-        ispartaNotu = ' Eğirdir Gölü tarafında mehtap hayali kurdurur.';
-      } else if (currentMonth >= 6 && currentMonth <= 8 && feel >= 28) {
-        ispartaNotu = ' Gül diyarında gölge kıymetli.';
-      } else if (currentMonth >= 12 || currentMonth <= 2) {
-        ispartaNotu = ' Davraz tarafı “montu unutma” diye fısıldar.';
-      } else if (currentMonth >= 3 && currentMonth <= 5) {
-        ispartaNotu = ' Isparta baharı kendini hissettiriyor.';
-      } else if (currentMonth >= 9 && currentMonth <= 11) {
-        ispartaNotu = ' Göller yöresi sonbahar havasına yakışır.';
+      let olayNotu = '';
+      if (isStormyWind) {
+        olayNotu = ' Rüzgar saç modeline kendi imzasını atabilir.';
+      } else if (isWindy) {
+        olayNotu = ' Hafif değil, karakterli bir rüzgar var.';
+      } else if (anyFog) {
+        olayNotu = ' Sis varsa yolda “ben görmedim” deme, mesafe iyi olur.';
+      } else if (anyThunder) {
+        olayNotu = ' Açık alanda kahramanlık yapma; çay daha güvenli.';
+      } else if (isVeryHot) {
+        olayNotu = ' Gül diyarında bugün gölge VIP hizmet gibi.';
+      } else if (isVeryCold) {
+        olayNotu = ' Davraz tarafı uzaktan el sallıyor gibi.';
+      } else if (anySnow) {
+        olayNotu = ' Kar havası gelirse şehir biraz kartpostal olur.';
+      } else if (isWet && anyRain) {
+        olayNotu = ' Kaldırım sürprizlerine dikkat.';
       }
+
+      let ispartaNotu = '';
+      if (!olayNotu) {
+        if (isNight && isFullMoonish && !anyRain && !anySnow && !anyFog && !anyCloud) {
+          ispartaNotu = ' Eğirdir Gölü tarafında mehtap hayali kurdurur.';
+        } else if (isNight && !anyRain && !anySnow && !anyFog && !anyCloud) {
+          ispartaNotu = ' Göller yöresinde yıldızlar mesaide.';
+        } else if (currentMonth >= 6 && currentMonth <= 8 && feel >= 28) {
+          ispartaNotu = ' Gül diyarında gölge kıymetli.';
+        } else if (currentMonth >= 12 || currentMonth <= 2) {
+          ispartaNotu = ' Davraz tarafı “montu unutma” diye fısıldar.';
+        } else if (currentMonth >= 3 && currentMonth <= 5) {
+          ispartaNotu = ' Isparta baharı kendini hissettiriyor.';
+        } else if (currentMonth >= 9 && currentMonth <= 11) {
+          ispartaNotu = ' Göller yöresi sonbahar havasına yakışır.';
+        }
+      }
+
+      const windLine = windMax >= 25
+        ? 'Rüzgar ' + wind + ' km/sa, ara ara ' + windMax + ' km/sa.'
+        : 'Rüzgar ' + wind + ' km/sa.';
 
       let karsilama = '';
       if (currentHour >= 22 && currentHour < 24) {
@@ -278,8 +323,9 @@ export function HastaneYemek() {
         'Hissedilen ~' + feel + '°C. ' +
         yagis + ' ' +
         tavsiye +
+        olayNotu +
         ispartaNotu + ' ' +
-        'Rüzgar ' + wind + ' km/sa.' +
+        windLine +
         karsilama + ' ' +
         '(Güncelleme: ' + nowText + ')';
 
