@@ -140,11 +140,36 @@ export function HastaneYemek() {
 
       const first = win[0];
 
-      const tNow = Math.round(first.temp);
       const feel = Math.round(first.feel);
       const wind = Math.round(first.wind || 0);
       const popMax = Math.max(...win.map(x => x.pop || 0));
       const codes = win.map(x => x.code);
+
+      const currentHour = parseInt(
+        new Intl.DateTimeFormat('tr-TR', {
+          hour: 'numeric',
+          hour12: false,
+          timeZone: 'Europe/Istanbul'
+        }).format(now),
+        10
+      );
+
+      const currentMonth = parseInt(
+        new Intl.DateTimeFormat('tr-TR', {
+          month: 'numeric',
+          timeZone: 'Europe/Istanbul'
+        }).format(now),
+        10
+      );
+
+      const isNight = currentHour >= 20 || currentHour < 6;
+
+      // Basit ay fazı hesabı: tarayıcıda hızlı çalışır, harici API gerektirmez.
+      const synodicMonth = 29.53058867;
+      const knownNewMoon = new Date(2000, 0, 6, 18, 14).getTime();
+      const daysSinceKnownNewMoon = (now.getTime() - knownNewMoon) / 86400000;
+      const moonAge = ((daysSinceKnownNewMoon % synodicMonth) + synodicMonth) % synodicMonth;
+      const isFullMoonish = moonAge >= 13 && moonAge <= 17;
 
       const anyRain = codes.some(c =>
         (c >= 51 && c <= 57) ||
@@ -163,8 +188,10 @@ export function HastaneYemek() {
       const anyCloud = codes.some(c => c === 2 || c === 3);
 
       let durum = 'açık';
-      let emoji = '☀️';
-      let acilis = 'Güneş yüzünü göstermiş 🌞';
+      let emoji = isNight ? (isFullMoonish ? '🌕' : '✨') : '☀️';
+      let acilis = isNight
+        ? (isFullMoonish ? 'Bu gece mehtap var gibi 🌕' : 'Gökyüzü yıldız moduna geçmiş ✨')
+        : 'Güneş yüzünü göstermiş 🌞';
 
       if (anyThunder) {
         durum = 'gök gürültülü';
@@ -177,15 +204,15 @@ export function HastaneYemek() {
       } else if (anyRain) {
         durum = 'yağışlı';
         emoji = '🌧️';
-        acilis = 'Şemsiye kulak kabartsın ☂️';
+        acilis = isNight ? 'Geceye şemsiye eşlik edebilir ☂️' : 'Şemsiye kulak kabartsın ☂️';
       } else if (anyFog) {
         durum = 'sisli';
         emoji = '🌫️';
         acilis = 'Şehir hafif gizem modunda 🕵️‍♂️';
       } else if (anyCloud) {
         durum = 'bulutlu';
-        emoji = '☁️';
-        acilis = 'Bulutlar toplantı yapmış ☁️';
+        emoji = isNight ? '☁️' : '☁️';
+        acilis = isNight ? 'Bulutlar gece vardiyasında ☁️' : 'Bulutlar toplantı yapmış ☁️';
       }
 
       let yagis = '';
@@ -198,7 +225,9 @@ export function HastaneYemek() {
           (anySnow ? 'kar' : 'yağmur') +
           '.';
       } else {
-        yagis = 'Şemsiye şimdilik dinlenebilir. ☂️🙂';
+        yagis = isNight
+          ? 'Yağış görünmüyor; gece sakin duruyor. 🌙'
+          : 'Şemsiye şimdilik dinlenebilir. ☂️🙂';
       }
 
       let tavsiye = '';
@@ -208,7 +237,7 @@ export function HastaneYemek() {
       } else if (popMax >= 30 && (anyRain || anySnow)) {
         tavsiye = '☂️ Şemsiye/kapüşon mantıklı.';
       } else {
-        tavsiye = '🙂 Rahat giy, abartma.';
+        tavsiye = isNight ? '🌙 Hafif serinlik olabilir, abartmadan çık.' : '🙂 Rahat giy, abartma.';
       }
 
       const nowText = new Intl.DateTimeFormat('tr-TR', {
@@ -217,13 +246,18 @@ export function HastaneYemek() {
         timeZone: 'Europe/Istanbul'
       }).format(new Date());
 
-      const currentHour = parseInt(
-        new Intl.DateTimeFormat('tr-TR', {
-          hour: 'numeric',
-          hour12: false,
-          timeZone: 'Europe/Istanbul'
-        }).format(now)
-      );
+      let ispartaNotu = '';
+      if (isNight && isFullMoonish && !anyRain && !anySnow && !anyFog && !anyCloud) {
+        ispartaNotu = ' Eğirdir Gölü tarafında mehtap hayali kurdurur.';
+      } else if (currentMonth >= 6 && currentMonth <= 8 && feel >= 28) {
+        ispartaNotu = ' Gül diyarında gölge kıymetli.';
+      } else if (currentMonth >= 12 || currentMonth <= 2) {
+        ispartaNotu = ' Davraz tarafı “montu unutma” diye fısıldar.';
+      } else if (currentMonth >= 3 && currentMonth <= 5) {
+        ispartaNotu = ' Isparta baharı kendini hissettiriyor.';
+      } else if (currentMonth >= 9 && currentMonth <= 11) {
+        ispartaNotu = ' Göller yöresi sonbahar havasına yakışır.';
+      }
 
       let karsilama = '';
       if (currentHour >= 22 && currentHour < 24) {
@@ -240,10 +274,11 @@ export function HastaneYemek() {
 
       const msg =
         emoji + ' ' + acilis +
-        ' Isparta’da hava ' + durum + ', ' + tNow + '°C. ' +
+        ' Isparta’da hava ' + durum + '. ' +
         'Hissedilen ~' + feel + '°C. ' +
         yagis + ' ' +
-        tavsiye + ' ' +
+        tavsiye +
+        ispartaNotu + ' ' +
         'Rüzgar ' + wind + ' km/sa.' +
         karsilama + ' ' +
         '(Güncelleme: ' + nowText + ')';
