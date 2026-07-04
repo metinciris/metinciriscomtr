@@ -206,7 +206,7 @@ export function HastaneYemek() {
       } else if (anyRain) {
         durum = 'yağışlı';
         emoji = '🌧️';
-        acilis = isNight ? 'Geceye şemsiye eşlik edebilir ☂️' : 'Şemsiye kulak kabartsın ☂️';
+        acilis = isNight ? 'Geceye yağmur fısıltısı karışabilir 🌧️' : 'Bulutlar yağmur pazarlığında 🌧️';
       } else if (anyFog) {
         durum = 'sisli';
         emoji = '🌫️';
@@ -224,22 +224,34 @@ export function HastaneYemek() {
       const isStormyWind = windMax >= 50;
       const isWindy = windMax >= 30 && windMax < 50;
       const isWet = totalRain >= 0.2 || popMax >= 35;
+      const hasPrecipChance = popMax >= 20 || totalRain >= 0.1;
 
       let yagis = '';
 
       if (anyThunder) {
-        yagis = 'Gök gürültüsü ihtimali var; hava küçük çaplı dizi finali modunda.';
+        yagis =
+          'Yağış ihtimali %' +
+          popMax +
+          '; gök gürültüsü de küçük çaplı dizi finali modunda.';
       } else if (anySnow) {
-        yagis = 'Kar ihtimali var; Davraz “ben demiştim” diyebilir.';
+        yagis =
+          'Yağış ihtimali %' +
+          popMax +
+          '; kar tarafında Davraz “ben demiştim” diyebilir.';
       } else if (anyRain) {
         yagis =
-          'Önümüzdeki saatlerde %' +
+          'Önümüzdeki saatlerde yağmur ihtimali %' +
           popMax +
-          ' ihtimalle yağmur.';
+          '.';
+      } else if (hasPrecipChance) {
+        yagis =
+          'Yağış ihtimali %' +
+          popMax +
+          '; gökyüzü kararsız ama şimdilik büyük sahne yok.';
       } else {
         yagis = isNight
           ? 'Yağış görünmüyor; gece sakin duruyor. 🌙'
-          : 'Şemsiye şimdilik dinlenebilir. ☂️';
+          : 'Yağış görünmüyor; gökyüzü şimdilik uslu duruyor.';
       }
 
       let tavsiye = '';
@@ -253,7 +265,7 @@ export function HastaneYemek() {
       } else if (isCold) {
         tavsiye = '🧥 Montu al; serinlik “ben geldim” diyor.';
       } else if (popMax >= 30 && (anyRain || anySnow)) {
-        tavsiye = '☂️ Şemsiye/kapüşon mantıklı.';
+        tavsiye = '🧥 Kapüşon/ince yağmurluk mantıklı.';
       } else {
         tavsiye = isNight ? '🌙 Hafif serinlik olabilir, abartmadan çık.' : '🙂 Rahat giy, abartma.';
       }
