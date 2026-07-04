@@ -332,7 +332,7 @@ export function HastaneYemek() {
       const msg =
         emoji + ' ' + acilis +
         ' Isparta’da hava ' + durum + '. ' +
-        'Hissedilen ~' + feel + '°C. ' +
+        'Hissedilen ' + feel + '°C. ' +
         yagis + ' ' +
         tavsiye +
         olayNotu +
