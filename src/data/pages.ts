@@ -49,5 +49,6 @@ export const validPages = [
     'hematoloji-hesaplayici',
     'testis-ght-ihk',
     'tiroid-papiller-karsinom',
-    'ngs'
+    'ngs',
+    'meme-her2'
 ];

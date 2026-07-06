@@ -444,6 +444,15 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         priority: 0.8,
         changefreq: 'monthly'
     },
+    'meme-her2': {
+        slug: 'meme-her2',
+        title: 'Meme Karsinomunda HER2 IHK Skorlama Algoritması | Prof Dr Metin Çiriş',
+        description: 'Patologlar için adım adım HER2 IHK skorlama algoritması: HER2-null, ultralow, low, equivocal ve positive kategorileri. Eğitim ve raporlama destek aracı.',
+        keywords: 'HER2 IHK, her2 skorlama, her2-low, her2-ultralow, meme kanseri, patoloji, immunohistokimya, ISH, refleks ISH',
+        lastmod: '2026-07-06',
+        priority: 0.8,
+        changefreq: 'monthly'
+    },
 };
 
 export const getPages = () => Object.values(PAGE_REGISTRY);

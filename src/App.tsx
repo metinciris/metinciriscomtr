@@ -177,6 +177,9 @@ const TiroidPapillerKarsinom = React.lazy(() =>
 const Ngs = React.lazy(() =>
   import('./pages/Ngs').then((m) => ({ default: m.Ngs })),
 );
+const MemeHer2Algoritmasi = React.lazy(() =>
+  import('./pages/MemeHer2Algoritmasi').then((m) => ({ default: m.MemeHer2Algoritmasi })),
+);
 
 import { trackPageView } from './utils/analytics';
 
@@ -376,6 +379,9 @@ export default function App() {
 
       case 'ngs':
         return <Ngs />;
+
+      case 'meme-her2':
+        return <MemeHer2Algoritmasi />;
 
       case '404':
         return <NotFound onNavigate={navigate} />;

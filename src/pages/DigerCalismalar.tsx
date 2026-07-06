@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { PageContainer } from '../components/PageContainer';
 import { MetroTile } from '../components/MetroTile';
-import { FileBarChart, Activity, FileText, AlertCircle, Microscope, Box, BookOpen, Calculator, TrendingUp, Trophy, Users, Facebook, Github, Search, Briefcase, Calendar, Image, Globe, Timer, Shield, Dna } from 'lucide-react';
+import { FileBarChart, Activity, FileText, AlertCircle, Microscope, Box, BookOpen, Calculator, TrendingUp, Trophy, Users, Facebook, Github, Search, Briefcase, Calendar, Image, Globe, Timer, Shield, Dna, Layers } from 'lucide-react';
 
 
 interface DigerCalismalarProps {
@@ -270,6 +270,14 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
             style: { backgroundColor: '#06255b' },
             page: 'ngs',
             category: 'patoloji'
+        },
+        {
+            title: "Meme HER2 IHK",
+            subtitle: "HER2 skorlama algoritması",
+            icon: <Layers size={40} />,
+            style: { backgroundColor: '#4f46e5' },
+            page: 'meme-her2',
+            category: 'raporlama'
         },
 
     ];
