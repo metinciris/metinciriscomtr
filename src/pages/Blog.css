@@ -86,3 +86,62 @@
   font-size: 0.875em !important;
   font-family: monospace !important;
 }
+
+/* Article-page additions: existing card/list appearance remains unchanged. */
+.blog-content-markdown blockquote {
+  margin: 1.25rem 0 !important;
+  padding: 0.75rem 1rem !important;
+  border-left: 4px solid #27ae60 !important;
+  background: #f9fafb !important;
+  color: #4b5563 !important;
+}
+
+.blog-content-markdown pre {
+  margin: 1.25rem 0 !important;
+  padding: 1rem !important;
+  overflow-x: auto !important;
+  border-radius: 0.5rem !important;
+  background: #111827 !important;
+  color: #f9fafb !important;
+}
+
+.blog-content-markdown pre code {
+  padding: 0 !important;
+  background: transparent !important;
+  color: inherit !important;
+}
+
+.blog-content-markdown img {
+  display: block !important;
+  max-width: 100% !important;
+  height: auto !important;
+  margin: 1.5rem auto !important;
+  border-radius: 0.75rem !important;
+}
+
+.blog-content-markdown table {
+  width: 100% !important;
+  margin: 1.25rem 0 !important;
+  border-collapse: collapse !important;
+  font-size: 0.875rem !important;
+}
+
+.blog-content-markdown th,
+.blog-content-markdown td {
+  padding: 0.75rem !important;
+  border: 1px solid #e5e7eb !important;
+  text-align: left !important;
+  vertical-align: top !important;
+}
+
+.blog-content-markdown th {
+  background: #f3f4f6 !important;
+  color: #111827 !important;
+  font-weight: 700 !important;
+}
+
+.blog-content-markdown hr {
+  margin: 2rem 0 !important;
+  border: 0 !important;
+  border-top: 1px solid #e5e7eb !important;
+}
