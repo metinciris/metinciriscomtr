@@ -7,8 +7,11 @@ interface SEOProps {
 }
 
 export const SEO: React.FC<SEOProps> = ({ currentPage }) => {
-    useEffect(() => {
-        const meta = PAGE_REGISTRY[currentPage] || PAGE_REGISTRY.home;
+  useEffect(() => {
+    // Blog sayfaları kendi yazıya özel metadatasını yönetir.
+    if (currentPage === 'blog') return;
+
+    const meta = PAGE_REGISTRY[currentPage] || PAGE_REGISTRY.home;
         const canonicalUrl = getCanonicalUrl(meta.slug);
 
         // Update Title
