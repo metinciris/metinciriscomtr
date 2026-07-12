@@ -196,6 +196,12 @@ export default function App() {
     // Başındaki slash'ı kaldır, sondaki slash'ı kaldır
     const path = pathname.replace(/^\//, '').replace(/\/$/, '') || 'home';
     return validPages.includes(path) ? path : '404';
+    const path = pathname.replace(/^\//, '').replace(/\/$/, '') || 'home';
+
+// Blog yazısı ve sayfalama URL'lerini Blog bileşenine yönlendir.
+if (path === 'blog' || path.startsWith('blog/')) return 'blog';
+
+return validPages.includes(path) ? path : '404';
   };
 
   // Path tabanlı navigation (SEO dostu)
