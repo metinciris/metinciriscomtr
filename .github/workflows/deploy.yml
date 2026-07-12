@@ -4,15 +4,29 @@ on:
   push:
     branches:
       - main
+  issues:
+    types:
+      - opened
+      - edited
+      - deleted
+      - closed
+      - reopened
+      - labeled
+      - unlabeled
   workflow_dispatch:
 
 permissions:
   contents: read
+  issues: read
   pages: write
   id-token: write
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -25,7 +39,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: 'npm'
+          cache: npm
 
       - name: Install dependencies
         run: npm install
@@ -33,6 +47,12 @@ jobs:
       - name: Build
         run: npm run build
         env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SITE_URL: https://metinciris.com.tr
+          BLOG_REPO_OWNER: metinciris
+          BLOG_REPO_NAME: metinciriscomtr
+          BLOG_LABEL: Blog
+          BLOG_POSTS_PER_PAGE: 12
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
           VITE_VAPID_PUBLIC_KEY: ${{ secrets.VITE_VAPID_PUBLIC_KEY }}
