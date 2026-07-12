@@ -1,9 +1,11 @@
 import React from 'react';
+
 import { Layout } from './components/Layout';
 import { Toaster } from 'sonner';
 import { SEO } from './components/SEO';
 import { validPages } from './data/pages';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { trackPageView } from './utils/analytics';
 
 /**
  * Sayfaları lazy yükle:
@@ -19,41 +21,53 @@ const Home = React.lazy(() =>
 const Iletisim = React.lazy(() =>
   import('./pages/Iletisim').then((m) => ({ default: m.Iletisim })),
 );
+
 const ZiyaretMesaji = React.lazy(() =>
   import('./pages/ZiyaretMesaji').then((m) => ({ default: m.ZiyaretMesaji })),
 );
+
 const BiyopsiSonucu = React.lazy(() =>
   import('./pages/BiyopsiSonucu').then((m) => ({
     default: m.BiyopsiSonucu,
   })),
 );
+
 const BaktigimBiyopsiler = React.lazy(() =>
-  import('./pages/BaktigimBiyopsiler').then((m) => ({ default: m.BaktigimBiyopsiler })),
+  import('./pages/BaktigimBiyopsiler').then((m) => ({
+    default: m.BaktigimBiyopsiler,
+  })),
 );
+
 const NobetciEczane = React.lazy(() =>
   import('./pages/NobetciEczane').then((m) => ({
     default: m.NobetciEczane,
   })),
 );
+
 const DersNotlari = React.lazy(() =>
   import('./pages/DersNotlari').then((m) => ({ default: m.DersNotlari })),
 );
+
 const DersProgrami = React.lazy(() =>
   import('./pages/DersProgrami').then((m) => ({ default: m.DersProgrami })),
 );
+
 const OgrenciYemek = React.lazy(() =>
   import('./pages/OgrenciYemek').then((m) => ({
     default: m.OgrenciYemek,
   })),
 );
+
 const HastaneYemek = React.lazy(() =>
   import('./pages/HastaneYemek').then((m) => ({
     default: m.HastaneYemek,
   })),
 );
+
 const Donem3 = React.lazy(() =>
   import('./pages/Donem3').then((m) => ({ default: m.Donem3 })),
 );
+
 const Galeri = React.lazy(() =>
   import('./pages/Galeri').then((m) => ({ default: m.Galeri })),
 );
@@ -62,126 +76,186 @@ const Galeri = React.lazy(() =>
 const Portfolyo = React.lazy(() =>
   import('./pages/Portfolyo').then((m) => ({ default: m.Portfolyo })),
 );
+
 const SinavAnalizi = React.lazy(() =>
   import('./pages/SinavAnalizi').then((m) => ({
     default: m.SinavAnalizi,
   })),
 );
+
 const Yayinlar = React.lazy(() =>
   import('./pages/Yayinlar').then((m) => ({ default: m.Yayinlar })),
 );
+
 const Blog = React.lazy(() =>
   import('./pages/Blog').then((m) => ({ default: m.Blog })),
 );
+
 const GitHubPage = React.lazy(() =>
   import('./pages/GitHub').then((m) => ({ default: m.GitHub })),
 );
+
 const FacebookPage = React.lazy(() =>
   import('./pages/Facebook').then((m) => ({ default: m.Facebook })),
 );
+
 const LinkedInPage = React.lazy(() =>
   import('./pages/LinkedIn').then((m) => ({ default: m.LinkedIn })),
 );
+
 const DigerCalismalar = React.lazy(() =>
   import('./pages/DigerCalismalar').then((m) => ({
     default: m.DigerCalismalar,
   })),
 );
+
 const FetusUzunluklari = React.lazy(() =>
   import('./pages/FetusUzunluklari').then((m) => ({
     default: m.FetusUzunluklari,
   })),
 );
+
 const RcbCalculator = React.lazy(() =>
   import('./pages/RcbCalculator').then((m) => ({
     default: m.RcbCalculator,
   })),
 );
+
 const Makale = React.lazy(() =>
   import('./pages/Makale').then((m) => ({ default: m.Makale })),
 );
+
 const Deprem = React.lazy(() =>
   import('./pages/Deprem').then((m) => ({ default: m.Deprem })),
 );
 
-// Default export olan sayfalar (Podcast, GistRaporlama)
+// Default export olan sayfalar
 const Podcast = React.lazy(() => import('./pages/Podcast'));
 const GistRaporlama = React.lazy(() => import('./pages/GistRaporlama'));
+
 const SvsReader = React.lazy(() =>
   import('./pages/SvsReader').then((m) => ({ default: m.SvsReader })),
 );
+
 const TaniTuzaklari = React.lazy(() =>
   import('./pages/TaniTuzaklari').then((m) => ({ default: m.TaniTuzaklari })),
 );
+
 const AyinVakasi = React.lazy(() =>
   import('./pages/AyinVakasi').then((m) => ({ default: m.AyinVakasi })),
 );
+
 const Prizma3D = React.lazy(() =>
   import('./pages/Prizma3D').then((m) => ({ default: m.Prizma3D })),
 );
+
 const Finans = React.lazy(() =>
   import('./pages/Finans').then((m) => ({ default: m.Finans })),
 );
+
 const NotFound = React.lazy(() =>
   import('./pages/NotFound').then((m) => ({ default: m.NotFound })),
 );
+
 const PatolojiMakaleTakip = React.lazy(() =>
-  import('./pages/PatolojiMakaleTakip').then((m) => ({ default: m.PatolojiMakaleTakip })),
+  import('./pages/PatolojiMakaleTakip').then((m) => ({
+    default: m.PatolojiMakaleTakip,
+  })),
 );
-const LenfNoduSayaci = React.lazy(async () => import('./pages/LenfNoduSayaci').then(module => ({ default: module.LenfNoduSayaci })));
+
+const LenfNoduSayaci = React.lazy(() =>
+  import('./pages/LenfNoduSayaci').then((m) => ({
+    default: m.LenfNoduSayaci,
+  })),
+);
+
 const PubMedTrend = React.lazy(() =>
   import('./pages/PubMedTrend').then((m) => ({ default: m.PubMedTrend })),
 );
+
 const OnlineTestAnaliz = React.lazy(() =>
-  import('./pages/OnlineTestAnaliz').then((m) => ({ default: m.OnlineTestAnaliz })),
+  import('./pages/OnlineTestAnaliz').then((m) => ({
+    default: m.OnlineTestAnaliz,
+  })),
 );
+
 const EuroMaclar = React.lazy(() =>
   import('./pages/EuroMaclar').then((m) => ({ default: m.EuroMaclar })),
 );
+
 const Konsensus = React.lazy(() =>
   import('./pages/Konsensus').then((m) => ({ default: m.Konsensus })),
 );
+
 const PubMedMakaleTakvim = React.lazy(() =>
-  import('./pages/PubMedMakaleTakvim').then((m) => ({ default: m.PubMedMakaleTakvim })),
+  import('./pages/PubMedMakaleTakvim').then((m) => ({
+    default: m.PubMedMakaleTakvim,
+  })),
 );
+
 const AvifConverter = React.lazy(() =>
   import('./pages/AvifConverter').then((m) => ({ default: m.AvifConverter })),
 );
+
 const SjogrenRaporlama = React.lazy(() => import('./pages/SjogrenRaporlama'));
-const EndoskopiRaporlama = React.lazy(() => import('./pages/EndoskopiRaporlama'));
+const EndoskopiRaporlama = React.lazy(() =>
+  import('./pages/EndoskopiRaporlama'),
+);
 const TiiabRaporlama = React.lazy(() => import('./pages/TiiabRaporlama'));
+
 const DunyaSaatleri = React.lazy(() =>
   import('./pages/DunyaSaatleri').then((m) => ({ default: m.DunyaSaatleri })),
 );
+
 const PatolojiSozlugu = React.lazy(() =>
-  import('./pages/PatolojiSozlugu').then((m) => ({ default: m.PatolojiSozlugu })),
+  import('./pages/PatolojiSozlugu').then((m) => ({
+    default: m.PatolojiSozlugu,
+  })),
 );
+
 const VucutKitleIndeksi = React.lazy(() =>
-  import('./pages/VucutKitleIndeksi').then((m) => ({ default: m.VucutKitleIndeksi })),
+  import('./pages/VucutKitleIndeksi').then((m) => ({
+    default: m.VucutKitleIndeksi,
+  })),
 );
+
 const GeriSayim = React.lazy(() =>
   import('./pages/GeriSayim').then((m) => ({ default: m.GeriSayim })),
 );
+
 const MitozDonusturucu = React.lazy(() =>
-  import('./pages/MitozDonusturucu').then((m) => ({ default: m.MitozDonusturucu })),
+  import('./pages/MitozDonusturucu').then((m) => ({
+    default: m.MitozDonusturucu,
+  })),
 );
+
 const HematolojiHesaplayici = React.lazy(() =>
-  import('./pages/HematolojiHesaplayici').then((m) => ({ default: m.HematolojiHesaplayici })),
+  import('./pages/HematolojiHesaplayici').then((m) => ({
+    default: m.HematolojiHesaplayici,
+  })),
 );
+
 const TestisGhtIhk = React.lazy(() =>
-  import('./pages/TestisGermCellIhcAssistant').then((m) => ({ default: m.TestisGermCellIhcAssistant })),
+  import('./pages/TestisGermCellIhcAssistant').then((m) => ({
+    default: m.TestisGermCellIhcAssistant,
+  })),
 );
+
 const TiroidPapillerKarsinom = React.lazy(() =>
-  import('./pages/TiroidPapillerKarsinom').then((m) => ({ default: m.TiroidPapillerKarsinom })),
+  import('./pages/TiroidPapillerKarsinom').then((m) => ({
+    default: m.TiroidPapillerKarsinom,
+  })),
 );
+
 const Ngs = React.lazy(() =>
   import('./pages/Ngs').then((m) => ({ default: m.Ngs })),
 );
-const MemeHer2Algoritmasi = React.lazy(() =>
-  import('./pages/MemeHer2Algoritmasi').then((m) => ({ default: m.MemeHer2Algoritmasi })),
-);
 
-import { trackPageView } from './utils/analytics';
+const MemeHer2Algoritmasi = React.lazy(() =>
+  import('./pages/MemeHer2Algoritmasi').then((m) => ({
+    default: m.MemeHer2Algoritmasi,
+  })),
+);
 
 export default function App() {
   const [currentPage, setCurrentPage] = React.useState('home');
@@ -193,43 +267,40 @@ export default function App() {
 
   // Path'ten sayfa adını çıkar
   const getPageFromPath = (pathname: string): string => {
-    // Başındaki slash'ı kaldır, sondaki slash'ı kaldır
-    const path = pathname.replace(/^\//, '').replace(/\/$/, '') || 'home';
+    const path = pathname.replace(/^\/+|\/+$/g, '') || 'home';
+
+    // Blog ana sayfası, sayfalama ve tekil yazı adresleri
+    if (path === 'blog' || path.startsWith('blog/')) {
+      return 'blog';
+    }
+
     return validPages.includes(path) ? path : '404';
-    const path = pathname.replace(/^\//, '').replace(/\/$/, '') || 'home';
-
-// Blog yazısı ve sayfalama URL'lerini Blog bileşenine yönlendir.
-if (path === 'blog' || path.startsWith('blog/')) return 'blog';
-
-return validPages.includes(path) ? path : '404';
   };
 
   // Path tabanlı navigation (SEO dostu)
   React.useEffect(() => {
     // 1. GitHub Pages 404 yönlendirmesini kontrol et
     const redirectPath = sessionStorage.getItem('spa-redirect-path');
+
     if (redirectPath) {
       sessionStorage.removeItem('spa-redirect-path');
       const page = getPageFromPath(redirectPath);
       setCurrentPage(page);
-      // URL'yi güncelle (browser history'ye ekle)
+
+      // URL'yi güncelle
       window.history.replaceState({ page }, '', redirectPath);
       return;
     }
 
-    // 2. Hash tabanlı URL'ler artık desteklenmiyor - yönlendirme yok
-    // Eski hash URL'leri (#sayfa-ismi) artık geçersiz ve işlenmeyecek
-    // Bu URL'ler zaten Google indeksinde sorun yaratıyordu
-
-    // 3. Normal path-based routing
+    // 2. Normal path-based routing
     const handlePathChange = () => {
       const page = getPageFromPath(window.location.pathname);
       setCurrentPage(page);
     };
 
-    // Popstate: geri/ileri butonları için
+    // Geri/ileri butonları
     window.addEventListener('popstate', handlePathChange);
-    handlePathChange(); // ilk açılışta URL'ye göre sayfa seç
+    handlePathChange();
 
     return () => window.removeEventListener('popstate', handlePathChange);
   }, []);
@@ -240,7 +311,6 @@ return validPages.includes(path) ? path : '404';
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-
 
   const renderPage = () => {
     switch (currentPage) {
@@ -275,123 +345,84 @@ return validPages.includes(path) ? path : '404';
         return <Portfolyo />;
       case 'sinav-analizi':
         return <SinavAnalizi onNavigate={navigate} />;
-
       case 'yayinlar':
         return <Yayinlar />;
-
       case 'podcast':
         return <Podcast onNavigate={navigate} />;
-
       case 'blog':
         return <Blog />;
-
       case 'github':
         return <GitHubPage />;
-
       case 'facebook':
         return <FacebookPage />;
-
       case 'linkedin':
         return <LinkedInPage />;
-
       case 'diger-calismalar':
         return <DigerCalismalar onNavigate={navigate} />;
-
       case 'fetus-uzunluklari':
         return <FetusUzunluklari />;
-
       case 'rcb-calculator':
         return <RcbCalculator />;
-
       case 'gist-raporlama':
         return <GistRaporlama />;
-
       case 'makale':
         return <Makale onNavigate={navigate} />;
-
       case 'deprem':
         return <Deprem />;
-
       case 'svs-reader':
         return <SvsReader />;
-
       case 'tani-tuzaklari':
         return <TaniTuzaklari />;
-
       case 'ayin-vakasi':
         return <AyinVakasi />;
-
       case 'prizma-3d':
         return <Prizma3D />;
-
       case 'finans':
         return <Finans />;
-
       case 'makale-takip':
         return <PatolojiMakaleTakip />;
-
       case 'lenf-nodu':
         return <LenfNoduSayaci />;
-
       case 'pubmed-trend':
         return <PubMedTrend />;
-
       case 'online-test-analiz':
         return <OnlineTestAnaliz />;
-
       case 'euro-maclar':
         return <EuroMaclar />;
-
       case 'konsensus':
         return <Konsensus />;
-
       case 'pubmed-makale-takip':
         return <PubMedMakaleTakvim />;
-
       case 'avif-donusturucu':
         return <AvifConverter />;
-
       case 'sjogren-raporlama':
         return <SjogrenRaporlama />;
-
       case 'endoskopi-raporlama':
         return <EndoskopiRaporlama />;
-
       case 'tiiab-raporlama':
         return <TiiabRaporlama />;
-
       case 'dunya-saatleri':
         return <DunyaSaatleri />;
-
       case 'patoloji-sozlugu':
         return <PatolojiSozlugu onNavigate={navigate} />;
       case 'vki-hesaplama':
         return <VucutKitleIndeksi />;
-
       case 'geri-sayim':
         return <GeriSayim />;
-
       case 'mitoz-donusturucu':
         return <MitozDonusturucu />;
-
       case 'hematoloji-hesaplayici':
         return <HematolojiHesaplayici />;
-
       case 'testis-ght-ihk':
         return <TestisGhtIhk />;
-
       case 'tiroid-papiller-karsinom':
         return <TiroidPapillerKarsinom />;
-
       case 'ngs':
         return <Ngs />;
-
       case 'meme-her2':
         return <MemeHer2Algoritmasi />;
-
       case '404':
         return <NotFound onNavigate={navigate} />;
-
       case 'home':
       default:
         return <Home onNavigate={navigate} />;
@@ -401,11 +432,16 @@ return validPages.includes(path) ? path : '404';
   return (
     <>
       <SEO currentPage={currentPage} />
+
       <Layout currentPage={currentPage} onNavigate={navigate}>
         <ErrorBoundary>
           <React.Suspense
             fallback={
-              <div className="p-8 space-y-4 animate-pulse" role="status" aria-label="Sayfa yükleniyor">
+              <div
+                className="p-8 space-y-4 animate-pulse"
+                role="status"
+                aria-label="Sayfa yükleniyor"
+              >
                 <div className="h-8 bg-slate-200 rounded-lg w-1/3 mx-auto" />
                 <div className="h-4 bg-slate-200 rounded w-2/3 mx-auto" />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
@@ -421,6 +457,7 @@ return validPages.includes(path) ? path : '404';
           </React.Suspense>
         </ErrorBoundary>
       </Layout>
+
       <Toaster position="top-right" />
     </>
   );
