@@ -178,8 +178,8 @@ export function Home({ onNavigate }: HomeProps) {
                 icon={<BookMarked size={40} />}
                 color="bg-[#00A6D6]"
                 size="wide"
-                href="/donem-3/"
-                onClick={() => onNavigate('donem-3')}
+                href="/universite/"
+                onClick={() => onNavigate('universite')}
               />
               <MetroTile
                 title="Eğitim Kaynakları"

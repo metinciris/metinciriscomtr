@@ -16,8 +16,8 @@ interface UniversiteProps {
 /** Üniversite ve SDÜ arşiv sayfalarına kısa bağlantılar */
 const ARCHIVE_LINKS = [
   {
-    title: 'Patoloji Ders Notları',
-    description: 'Tıp, diş ve eczacılık öğrencileri için patoloji ders slaytları ve özet notlar.',
+    title: 'SDÜ Tıp Fakültesi Patoloji Ders Notlarım',
+    description: 'Tıp öğrencileri için patoloji ders slaytları ve özet notlar.',
     icon: BookOpen,
     page: 'donem-3',
     color: '#00A6D6',
