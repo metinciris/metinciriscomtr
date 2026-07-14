@@ -182,13 +182,13 @@ export function Home({ onNavigate }: HomeProps) {
                 onClick={() => onNavigate('universite')}
               />
               <MetroTile
-                title="Eğitim Kaynakları"
-                subtitle={disSubtitle}
-                icon={<FolderOpen size={40} />}
+                title="Öğrenci Yemek Listesi"
+                subtitle="SDÜ kampüs yemekhanesi"
+                icon={<Utensils size={40} />}
                 color="bg-[#E67E22]"
                 size="medium"
-                href="/ders-programi/"
-                onClick={() => onNavigate('ders-programi')}
+                href="/ogrenci-yemek/"
+                onClick={() => onNavigate('ogrenci-yemek')}
               />
               <MetroTile
                 title="Seçili Patoloji Araçları"
