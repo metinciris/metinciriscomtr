@@ -590,23 +590,34 @@ function BlogList({
   initialPage: number;
 }) {
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [clientPage, setClientPage] = useState(initialPage);
+
+  const filterTags = ['Patoloji Radarı', 'Vaka Notları', 'Tanısal Yaklaşım', 'Güncellemeler'];
 
   const normalizedSearch = searchTerm.trim().toLocaleLowerCase('tr-TR');
   const filteredPosts = useMemo(() => {
-    if (!normalizedSearch) return posts;
+    let result = posts;
 
-    return posts.filter((post) => {
+    if (selectedTag) {
+      result = result.filter((post) =>
+        post.labels.includes(selectedTag),
+      );
+    }
+
+    if (!normalizedSearch) return result;
+
+    return result.filter((post) => {
       const haystack = [post.title, post.bodyText, post.labels.join(' ')]
         .join(' ')
         .toLocaleLowerCase('tr-TR');
       return haystack.includes(normalizedSearch);
     });
-  }, [normalizedSearch, posts]);
+  }, [normalizedSearch, posts, selectedTag]);
 
   useEffect(() => {
-    setClientPage(normalizedSearch ? 1 : initialPage);
-  }, [initialPage, normalizedSearch]);
+    setClientPage(normalizedSearch || selectedTag ? 1 : initialPage);
+  }, [initialPage, normalizedSearch, selectedTag]);
 
   const totalPages = Math.max(1, Math.ceil(filteredPosts.length / postsPerPage));
   const currentPage = Math.min(Math.max(clientPage, 1), totalPages);
@@ -669,7 +680,7 @@ function BlogList({
         </p>
       </div>
 
-      <div className="mb-8">
+      <div className="mb-8 flex flex-col gap-4">
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
           <div className="relative">
             <Search
@@ -686,6 +697,25 @@ function BlogList({
               aria-label="Blog yazılarında ara"
             />
           </div>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {filterTags.map((tag) => (
+            <button
+              key={tag}
+              type="button"
+              onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
+              className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-colors border ${
+                selectedTag === tag
+                  ? 'bg-[#27AE60] text-white border-[#27AE60] shadow-md'
+                  : 'bg-white text-gray-600 border-gray-200 hover:border-[#27AE60] hover:text-[#27AE60] shadow-sm'
+              }`}
+              aria-pressed={selectedTag === tag}
+            >
+              <Tag size={14} aria-hidden="true" />
+              {tag}
+            </button>
+          ))}
         </div>
       </div>
 
