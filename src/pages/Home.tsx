@@ -83,26 +83,7 @@ export function Home({ onNavigate }: HomeProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 transition-colors duration-300">
       <PageContainer>
-        {/* ──────── Profesyonel Tanıtım ──────── */}
-        <section className="home-hero mb-10" aria-label="Profesyonel tanıtım">
-          <h1 className="text-3xl md:text-4xl font-bold text-slate-800 mb-1">
-            Prof. Dr. İbrahim Metin Çiriş
-          </h1>
-          <p className="text-lg text-blue-700 font-medium mb-3">
-            Tıbbi Patoloji Uzmanı
-          </p>
-          <p className="text-slate-600 max-w-2xl leading-relaxed mb-2">
-            Tanısal patoloji, moleküler patoloji ve dijital patoloji alanlarında
-            çalışan tıbbi patoloji uzmanı. Patologlar, sağlık profesyonelleri,
-            öğrenciler ve hastalar için bilimsel içerikler, mesleki kaynaklar ve
-            seçili karar destek araçları hazırlamaktadır.
-          </p>
-          <p className="text-sm text-slate-400">
-            {INSTITUTION.name} · {INSTITUTION.department}
-          </p>
-        </section>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-10">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-10 pt-4">
           {/* ══════════ HASTALAR ══════════ */}
           <div>
             <h2 className="mb-1 text-2xl font-bold">Hastalar</h2>
@@ -334,6 +315,25 @@ export function Home({ onNavigate }: HomeProps) {
             </div>
           </div>
         </div>
+
+        {/* ──────── Profesyonel Tanıtım ──────── */}
+        <section className="home-hero mt-12 mb-6" aria-label="Profesyonel tanıtım">
+          <h1 className="text-3xl md:text-4xl font-bold text-slate-800 mb-1">
+            Prof. Dr. İbrahim Metin Çiriş
+          </h1>
+          <p className="text-lg text-blue-700 font-medium mb-3">
+            Tıbbi Patoloji Uzmanı
+          </p>
+          <p className="text-slate-600 max-w-2xl leading-relaxed mb-2">
+            Tanısal patoloji, moleküler patoloji ve dijital patoloji alanlarında
+            çalışan tıbbi patoloji uzmanı. Patologlar, sağlık profesyonelleri,
+            öğrenciler ve hastalar için bilimsel içerikler, mesleki kaynaklar ve
+            seçili karar destek araçları hazırlamaktadır.
+          </p>
+          <p className="text-sm text-slate-400">
+            {INSTITUTION.name} · {INSTITUTION.department}
+          </p>
+        </section>
       </PageContainer>
     </div>
   );
