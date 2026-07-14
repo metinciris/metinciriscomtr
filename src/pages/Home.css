@@ -1,5 +1,18 @@
 /* Sadece Home sayfasına özel stiller */
 
+/* PROFESYONEL TANITIM ALANI */
+.home-hero {
+  padding: 0.5rem 0 0.5rem;
+}
+
+.home-hero h1 {
+  letter-spacing: -0.02em;
+}
+
+.home-hero p:first-of-type {
+  letter-spacing: 0.01em;
+}
+
 /* HAVA DURUMU KAROSU GENEL */
 .home-weather-tile {
   border-radius: 1rem;

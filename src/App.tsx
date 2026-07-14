@@ -103,6 +103,10 @@ const LinkedInPage = React.lazy(() =>
   import('./pages/LinkedIn').then((m) => ({ default: m.LinkedIn })),
 );
 
+const UniversitePage = React.lazy(() =>
+  import('./pages/Universite').then((m) => ({ default: m.Universite })),
+);
+
 const DigerCalismalar = React.lazy(() =>
   import('./pages/DigerCalismalar').then((m) => ({
     default: m.DigerCalismalar,
@@ -357,6 +361,8 @@ export default function App() {
         return <FacebookPage />;
       case 'linkedin':
         return <LinkedInPage />;
+      case 'universite':
+        return <UniversitePage onNavigate={navigate} />;
       case 'diger-calismalar':
         return <DigerCalismalar onNavigate={navigate} />;
       case 'fetus-uzunluklari':

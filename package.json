@@ -29,17 +29,28 @@
     "tailwind-merge": "*"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@tailwindcss/vite": "^4.1.17",
     "@types/file-saver": "^2.0.7",
     "@types/jszip": "^3.4.1",
     "@types/node": "^20.19.25",
     "@vitejs/plugin-react": "^5.1.1",
+    "eslint": "^10.7.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.3",
+    "globals": "^17.7.0",
     "sharp": "^0.34.5",
     "tailwindcss": "^4.1.17",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.64.0",
     "vite": "^6.4.1"
   },
   "scripts": {
     "dev": "vite",
-    "build": "vite build && node scripts/generate-spa-pages.js"
+    "build": "vite build && node scripts/generate-spa-pages.js",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "verify:build": "node scripts/verify-build.js"
   }
 }

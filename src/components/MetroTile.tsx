@@ -7,6 +7,12 @@ interface MetroTileProps {
   color: string;
   size?: 'small' | 'medium' | 'large' | 'wide' | 'tall';
   onClick?: () => void;
+  /** When provided, tile renders as a real <a> element for SEO and accessibility */
+  href?: string;
+  /** For external links: _blank */
+  target?: string;
+  /** For external links: noopener noreferrer */
+  rel?: string;
   className?: string;
   children?: React.ReactNode;
   style?: React.CSSProperties;
@@ -20,6 +26,9 @@ export function MetroTile({
   color,
   size = 'medium',
   onClick,
+  href,
+  target,
+  rel,
   className = '',
   children,
   style,
@@ -33,12 +42,10 @@ export function MetroTile({
     tall: 'col-span-1 row-span-2 h-80',
   };
 
-  return (
-    <div
-      className={`${sizeClasses[size]} ${color} ${className} rounded-2xl cursor-pointer overflow-hidden relative group shadow-lg hover:shadow-2xl hover:-translate-y-2 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300`}
-      onClick={onClick}
-      style={style}
-    >
+  const sharedClassName = `${sizeClasses[size]} ${color} ${className} rounded-2xl cursor-pointer overflow-hidden relative group shadow-lg hover:shadow-2xl hover:-translate-y-2 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 block no-underline`;
+
+  const inner = (
+    <>
       {/* Glassmorphism overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none z-[1]" />
 
@@ -56,6 +63,43 @@ export function MetroTile({
           </div>
         </div>
       </div>
+    </>
+  );
+
+  // Render as <a> when href is provided for SEO, right-click, and keyboard accessibility
+  if (href) {
+    return (
+      <a
+        href={href}
+        target={target}
+        rel={rel}
+        className={sharedClassName}
+        style={style}
+        onClick={(e) => {
+          // For external links (target=_blank), let browser handle normally
+          if (target === '_blank') return;
+          // For internal SPA links, prevent default and use onClick handler
+          if (onClick) {
+            e.preventDefault();
+            onClick();
+          }
+        }}
+      >
+        {inner}
+      </a>
+    );
+  }
+
+  return (
+    <div
+      className={sharedClassName}
+      onClick={onClick}
+      style={style}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={onClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } } : undefined}
+    >
+      {inner}
     </div>
   );
 }

@@ -51,7 +51,7 @@ export const YETERLILIK_OPTS = [
 export const generateSjogrenReport = (inputs: SjogrenInputs): string => {
     const { stains, yeterlilik, izlenenMm2, fokus, fibrozis, yaglanma, otherFindings, customOther } = inputs;
 
-    let lines = ["Üç lam seri kesit "];
+    const lines = ["Üç lam seri kesit "];
     const activeStains = stains.filter(s => s.trim() !== "");
     if (activeStains.length > 0) {
         if (activeStains.length === 1) {

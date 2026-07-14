@@ -19,6 +19,7 @@ export const validPages = [
     'github',
     'facebook',
     'linkedin',
+    'universite',
     'diger-calismalar',
     'fetus-uzunluklari',
     'rcb-calculator',

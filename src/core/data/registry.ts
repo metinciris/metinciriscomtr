@@ -14,10 +14,10 @@ export interface PageMetadata {
 export const PAGE_REGISTRY: Record<string, PageMetadata> = {
     home: {
         slug: '',
-        title: 'Prof Dr Metin Çiriş | SDÜ Tıbbi Patoloji',
-        description: 'Prof Dr Metin Çiriş – Süleyman Demirel Üniversitesi Tıp Fakültesi Tıbbi Patoloji Anabilim Dalı. Hasta bilgilendirme, biyopsi sonuçları ve akademik yayınlar.',
-        keywords: 'patoloji, biyopsi, SDÜ, Süleyman Demirel Üniversitesi, Metin Çiriş, tıbbi patoloji, Isparta',
-        lastmod: '2026-02-17',
+        title: 'Prof. Dr. İbrahim Metin Çiriş | Tıbbi Patoloji Uzmanı',
+        description: 'Prof. Dr. İbrahim Metin Çiriş – Tanısal patoloji, moleküler patoloji, dijital patoloji, bilimsel yayınlar, patoloji notları ve hasta bilgilendirme kaynaklarını içeren profesyonel web sitesi.',
+        keywords: 'patoloji, biyopsi, tıbbi patoloji, Metin Çiriş, tanısal patoloji, moleküler patoloji, dijital patoloji, patoloji uzmanı',
+        lastmod: '2026-07-14',
         priority: 1.0,
         changefreq: 'weekly'
     },
@@ -190,6 +190,15 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'linkedin, profesyonel ağ, akademik network',
         lastmod: '2026-02-17',
         priority: 0.4,
+        changefreq: 'monthly'
+    },
+    universite: {
+        slug: 'universite',
+        title: 'Üniversite ve SDÜ Arşivi | Prof Dr Metin Çiriş',
+        description: 'Süleyman Demirel Üniversitesi dönemine ait ders notları, öğrenci kaynakları, kampüs içerikleri ve patoloji eğitim materyalleri arşivi.',
+        keywords: 'SDÜ, üniversite, ders notları, patoloji eğitim, Süleyman Demirel Üniversitesi, kampüs',
+        lastmod: '2026-07-14',
+        priority: 0.5,
         changefreq: 'monthly'
     },
     'diger-calismalar': {

@@ -107,7 +107,7 @@ function applySpermatocyticPostProcessing(
   ihcScores: Record<string, number>,
 ): { ihc: number; clinical: number; overall: number } {
   let ihc = ihcVal;
-  let clinical = clinVal;
+  const clinical = clinVal;
   let overall = overallVal;
 
   const sall4Pos = isPositive(observedResults, 'SALL4');

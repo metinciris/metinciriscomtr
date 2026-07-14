@@ -42,7 +42,13 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
 
       - name: Build
         run: npm run build
@@ -62,6 +68,9 @@ jobs:
           VITE_GITHUB_REPO_OWNER: ${{ secrets.VITE_GITHUB_REPO_OWNER }}
           VITE_GITHUB_REPO_NAME: ${{ secrets.VITE_GITHUB_REPO_NAME }}
           VITE_API_RATE_LIMIT: ${{ secrets.VITE_API_RATE_LIMIT }}
+
+      - name: Verify build
+        run: npm run verify:build
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

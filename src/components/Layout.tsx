@@ -29,6 +29,7 @@ const PAGE_NAMES: Record<string, string> = {
   github: 'GitHub',
   facebook: 'Facebook',
   linkedin: 'LinkedIn',
+  universite: 'Üniversite ve SDÜ Arşivi',
   'diger-calismalar': 'Diğer Çalışmalar',
   'fetus-uzunluklari': 'Fetus Uzunlukları',
   'rcb-calculator': 'RCB Calculator',
@@ -52,9 +53,23 @@ const PAGE_NAMES: Record<string, string> = {
   'endoskopi-raporlama': 'Endoskopi Raporlama',
   'tiiab-raporlama': 'TİİAB Raporlama',
   'dunya-saatleri': 'Dünya Saatleri',
+  'patoloji-sozlugu': 'Patoloji Sözlüğü',
+  'vki-hesaplama': 'VKİ Hesaplama',
+  'geri-sayim': 'Geri Sayım',
+  'mitoz-donusturucu': 'Mitoz Dönüştürücü',
+  'hematoloji-hesaplayici': 'Hematoloji Hesaplayıcı',
+  'testis-ght-ihk': 'Testis GHT İHK',
+  'tiroid-papiller-karsinom': 'Tiroid Papiller Karsinom',
+  ngs: 'NGS Gen Arama',
+  'meme-her2': 'Meme HER2',
 };
 
 const BASE_URL = 'https://metinciris.com.tr';
+
+/** Nav item href helper */
+function navHref(path: string): string {
+  return path === 'home' ? '/' : `/${path}/`;
+}
 
 export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
@@ -94,14 +109,15 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
       <header className="bg-[#1e1e1e]/80 backdrop-blur-md text-white fixed top-0 left-0 right-0 z-50 shadow-lg border-b border-white/5 transition-colors duration-300" role="banner">
         <div className="container mx-auto px-4 max-w-none">
           <div className="flex items-center justify-between h-20 md:h-16">
-            {/* Logo + isim - Left side */}
-            <div
-              className="flex items-center space-x-3 cursor-pointer min-h-[48px] py-2 px-2"
-              onClick={() => onNavigate('home')}
-              role="button"
-              tabIndex={0}
+            {/* Logo + isim - Left side — real <a> for SEO */}
+            <a
+              href="/"
+              className="flex items-center space-x-3 min-h-[48px] py-2 px-2 no-underline text-white"
+              onClick={(e) => {
+                e.preventDefault();
+                onNavigate('home');
+              }}
               aria-label="Ana sayfaya git"
-              onKeyDown={(e) => e.key === 'Enter' && onNavigate('home')}
             >
               {/* Avatar */}
               <div className="w-12 h-12 bg-[#00A6D6] rounded-xl overflow-hidden flex items-center justify-center">
@@ -114,26 +130,30 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
                 />
               </div>
               <div>
-                <h1 className="m-0 leading-tight text-lg md:text-xl">
+                <div className="m-0 leading-tight text-lg md:text-xl font-bold">
                   Prof Dr Metin Çiriş
-                </h1>
+                </div>
                 <p
                   className="text-white/70 m-0 mt-0.5"
                   style={{ fontSize: '0.75rem' }}
                 >
-                  SDÜ Tıp Fakültesi Tıbbi Patoloji
+                  Tıbbi Patoloji Uzmanı
                 </p>
               </div>
-            </div>
+            </a>
 
-            {/* Desktop Navigation - Right side */}
+            {/* Desktop Navigation - Right side — real <a> elements */}
             <nav className="hidden md:flex items-center space-x-1" aria-label="Ana navigasyon">
               {navItems.map((item) => (
-                <button
+                <a
                   key={item.path}
-                  onClick={() => onNavigate(item.path)}
+                  href={navHref(item.path)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onNavigate(item.path);
+                  }}
                   aria-current={currentPage === item.path ? 'page' : undefined}
-                  className={`px-4 py-2 flex items-center space-x-2 transition-colors bg-transparent ${currentPage === item.path
+                  className={`px-4 py-2 flex items-center space-x-2 transition-colors no-underline ${currentPage === item.path
                     ? 'bg-[#0078D4] text-white'
                     : 'text-white/80 hover:bg-white/10'
                     }`}
@@ -141,7 +161,7 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
                 >
                   <item.icon size={18} aria-hidden="true" />
                   <span>{item.name}</span>
-                </button>
+                </a>
               ))}
             </nav>
 
@@ -173,13 +193,15 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
 
               <nav className="flex flex-col space-y-6" aria-label="Mobil navigasyon">
                 {navItems.map((item, index) => (
-                  <button
+                  <a
                     key={item.path}
-                    onClick={() => {
+                    href={navHref(item.path)}
+                    onClick={(e) => {
+                      e.preventDefault();
                       onNavigate(item.path);
                       setMobileMenuOpen(false);
                     }}
-                    className={`text-2xl font-medium flex items-center space-x-4 p-4 rounded-xl transition-all animate-slide-down ${currentPage === item.path
+                    className={`text-2xl font-medium flex items-center space-x-4 p-4 rounded-xl transition-all animate-slide-down no-underline ${currentPage === item.path
                       ? 'bg-blue-600/20 text-[#0078D4]'
                       : 'text-white/80 hover:text-white hover:bg-white/5'
                       }`}
@@ -187,7 +209,7 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
                   >
                     <item.icon size={28} />
                     <span>{item.name}</span>
-                  </button>
+                  </a>
                 ))}
               </nav>
 
@@ -273,35 +295,42 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
             <div>
               <h3>Prof Dr Metin Çiriş</h3>
               <p className="text-white/70 mt-2">
-                Süleyman Demirel Üniversitesi
-                <br />
-                Tıp Fakültesi Tıbbi Patoloji Anabilim Dalı
+                Tıbbi Patoloji Uzmanı
               </p>
             </div>
             <div>
               <h4>Hızlı Erişim</h4>
               <div className="flex flex-col space-y-2 mt-2">
-                <button
-                  onClick={() => onNavigate('iletisim')}
-                  className="bg-transparent text-white/70 hover:text-white text-left transition-colors"
-                  style={{ backgroundColor: 'transparent' }}
+                <a
+                  href="/iletisim/"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onNavigate('iletisim');
+                  }}
+                  className="text-white/70 hover:text-white transition-colors no-underline"
                 >
                   İletişim
-                </button>
-                <button
-                  onClick={() => onNavigate('ders-programi')}
-                  className="bg-transparent text-white/70 hover:text-white text-left transition-colors"
-                  style={{ backgroundColor: 'transparent' }}
-                >
-                  Ders Programı
-                </button>
-                <button
-                  onClick={() => onNavigate('yayinlar')}
-                  className="bg-transparent text-white/70 hover:text-white text-left transition-colors"
-                  style={{ backgroundColor: 'transparent' }}
+                </a>
+                <a
+                  href="/yayinlar/"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onNavigate('yayinlar');
+                  }}
+                  className="text-white/70 hover:text-white transition-colors no-underline"
                 >
                   Yayınlar
-                </button>
+                </a>
+                <a
+                  href="/blog/"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onNavigate('blog');
+                  }}
+                  className="text-white/70 hover:text-white transition-colors no-underline"
+                >
+                  Blog
+                </a>
               </div>
             </div>
             <div>
@@ -334,7 +363,7 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
           </div>
           <div className="border-t border-white/20 mt-8 pt-6 text-center text-white/60">
             <p className="m-0">
-              © {currentYear} Prof Dr Metin Çiriş - SDÜ Tıp Fakültesi Tıbbi Patoloji
+              © {currentYear} Prof Dr Metin Çiriş – Tıbbi Patoloji Uzmanı
             </p>
           </div>
         </div>

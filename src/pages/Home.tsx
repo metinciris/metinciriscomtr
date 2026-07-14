@@ -12,11 +12,11 @@ import {
   Users,
   Building2,
   FolderOpen,
-  Linkedin,
   Phone,
   Headphones,
   Microscope,
   Calendar,
+  Landmark,
 } from 'lucide-react';
 import { useRotatingText } from '../hooks/useRotatingText';
 import { useWeather } from '../hooks/useWeather';
@@ -39,6 +39,16 @@ import './Home.css';
 interface HomeProps {
   onNavigate: (page: string) => void;
 }
+
+/* ──────────────────────────────────────────────
+   Kurum bilgisi — ayrı const olarak tutulur,
+   kurum değişikliğinde sadece burası güncellenir.
+   ────────────────────────────────────────────── */
+const INSTITUTION = {
+  name: 'Süleyman Demirel Üniversitesi',
+  department: 'Tıp Fakültesi Tıbbi Patoloji Anabilim Dalı',
+  city: 'Isparta',
+};
 
 /** Küçük yardımcı: yazıyı tek satırda tutmak için kısaltma */
 function shorten(text: string, max: number): string {
@@ -73,12 +83,32 @@ export function Home({ onNavigate }: HomeProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 transition-colors duration-300">
       <PageContainer>
+        {/* ──────── Profesyonel Tanıtım ──────── */}
+        <section className="home-hero mb-10" aria-label="Profesyonel tanıtım">
+          <h1 className="text-3xl md:text-4xl font-bold text-slate-800 mb-1">
+            Prof. Dr. İbrahim Metin Çiriş
+          </h1>
+          <p className="text-lg text-blue-700 font-medium mb-3">
+            Tıbbi Patoloji Uzmanı
+          </p>
+          <p className="text-slate-600 max-w-2xl leading-relaxed mb-2">
+            Tanısal patoloji, moleküler patoloji ve dijital patoloji alanlarında
+            çalışan tıbbi patoloji uzmanı. Patologlar, sağlık profesyonelleri,
+            öğrenciler ve hastalar için bilimsel içerikler, mesleki kaynaklar ve
+            seçili karar destek araçları hazırlamaktadır.
+          </p>
+          <p className="text-sm text-slate-400">
+            {INSTITUTION.name} · {INSTITUTION.department}
+          </p>
+        </section>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-10">
-          {/* HASTA Bölümü */}
+          {/* ══════════ HASTALAR ══════════ */}
           <div>
-            <h2 className="mb-1 text-2xl font-bold">Hasta</h2>
+            <h2 className="mb-1 text-2xl font-bold">Hastalar</h2>
             <p className="mb-4 text-sm text-slate-600">
-              Biyopsi sonuçları, iletişim ve günlük pratik bilgiler.
+              Biyopsi sonuçları, patoloji raporları, iletişim ve günlük pratik
+              bilgiler.
             </p>
             <div className="grid grid-cols-2 gap-4">
               <MetroTile
@@ -87,38 +117,43 @@ export function Home({ onNavigate }: HomeProps) {
                 icon={<Phone size={40} />}
                 color="bg-[#00A6D6]"
                 size="wide"
+                href="/iletisim/"
                 onClick={() => onNavigate('iletisim')}
               />
               <MetroTile
-                title="Ziyaret Mesajı"
-                subtitle=""
-                icon={<MessageSquare size={40} />}
-                color="bg-[#FF8C00]"
-                size="medium"
-                onClick={() => onNavigate('ziyaret-mesaji')}
-              />
-              <MetroTile
-                title="Biyopsi Sonucu"
-                subtitle=""
+                title="Biyopsi ve Patoloji"
+                subtitle="Patoloji raporu hakkında bilgilendirme"
                 icon={<FileText size={40} />}
                 color="bg-[#8E44AD]"
                 size="medium"
+                href="/biyopsi-sonucu/"
                 onClick={() => onNavigate('biyopsi-sonucu')}
               />
               <MetroTile
+                title="Sık Sorulan Sorular"
+                subtitle="Biyopsi süreci ve patoloji hakkında"
+                icon={<MessageSquare size={40} />}
+                color="bg-[#FF8C00]"
+                size="medium"
+                href="/ziyaret-mesaji/"
+                onClick={() => onNavigate('ziyaret-mesaji')}
+              />
+              <MetroTile
                 title="Baktığım Biyopsiler"
-                subtitle=""
+                subtitle="İncelenen biyopsi türleri"
                 icon={<BookOpen size={40} />}
                 color="bg-[#0078D4]"
                 size="medium"
+                href="/baktigim-biyopsiler/"
                 onClick={() => onNavigate('baktigim-biyopsiler')}
               />
               <MetroTile
                 title="Isparta Nöbetçi Eczane"
-                subtitle=""
+                subtitle="Güncel nöbetçi eczane listesi"
                 icon={<Building2 size={40} />}
                 color="bg-[#A52A2A]"
                 size="medium"
+                href="/nobetci-eczane/"
                 onClick={() => onNavigate('nobetci-eczane')}
               />
               <MetroTile
@@ -127,6 +162,7 @@ export function Home({ onNavigate }: HomeProps) {
                 icon={<Utensils size={40} />}
                 color="bg-[#16A085]"
                 size="medium"
+                href="/hastane-yemek/"
                 onClick={() => onNavigate('hastane-yemek')}
               />
 
@@ -147,58 +183,50 @@ export function Home({ onNavigate }: HomeProps) {
             </div>
           </div>
 
-          {/* ÖĞRENCİ Bölümü */}
+          {/* ══════════ PATOLOJİ VE EĞİTİM ══════════ */}
           <div>
-            <h2 className="mb-1 text-2xl font-bold">Öğrenci</h2>
+            <h2 className="mb-1 text-2xl font-bold">Patoloji ve Eğitim</h2>
             <p className="mb-4 text-sm text-slate-600">
-              Tıp, diş ve eczacılık öğrencileri için ders notları ve
-              programlar.
+              Patoloji eğitimi, ders notları, güncel vakalar ve mesleki
+              kaynaklar.
             </p>
             <div className="grid grid-cols-2 gap-4">
               <MetroTile
-                title="SDÜ Tıp Patoloji Notlarım"
+                title="Patoloji Notları"
                 subtitle={tipSubtitle}
                 icon={<BookMarked size={40} />}
                 color="bg-[#00A6D6]"
                 size="wide"
+                href="/donem-3/"
                 onClick={() => onNavigate('donem-3')}
               />
               <MetroTile
-                title="Diş Ders Notlarım"
+                title="Eğitim Kaynakları"
                 subtitle={disSubtitle}
                 icon={<FolderOpen size={40} />}
                 color="bg-[#E67E22]"
                 size="medium"
-                onClick={() =>
-                  window.open(
-                    'https://www.dropbox.com/scl/fo/ux2nae6xf2vc09m63jwwj/AOfBeT92mkwxHs0wt-VIZDQ/Di%C5%9F%20hekimli%C4%9Fi?dl=0&rlkey=4z1tpnwnam9pxt0vo2no8t8v6&subfolder_nav_tracking=1',
-                    '_blank',
-                  )
-                }
+                href="/ders-programi/"
+                onClick={() => onNavigate('ders-programi')}
               />
               <MetroTile
-                title="Eczacılık Notlarım"
+                title="Seçili Patoloji Araçları"
                 subtitle={eczaSubtitle}
-                icon={<FolderOpen size={40} />}
+                icon={<Microscope size={40} />}
                 color="bg-[#3498DB]"
                 size="medium"
-                onClick={() =>
-                  window.open(
-                    'https://www.dropbox.com/scl/fo/ux2nae6xf2vc09m63jwwj/APcXz0YMCCY2ZVcsb62t80w/Eczac%C4%B1l%C4%B1k?dl=0&rlkey=4z1tpnwnam9pxt0vo2no8t8v6&subfolder_nav_tracking=1',
-                    '_blank',
-                  )
-                }
+                href="/diger-calismalar/"
+                onClick={() => onNavigate('diger-calismalar')}
               />
               <MetroTile
                 title="Patoloji Ders Programları"
-                subtitle=""
+                subtitle="Güncel ders takvimi"
                 icon={<GraduationCap size={40} />}
                 color="bg-[#003E7E]"
                 size="medium"
+                href="/ders-programi/"
                 onClick={() => onNavigate('ders-programi')}
               />
-
-              {/* Ayın Vakası */}
               <MetroTile
                 title="Ayın Vakası"
                 subtitle="Kendinizi test edin"
@@ -206,36 +234,35 @@ export function Home({ onNavigate }: HomeProps) {
                 color=""
                 style={{ backgroundColor: '#8B0000', color: 'white' }}
                 size="medium"
+                href="/ayin-vakasi/"
                 onClick={() => onNavigate('ayin-vakasi')}
               />
-
-              {/* Slide Galeri */}
               <MetroTile
                 title="Slide Galeri"
                 subtitle={galeriSubtitle}
                 icon={<Microscope size={40} />}
                 color="bg-[#003E7E]"
                 size="medium"
+                href="/galeri/"
                 onClick={() => onNavigate('galeri')}
               />
-
-              {/* Makale Takip */}
               <MetroTile
                 title="Makale Takip"
                 subtitle={makaleSubtitle}
                 icon={<Calendar size={40} />}
                 color="bg-[#16A085]"
                 size="medium"
+                href="/pubmed-makale-takip/"
                 onClick={() => onNavigate('pubmed-makale-takip')}
               />
             </div>
           </div>
 
-          {/* AKADEMİK Bölümü */}
+          {/* ══════════ AKADEMİK / PROFESYONEL ══════════ */}
           <div>
-            <h2 className="mb-1 text-2xl font-bold">Akademik</h2>
+            <h2 className="mb-1 text-2xl font-bold">Akademik / Profesyonel</h2>
             <p className="mb-4 text-sm text-slate-600">
-              Yayınlar, portfolyo ve patolojiye yönelik projeler.
+              Yayınlar, özgeçmiş, moleküler patoloji ve profesyonel çalışmalar.
             </p>
             <div className="grid grid-cols-2 gap-4">
               <MetroTile
@@ -244,14 +271,16 @@ export function Home({ onNavigate }: HomeProps) {
                 icon={<FileText size={40} />}
                 color="bg-[#DC143C]"
                 size="medium"
+                href="/yayinlar/"
                 onClick={() => onNavigate('yayinlar')}
               />
               <MetroTile
-                title="Portfolyo"
+                title="Özgeçmiş"
                 subtitle={portfolyoSubtitle}
                 icon={<Briefcase size={40} />}
                 color="bg-[#8E44AD]"
                 size="medium"
+                href="/portfolyo/"
                 onClick={() => onNavigate('portfolyo')}
               />
 
@@ -262,6 +291,7 @@ export function Home({ onNavigate }: HomeProps) {
                 icon={<Headphones size={40} />}
                 color="bg-[#E67E22]"
                 size="wide"
+                href="/podcast/"
                 onClick={() => onNavigate('podcast')}
               />
 
@@ -271,15 +301,17 @@ export function Home({ onNavigate }: HomeProps) {
                 icon={<Users size={40} />}
                 color="bg-[#2563eb] text-white"
                 size="medium"
+                href="/konsensus/"
                 onClick={() => onNavigate('konsensus')}
               />
               <MetroTile
-                title="LinkedIn"
-                subtitle=""
-                icon={<Linkedin size={40} />}
+                title="Üniversite ve SDÜ Arşivi"
+                subtitle="Ders notları, öğrenci kaynakları"
+                icon={<Landmark size={40} />}
                 color="bg-[#0077B5] text-white"
                 size="medium"
-                onClick={() => onNavigate('linkedin')}
+                href="/universite/"
+                onClick={() => onNavigate('universite')}
               />
               <MetroTile
                 title="Blog"
@@ -287,6 +319,7 @@ export function Home({ onNavigate }: HomeProps) {
                 icon={<FileText size={40} />}
                 color="bg-[#8E44AD]"
                 size="medium"
+                href="/blog/"
                 onClick={() => onNavigate('blog')}
               />
               <MetroTile
@@ -295,6 +328,7 @@ export function Home({ onNavigate }: HomeProps) {
                 icon={<Briefcase size={40} />}
                 color="bg-[#27AE60]"
                 size="medium"
+                href="/diger-calismalar/"
                 onClick={() => onNavigate('diger-calismalar')}
               />
             </div>
