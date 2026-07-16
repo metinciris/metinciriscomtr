@@ -174,7 +174,7 @@ export function NobetciEczane() {
             className="inline-flex items-center gap-3 bg-[#990000] text-white px-12 py-6 hover:bg-[#8B0000] transition-colors text-xl"
           >
             <ExternalLink size={28} />
-            <span>Isparta Güncel Nöbetçi Eczaneler İçin Tıklayın</span>
+            <span>Eczacılar Odası Isparta Güncel Nöbetçi Eczaneler web sayfası için Tıklayın</span>
           </a>
 
           <p className="text-muted-foreground mt-6">
