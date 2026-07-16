@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { PageContainer } from '../components/PageContainer';
 import { motion, AnimatePresence } from 'motion/react';
 import {
@@ -10,7 +10,6 @@ import {
     Loader2,
     FileArchive,
     Trash2,
-    Layers,
     ZoomIn,
     ZoomOut,
     Maximize2,
@@ -20,6 +19,7 @@ import {
 } from 'lucide-react';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
+import heic2any from 'heic2any';
 import encode, { init } from '@jsquash/avif/encode';
 
 interface ConversionItem {
@@ -31,6 +31,13 @@ interface ConversionItem {
     resultBlob?: Blob;
     error?: string;
     originalSize: number;
+
+    /**
+     * HEIC/HEIF dosyalarının tarayıcı tarafından okunabilir hâli.
+     * JPEG, PNG ve diğer normal resimlerde doğrudan File nesnesidir.
+     */
+    sourceBlob?: Blob;
+
     newSize?: number;
     previewUrl: string;
     resultUrl?: string;
@@ -38,81 +45,313 @@ interface ConversionItem {
     height?: number;
 }
 
+const QUALITY = 40;
+const HEIC_JPEG_QUALITY = 0.95;
+
+const HEIC_MIME_TYPES = new Set([
+    'image/heic',
+    'image/heif',
+    'image/heic-sequence',
+    'image/heif-sequence'
+]);
+
+function getErrorMessage(error: unknown): string {
+    if (error instanceof Error) {
+        return error.message;
+    }
+
+    return String(error);
+}
+
+function isHeicFile(file: File): boolean {
+    const mimeType = file.type.toLowerCase();
+
+    return (
+        /\.(heic|heif)$/i.test(file.name) ||
+        HEIC_MIME_TYPES.has(mimeType)
+    );
+}
+
+function isSupportedImageFile(file: File): boolean {
+    return (
+        file.type.startsWith('image/') ||
+        /\.(heic|heif)$/i.test(file.name)
+    );
+}
+
+/**
+ * HEIC/HEIF dosyalarını tarayıcının okuyabileceği JPEG Blob'una çevirir.
+ *
+ * Dosyanın uzantısı HEIC olduğu hâlde gerçek içeriği JPEG ise heic2any
+ * "already browser readable" hatası verir. Bu durumda orijinal dosya
+ * doğrudan kullanılır.
+ */
+async function makeBrowserReadable(file: File): Promise<Blob> {
+    if (!isHeicFile(file)) {
+        return file;
+    }
+
+    try {
+        const converted = await heic2any({
+            blob: file,
+            toType: 'image/jpeg',
+            quality: HEIC_JPEG_QUALITY
+        });
+
+        const readableBlob = Array.isArray(converted)
+            ? converted[0]
+            : converted;
+
+        if (!(readableBlob instanceof Blob)) {
+            throw new Error('HEIC dosyası okunabilir görüntüye dönüştürülemedi.');
+        }
+
+        return readableBlob;
+    } catch (error: unknown) {
+        const message = getErrorMessage(error);
+
+        /*
+         * Bazı telefonlar veya Windows aktarım araçları dosyayı JPEG'e
+         * dönüştürüp .HEIC uzantısını koruyabilir.
+         */
+        if (
+            /already browser readable/i.test(message) ||
+            /image is already browser readable/i.test(message)
+        ) {
+            return file;
+        }
+
+        throw error;
+    }
+}
+
 export function AvifConverter() {
     const [items, setItems] = useState<ConversionItem[]>([]);
     const [isProcessing, setIsProcessing] = useState(false);
     const [selectedItem, setSelectedItem] = useState<ConversionItem | null>(null);
+
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const itemsRef = useRef<ConversionItem[]>([]);
+
     const [isDragging, setIsDragging] = useState(false);
     const [isEngineReady, setIsEngineReady] = useState(false);
     const [engineError, setEngineError] = useState<string | null>(null);
 
-    // Fixed quality setting from user's example
-    const QUALITY = 40;
+    useEffect(() => {
+        itemsRef.current = items;
+    }, [items]);
 
-    // Initialize AVIF Engine
+    /*
+     * Bileşen sayfadan kaldırıldığında oluşturulan object URL'lerini temizle.
+     */
+    useEffect(() => {
+        return () => {
+            itemsRef.current.forEach(item => {
+                URL.revokeObjectURL(item.previewUrl);
+
+                if (item.resultUrl) {
+                    URL.revokeObjectURL(item.resultUrl);
+                }
+            });
+        };
+    }, []);
+
+    // AVIF motorunu başlat
     useEffect(() => {
         const loadEngine = async () => {
             try {
-                // Force single-thread mode and use stable public paths for WASM
                 await init({
-                    threads: false, // Disable multithreading to avoid SharedArrayBuffer/header issues
+                    /*
+                     * SharedArrayBuffer ve özel sunucu başlığı
+                     * gerektirmemesi için tek iş parçacığı.
+                     */
+                    threads: false,
+
                     locateFile: (path: string) => {
-                        if (path.endsWith('avif_enc.wasm')) return '/wasm/avif/avif_enc.wasm';
-                        if (path.endsWith('avif_enc_mt.wasm')) return '/wasm/avif/avif_enc_mt.wasm';
-                        if (path.endsWith('avif_dec.wasm')) return '/wasm/avif/avif_dec.wasm';
-                        if (path.endsWith('avif_enc_mt.worker.mjs')) return '/wasm/avif/avif_enc_mt.worker.mjs';
-                        if (path.endsWith('avif_enc_mt.js')) return '/wasm/avif/avif_enc_mt.js';
-                        if (path.endsWith('avif_enc.js')) return '/wasm/avif/avif_enc.js';
-                        if (path.endsWith('avif_dec.js')) return '/wasm/avif/avif_dec.js';
+                        if (path.endsWith('avif_enc.wasm')) {
+                            return '/wasm/avif/avif_enc.wasm';
+                        }
+
+                        if (path.endsWith('avif_enc_mt.wasm')) {
+                            return '/wasm/avif/avif_enc_mt.wasm';
+                        }
+
+                        if (path.endsWith('avif_dec.wasm')) {
+                            return '/wasm/avif/avif_dec.wasm';
+                        }
+
+                        if (path.endsWith('avif_enc_mt.worker.mjs')) {
+                            return '/wasm/avif/avif_enc_mt.worker.mjs';
+                        }
+
+                        if (path.endsWith('avif_enc_mt.js')) {
+                            return '/wasm/avif/avif_enc_mt.js';
+                        }
+
+                        if (path.endsWith('avif_enc.js')) {
+                            return '/wasm/avif/avif_enc.js';
+                        }
+
+                        if (path.endsWith('avif_dec.js')) {
+                            return '/wasm/avif/avif_dec.js';
+                        }
+
                         return path;
                     }
                 });
+
                 setIsEngineReady(true);
-            } catch (err: any) {
-                console.error('Failed to initialize AVIF engine:', err);
-                const errorMessage = err?.message || String(err);
-                setEngineError(`AVIF motoru başlatılamadı: ${errorMessage}`);
+            } catch (error: unknown) {
+                console.error('Failed to initialize AVIF engine:', error);
+
+                const message = getErrorMessage(error);
+
+                setEngineError(
+                    `AVIF motoru başlatılamadı: ${message}`
+                );
             }
         };
-        loadEngine();
+
+        void loadEngine();
     }, []);
 
-    // Auto-start processing
+    /*
+     * Bekleyen dosya varsa otomatik olarak sıradaki dosyayı işle.
+     */
     useEffect(() => {
-        if (!isProcessing && isEngineReady && items.some(item => item.status === 'pending')) {
-            processNext();
+        const hasPendingItem = items.some(
+            item => item.status === 'pending'
+        );
+
+        if (
+            !isProcessing &&
+            isEngineReady &&
+            hasPendingItem
+        ) {
+            void processNext();
         }
     }, [items, isProcessing, isEngineReady]);
 
-    const generateId = (file: File) => `${file.name}-${file.size}-${file.lastModified}`;
+    const generateId = (file: File) =>
+        `${file.name}-${file.size}-${file.lastModified}`;
 
-    const handleFiles = (files: FileList | null) => {
-        if (!files) return;
+    const updateItemStatus = (
+        id: string,
+        status: ConversionItem['status'],
+        error?: string
+    ) => {
+        setItems(previousItems =>
+            previousItems.map(item =>
+                item.id === id
+                    ? {
+                        ...item,
+                        status,
+                        error
+                    }
+                    : item
+            )
+        );
+    };
 
-        const newItems: ConversionItem[] = [];
-        Array.from(files).forEach(file => {
-            if (!file.type.startsWith('image/')) return;
+    /**
+     * Dosyaları listeye ekler.
+     *
+     * HEIC/HEIF dosyaları bu aşamada tarayıcının gösterebileceği JPEG
+     * Blob'una çevrilir. Böylece küçük resim ve karşılaştırma ekranı da
+     * çalışır.
+     */
+    const handleFiles = async (files: FileList | null) => {
+        if (!files) {
+            return;
+        }
+
+        const currentIds = new Set(
+            items.map(item => item.id)
+        );
+
+        const batchIds = new Set<string>();
+
+        const candidateFiles = Array.from(files).filter(file => {
+            if (!isSupportedImageFile(file)) {
+                return false;
+            }
 
             const id = generateId(file);
-            if (items.some(item => item.id === id)) return;
 
-            newItems.push({
-                id,
-                file,
-                name: file.name,
-                status: 'pending',
-                progress: 0,
-                originalSize: file.size,
-                previewUrl: URL.createObjectURL(file),
-            });
+            if (currentIds.has(id) || batchIds.has(id)) {
+                return false;
+            }
+
+            batchIds.add(id);
+            return true;
         });
 
-        setItems(prev => [...prev, ...newItems]);
+        if (candidateFiles.length === 0) {
+            return;
+        }
+
+        const preparedItems = await Promise.all(
+            candidateFiles.map(
+                async (file): Promise<ConversionItem> => {
+                    let sourceBlob: Blob | undefined;
+
+                    try {
+                        sourceBlob = await makeBrowserReadable(file);
+                    } catch (error: unknown) {
+                        /*
+                         * Önizleme hazırlığı başarısız olsa bile dosyayı
+                         * listeye ekliyoruz. Asıl işlem sırasında tekrar
+                         * denenecek ve kullanıcıya ayrıntılı hata gösterilecek.
+                         */
+                        console.warn(
+                            `Önizleme hazırlanamadı: ${file.name}`,
+                            error
+                        );
+                    }
+
+                    const previewBlob = sourceBlob ?? file;
+
+                    return {
+                        id: generateId(file),
+                        file,
+                        name: file.name,
+                        status: 'pending',
+                        progress: 0,
+                        originalSize: file.size,
+                        sourceBlob,
+                        previewUrl: URL.createObjectURL(previewBlob)
+                    };
+                }
+            )
+        );
+
+        setItems(previousItems => {
+            const previousIds = new Set(
+                previousItems.map(item => item.id)
+            );
+
+            const uniqueItems = preparedItems.filter(item => {
+                if (previousIds.has(item.id)) {
+                    URL.revokeObjectURL(item.previewUrl);
+                    return false;
+                }
+
+                previousIds.add(item.id);
+                return true;
+            });
+
+            return [
+                ...previousItems,
+                ...uniqueItems
+            ];
+        });
     };
 
     const processNext = async () => {
-        const nextItem = items.find(item => item.status === 'pending');
+        const nextItem = items.find(
+            item => item.status === 'pending'
+        );
+
         if (!nextItem) {
             setIsProcessing(false);
             return;
@@ -121,117 +360,250 @@ export function AvifConverter() {
         setIsProcessing(true);
         updateItemStatus(nextItem.id, 'processing');
 
+        let bitmap: ImageBitmap | null = null;
+
         try {
-            // Using createImageBitmap for better efficiency as per example
-            const bm = await createImageBitmap(nextItem.file);
+            /*
+             * HEIC ise önceden hazırlanmış JPEG Blob'unu kullan.
+             * Önceden hazırlanmadıysa burada tekrar dönüştürmeyi dene.
+             */
+            const readableBlob =
+                nextItem.sourceBlob ??
+                await makeBrowserReadable(nextItem.file);
+
+            bitmap = await createImageBitmap(readableBlob);
+
+            const width = bitmap.width;
+            const height = bitmap.height;
+
             const canvas = document.createElement('canvas');
-            canvas.width = bm.width;
-            canvas.height = bm.height;
-            const ctx = canvas.getContext('2d', { willReadFrequently: true });
-            if (!ctx) throw new Error('Canvas context could not be created');
+            canvas.width = width;
+            canvas.height = height;
 
-            ctx.drawImage(bm, 0, 0);
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            bm.close?.();
+            const context = canvas.getContext(
+                '2d',
+                { willReadFrequently: true }
+            );
 
-            // Convert to AVIF using fixed quality: 40
-            const avifBuffer = await encode(imageData, { quality: QUALITY });
-            const resultBlob = new Blob([avifBuffer], { type: 'image/avif' });
+            if (!context) {
+                throw new Error(
+                    'Canvas görüntü alanı oluşturulamadı.'
+                );
+            }
+
+            context.drawImage(bitmap, 0, 0);
+
+            const imageData = context.getImageData(
+                0,
+                0,
+                width,
+                height
+            );
+
+            bitmap.close();
+            bitmap = null;
+
+            const avifBuffer = await encode(
+                imageData,
+                {
+                    quality: QUALITY
+                }
+            );
+
+            const resultBlob = new Blob(
+                [avifBuffer],
+                {
+                    type: 'image/avif'
+                }
+            );
+
             const resultUrl = URL.createObjectURL(resultBlob);
 
-            setItems(prev => prev.map(item =>
-                item.id === nextItem.id
-                    ? {
+            setItems(previousItems =>
+                previousItems.map(item => {
+                    if (item.id !== nextItem.id) {
+                        return item;
+                    }
+
+                    /*
+                     * Aynı dosya tekrar işlenmişse eski sonucu temizle.
+                     */
+                    if (item.resultUrl) {
+                        URL.revokeObjectURL(item.resultUrl);
+                    }
+
+                    return {
                         ...item,
                         status: 'completed',
+                        progress: 100,
+                        sourceBlob: readableBlob,
                         resultBlob,
                         resultUrl,
                         newSize: resultBlob.size,
-                        progress: 100,
-                        width: canvas.width,
-                        height: canvas.height
-                    }
-                    : item
-            ));
-        } catch (error: any) {
+                        width,
+                        height,
+                        error: undefined
+                    };
+                })
+            );
+        } catch (error: unknown) {
             console.error('Conversion error:', error);
-            updateItemStatus(nextItem.id, 'error', error.message || 'Dönüştürme hatası');
+
+            const message = getErrorMessage(error);
+
+            updateItemStatus(
+                nextItem.id,
+                'error',
+                message || 'Dönüştürme hatası'
+            );
         } finally {
+            bitmap?.close();
             setIsProcessing(false);
         }
     };
 
-    const updateItemStatus = (id: string, status: ConversionItem['status'], error?: string) => {
-        setItems(prev => prev.map(item =>
-            item.id === id ? { ...item, status, error } : item
-        ));
-    };
-
     const downloadAllAsZip = async () => {
-        const completedItems = items.filter(item => item.status === 'completed' && item.resultBlob);
-        if (completedItems.length === 0) return;
+        const completedItems = items.filter(
+            item =>
+                item.status === 'completed' &&
+                item.resultBlob
+        );
+
+        if (completedItems.length === 0) {
+            return;
+        }
 
         const zip = new JSZip();
+
         completedItems.forEach(item => {
-            const fileName = item.name.replace(/\.[^/.]+$/, "") + ".avif";
-            zip.file(fileName, item.resultBlob!);
+            const fileName =
+                item.name.replace(/\.[^/.]+$/, '') +
+                '.avif';
+
+            zip.file(
+                fileName,
+                item.resultBlob!
+            );
         });
 
-        const content = await zip.generateAsync({ type: "blob" });
-        saveAs(content, "avif-images.zip");
+        const content = await zip.generateAsync({
+            type: 'blob'
+        });
+
+        saveAs(
+            content,
+            'avif-images.zip'
+        );
     };
 
     const removeFile = (id: string) => {
-        setItems(prev => {
-            const item = prev.find(i => i.id === id);
+        if (selectedItem?.id === id) {
+            setSelectedItem(null);
+        }
+
+        setItems(previousItems => {
+            const item = previousItems.find(
+                currentItem => currentItem.id === id
+            );
+
             if (item) {
                 URL.revokeObjectURL(item.previewUrl);
-                if (item.resultUrl) URL.revokeObjectURL(item.resultUrl);
+
+                if (item.resultUrl) {
+                    URL.revokeObjectURL(item.resultUrl);
+                }
             }
-            return prev.filter(i => i.id !== id);
+
+            return previousItems.filter(
+                currentItem => currentItem.id !== id
+            );
         });
     };
 
     const clearAll = () => {
         items.forEach(item => {
             URL.revokeObjectURL(item.previewUrl);
-            if (item.resultUrl) URL.revokeObjectURL(item.resultUrl);
+
+            if (item.resultUrl) {
+                URL.revokeObjectURL(item.resultUrl);
+            }
         });
+
+        setSelectedItem(null);
         setItems([]);
     };
 
     const formatSize = (bytes: number) => {
-        if (bytes === 0) return '0 B';
-        const k = 1024;
+        if (bytes === 0) {
+            return '0 B';
+        }
+
+        const unit = 1024;
         const sizes = ['B', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+
+        const index = Math.floor(
+            Math.log(bytes) / Math.log(unit)
+        );
+
+        return (
+            parseFloat(
+                (
+                    bytes /
+                    Math.pow(unit, index)
+                ).toFixed(2)
+            ) +
+            ' ' +
+            sizes[index]
+        );
     };
 
-    const completedCount = items.filter(i => i.status === 'completed').length;
-    const isAllDone = items.length > 0 && completedCount === items.length;
+    const completedCount = items.filter(
+        item => item.status === 'completed'
+    ).length;
+
+    const errorCount = items.filter(
+        item => item.status === 'error'
+    ).length;
+
+    const isAllDone =
+        items.length > 0 &&
+        completedCount === items.length;
 
     return (
         <PageContainer>
             {/* Header */}
             <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 via-teal-700 to-cyan-800 text-white p-6 md:p-8 mb-6 shadow-2xl">
                 <div className="absolute inset-0 bg-black/10" />
+
                 <div className="relative z-10">
                     <div className="flex flex-wrap items-center justify-between gap-4">
                         <div>
                             <div className="flex items-center gap-3 mb-2">
                                 <ImageIcon className="w-6 h-6" />
-                                <span className="px-2 py-0.5 bg-white/20 rounded-full text-xs font-medium uppercase tracking-wider">Grafik Araçları</span>
+
+                                <span className="px-2 py-0.5 bg-white/20 rounded-full text-xs font-medium uppercase tracking-wider">
+                                    Grafik Araçları
+                                </span>
                             </div>
+
                             <motion.h1
-                                initial={{ opacity: 0, y: -20 }}
-                                animate={{ opacity: 1, y: 0 }}
+                                initial={{
+                                    opacity: 0,
+                                    y: -20
+                                }}
+                                animate={{
+                                    opacity: 1,
+                                    y: 0
+                                }}
                                 className="text-2xl md:text-3xl font-black mb-2 leading-tight"
                             >
                                 AVIF Dönüştürücü
                             </motion.h1>
+
                             <p className="text-sm md:text-base text-white/80 max-w-2xl">
-                                Resimlerinizi modern AVIF formatına dönüştürerek kaliteden ödün vermeden dosya boyutlarını küçültün.
+                                JPEG, PNG, WebP, HEIC ve HEIF
+                                resimlerinizi modern AVIF formatına
+                                dönüştürerek dosya boyutlarını küçültün.
                             </p>
                         </div>
 
@@ -239,19 +611,28 @@ export function AvifConverter() {
                         <div className="flex flex-col items-end gap-2 text-right">
                             <div className="bg-amber-500/20 border border-amber-500/30 px-4 py-2 rounded-2xl flex items-center gap-2">
                                 <AlertCircle className="w-4 h-4 text-amber-300" />
+
                                 <span className="text-xs font-bold text-amber-100">
-                                    Gizlilik: Resimleriniz asla sunucuya yüklenmez, her şey tarayıcınızda işlenir.
+                                    Gizlilik: Resimleriniz sunucuya
+                                    yüklenmez; tüm işlemler tarayıcınızda
+                                    yapılır.
                                 </span>
                             </div>
+
                             {engineError ? (
                                 <div className="flex items-center gap-2 text-red-300 text-xs font-medium bg-red-500/10 px-3 py-1.5 rounded-xl border border-red-500/20">
                                     <AlertCircle className="w-3 h-3" />
                                     {engineError}
                                 </div>
-                            ) : !isEngineReady && (
+                            ) : !isEngineReady ? (
                                 <div className="flex items-center gap-2 text-emerald-300 text-xs font-medium">
                                     <Loader2 className="w-3 h-3 animate-spin" />
-                                    AVIF Motoru hazırlanıyor...
+                                    AVIF motoru hazırlanıyor...
+                                </div>
+                            ) : (
+                                <div className="flex items-center gap-2 text-emerald-200 text-xs font-medium">
+                                    <Check className="w-3 h-3" />
+                                    AVIF motoru hazır
                                 </div>
                             )}
                         </div>
@@ -270,39 +651,76 @@ export function AvifConverter() {
 
                         <div className="space-y-4">
                             <p className="text-sm text-gray-500">
-                                Yüklediğiniz resimler otomatik olarak optimize edilir ve AVIF formatına dönüştürülür.
+                                Yüklediğiniz resimler otomatik olarak
+                                optimize edilir ve AVIF formatına
+                                dönüştürülür.
                             </p>
+
+                            <p className="text-xs text-gray-400">
+                                Desteklenen biçimler: JPEG, PNG, WebP,
+                                GIF, AVIF, HEIC ve HEIF.
+                            </p>
+
                             <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100 italic">
                                 <p className="text-xs text-emerald-700 leading-relaxed text-center">
-                                    "Yüksek kalite, düşük dosya boyutu" ayarı aktif.
+                                    “Yüksek kalite, düşük dosya boyutu”
+                                    ayarı aktif.
                                 </p>
                             </div>
                         </div>
 
                         <div className="mt-8 pt-6 border-t border-gray-100 flex flex-col gap-3">
                             <button
-                                onClick={() => fileInputRef.current?.click()}
-                                className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-bold transition-all shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2"
+                                type="button"
+                                onClick={() =>
+                                    fileInputRef.current?.click()
+                                }
+                                disabled={!isEngineReady}
+                                className={`w-full py-4 rounded-2xl font-bold transition-all flex items-center justify-center gap-2 ${
+                                    isEngineReady
+                                        ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-600/20'
+                                        : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                }`}
                             >
-                                <Upload className="w-5 h-5" />
+                                {!isEngineReady ? (
+                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                ) : (
+                                    <Upload className="w-5 h-5" />
+                                )}
+
                                 Resim Seç
                             </button>
+
                             <input
                                 ref={fileInputRef}
                                 type="file"
                                 multiple
-                                accept="image/*"
+                                accept="image/*,.heic,.HEIC,.heif,.HEIF,image/heic,image/heif"
                                 className="hidden"
-                                onChange={(e) => handleFiles(e.target.files)}
+                                onChange={event => {
+                                    void handleFiles(
+                                        event.target.files
+                                    );
+
+                                    /*
+                                     * Aynı dosyanın daha sonra tekrar
+                                     * seçilebilmesi için input'u temizle.
+                                     */
+                                    event.currentTarget.value = '';
+                                }}
                             />
 
                             <button
+                                type="button"
                                 disabled={!isAllDone}
-                                onClick={downloadAllAsZip}
-                                className={`w-full py-4 rounded-2xl font-bold transition-all flex items-center justify-center gap-2 ${isAllDone
-                                    ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-500/20'
-                                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                    }`}
+                                onClick={() => {
+                                    void downloadAllAsZip();
+                                }}
+                                className={`w-full py-4 rounded-2xl font-bold transition-all flex items-center justify-center gap-2 ${
+                                    isAllDone
+                                        ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-500/20'
+                                        : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                }`}
                             >
                                 <FileArchive className="w-5 h-5" />
                                 Hepsini ZIP İndir
@@ -310,6 +728,7 @@ export function AvifConverter() {
 
                             {items.length > 0 && (
                                 <button
+                                    type="button"
                                     onClick={clearAll}
                                     className="w-full py-2 text-red-500 hover:text-red-600 font-semibold text-sm flex items-center justify-center gap-1 transition-colors"
                                 >
@@ -323,22 +742,59 @@ export function AvifConverter() {
                     {/* Stats / Info */}
                     {items.length > 0 && (
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
+                            initial={{
+                                opacity: 0,
+                                scale: 0.95
+                            }}
+                            animate={{
+                                opacity: 1,
+                                scale: 1
+                            }}
                             className="bg-slate-800 text-white p-6 rounded-3xl shadow-xl overflow-hidden relative"
                         >
                             <div className="absolute top-0 right-0 p-4 opacity-10">
                                 <Check className="w-20 h-20" />
                             </div>
-                            <h4 className="text-sm font-medium text-emerald-400 uppercase tracking-wider mb-4">Özet</h4>
-                            <div className="grid grid-cols-2 gap-4">
+
+                            <h4 className="text-sm font-medium text-emerald-400 uppercase tracking-wider mb-4">
+                                Özet
+                            </h4>
+
+                            <div className="grid grid-cols-3 gap-4">
                                 <div>
-                                    <div className="text-2xl font-black">{items.length}</div>
-                                    <div className="text-xs text-white/60">Toplam Dosya</div>
+                                    <div className="text-2xl font-black">
+                                        {items.length}
+                                    </div>
+
+                                    <div className="text-xs text-white/60">
+                                        Toplam
+                                    </div>
                                 </div>
+
                                 <div>
-                                    <div className="text-2xl font-black">{completedCount}</div>
-                                    <div className="text-xs text-white/60">Tamamlanan</div>
+                                    <div className="text-2xl font-black text-emerald-400">
+                                        {completedCount}
+                                    </div>
+
+                                    <div className="text-xs text-white/60">
+                                        Tamamlanan
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div
+                                        className={`text-2xl font-black ${
+                                            errorCount > 0
+                                                ? 'text-red-400'
+                                                : 'text-white'
+                                        }`}
+                                    >
+                                        {errorCount}
+                                    </div>
+
+                                    <div className="text-xs text-white/60">
+                                        Hata
+                                    </div>
                                 </div>
                             </div>
                         </motion.div>
@@ -348,88 +804,216 @@ export function AvifConverter() {
                 {/* List Panel */}
                 <div className="lg:col-span-2">
                     <div
-                        className={`min-h-[500px] bg-white rounded-3xl shadow-xl border-2 border-dashed transition-all p-4 ${isDragging ? 'border-emerald-500 bg-emerald-50/50' : 'border-gray-200'
-                            }`}
-                        onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                        onDragLeave={() => setIsDragging(false)}
-                        onDrop={(e) => {
-                            e.preventDefault();
+                        className={`min-h-[500px] bg-white rounded-3xl shadow-xl border-2 border-dashed transition-all p-4 ${
+                            isDragging
+                                ? 'border-emerald-500 bg-emerald-50/50'
+                                : 'border-gray-200'
+                        }`}
+                        onDragOver={event => {
+                            event.preventDefault();
+                            setIsDragging(true);
+                        }}
+                        onDragLeave={() => {
                             setIsDragging(false);
-                            handleFiles(e.dataTransfer.files);
+                        }}
+                        onDrop={event => {
+                            event.preventDefault();
+                            setIsDragging(false);
+
+                            void handleFiles(
+                                event.dataTransfer.files
+                            );
                         }}
                     >
                         {items.length === 0 ? (
-                            <div className="h-full flex flex-col items-center justify-center text-center p-10">
+                            <div className="h-full min-h-[470px] flex flex-col items-center justify-center text-center p-10">
                                 <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-6 text-gray-300">
                                     <Upload className="w-10 h-10" />
                                 </div>
-                                <h3 className="text-xl font-bold text-gray-700 mb-2">Dosyalarınızı buraya bırakın</h3>
-                                <p className="text-gray-400 max-w-xs">
-                                    Veya "Resim Seç" butonunu kullanarak bilgisayarınızdan dosya yükleyin.
+
+                                <h3 className="text-xl font-bold text-gray-700 mb-2">
+                                    Dosyalarınızı buraya bırakın
+                                </h3>
+
+                                <p className="text-gray-400 max-w-sm">
+                                    JPEG, PNG, WebP, HEIC veya HEIF
+                                    dosyalarınızı sürükleyin ya da “Resim
+                                    Seç” butonunu kullanın.
                                 </p>
                             </div>
                         ) : (
                             <div className="space-y-3">
                                 <AnimatePresence>
-                                    {items.map((item) => (
+                                    {items.map(item => (
                                         <motion.div
                                             key={item.id}
-                                            initial={{ opacity: 0, x: -20 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            exit={{ opacity: 0, scale: 0.95 }}
+                                            initial={{
+                                                opacity: 0,
+                                                x: -20
+                                            }}
+                                            animate={{
+                                                opacity: 1,
+                                                x: 0
+                                            }}
+                                            exit={{
+                                                opacity: 0,
+                                                scale: 0.95
+                                            }}
                                             className="group bg-gray-50 hover:bg-white hover:shadow-md border border-gray-100 rounded-2xl p-3 flex items-center gap-4 transition-all"
                                         >
                                             <div
-                                                className="w-16 h-16 bg-gray-200 rounded-xl overflow-hidden flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-emerald-500 transition-all"
-                                                onClick={() => item.status === 'completed' && setSelectedItem(item)}
+                                                className={`w-16 h-16 bg-gray-200 rounded-xl overflow-hidden flex-shrink-0 transition-all ${
+                                                    item.status ===
+                                                    'completed'
+                                                        ? 'cursor-pointer hover:ring-2 hover:ring-emerald-500'
+                                                        : ''
+                                                }`}
+                                                onClick={() => {
+                                                    if (
+                                                        item.status ===
+                                                        'completed'
+                                                    ) {
+                                                        setSelectedItem(
+                                                            item
+                                                        );
+                                                    }
+                                                }}
                                             >
-                                                <img src={item.previewUrl} alt={item.name} className="w-full h-full object-cover" />
+                                                <img
+                                                    src={item.previewUrl}
+                                                    alt={item.name}
+                                                    className="w-full h-full object-cover"
+                                                />
                                             </div>
 
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center gap-2 mb-1">
-                                                    <h4 className="font-bold text-gray-800 truncate text-sm" title={item.name}>
+                                                    <h4
+                                                        className="font-bold text-gray-800 truncate text-sm"
+                                                        title={item.name}
+                                                    >
                                                         {item.name}
                                                     </h4>
-                                                    {item.status === 'completed' && (
-                                                        <Check className="w-4 h-4 text-emerald-500" />
+
+                                                    {isHeicFile(
+                                                        item.file
+                                                    ) && (
+                                                        <span className="px-1.5 py-0.5 rounded-md bg-blue-100 text-blue-700 text-[9px] font-black">
+                                                            HEIC
+                                                        </span>
+                                                    )}
+
+                                                    {item.status ===
+                                                        'completed' && (
+                                                        <Check className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                                                    )}
+
+                                                    {item.status ===
+                                                        'error' && (
+                                                        <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
                                                     )}
                                                 </div>
-                                                <div className="flex items-center gap-3 text-[11px] text-gray-400">
-                                                    <span>{formatSize(item.originalSize)}</span>
-                                                    {item.newSize && (
+
+                                                <div className="flex flex-wrap items-center gap-3 text-[11px] text-gray-400">
+                                                    <span>
+                                                        {formatSize(
+                                                            item.originalSize
+                                                        )}
+                                                    </span>
+
+                                                    {item.newSize !==
+                                                        undefined && (
                                                         <>
                                                             <span className="w-1 h-1 bg-gray-300 rounded-full" />
-                                                            <span className="text-emerald-600 font-bold">{formatSize(item.newSize)}</span>
+
+                                                            <span className="text-emerald-600 font-bold">
+                                                                {formatSize(
+                                                                    item.newSize
+                                                                )}
+                                                            </span>
+
                                                             <span className="bg-emerald-100 text-emerald-700 px-1.5 rounded-md font-bold">
-                                                                -%{Math.round((1 - item.newSize / item.originalSize) * 100)}
+                                                                -%
+                                                                {Math.round(
+                                                                    (
+                                                                        1 -
+                                                                        item.newSize /
+                                                                            item.originalSize
+                                                                    ) *
+                                                                        100
+                                                                )}
                                                             </span>
                                                         </>
                                                     )}
                                                 </div>
+
+                                                {item.status ===
+                                                    'error' &&
+                                                    item.error && (
+                                                        <p
+                                                            className="mt-1 text-[11px] text-red-500 line-clamp-2"
+                                                            title={
+                                                                item.error
+                                                            }
+                                                        >
+                                                            {item.error}
+                                                        </p>
+                                                    )}
                                             </div>
 
                                             <div className="flex items-center gap-2">
-                                                {item.status === 'processing' && (
+                                                {item.status ===
+                                                    'pending' && (
+                                                    <div className="text-gray-400 text-xs font-bold px-3">
+                                                        Bekliyor
+                                                    </div>
+                                                )}
+
+                                                {item.status ===
+                                                    'processing' && (
                                                     <div className="flex items-center gap-2 text-emerald-600 text-xs font-bold px-3">
                                                         <Loader2 className="w-4 h-4 animate-spin" />
                                                         İşleniyor
                                                     </div>
                                                 )}
 
-                                                {item.status === 'completed' && (
+                                                {item.status ===
+                                                    'completed' && (
                                                     <div className="flex items-center gap-2">
                                                         <button
-                                                            onClick={() => setSelectedItem(item)}
+                                                            type="button"
+                                                            onClick={() =>
+                                                                setSelectedItem(
+                                                                    item
+                                                                )
+                                                            }
                                                             className="p-2 bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white rounded-xl transition-all"
-                                                            title="Kıyasla (Önce/Sonra)"
+                                                            title="Kıyasla"
                                                         >
                                                             <Columns className="w-4 h-4" />
                                                         </button>
+
                                                         <button
-                                                            onClick={() => item.resultBlob && saveAs(item.resultBlob, item.name.replace(/\.[^/.]+$/, "") + ".avif")}
+                                                            type="button"
+                                                            onClick={() => {
+                                                                if (
+                                                                    item.resultBlob
+                                                                ) {
+                                                                    const fileName =
+                                                                        item.name.replace(
+                                                                            /\.[^/.]+$/,
+                                                                            ''
+                                                                        ) +
+                                                                        '.avif';
+
+                                                                    saveAs(
+                                                                        item.resultBlob,
+                                                                        fileName
+                                                                    );
+                                                                }
+                                                            }}
                                                             className="p-2 bg-emerald-100 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-xl transition-all"
-                                                            title="İndir"
+                                                            title="AVIF indir"
                                                         >
                                                             <Download className="w-4 h-4" />
                                                         </button>
@@ -437,7 +1021,12 @@ export function AvifConverter() {
                                                 )}
 
                                                 <button
-                                                    onClick={() => removeFile(item.id)}
+                                                    type="button"
+                                                    onClick={() =>
+                                                        removeFile(
+                                                            item.id
+                                                        )
+                                                    }
                                                     className="p-2 text-gray-400 hover:text-red-500 rounded-xl transition-all opacity-0 group-hover:opacity-100"
                                                     title="Kaldır"
                                                 >
@@ -458,7 +1047,9 @@ export function AvifConverter() {
                 {selectedItem && (
                     <ComparisonModal
                         item={selectedItem}
-                        onClose={() => setSelectedItem(null)}
+                        onClose={() =>
+                            setSelectedItem(null)
+                        }
                         formatSize={formatSize}
                     />
                 )}
@@ -470,64 +1061,157 @@ export function AvifConverter() {
 interface ComparisonModalProps {
     item: ConversionItem;
     onClose: () => void;
-    formatSize: (n: number) => string;
+    formatSize: (bytes: number) => string;
 }
 
-function ComparisonModal({ item, onClose, formatSize }: ComparisonModalProps) {
+function ComparisonModal({
+    item,
+    onClose,
+    formatSize
+}: ComparisonModalProps) {
     const [split, setSplit] = useState(50);
     const [scale, setScale] = useState(1);
-    const [position, setPosition] = useState({ x: 0, y: 0 });
+
+    const [position, setPosition] = useState({
+        x: 0,
+        y: 0
+    });
+
     const [isDragging, setIsDragging] = useState(false);
+
     const viewportRef = useRef<HTMLDivElement>(null);
-    const lastPos = useRef({ x: 0, y: 0 });
+
+    const lastPosition = useRef({
+        x: 0,
+        y: 0
+    });
 
     const resetView = () => {
         setScale(1);
-        setPosition({ x: 0, y: 0 });
+
+        setPosition({
+            x: 0,
+            y: 0
+        });
+
+        setSplit(50);
     };
 
-    const handleWheel = (e: React.WheelEvent) => {
-        e.preventDefault();
-        const delta = e.deltaY;
+    const handleWheel = (
+        event: React.WheelEvent
+    ) => {
+        event.preventDefault();
+
         const zoomSpeed = 0.1;
-        const newScale = Math.min(Math.max(scale - delta * zoomSpeed * 0.01, 0.1), 10);
+
+        const newScale = Math.min(
+            Math.max(
+                scale -
+                    event.deltaY *
+                        zoomSpeed *
+                        0.01,
+                0.1
+            ),
+            10
+        );
+
         setScale(newScale);
     };
 
-    const handlePointerDown = (e: React.PointerEvent) => {
-        if ((e.target as HTMLElement).closest('.split-handle')) return;
+    const handlePointerDown = (
+        event: React.PointerEvent
+    ) => {
+        if (
+            (event.target as HTMLElement).closest(
+                '.split-handle'
+            )
+        ) {
+            return;
+        }
+
         setIsDragging(true);
-        lastPos.current = { x: e.clientX, y: e.clientY };
-        (e.target as HTMLElement).setPointerCapture(e.pointerId);
+
+        lastPosition.current = {
+            x: event.clientX,
+            y: event.clientY
+        };
+
+        (
+            event.currentTarget as HTMLElement
+        ).setPointerCapture(event.pointerId);
     };
 
-    const handlePointerMove = (e: React.PointerEvent) => {
-        if (!isDragging) return;
-        const dx = e.clientX - lastPos.current.x;
-        const dy = e.clientY - lastPos.current.y;
-        setPosition(prev => ({ x: prev.x + dx, y: prev.y + dy }));
-        lastPos.current = { x: e.clientX, y: e.clientY };
+    const handlePointerMove = (
+        event: React.PointerEvent
+    ) => {
+        if (!isDragging) {
+            return;
+        }
+
+        const deltaX =
+            event.clientX -
+            lastPosition.current.x;
+
+        const deltaY =
+            event.clientY -
+            lastPosition.current.y;
+
+        setPosition(previousPosition => ({
+            x: previousPosition.x + deltaX,
+            y: previousPosition.y + deltaY
+        }));
+
+        lastPosition.current = {
+            x: event.clientX,
+            y: event.clientY
+        };
     };
 
-    const handlePointerUp = (e: React.PointerEvent) => {
+    const handlePointerUp = () => {
         setIsDragging(false);
     };
 
-    const handleSplitChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSplit(parseInt(e.target.value));
+    const handleSplitChange = (
+        event: React.ChangeEvent<HTMLInputElement>
+    ) => {
+        setSplit(
+            Number.parseInt(
+                event.target.value,
+                10
+            )
+        );
     };
 
-    const smaller = item.newSize && item.originalSize
-        ? Math.round((1 - item.newSize / item.originalSize) * 100)
-        : 0;
+    const smaller =
+        item.newSize !== undefined &&
+        item.originalSize > 0
+            ? Math.round(
+                (
+                    1 -
+                    item.newSize /
+                        item.originalSize
+                ) *
+                    100
+            )
+            : 0;
 
     return (
         <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            initial={{
+                opacity: 0
+            }}
+            animate={{
+                opacity: 1
+            }}
+            exit={{
+                opacity: 0
+            }}
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 md:p-10 backdrop-blur-sm"
-            onKeyDown={(e) => e.key === 'Escape' && onClose()}
+            onKeyDown={event => {
+                if (event.key === 'Escape') {
+                    onClose();
+                }
+            }}
         >
             <div className="relative w-full h-full max-w-7xl flex flex-col bg-slate-900 rounded-[2.5rem] overflow-hidden shadow-2xl border border-white/10">
                 {/* Modal Header */}
@@ -537,25 +1221,47 @@ function ComparisonModal({ item, onClose, formatSize }: ComparisonModalProps) {
                             <Columns className="w-5 h-5 text-emerald-400" />
                             Görünüm Kıyasla
                         </h2>
-                        <p className="text-sm text-white/50">{item.name}</p>
+
+                        <p className="text-sm text-white/50">
+                            {item.name}
+                        </p>
                     </div>
+
                     <div className="flex items-center gap-4">
                         <div className="hidden md:flex items-center gap-3 bg-white/5 px-4 py-2 rounded-2xl border border-white/5">
                             <div className="text-center">
-                                <div className="text-[10px] text-white/40 uppercase font-bold tracking-wider">Orijinal</div>
-                                <div className="text-sm font-bold text-white">{formatSize(item.originalSize)}</div>
+                                <div className="text-[10px] text-white/40 uppercase font-bold tracking-wider">
+                                    Orijinal
+                                </div>
+
+                                <div className="text-sm font-bold text-white">
+                                    {formatSize(
+                                        item.originalSize
+                                    )}
+                                </div>
                             </div>
+
                             <div className="w-px h-8 bg-white/10" />
+
                             <div className="text-center">
-                                <div className="text-[10px] text-emerald-400 uppercase font-bold tracking-wider">AVIF</div>
-                                <div className="text-sm font-bold text-emerald-400">{item.newSize ? formatSize(item.newSize) : '-'}</div>
+                                <div className="text-[10px] text-emerald-400 uppercase font-bold tracking-wider">
+                                    AVIF
+                                </div>
+
+                                <div className="text-sm font-bold text-emerald-400">
+                                    {item.newSize ? formatSize(item.newSize) : '-'}
+                                </div>
                             </div>
+
                             <div className="w-px h-8 bg-white/10" />
+
                             <div className="bg-emerald-500 text-slate-900 text-xs font-black px-2 py-1 rounded-lg">
                                 -%{smaller}
                             </div>
                         </div>
+
                         <button
+                            type="button"
                             onClick={onClose}
                             className="p-3 bg-white/5 hover:bg-white/10 text-white rounded-full transition-all border border-white/10"
                         >
@@ -607,6 +1313,7 @@ function ComparisonModal({ item, onClose, formatSize }: ComparisonModalProps) {
                     <div className="absolute top-6 left-6 px-3 py-1.5 bg-black/40 backdrop-blur-md rounded-lg text-xs font-bold text-white border border-white/10 pointer-events-none">
                         ORİJİNAL
                     </div>
+
                     <div className="absolute top-6 right-6 px-3 py-1.5 bg-emerald-600/60 backdrop-blur-md rounded-lg text-xs font-bold text-white border border-white/10 pointer-events-none">
                         AVIF
                     </div>
@@ -617,6 +1324,7 @@ function ComparisonModal({ item, onClose, formatSize }: ComparisonModalProps) {
                         style={{ left: `${split}%` }}
                     >
                         <div className="absolute inset-y-0 w-1 bg-white shadow-[0_0_15px_rgba(255,255,255,0.5)] transform -translate-x-1/2" />
+
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-white rounded-full shadow-2xl flex items-center justify-center pointer-events-auto cursor-ew-resize border-4 border-slate-900 group split-handle">
                             <Move className="w-4 h-4 text-slate-900 group-hover:scale-110 transition-transform" />
                         </div>
@@ -636,14 +1344,35 @@ function ComparisonModal({ item, onClose, formatSize }: ComparisonModalProps) {
                 {/* Footer Controls */}
                 <div className="p-6 bg-black/20 flex flex-wrap items-center justify-center gap-3 backdrop-blur-xl">
                     <div className="flex bg-white/5 rounded-2xl p-1 border border-white/5">
-                        <button onClick={() => setScale(s => Math.max(0.1, s - 0.2))} className="p-3 text-white/70 hover:text-white transition-colors" title="Uzaklaştır"><ZoomOut className="w-5 h-5" /></button>
+                        <button
+                            type="button"
+                            onClick={() =>
+                                setScale(s => Math.max(0.1, s - 0.2))
+                            }
+                            className="p-3 text-white/70 hover:text-white transition-colors"
+                            title="Uzaklaştır"
+                        >
+                            <ZoomOut className="w-5 h-5" />
+                        </button>
+
                         <div className="flex items-center px-4 text-sm font-bold text-white/50 w-20 justify-center">
                             %{Math.round(scale * 100)}
                         </div>
-                        <button onClick={() => setScale(s => Math.min(10, s + 0.2))} className="p-3 text-white/70 hover:text-white transition-colors" title="Yakınlaştır"><ZoomIn className="w-5 h-5" /></button>
+
+                        <button
+                            type="button"
+                            onClick={() =>
+                                setScale(s => Math.min(10, s + 0.2))
+                            }
+                            className="p-3 text-white/70 hover:text-white transition-colors"
+                            title="Yakınlaştır"
+                        >
+                            <ZoomIn className="w-5 h-5" />
+                        </button>
                     </div>
 
                     <button
+                        type="button"
                         onClick={resetView}
                         className="flex items-center gap-2 px-6 py-3 bg-white/5 hover:bg-white/10 text-white rounded-2xl font-bold transition-all border border-white/5"
                     >
@@ -652,7 +1381,19 @@ function ComparisonModal({ item, onClose, formatSize }: ComparisonModalProps) {
                     </button>
 
                     <button
-                        onClick={() => item.resultBlob && saveAs(item.resultBlob, item.name.replace(/\.[^/.]+$/, "") + ".avif")}
+                        type="button"
+                        onClick={() => {
+                            if (item.resultBlob) {
+                                const fileName =
+                                    item.name.replace(/\.[^/.]+$/, '') +
+                                    '.avif';
+
+                                saveAs(
+                                    item.resultBlob,
+                                    fileName
+                                );
+                            }
+                        }}
                         className="flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-bold transition-all shadow-lg shadow-emerald-600/20"
                     >
                         <Download className="w-5 h-5" />
@@ -661,12 +1402,23 @@ function ComparisonModal({ item, onClose, formatSize }: ComparisonModalProps) {
 
                     <div className="flex md:hidden items-center gap-3 text-white mt-4 w-full justify-around border-t border-white/5 pt-4">
                         <div className="text-center">
-                            <div className="text-[10px] text-white/40 uppercase font-bold tracking-wider">Orijinal</div>
-                            <div className="text-sm font-bold">{formatSize(item.originalSize)}</div>
+                            <div className="text-[10px] text-white/40 uppercase font-bold tracking-wider">
+                                Orijinal
+                            </div>
+
+                            <div className="text-sm font-bold">
+                                {formatSize(item.originalSize)}
+                            </div>
                         </div>
+
                         <div className="text-center">
-                            <div className="text-[10px] text-emerald-400 uppercase font-bold tracking-wider">AVIF</div>
-                            <div className="text-sm font-bold text-emerald-400">-{smaller}%</div>
+                            <div className="text-[10px] text-emerald-400 uppercase font-bold tracking-wider">
+                                AVIF
+                            </div>
+
+                            <div className="text-sm font-bold text-emerald-400">
+                                -{smaller}%
+                            </div>
                         </div>
                     </div>
                 </div>

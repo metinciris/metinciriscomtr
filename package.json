@@ -16,6 +16,7 @@
     "clsx": "*",
     "dompurify": "^3.3.0",
     "file-saver": "^2.0.5",
+    "heic2any": "^0.0.4",
     "jszip": "^3.10.1",
     "lucide-react": "^0.487.0",
     "motion": "*",
