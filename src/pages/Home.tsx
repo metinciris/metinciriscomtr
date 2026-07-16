@@ -34,7 +34,7 @@ import {
   NGS_SUBTITLES,
   BLOG_SUBTITLES,
   BIYOPSI_SUBTITLES,
-  BIYOPSI_SSS_SUBTITLES,
+  SOZLUK_SSS_SUBTITLES,
   BAKTIGIM_SUBTITLES,
   UNIVERSITE_SUBTITLES,
 } from '../data/homeSubtitles';
@@ -68,7 +68,7 @@ export function Home({ onNavigate }: HomeProps) {
   /* ── Dönen alt açıklamalar ── */
   const iletisimSubtitle   = useRotatingText(ILETISIM_SUBTITLES, 4000);
   const biyopsiSubtitle    = useRotatingText(BIYOPSI_SUBTITLES, 4000);
-  const biyopsiSssSubtitle = useRotatingText(BIYOPSI_SSS_SUBTITLES, 4000);
+  const sozlukSssSubtitle = useRotatingText(SOZLUK_SSS_SUBTITLES, 4000);
   const baktigimSubtitle   = useRotatingText(BAKTIGIM_SUBTITLES, 4000);
   const hastaneYemekSub    = useRotatingText(HASTANE_YEMEK_SUBTITLES, 4000);
 
@@ -164,15 +164,15 @@ export function Home({ onNavigate }: HomeProps) {
                 onClick={() => onNavigate('biyopsi-sonucu')}
               />
 
-              {/* Biyopsi Sonucu: Sık Sorulan Sorular */}
+              {/* Patoloji Sözlüğü ve SSS */}
               <MetroTile
-                title="Biyopsi Sonucu: SSS"
-                subtitle={biyopsiSssSubtitle}
+                title="Patoloji Sözlüğü & SSS"
+                subtitle={sozlukSssSubtitle}
                 icon={<MessageSquare size={38} />}
                 color="tile-patient-b"
                 size="medium"
-                href="/biyopsi-sonucu/"
-                onClick={() => onNavigate('biyopsi-sonucu')}
+                href="/patoloji-sozlugu/"
+                onClick={() => onNavigate('patoloji-sozlugu')}
               />
 
               {/* Baktığım Biyopsiler */}

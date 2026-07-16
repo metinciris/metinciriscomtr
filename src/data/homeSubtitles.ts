@@ -14,10 +14,10 @@ export const BIYOPSI_SUBTITLES = [
   'Raporunuzu alın',
 ];
 
-export const BIYOPSI_SSS_SUBTITLES = [
-  'Sonuç süresi',
-  'Ek incelemeler',
-  'Patoloji raporu hakkında',
+export const SOZLUK_SSS_SUBTITLES = [
+  'Sık sorulan sorular',
+  'Patoloji terimleri sözlüğü',
+  'Rapor terimleri ve anlamları',
 ];
 
 export const BAKTIGIM_SUBTITLES = [
