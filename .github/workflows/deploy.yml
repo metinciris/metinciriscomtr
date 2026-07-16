@@ -6,9 +6,7 @@ on:
       - main
   issues:
     types:
-      - opened
       - edited
-      - deleted
       - closed
       - reopened
       - labeled
@@ -26,11 +24,19 @@ env:
 
 concurrency:
   group: github-pages
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issues' && (
+        (github.event.action == 'labeled' && github.event.label.name == 'Blog') ||
+        (github.event.action == 'unlabeled' && github.event.label.name == 'Blog') ||
+        ((github.event.action == 'edited' || github.event.action == 'closed' || github.event.action == 'reopened') && contains(github.event.issue.labels.*.name, 'Blog'))
+      ))
     steps:
       - name: Checkout
         uses: actions/checkout@v4
