@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { PageContainer } from '../components/PageContainer';
-import { Search, Book, HelpCircle, AlertTriangle, ArrowRight, Microscope, Info, ExternalLink, Hash, CheckCircle2 } from 'lucide-react';
+import { Search, Book, HelpCircle, AlertTriangle, ArrowRight, Microscope, Info, ExternalLink, Hash, CheckCircle2, ShieldCheck, Wand2 } from 'lucide-react';
 
 interface Term {
     word: string;
@@ -19,6 +19,9 @@ interface PatolojiSozluguProps {
 
 export function PatolojiSozlugu({ onNavigate }: PatolojiSozluguProps) {
     const [searchQuery, setSearchQuery] = useState('');
+    const [reportText, setReportText] = useState('');
+    const [matchedTerms, setMatchedTerms] = useState<Term[]>([]);
+    const [hasAnalyzed, setHasAnalyzed] = useState(false);
 
     const handleNavigate = (page: string) => {
         if (onNavigate) {
@@ -200,6 +203,26 @@ export function PatolojiSozlugu({ onNavigate }: PatolojiSozluguProps) {
         t.definition.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
+    const analyzeReport = () => {
+        if (!reportText.trim()) {
+            setHasAnalyzed(false);
+            setMatchedTerms([]);
+            return;
+        }
+        
+        // Türkçe karakterleri de dikkate alarak küçültelim
+        const lowerReport = reportText.toLocaleLowerCase('tr-TR');
+        
+        const matches = terms.filter(t => {
+            // "Atipi / Atipik" gibi ifadeleri ayır
+            const parts = t.word.split('/').map(p => p.trim().toLocaleLowerCase('tr-TR'));
+            return parts.some(part => lowerReport.includes(part));
+        });
+        
+        setMatchedTerms(matches);
+        setHasAnalyzed(true);
+    };
+
     return (
         <PageContainer>
             {/* Hero Section */}
@@ -232,9 +255,90 @@ export function PatolojiSozlugu({ onNavigate }: PatolojiSozluguProps) {
                     <div>
                         <h2 className="text-amber-900 text-xl font-bold mb-2">Çok Önemli Not!</h2>
                         <p className="text-amber-800 text-lg leading-relaxed">
-                            Bu sözlükteki bilgiler sadece genel bilgilendirme amaçlıdır. Patoloji raporları bir bütündür ve tek bir kelime üzerinden yorumlanamaz.
+                            Bu sözlükteki bilgiler ve otomatik analiz aracı sadece genel bilgilendirme amaçlıdır. Patoloji raporları bir bütündür ve tek bir kelime üzerinden yorumlanamaz.
                             <strong className="block mt-2 bg-amber-200/50 px-2 py-1 rounded inline-block"> Sonuçlarınızı mutlaka biyopsiyi alan ve tedavinizi planlayan doktorunuzla görüşmelisiniz.</strong>
                         </p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Smart Report Analyzer Section */}
+            <div className="bg-white rounded-3xl p-8 shadow-md border border-slate-200 mb-12">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                    <div className="flex items-center gap-3">
+                        <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+                            <Wand2 size={28} />
+                        </div>
+                        <div>
+                            <h2 className="text-2xl font-bold text-slate-800 m-0">Otomatik Rapor Açıklayıcı</h2>
+                            <p className="text-slate-500 mt-1">Raporunuzdaki karmaşık tıbbi terimleri saniyeler içinde analiz edin.</p>
+                        </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 bg-emerald-50 text-emerald-700 px-4 py-2 rounded-xl border border-emerald-100 shadow-sm text-sm font-medium">
+                        <ShieldCheck size={18} />
+                        <span>%100 Gizli - Sunucuya veri gönderilmez, cihazınızda işlenir.</span>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    {/* Input Area */}
+                    <div className="space-y-4">
+                        <label htmlFor="reportInput" className="block font-bold text-slate-700">
+                            Patoloji raporunuzu buraya yapıştırın:
+                        </label>
+                        <textarea
+                            id="reportInput"
+                            value={reportText}
+                            onChange={(e) => setReportText(e.target.value)}
+                            placeholder="Makroskopi, mikroskopi veya tanı bölümündeki metni buraya yapıştırabilirsiniz..."
+                            className="w-full h-48 md:h-64 p-4 rounded-2xl border-2 border-slate-200 bg-slate-50 text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 resize-none transition-all"
+                        ></textarea>
+                        <button
+                            onClick={analyzeReport}
+                            disabled={!reportText.trim()}
+                            className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl transition-colors shadow-md shadow-indigo-600/20 flex items-center justify-center gap-2"
+                        >
+                            <Wand2 size={20} />
+                            Raporu Analiz Et
+                        </button>
+                    </div>
+
+                    {/* Output Area */}
+                    <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200 h-full max-h-[400px] overflow-y-auto custom-scrollbar">
+                        {!hasAnalyzed ? (
+                            <div className="h-full flex flex-col items-center justify-center text-slate-400 text-center px-4 py-12">
+                                <Book size={48} className="mb-4 opacity-50" />
+                                <p className="font-medium text-lg text-slate-500">Raporunuzu yapıştırıp "Analiz Et" butonuna tıklayın.</p>
+                                <p className="text-sm mt-2">Raporda geçen terimlerin açıklamaları burada listelenecektir.</p>
+                            </div>
+                        ) : matchedTerms.length === 0 ? (
+                            <div className="h-full flex flex-col items-center justify-center text-slate-500 text-center px-4 py-12">
+                                <CheckCircle2 size={48} className="mb-4 text-emerald-400" />
+                                <p className="font-medium text-lg">Sözlüğümüzde yer alan kritik bir terim bulunamadı.</p>
+                                <p className="text-sm mt-2">Tüm detaylar için doktorunuza danışınız.</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                <h3 className="font-bold text-slate-800 border-b border-slate-200 pb-2 flex items-center justify-between">
+                                    Bulunan Terimler
+                                    <span className="bg-indigo-100 text-indigo-700 text-xs px-2 py-1 rounded-full">{matchedTerms.length} Eşleşme</span>
+                                </h3>
+                                {matchedTerms.map((term, i) => (
+                                    <div key={i} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                                        <div className="flex items-center justify-between mb-1">
+                                            <h4 className="font-bold text-indigo-700">{term.word}</h4>
+                                            {term.category && (
+                                                <span className="text-[10px] uppercase font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
+                                                    {term.category}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <p className="text-sm text-slate-600 leading-relaxed">{term.definition}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

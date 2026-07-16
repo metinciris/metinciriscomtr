@@ -1,5 +1,6 @@
 export const validPages = [
     'home',
+    'basvuru-merkezi',
     'iletisim',
     'ziyaret-mesaji',
     'biyopsi-sonucu',
@@ -51,5 +52,6 @@ export const validPages = [
     'testis-ght-ihk',
     'tiroid-papiller-karsinom',
     'ngs',
+    'ngs-test-secimi',
     'meme-her2'
 ];

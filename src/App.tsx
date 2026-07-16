@@ -261,6 +261,18 @@ const MemeHer2Algoritmasi = React.lazy(() =>
   })),
 );
 
+const ReferenceCenter = React.lazy(() =>
+  import('./pages/ReferenceCenter').then((m) => ({
+    default: m.ReferenceCenter,
+  })),
+);
+
+const NgsTestSecimi = React.lazy(() =>
+  import('./pages/NgsTestSecimi').then((m) => ({
+    default: m.NgsTestSecimi,
+  })),
+);
+
 export default function App() {
   const [currentPage, setCurrentPage] = React.useState('home');
 
@@ -425,8 +437,12 @@ export default function App() {
         return <TiroidPapillerKarsinom />;
       case 'ngs':
         return <Ngs />;
+      case 'ngs-test-secimi':
+        return <NgsTestSecimi />;
       case 'meme-her2':
         return <MemeHer2Algoritmasi />;
+      case 'basvuru-merkezi':
+        return <ReferenceCenter onNavigate={navigate} />;
       case '404':
         return <NotFound onNavigate={navigate} />;
       case 'home':

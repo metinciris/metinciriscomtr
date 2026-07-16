@@ -152,6 +152,29 @@ export function PatolojiMakaleTakip() {
                 </div>
             </div>
 
+            {/* RSS Section */}
+            <section className="mb-12">
+                <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-2xl p-6 shadow-sm border border-orange-200 flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div>
+                        <div className="flex items-center gap-2 mb-2">
+                            <span className="p-1.5 bg-orange-500 rounded-lg text-white">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg>
+                            </span>
+                            <h3 className="text-xl font-bold text-orange-900">Günlük ve Haftalık RSS Seçkisi</h3>
+                        </div>
+                        <p className="text-orange-800/80">Blog sayfamızda yayınlanan patoloji vaka özetleri, literatür incelemeleri ve akademik yazıları RSS kaynağı ile feed okuyucunuzdan (Feedly, Inoreader vb.) takip edebilirsiniz.</p>
+                    </div>
+                    <a 
+                        href="/patoloji-radari/rss.xml" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-xl font-medium transition-colors shrink-0 whitespace-nowrap shadow-md shadow-orange-500/20"
+                    >
+                        <span>RSS'e Abone Ol</span>
+                    </a>
+                </div>
+            </section>
+
             {/* Telegram Channels Section */}
             <section className="mb-12">
                 <div className="flex flex-col gap-2 mb-8">

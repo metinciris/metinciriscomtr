@@ -847,8 +847,68 @@ async function main() {
   writeFileSync(join(distDir, '404.html'), indexContent, 'utf8');
   updateServiceWorkerVersion();
 
+  // --- Search Index Generation ---
+  const searchIndex = [];
+  
+  for (const [id, meta] of Object.entries(registry)) {
+    if (meta.noindex) continue;
+    let type = 'Sayfa';
+    if (meta.slug && (meta.slug.includes('raporlama') || meta.slug.includes('hesaplama') || meta.slug.includes('sayaci'))) type = 'Araç';
+    else if (meta.slug === 'patoloji-sozlugu') type = 'Sözlük';
+    else if (meta.slug === 'ngs') type = 'Moleküler';
+    else if (meta.slug === 'makale' || meta.slug === 'makale-takip') type = 'Radar';
+    
+    searchIndex.push({
+      title: meta.title.replace(' | Prof Dr Metin Çiriş', '').replace(' | Prof. Dr. Metin Çiriş', '').trim(),
+      description: meta.description,
+      path: meta.slug ? `/${meta.slug}/` : '/',
+      type: type
+    });
+  }
+
+  posts.forEach(post => {
+    searchIndex.push({
+      title: post.title,
+      description: post.excerpt,
+      path: post.path,
+      type: 'Blog'
+    });
+  });
+
+  writeFileSync(join(distDir, 'search-index.json'), JSON.stringify(searchIndex), 'utf8');
+
+  // --- RSS Generation (Patoloji Radarı) ---
+  const rssLines = [
+    '<?xml version="1.0" encoding="UTF-8" ?>',
+    '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">',
+    '  <channel>',
+    `    <title>Patoloji Radarı | Prof. Dr. Metin Çiriş</title>`,
+    `    <link>${SITE_URL}/makale-takip/</link>`,
+    `    <description>Güncel patoloji literatürü, makale özetleri ve bilimsel haberler.</description>`,
+    `    <language>tr-tr</language>`,
+    `    <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>`,
+    `    <atom:link href="${SITE_URL}/patoloji-radari/rss.xml" rel="self" type="application/rss+xml" />`
+  ];
+  
+  posts.forEach(post => {
+    rssLines.push('    <item>');
+    rssLines.push(`      <title>${escapeXml(post.title)}</title>`);
+    rssLines.push(`      <link>${SITE_URL}${post.path}</link>`);
+    rssLines.push(`      <guid isPermaLink="true">${SITE_URL}${post.path}</guid>`);
+    rssLines.push(`      <pubDate>${new Date(post.createdAt).toUTCString()}</pubDate>`);
+    rssLines.push(`      <description>${escapeXml(post.excerpt)}</description>`);
+    rssLines.push('    </item>');
+  });
+  
+  rssLines.push('  </channel>');
+  rssLines.push('</rss>');
+
+  const radarDir = join(distDir, 'patoloji-radari');
+  mkdirSync(radarDir, { recursive: true });
+  writeFileSync(join(radarDir, 'rss.xml'), `${rssLines.join('\n')}\n`, 'utf8');
+
   console.log(
-    `Tamamlandı: ${posts.length} blog yazısı, ${totalPages} blog liste sayfası ve ${sitemapEntries.size} sitemap URL'si üretildi.`,
+    `Tamamlandı: ${posts.length} blog yazısı, search-index.json, RSS ve sitemap üretildi.`,
   );
 }
 

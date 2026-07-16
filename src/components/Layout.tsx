@@ -1,5 +1,6 @@
-import React from 'react';
-import { Menu, Home, User, BookOpen, ChevronUp, ChevronRight, X } from 'lucide-react';
+import React, { useState } from 'react';
+import { Menu, Home, User, BookOpen, ChevronUp, ChevronRight, X, Search } from 'lucide-react';
+import { SearchModal } from './SearchModal';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -10,6 +11,7 @@ interface LayoutProps {
 /** Sayfa adından görüntü adı üret */
 const PAGE_NAMES: Record<string, string> = {
   home: 'Ana Sayfa',
+  'basvuru-merkezi': 'Başvuru Merkezi',
   iletisim: 'İletişim',
   'ziyaret-mesaji': 'Ziyaret Mesajı',
   'biyopsi-sonucu': 'Biyopsi Sonucu',
@@ -61,6 +63,7 @@ const PAGE_NAMES: Record<string, string> = {
   'testis-ght-ihk': 'Testis GHT İHK',
   'tiroid-papiller-karsinom': 'Tiroid Papiller Karsinom',
   ngs: 'NGS Gen Arama',
+  'ngs-test-secimi': 'NGS Test Seçimi',
   'meme-her2': 'Meme HER2',
 };
 
@@ -74,6 +77,7 @@ function navHref(path: string): string {
 export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const [showScrollTop, setShowScrollTop] = React.useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const currentYear = new Date().getFullYear();
 
   // Scroll-to-top butonu göster/gizle
@@ -87,8 +91,8 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
 
   const navItems = [
     { name: 'Ana Sayfa', path: 'home', icon: Home },
+    { name: 'Başvuru Mrk.', path: 'basvuru-merkezi', icon: BookOpen },
     { name: 'Biyopsi', path: 'baktigim-biyopsiler', icon: User },
-    { name: 'Akademik', path: 'yayinlar', icon: BookOpen },
   ];
 
   const pageName = PAGE_NAMES[currentPage] || currentPage;
@@ -163,18 +167,37 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
                   <span>{item.name}</span>
                 </a>
               ))}
+              <button
+                onClick={() => setIsSearchOpen(true)}
+                className="p-2 ml-2 text-white/80 hover:text-white hover:bg-white/10 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-white/20"
+                aria-label="Sitede ara"
+              >
+                <Search size={20} />
+              </button>
             </nav>
 
-            {/* Mobile Menu Button */}
-            <button
-              type="button"
-              className="md:hidden p-2 hover:bg-white/10 rounded"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label={mobileMenuOpen ? 'Menüyü kapat' : 'Menüyü aç'}
-              aria-expanded={mobileMenuOpen}
-            >
-              <Menu aria-hidden="true" size={24} />
-            </button>
+            <div className="flex md:hidden items-center space-x-1">
+              {/* Mobile Search Button */}
+              <button
+                type="button"
+                className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded focus:outline-none"
+                onClick={() => setIsSearchOpen(true)}
+                aria-label="Sitede ara"
+              >
+                <Search size={22} />
+              </button>
+              
+              {/* Mobile Menu Button */}
+              <button
+                type="button"
+                className="p-2 hover:bg-white/10 rounded focus:outline-none"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                aria-label={mobileMenuOpen ? 'Menüyü kapat' : 'Menüyü aç'}
+                aria-expanded={mobileMenuOpen}
+              >
+                <Menu aria-hidden="true" size={24} />
+              </button>
+            </div>
           </div>
 
           {/* Mobile Navigation Overlay */}
@@ -368,6 +391,12 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
           </div>
         </div>
       </footer>
+
+      <SearchModal 
+        isOpen={isSearchOpen} 
+        onClose={() => setIsSearchOpen(false)} 
+        onNavigate={onNavigate} 
+      />
     </div>
   );
 }
