@@ -270,14 +270,14 @@ export function PatolojiSozlugu({ onNavigate }: PatolojiSozluguProps) {
                             <Wand2 size={28} />
                         </div>
                         <div>
-                            <h2 className="text-2xl font-bold text-slate-800 m-0">Otomatik Rapor Açıklayıcı</h2>
+                            <h2 className="text-2xl font-bold text-slate-800 m-0">Rapordaki Terimleri Bul ve Açıkla</h2>
                             <p className="text-slate-500 mt-1">Raporunuzdaki karmaşık tıbbi terimleri saniyeler içinde analiz edin.</p>
                         </div>
                     </div>
                     
                     <div className="flex items-center gap-2 bg-emerald-50 text-emerald-700 px-4 py-2 rounded-xl border border-emerald-100 shadow-sm text-sm font-medium">
                         <ShieldCheck size={18} />
-                        <span>%100 Gizli - Sunucuya veri gönderilmez, cihazınızda işlenir.</span>
+                        <span>Rapor metni analiz amacıyla sunucuya gönderilmez; eşleştirme tarayıcınızda yapılır.</span>
                     </div>
                 </div>
 

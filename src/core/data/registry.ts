@@ -17,7 +17,7 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         title: 'Prof. Dr. İbrahim Metin Çiriş | Tıbbi Patoloji Uzmanı',
         description: 'Prof. Dr. İbrahim Metin Çiriş – Tanısal patoloji, moleküler patoloji, dijital patoloji, bilimsel yayınlar, patoloji notları ve hasta bilgilendirme kaynaklarını içeren profesyonel web sitesi.',
         keywords: 'patoloji, biyopsi, tıbbi patoloji, Metin Çiriş, tanısal patoloji, moleküler patoloji, dijital patoloji, patoloji uzmanı',
-        lastmod: '2026-07-14',
+        lastmod: '2026-07-16',
         priority: 1.0,
         changefreq: 'weekly'
     },
@@ -203,7 +203,7 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
     },
     universite: {
         slug: 'universite',
-        title: 'Üniversite ve Eğitim Arşivi | Prof. Dr. Metin Çiriş',
+        title: 'SDÜ ve Öğrenci Kaynakları | Prof. Dr. Metin Çiriş',
         description: 'Tıp fakültesi dönemine ait patoloji ders notları, öğrenci kaynakları, kampüs içerikleri ve eğitim materyalleri arşivi.',
         keywords: 'SDÜ, üniversite, ders notları, patoloji eğitim, Süleyman Demirel Üniversitesi, kampüs',
         lastmod: '2026-07-14',
@@ -440,7 +440,7 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         title: 'Patoloji Sözlüğü ve Terim Açıklayıcı | Prof. Dr. Metin Çiriş',
         description: 'Patoloji raporunuzdaki tıbbi terimleri anlayın. Atipi, displazi, benign, malign gibi terimlerin açıklamaları ve otomatik rapor açıklayıcı araç.',
         keywords: 'patoloji sözlüğü, tıbbi terimler, patoloji raporu, hasta rehberi, atipi, benign, malign',
-        lastmod: '2026-02-23',
+        lastmod: '2026-07-16',
         priority: 0.7,
         changefreq: 'monthly'
     },

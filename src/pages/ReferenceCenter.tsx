@@ -1,6 +1,5 @@
 import React from 'react';
-import { BookOpen, Stethoscope, Dna, ArrowRight, Activity, Microscope } from 'lucide-react';
-import { getPageBySlug } from '../core/data/registry';
+import { BookOpen, Stethoscope, Dna, ArrowRight, Microscope } from 'lucide-react';
 
 interface ReferenceCenterProps {
   onNavigate: (page: string) => void;
@@ -52,7 +51,7 @@ export function ReferenceCenter({ onNavigate }: ReferenceCenterProps) {
       description: 'Güncel yayınların takibi, eğitim arşivi ve ders notları merkezi.',
       links: [
         { title: 'Patoloji Literatür Takibi (Radar)', slug: 'makale-takip' },
-        { title: 'Üniversite ve Eğitim Arşivi', slug: 'universite' },
+        { title: 'SDÜ ve Öğrenci Kaynakları', slug: 'universite' },
         { title: 'Patoloji Podcast', slug: 'podcast' },
         { title: 'Günün Patoloji Makalesi', slug: 'makale' }
       ]
@@ -64,7 +63,7 @@ export function ReferenceCenter({ onNavigate }: ReferenceCenterProps) {
       <div className="bg-gradient-to-r from-[#2B32B2] to-[#1488CC] p-8 md:p-12 mb-8 rounded-2xl shadow-xl flex flex-col md:flex-row items-center justify-between text-white relative overflow-hidden">
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-4">
-            <Activity size={32} className="text-white/90" />
+            <BookOpen size={32} className="text-white/90" />
             <h1 className="text-3xl md:text-5xl font-bold">Patoloji Başvuru Merkezi</h1>
           </div>
           <p className="text-lg md:text-xl text-white/90 max-w-2xl leading-relaxed">

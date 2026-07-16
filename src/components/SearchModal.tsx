@@ -52,10 +52,20 @@ export function SearchModal({ isOpen, onClose, onNavigate }: SearchModalProps) {
       return;
     }
     
-    const searchTerms = query.toLowerCase().split(' ').filter(Boolean);
+    const normalizeText = (t: string) => {
+      return t.toLocaleLowerCase('tr-TR')
+        .replace(/ğ/g, 'g')
+        .replace(/ü/g, 'u')
+        .replace(/ş/g, 's')
+        .replace(/ı/g, 'i')
+        .replace(/ö/g, 'o')
+        .replace(/ç/g, 'c');
+    };
+
+    const searchTerms = normalizeText(query).split(' ').filter(Boolean);
     
     const filtered = allData.filter(item => {
-      const text = `${item.title} ${item.description || ''} ${item.type}`.toLowerCase();
+      const text = normalizeText(`${item.title} ${item.description || ''} ${item.type}`);
       return searchTerms.every(term => text.includes(term));
     });
     

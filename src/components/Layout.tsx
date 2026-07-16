@@ -31,7 +31,7 @@ const PAGE_NAMES: Record<string, string> = {
   github: 'GitHub',
   facebook: 'Facebook',
   linkedin: 'LinkedIn',
-  universite: 'Üniversite ve SDÜ Arşivi',
+  universite: 'SDÜ ve Üniversite',
   'diger-calismalar': 'Diğer Çalışmalar',
   'fetus-uzunluklari': 'Fetus Uzunlukları',
   'rcb-calculator': 'RCB Calculator',

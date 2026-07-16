@@ -60,11 +60,9 @@ export function NgsTestSecimi() {
                 <p className="text-slate-600 leading-relaxed mb-4">
                   Yapısal değişikliklerin (translokasyon/füzyon) DNA tabanlı tespitinin zor olduğu durumlarda (örn. NTRK, ALK, ROS1, RET) veya gen füzyonlarının sık görüldüğü sarkom, akciğer ve tiroid tümörlerinde gereklidir.
                 </p>
-                <ul className="list-disc pl-5 text-slate-600 space-y-1">
-                  <li>80 Gen (RNA) Transkript Analizi</li>
-                  <li>Bilinen ve bilinmeyen partner analizi</li>
-                  <li>Splicing varyant tespiti</li>
-                </ul>
+                <div className="bg-teal-50 border-l-4 border-teal-500 p-3 rounded-r-lg mt-3 text-sm text-teal-800">
+                  RNA panelinin raporlayabildiği füzyon ve transkript olayları, panel tasarımı ve validasyon kapsamıyla sınırlıdır.
+                </div>
               </div>
             </div>
           </section>
@@ -82,7 +80,7 @@ export function NgsTestSecimi() {
                 <div className="shrink-0 mt-1"><FileText className="text-slate-400" /></div>
                 <div>
                   <h4 className="font-bold text-slate-800">Dokunun Seçimi</h4>
-                  <p className="text-slate-600 mt-1">Nekroz, kanama veya yoğun mukus içermeyen, tümör hücresi oranı yüksek bloklar seçilmelidir. İdeal tümör hücresi oranı &gt;%20 olmalıdır.</p>
+                  <p className="text-slate-600 mt-1">Nekroz, kanama veya yoğun mukus içermeyen, tümör hücresi oranı yüksek bloklar seçilmelidir. Gerekli minimum tümör oranı, materyal miktarı ve kabul koşulları kullanılan teste ve laboratuvar validasyonuna göre değişebilir.</p>
                 </div>
               </div>
               <div className="flex gap-4 p-4 border border-slate-100 rounded-2xl">
@@ -96,7 +94,7 @@ export function NgsTestSecimi() {
                 <div className="shrink-0 mt-1"><ThermometerSnowflake className="text-slate-400" /></div>
                 <div>
                   <h4 className="font-bold text-slate-800">Saklama Koşulları</h4>
-                  <p className="text-slate-600 mt-1">Kesitler lamlara alındıktan sonra oksidasyonu önlemek için olabildiğince kısa sürede DNA/RNA izolasyonu yapılmalı veya hava almayan kaplarda 4°C'de saklanmalıdır.</p>
+                  <p className="text-slate-600 mt-1">Kesitler lamlara alındıktan sonra oksidasyonu önlemek için olabildiğince kısa sürede DNA/RNA izolasyonu yapılmalı veya kurumun laboratuvar validasyonuna uygun koşullarda saklanmalıdır.</p>
                 </div>
               </div>
             </div>
