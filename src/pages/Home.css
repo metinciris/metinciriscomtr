@@ -71,31 +71,79 @@
    ══════════════════════════════════════════════ */
 
 /* HASTALAR — mavi / turkuaz / petrol ailesi */
-.tile-patient-primary   { background-color: #0078d4; }   /* İletişim (geniş) */
-.tile-patient-a         { background-color: #0369a1; }   /* Biyopsi ve Patoloji */
-.tile-patient-b         { background-color: #0e7490; }   /* Biyopsi SSS */
-.tile-patient-c         { background-color: #0891b2; }   /* Baktığım Biyopsiler */
-.tile-accent-danger     { background-color: #9b1c1c; }   /* Nöbetçi Eczane */
-.tile-patient-utility   { background-color: #047857; }   /* Hastane Yemek */
+.tile-patient-primary   { background-color: #00A6D6; }   /* İletişim (geniş) */
+.tile-patient-a         { background-color: #1687C9; }   /* Biyopsi ve Patoloji */
+.tile-patient-b         { background-color: #00A0B8; }   /* Patoloji Sözlüğü & SSS */
+.tile-patient-c         { background-color: #0284C7; }   /* Baktığım Biyopsiler */
+.tile-accent-danger     { background-color: #D32F45; }   /* Nöbetçi Eczane */
+.tile-patient-utility   { background-color: #159B72; }   /* Hastane Yemek */
 /* Hava durumu: dinamik (JS'ten sınıf ile) */
 
 /* PATOLOJİ VE EĞİTİM — lacivert / indigo / mor ailesi */
-.tile-edu-primary       { background-color: #1e3a8a; }   /* Tıp Notları (geniş) */
-.tile-edu-a             { background-color: #312e81; }   /* Diş Hekimliği */
-.tile-edu-b             { background-color: #4c1d95; }   /* Eczacılık */
-.tile-edu-utility       { background-color: #b45309; }   /* Öğrenci Yemek (amber) */
-.tile-edu-c             { background-color: #1e3a8a; }   /* Ders Programı */
-.tile-edu-radar         { background-color: #1e40af; }   /* Patoloji Radarı */
-.tile-edu-case          { background-color: #7f1d1d; }   /* Ayın Vakası (bordo) */
+.tile-edu-primary       { background-color: #2563EB; }   /* Tıp Notları (geniş) */
+.tile-edu-a             { background-color: #4F46E5; }   /* Diş Hekimliği */
+.tile-edu-b             { background-color: #7C3AED; }   /* Eczacılık */
+.tile-edu-utility       { background-color: #E97817; }   /* Öğrenci Yemek (amber/turuncu) */
+.tile-edu-c             { background-color: #2878C8; }   /* Ders Programı */
+.tile-edu-radar         { background-color: #0D9488; }   /* Patoloji Radarı */
+.tile-edu-case          { background-color: #C0265E; }   /* Ayın Vakası (vişne-magenta) */
 
 /* AKADEMİK / PROFESYONEL — koyu lacivert / zümrüt / mürdüm */
-.tile-acad-primary      { background-color: #0c4a6e; }   /* NGS (geniş) */
-.tile-acad-pub          { background-color: #881337; }   /* Yayınlar */
-.tile-acad-cv           { background-color: #6b21a8; }   /* Özgeçmiş */
-.tile-acad-blog         { background-color: #3730a3; }   /* Blog */
-.tile-acad-konsensus    { background-color: #1e4d91; }   /* Konsensus */
-.tile-acad-uni          { background-color: #1e3a8a; }   /* SDÜ ve Üniversite */
-.tile-acad-other        { background-color: #065f46; }   /* Diğer Çalışmalar */
+.tile-acad-primary      { background-color: #087EA4; }   /* NGS (geniş) */
+.tile-acad-pub          { background-color: #D12D55; }   /* Yayınlar */
+.tile-acad-cv           { background-color: #9333EA; }   /* Özgeçmiş */
+.tile-acad-blog         { background-color: #4F46E5; }   /* Blog */
+.tile-acad-konsensus    { background-color: #2677D7; }   /* Konsensus */
+.tile-acad-uni          { background-color: #0072B8; }   /* SDÜ ve Üniversite */
+.tile-acad-other        { background-color: #16A065; }   /* Diğer Çalışmalar */
+
+/* Gölgeler ve Hover Durumları */
+.tile-patient-primary,
+.tile-patient-a,
+.tile-patient-b,
+.tile-patient-c,
+.tile-accent-danger,
+.tile-patient-utility,
+.tile-edu-primary,
+.tile-edu-a,
+.tile-edu-b,
+.tile-edu-utility,
+.tile-edu-c,
+.tile-edu-radar,
+.tile-edu-case,
+.tile-acad-primary,
+.tile-acad-pub,
+.tile-acad-cv,
+.tile-acad-blog,
+.tile-acad-konsensus,
+.tile-acad-uni,
+.tile-acad-other {
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.14) !important;
+}
+
+.tile-patient-primary:hover,
+.tile-patient-a:hover,
+.tile-patient-b:hover,
+.tile-patient-c:hover,
+.tile-accent-danger:hover,
+.tile-patient-utility:hover,
+.tile-edu-primary:hover,
+.tile-edu-a:hover,
+.tile-edu-b:hover,
+.tile-edu-utility:hover,
+.tile-edu-c:hover,
+.tile-edu-radar:hover,
+.tile-edu-case:hover,
+.tile-acad-primary:hover,
+.tile-acad-pub:hover,
+.tile-acad-cv:hover,
+.tile-acad-blog:hover,
+.tile-acad-konsensus:hover,
+.tile-acad-uni:hover,
+.tile-acad-other:hover {
+  box-shadow: 0 7px 18px rgba(15, 23, 42, 0.20) !important;
+  filter: brightness(1.06);
+}
 
 /* ══════════════════════════════════════════════
    HAVA DURUMU KAROSU GENEL
