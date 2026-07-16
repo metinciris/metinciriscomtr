@@ -60,6 +60,21 @@ function getErrorMessage(error: unknown): string {
         return error.message;
     }
 
+    if (error && typeof error === 'object') {
+        const errObj = error as Record<string, unknown>;
+        if (typeof errObj.message === 'string') {
+            return errObj.message;
+        }
+        if (typeof errObj.error === 'string') {
+            return errObj.error;
+        }
+        try {
+            return JSON.stringify(errObj);
+        } catch {
+            // ignore
+        }
+    }
+
     return String(error);
 }
 
