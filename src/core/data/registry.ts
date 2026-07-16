@@ -204,9 +204,9 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
     universite: {
         slug: 'universite',
         title: 'SDÜ ve Öğrenci Kaynakları | Prof. Dr. Metin Çiriş',
-        description: 'Tıp fakültesi dönemine ait patoloji ders notları, öğrenci kaynakları, kampüs içerikleri ve eğitim materyalleri arşivi.',
+        description: 'Süleyman Demirel Üniversitesi öğrencileri için patoloji ders notları, öğrenci kaynakları, ders programları ve üniversite yaşamına ilişkin güncel içerikler.',
         keywords: 'SDÜ, üniversite, ders notları, patoloji eğitim, Süleyman Demirel Üniversitesi, kampüs',
-        lastmod: '2026-07-14',
+        lastmod: '2026-07-16',
         priority: 0.5,
         changefreq: 'monthly'
     },
@@ -438,7 +438,7 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
     'patoloji-sozlugu': {
         slug: 'patoloji-sozlugu',
         title: 'Patoloji Sözlüğü ve Terim Açıklayıcı | Prof. Dr. Metin Çiriş',
-        description: 'Patoloji raporunuzdaki tıbbi terimleri anlayın. Atipi, displazi, benign, malign gibi terimlerin açıklamaları ve otomatik rapor açıklayıcı araç.',
+        description: 'Patoloji raporunuzdaki tıbbi terimleri anlayın. Atipi, displazi, benign, malign gibi terimlerin açıklamaları ve tarayıcı içinde çalışan terim bulma ve açıklama aracı.',
         keywords: 'patoloji sözlüğü, tıbbi terimler, patoloji raporu, hasta rehberi, atipi, benign, malign',
         lastmod: '2026-07-16',
         priority: 0.7,

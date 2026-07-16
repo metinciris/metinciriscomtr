@@ -271,7 +271,7 @@ export function PatolojiSozlugu({ onNavigate }: PatolojiSozluguProps) {
                         </div>
                         <div>
                             <h2 className="text-2xl font-bold text-slate-800 m-0">Rapordaki Terimleri Bul ve Açıkla</h2>
-                            <p className="text-slate-500 mt-1">Raporunuzdaki karmaşık tıbbi terimleri saniyeler içinde analiz edin.</p>
+                            <p className="text-slate-500 mt-1">Raporunuzda geçen sözlük terimlerini bulun ve kısa açıklamalarını görüntüleyin.</p>
                         </div>
                     </div>
                     
@@ -300,7 +300,7 @@ export function PatolojiSozlugu({ onNavigate }: PatolojiSozluguProps) {
                             className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl transition-colors shadow-md shadow-indigo-600/20 flex items-center justify-center gap-2"
                         >
                             <Wand2 size={20} />
-                            Raporu Analiz Et
+                            Terimleri Bul
                         </button>
                     </div>
 
@@ -309,7 +309,7 @@ export function PatolojiSozlugu({ onNavigate }: PatolojiSozluguProps) {
                         {!hasAnalyzed ? (
                             <div className="h-full flex flex-col items-center justify-center text-slate-400 text-center px-4 py-12">
                                 <Book size={48} className="mb-4 opacity-50" />
-                                <p className="font-medium text-lg text-slate-500">Raporunuzu yapıştırıp "Analiz Et" butonuna tıklayın.</p>
+                                <p className="font-medium text-lg text-slate-500">Raporunuzu yapıştırıp "Terimleri Bul" butonuna tıklayın.</p>
                                 <p className="text-sm mt-2">Raporda geçen terimlerin açıklamaları burada listelenecektir.</p>
                             </div>
                         ) : matchedTerms.length === 0 ? (
