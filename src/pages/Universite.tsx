@@ -6,7 +6,6 @@ import {
   FolderOpen,
   Calendar,
   Camera,
-  Info,
 } from 'lucide-react';
 
 interface UniversiteProps {
@@ -83,25 +82,11 @@ export function Universite({ onNavigate }: UniversiteProps) {
       {/* Header */}
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-slate-800 mb-2">
-          Üniversite ve SDÜ Arşivi
+          SDÜ ve Üniversite
         </h2>
         <p className="text-slate-600 max-w-2xl">
-          Süleyman Demirel Üniversitesi dönemine ait ders notları, öğrenci
-          kaynakları ve kampüs içerikleri. Bu sayfadaki içerikler önceki
-          üniversite dönemine ait olabilir ve güncellenmeyebilir.
+          Ders notları, programlar, yemek listeleri ve SDÜ öğrencilerine yönelik kaynaklar.
         </p>
-      </div>
-
-      {/* Info banner */}
-      <div
-        className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50/70 p-4 mb-8 text-sm text-slate-700"
-        role="note"
-      >
-        <Info size={18} className="text-amber-600 mt-0.5 shrink-0" aria-hidden="true" />
-        <span>
-          Bu bölümdeki bazı içerikler SDÜ Tıp Fakültesi dönemine aittir ve
-          güncelliğini yitirmiş olabilir. Güncel bilgi için ilgili kurumu kontrol ediniz.
-        </span>
       </div>
 
       {/* Grid */}

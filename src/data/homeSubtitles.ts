@@ -1,56 +1,100 @@
 /** Ana sayfa karo alt yazıları (dönen metinler) */
 
-// Öğrenci
-export const TIP_SUBTITLES = ['Ders slaytları', 'Özet notlar', 'Güncel müfredat'];
-export const DIS_SUBTITLES = ['Slaytlar', 'Ders materyali'];
-export const ECZA_SUBTITLES = ['Slaytlar', 'Ders materyali'];
-export const GALERI_SUBTITLES = [
-    'Sanal mikroskop',
-    'Histopatoloji vakaları',
-    'Dijital slide arşivi',
-];
-
-// Hasta
+// ── HASTALAR SÜTUNU ──────────────────────────────────────────
 export const ILETISIM_SUBTITLES = [
-    'Prof. Dr. Metin Çiriş',
-    'Adres',
-    'E-posta',
-    'Sosyal medya',
-    'LinkedIn iletişim',
+  'Prof. Dr. Metin Çiriş',
+  'Adres ve iletişim bilgileri',
+  'E-posta',
+  'LinkedIn',
 ];
-export const BLOG_SUBTITLES = ['Vaka yazıları', 'Yazılım & eğitim', 'Güncel notlar'];
+
+export const BIYOPSI_SUBTITLES = [
+  'Patoloji raporu',
+  'Biyopsi süreci ve aşamaları',
+  'Raporunuzu alın',
+];
+
+export const BIYOPSI_SSS_SUBTITLES = [
+  'Sonuç süresi',
+  'Ek incelemeler',
+  'Patoloji raporu hakkında',
+];
+
+export const BAKTIGIM_SUBTITLES = [
+  'Değerlendirilen materyaller',
+  'Cerrahi patoloji',
+  'Biyopsi türleri',
+];
+
 export const HASTANE_YEMEK_SUBTITLES = [
-    'SDÜ tıp yemek',
-    'Hastane yemek',
-    'Bugün yemek',
-    'Bugünün menüsü',
-    'Öğlen menüsü',
-    'Akşam menüsü',
+  'SDÜ tıp yemek',
+  'Bugünün menüsü',
+  'Öğlen menüsü',
+  'Akşam menüsü',
 ];
 
-// Makale Takip
+// ── PATOLOJİ VE EĞİTİM SÜTUNU ───────────────────────────────
+export const TIP_SUBTITLES = [
+  'Ders slaytları ve özet notlar',
+  'Tıp öğrencileri için',
+  'Güncel müfredat',
+];
+
+export const DIS_SUBTITLES = [
+  'Diş hekimliği patoloji notları',
+  'Slaytlar ve materyaller',
+];
+
+export const ECZA_SUBTITLES = [
+  'Eczacılık patoloji ders içerikleri',
+  'Temel patoloji slaytları',
+];
+
 export const MAKALE_SUBTITLES = [
-    'Günlük makale',
-    'Sadece patoloji',
-    'PubMed linkleri ile',
-    'Günlük uğrayın',
+  'Günlük PubMed taramaları',
+  'Dikkat çeken patoloji çalışmaları',
+  'Yeni yayınlar',
 ];
 
-// Akademik
+// ── AKADEMİK / PROFESYONEL SÜTUNU ───────────────────────────
+export const NGS_SUBTITLES = [
+  'DNA ve RNA panelleri',
+  'Biyobelirteçler ve füzyonlar',
+  'Moleküler test kapsamı',
+];
+
 export const YAYIN_SUBTITLES = [
-    'Makale listesi',
-    'PubMed bağlantıları',
-    'Güncel yayınlar',
+  'Makale listesi',
+  'PubMed bağlantıları',
+  'Güncel yayınlar',
 ];
+
 export const PORTFOLYO_SUBTITLES = [
-    'Kısaca ben',
-    'Uzmanlıklarım',
-    'Baktığım biyopsiler',
-    'Akademik geçmiş',
+  'Akademik geçmiş',
+  'Uzmanlık alanları',
+  'Baktığım biyopsiler',
 ];
-export const DIGER_SUBTITLES = ['Raporlama', 'Patoloji için'];
+
+export const BLOG_SUBTITLES = [
+  'İlginç vakalar',
+  'Tanısal yaklaşımlar',
+  'Literatür notları ve güncellemeler',
+];
+
 export const KONSENSUS_SUBTITLES = [
-    'Patoloji konsensus',
-    'Toplantı takvimi',
-    'Patoloji konsensus toplantıları takip'
+  'Patoloji konsensus toplantıları',
+  'Toplantı takvimi',
+  'Güncel kılavuzlar',
+];
+
+export const UNIVERSITE_SUBTITLES = [
+  'Ders notları ve programlar',
+  'Yemek listeleri',
+  'SDÜ öğrenci kaynakları',
+];
+
+export const DIGER_SUBTITLES = [
+  'Seçili patoloji araçları',
+  'Raporlama yardımcıları',
+  'Mesleki projeler',
 ];
