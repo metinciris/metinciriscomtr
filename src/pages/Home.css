@@ -139,6 +139,21 @@
   filter: brightness(1.06);
 }
 
+/* Kontrast desteği gereken parlak kartların alt yazıları */
+.tile-patient-primary p,
+.tile-patient-b p,
+.tile-patient-utility p,
+.tile-edu-utility p,
+.tile-edu-radar p,
+.tile-acad-other p {
+  display: inline-block;
+  max-width: 100%;
+  padding: 0.18rem 0.45rem;
+  border-radius: 0.4rem;
+  background: rgba(15, 23, 42, 0.20);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.28);
+}
+
 /* ══════════════════════════════════════════════
    HAVA DURUMU KAROSU GENEL
    ══════════════════════════════════════════════ */

@@ -419,9 +419,9 @@ function injectMetadata(
 }
 
 function injectRoot(sourceHtml, staticContent) {
-  const emptyRoot = /<div\s+id=["']root["'][^>]*>\s*<\/div>/i;
+  const emptyRoot = /<div\s+id=["']root["'][^>]*>([\s\S]*?)<\/div>/i;
   if (!emptyRoot.test(sourceHtml)) {
-    throw new Error('dist/index.html içinde boş #root öğesi bulunamadı.');
+    throw new Error('dist/index.html içinde #root öğesi bulunamadı.');
   }
   return sourceHtml.replace(emptyRoot, `<div id="root">${staticContent}</div>`);
 }

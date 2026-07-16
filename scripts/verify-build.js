@@ -88,10 +88,17 @@ if (blogIndexHtml) {
   check('Blog index.html exists and has content', blogIndexHtml.length > 200);
 }
 
-// Check canonical tag in dist/index.html
+// Check canonical tag and static content in dist/index.html
 const distIndex = readSafe(join(dist, 'index.html'));
 if (distIndex) {
   check('Canonical tag in index.html', distIndex.includes('rel="canonical"'));
+  check('Static content contains Name', distIndex.includes('Prof. Dr. İbrahim Metin Çiriş'));
+  check('Static content contains Title', distIndex.includes('Tıbbi Patoloji Uzmanı'));
+  check('Static content contains /patoloji-sozlugu/', distIndex.includes('/patoloji-sozlugu/'));
+  check('Static content contains /ngs/', distIndex.includes('/ngs/'));
+  check('Static content contains /blog/', distIndex.includes('/blog/'));
+  check('Static content contains /universite/', distIndex.includes('/universite/'));
+  check('Static content contains lecture notes link (/donem-3/)', distIndex.includes('/donem-3/'));
 }
 
 // --- Summary ---
