@@ -489,8 +489,11 @@ export function Deprem() {
       const distance = distanceMap.get(eq.earthquake_id) ?? 999999;
       const rel = getRelation(eq.title, distance);
 
-      if (rel) await playNearPreamble();
-      await playBeepSequence(Math.floor(eq.mag));
+      // Sadece Isparta veya yakını ise, ya da genel depremlerde şiddeti 3.0 ve üzeri ise bildirim ver
+      if (rel || eq.mag >= 3.0) {
+        if (rel) await playNearPreamble();
+        await playBeepSequence(Math.floor(eq.mag));
+      }
 
       if (soundQueue.current.length > 0) await sleep(800);
     }
@@ -560,11 +563,6 @@ export function Deprem() {
       }
 
       if (notificationsEnabled && soundQueue.current.length > 0) {
-        processSoundQueue(dmap);
-      }
-
-      if (notificationsEnabled && newOnes.length > 0) {
-        newOnes.forEach((eq) => soundQueue.current.push(eq));
         processSoundQueue(dmap);
       }
     } catch (err: any) {
@@ -862,13 +860,16 @@ export function Deprem() {
 
 
               <p className="text-white/75 text-xs mt-1">
-                Bildirim açıksa: deprem şiddeti kadar tık sesi (Isparta/Yakın ise önce uzun uyarı).
+                Sadece <strong>Isparta ve yakını</strong> ile Türkiye geneli <strong>3.0 ve üzeri</strong> depremlerde ses çalar.
               </p>
             </div>
 
             <div className="flex flex-col items-center gap-2">
               <div className="text-xs font-extrabold text-white/80 uppercase tracking-wide">Bildirim</div>
               <NotificationToggle enabled={notificationsEnabled} onToggle={() => setNotificationsEnabled((v) => !v)} />
+              <div className="text-[10px] text-white/60 text-center leading-tight">
+                Isparta/Yakın veya 3.0+
+              </div>
             </div>
 
             <div className="flex justify-start md:justify-end md:justify-self-end">
