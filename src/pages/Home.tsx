@@ -111,7 +111,7 @@ export function Home({ onNavigate }: HomeProps) {
             <li><a href="/yayinlar/">Yayınlar</a></li>
             <li>
               <a
-                href="https://orcid.org/0000-0002-8800-1896"
+                href="https://orcid.org/0000-0002-5619-4989"
                 target="_blank"
                 rel="noopener noreferrer"
               >
