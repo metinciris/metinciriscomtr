@@ -1,7 +1,9 @@
 import React from 'react';
 import { PageContainer } from '../components/PageContainer';
-import { Mail, Phone, Building2, ExternalLink, MapPin, MessageSquare, Linkedin } from 'lucide-react';
+import { Mail, Phone, Building2, ExternalLink, MapPin, MessageSquare, Linkedin, Send, FileText } from 'lucide-react';
 import { trackClick } from '../utils/analytics';
+import { Textarea } from '../components/ui/textarea';
+import { Input } from '../components/ui/input';
 
 
 export function Iletisim() {
@@ -185,36 +187,100 @@ export function Iletisim() {
         </div>
       </div>
 
+      {/* Başvuru Merkezi Yönlendirme */}
+      <a href="/basvuru-merkezi/" className="block bg-slate-800 text-white p-8 rounded-lg shadow-sm hover:shadow-lg transition-all mb-8 no-underline group">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="bg-white/20 w-14 h-14 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+              <FileText size={28} />
+            </div>
+            <div>
+              <h2 className="text-white mb-1 text-2xl">Başvuru Merkezi</h2>
+              <p className="text-white/80 m-0 text-lg">Konsültasyon talebi, materyal gönderimi, NGS test seçimi gibi konular için tıklayın.</p>
+            </div>
+          </div>
+          <ExternalLink size={28} className="text-white/50 group-hover:text-white transition-colors hidden sm:block" />
+        </div>
+      </a>
+
       {/* İletişim Formu Bölümü */}
       <div className="bg-gradient-to-br from-[#9B59B6] to-[#8E44AD] text-white p-10 rounded-lg shadow-lg mb-8">
-        <div className="max-w-3xl mx-auto text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 rounded-full mb-6">
-            <MessageSquare size={32} />
+        <div className="max-w-3xl mx-auto">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 rounded-full mb-6">
+              <MessageSquare size={32} />
+            </div>
+            <h2 className="text-white mb-4">Mesaj Gönderin</h2>
+            <p className="text-white/90 text-lg leading-relaxed">
+              Sorularınız, önerileriniz veya işbirliği teklifleriniz için iletişim formunu kullanarak
+              bana mesaj gönderebilirsiniz. Tüm mesajlar doğrudan e-posta adresime iletilmektedir.
+            </p>
           </div>
-          <h2 className="text-white mb-4">Mesaj Gönderin</h2>
-          <p className="text-white/90 text-lg mb-8 leading-relaxed">
-            Sorularınız, önerileriniz veya işbirliği teklifleriniz için iletişim formunu kullanarak
-            bana mesaj gönderebilirsiniz. Tüm mesajlar doğrudan e-posta adresime iletilmektedir.
-          </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a
-              href="https://docs.google.com/forms/d/e/1FAIpQLSd1JpaucSQGovf934mAYBUkiKPOaKw_H_xu6KSVA4L9IKP0Vg/viewform?usp=header"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-white text-[#9B59B6] px-8 py-4 rounded-lg hover:bg-white/90 transition-all hover:shadow-xl flex items-center justify-center gap-3 text-lg font-medium"
+          <form
+            action="https://docs.google.com/forms/d/e/1FAIpQLSd1JpaucSQGovf934mAYBUkiKPOaKw_H_xu6KSVA4L9IKP0Vg/formResponse"
+            method="POST"
+            target="_self"
+            id="ziyaretciForm"
+            className="space-y-6 bg-white/10 p-8 rounded-xl border border-white/20"
+          >
+            <div>
+              <label htmlFor="email" className="block mb-2 text-white font-medium">
+                E-posta Adresiniz
+              </label>
+              <Input
+                id="email"
+                type="email"
+                name="entry.433982418"
+                placeholder="ornek@email.com"
+                inputMode="email"
+                autoComplete="email"
+                className="border-2 border-white/30 bg-white/10 text-white placeholder:text-white/50 focus:border-white focus:bg-white/20"
+              />
+              <p className="text-white/70 mt-1 m-0 text-sm">
+                İsteğe bağlıdır. Yazarsanız, size geri dönüş yaparken kullanılabilir.
+              </p>
+            </div>
+
+            <div>
+              <label htmlFor="name" className="block mb-2 text-white font-medium">
+                İsim Soyad / Şirket <span className="text-red-300">*</span>
+              </label>
+              <Input
+                id="name"
+                type="text"
+                name="entry.480799618"
+                placeholder="Adınız ve Soyadınız"
+                required
+                className="border-2 border-white/30 bg-white/10 text-white placeholder:text-white/50 focus:border-white focus:bg-white/20"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="message" className="block mb-2 text-white font-medium">
+                Mesajınız <span className="text-red-300">*</span>
+              </label>
+              <Textarea
+                id="message"
+                name="entry.666122626"
+                placeholder="Görüş, öneri veya sorularınızı buraya yazabilirsiniz..."
+                className="min-h-[150px] border-2 border-white/30 bg-white/10 text-white placeholder:text-white/50 focus:border-white focus:bg-white/20"
+                required
+              />
+            </div>
+
+            <input type="hidden" name="fvv" value="1" />
+            <input type="hidden" name="fbzx" value="9179628098242353502" />
+            <input type="hidden" name="pageHistory" value="0" />
+
+            <button
+              type="submit"
+              className="bg-white text-[#9B59B6] px-8 py-3 rounded-lg hover:bg-white/90 transition-colors flex items-center gap-2 w-full justify-center font-bold text-lg"
             >
-              <ExternalLink size={24} />
-              İletişim Formunu Aç
-            </a>
-            <a
-              href={`mailto:${email1}`}
-              className="bg-white/20 text-white px-8 py-4 rounded-lg hover:bg-white/30 transition-all flex items-center justify-center gap-3 text-lg font-medium border-2 border-white/30"
-            >
-              <Mail size={24} />
-              Doğrudan E-posta
-            </a>
-          </div>
+              <Send size={20} />
+              Mesajı Gönder
+            </button>
+          </form>
         </div>
       </div>
 

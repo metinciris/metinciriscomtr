@@ -39,15 +39,6 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         priority: 0.9,
         changefreq: 'monthly'
     },
-    'ziyaret-mesaji': {
-        slug: 'ziyaret-mesaji',
-        title: 'Ziyaretçi Mesajı | Prof Dr Metin Çiriş',
-        description: 'Ziyaretçilerimizden gelen mesajlar ve geri bildirimler.',
-        keywords: 'ziyaretçi mesajları, geri bildirim, hasta yorumları',
-        lastmod: '2026-07-16',
-        priority: 0.6,
-        changefreq: 'monthly'
-    },
     'biyopsi-sonucu': {
         slug: 'biyopsi-sonucu',
         title: 'Biyopsi Sonucu Sorgulama | Prof Dr Metin Çiriş',
@@ -83,15 +74,6 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         lastmod: '2026-07-16',
         priority: 0.6,
         changefreq: 'daily'
-    },
-    'ders-notlari': {
-        slug: 'ders-notlari',
-        title: 'Patoloji Ders Notları | Prof Dr Metin Çiriş',
-        description: 'Tıbbi Patoloji ders notları, slaytlar and eğitim materyalleri. Tıp fakültesi öğrencileri için.',
-        keywords: 'patoloji ders notları, tıp eğitimi, patoloji slaytları, ders materyalleri',
-        lastmod: '2026-07-16',
-        priority: 0.8,
-        changefreq: 'weekly'
     },
     'ders-programi': {
         slug: 'ders-programi',
@@ -188,15 +170,6 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         title: 'Facebook | Prof Dr Metin Çiriş',
         description: 'Prof Dr Metin Çiriş sosyal medya paylaşımları ve duyurular.',
         keywords: 'facebook, sosyal medya, duyurular',
-        lastmod: '2026-07-16',
-        priority: 0.4,
-        changefreq: 'monthly'
-    },
-    linkedin: {
-        slug: 'linkedin',
-        title: 'LinkedIn | Prof Dr Metin Çiriş',
-        description: 'Prof Dr Metin Çiriş profesyonel ağ ve akademik bağlantılar.',
-        keywords: 'linkedin, profesyonel ağ, akademik network',
         lastmod: '2026-07-16',
         priority: 0.4,
         changefreq: 'monthly'

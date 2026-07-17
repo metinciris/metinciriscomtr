@@ -323,17 +323,6 @@ export function Home({ onNavigate }: HomeProps) {
             </p>
             <div className="grid grid-cols-2 gap-3">
 
-              {/* Geniş: NGS ve Moleküler Patoloji */}
-              <MetroTile
-                title="NGS ve Moleküler Patoloji"
-                subtitle={ngsSubtitle}
-                icon={<Dna size={38} />}
-                color="tile-acad-primary"
-                size="wide"
-                href="/ngs/"
-                onClick={() => onNavigate('ngs')}
-              />
-
               {/* Yayınlar */}
               <MetroTile
                 title="Yayınlar"
@@ -354,6 +343,28 @@ export function Home({ onNavigate }: HomeProps) {
                 size="medium"
                 href="/portfolyo/"
                 onClick={() => onNavigate('portfolyo')}
+              />
+
+              {/* NGS ve Moleküler Patoloji */}
+              <MetroTile
+                title="NGS ve Moleküler Patoloji"
+                subtitle={ngsSubtitle}
+                icon={<Dna size={38} />}
+                color="tile-acad-primary"
+                size="medium"
+                href="/ngs/"
+                onClick={() => onNavigate('ngs')}
+              />
+
+              {/* Podcast */}
+              <MetroTile
+                title="Patoloji Podcast"
+                subtitle="Sesli makale ve vaka özetleri"
+                icon={<MessageSquare size={38} />}
+                color="bg-[#10B981]"
+                size="medium"
+                href="/podcast/"
+                onClick={() => onNavigate('podcast')}
               />
 
               {/* Blog / Patoloji Notları */}

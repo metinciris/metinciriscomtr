@@ -13,12 +13,10 @@ const PAGE_NAMES: Record<string, string> = {
   home: 'Ana Sayfa',
   'basvuru-merkezi': 'Başvuru Merkezi',
   iletisim: 'İletişim',
-  'ziyaret-mesaji': 'Ziyaret Mesajı',
   'biyopsi-sonucu': 'Biyopsi Sonucu',
   'baktigim-biyopsiler': 'Baktığım Biyopsiler',
   'nobetci-eczane': 'Nöbetçi Eczane',
   'hastane-yemek': 'Hastane Yemek',
-  'ders-notlari': 'Ders Notları',
   'ders-programi': 'Ders Programı',
   'ogrenci-yemek': 'Öğrenci Yemek',
   'donem-3': 'Dönem 3',
@@ -30,7 +28,6 @@ const PAGE_NAMES: Record<string, string> = {
   blog: 'Blog',
   github: 'GitHub',
   facebook: 'Facebook',
-  linkedin: 'LinkedIn',
   universite: 'SDÜ ve Üniversite',
   'diger-calismalar': 'Diğer Çalışmalar',
   'fetus-uzunluklari': 'Fetus Uzunlukları',
@@ -91,7 +88,6 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
 
   const navItems = [
     { name: 'Ana Sayfa', path: 'home', icon: Home },
-    { name: 'Başvuru Mrk.', path: 'basvuru-merkezi', icon: BookOpen },
     { name: 'Biyopsi', path: 'baktigim-biyopsiler', icon: User },
   ];
 

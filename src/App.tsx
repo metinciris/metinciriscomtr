@@ -22,10 +22,6 @@ const Iletisim = React.lazy(() =>
   import('./pages/Iletisim').then((m) => ({ default: m.Iletisim })),
 );
 
-const ZiyaretMesaji = React.lazy(() =>
-  import('./pages/ZiyaretMesaji').then((m) => ({ default: m.ZiyaretMesaji })),
-);
-
 const BiyopsiSonucu = React.lazy(() =>
   import('./pages/BiyopsiSonucu').then((m) => ({
     default: m.BiyopsiSonucu,
@@ -42,10 +38,6 @@ const NobetciEczane = React.lazy(() =>
   import('./pages/NobetciEczane').then((m) => ({
     default: m.NobetciEczane,
   })),
-);
-
-const DersNotlari = React.lazy(() =>
-  import('./pages/DersNotlari').then((m) => ({ default: m.DersNotlari })),
 );
 
 const DersProgrami = React.lazy(() =>
@@ -97,10 +89,6 @@ const GitHubPage = React.lazy(() =>
 
 const FacebookPage = React.lazy(() =>
   import('./pages/Facebook').then((m) => ({ default: m.Facebook })),
-);
-
-const LinkedInPage = React.lazy(() =>
-  import('./pages/LinkedIn').then((m) => ({ default: m.LinkedIn })),
 );
 
 const UniversitePage = React.lazy(() =>
@@ -333,8 +321,6 @@ export default function App() {
       // Hasta Bölümü
       case 'iletisim':
         return <Iletisim />;
-      case 'ziyaret-mesaji':
-        return <ZiyaretMesaji />;
       case 'biyopsi-sonucu':
         return <BiyopsiSonucu onNavigate={navigate} />;
       case 'baktigim-biyopsiler':
@@ -345,8 +331,6 @@ export default function App() {
         return <HastaneYemek />;
 
       // Öğrenci Bölümü
-      case 'ders-notlari':
-        return <DersNotlari />;
       case 'ders-programi':
         return <DersProgrami />;
       case 'ogrenci-yemek':
@@ -371,8 +355,6 @@ export default function App() {
         return <GitHubPage />;
       case 'facebook':
         return <FacebookPage />;
-      case 'linkedin':
-        return <LinkedInPage />;
       case 'universite':
         return <UniversitePage onNavigate={navigate} />;
       case 'diger-calismalar':
