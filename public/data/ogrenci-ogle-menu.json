@@ -1,7 +1,12 @@
 {
-  "date": "05.07.2026",
-  "items": [],
-  "kcal": null,
+  "date": "17.07.2026",
+  "items": [
+    "KREMALI SEBZE ÇORBASI",
+    "TAVUK ROTİ",
+    "GARNİTÜRLÜ PİRİNÇ PİLAVI",
+    "KASE AYRAN"
+  ],
+  "kcal": "1000",
   "source": "https://w3.sdu.edu.tr/aylik-yemek-listesi?dosya=yemekler_ogle&tur=2",
-  "updatedAt": "2026-07-05T07:43:40.079Z"
+  "updatedAt": "2026-07-17T09:24:37.007Z"
 }
