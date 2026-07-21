@@ -12,6 +12,8 @@ on:
       - labeled
       - unlabeled
   workflow_dispatch:
+  schedule:
+    - cron: '17 4 * * 1,4'
 
 permissions:
   contents: read
@@ -32,6 +34,7 @@ jobs:
     if: |
       github.event_name == 'push' ||
       github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'schedule' ||
       (github.event_name == 'issues' && (
         (github.event.action == 'labeled' && github.event.label.name == 'Blog') ||
         (github.event.action == 'unlabeled' && github.event.label.name == 'Blog') ||
