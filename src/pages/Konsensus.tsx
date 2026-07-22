@@ -92,16 +92,26 @@ export function Konsensus() {
 
   useEffect(() => {
     let alive = true;
+    const checkAdmin = (session: any) => {
+      // Bu kontrol yalnızca admin arayüzünün görünürlüğü içindir. Gerçek yetkilendirme Supabase RLS politikaları tarafından yapılır.
+      const ADMIN_UIDS = (import.meta.env.VITE_ADMIN_UIDS ?? '')
+        .split(',')
+        .map((uid: string) => uid.trim())
+        .filter(Boolean);
+      const userId = session?.user?.id;
+      return Boolean(userId && ADMIN_UIDS.includes(userId));
+    };
+
     const check = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!alive) return;
-      setIsAdmin(!!session);
+      setIsAdmin(checkAdmin(session));
       setAuthLoading(false);
     };
     check();
     const { data: sub } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (!alive) return;
-      setIsAdmin(!!session);
+      setIsAdmin(checkAdmin(session));
       setAuthLoading(false);
     });
     return () => {
@@ -117,7 +127,11 @@ export function Konsensus() {
 
   const fetchMeetings = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase.from('meetings').select('*').order('date', { ascending: true }).order('time', { ascending: true });
+    const { data, error } = await supabase
+      .from('meetings')
+      .select('id, title, organizer, date, time, duration, description, poster_url, zoom_link, zoom_id, zoom_password')
+      .order('date', { ascending: true })
+      .order('time', { ascending: true });
     if (!error) setMeetings((data as Meeting[]) || []);
     setLoading(false);
   }, []);
