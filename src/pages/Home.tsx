@@ -304,11 +304,11 @@ export function Home({ onNavigate }: HomeProps) {
                 onClick={() => onNavigate('makale-takip')}
               />
 
-              {/* Slide Galeri */}
+              {/* Sanal Mikroskop */}
               <MetroTile
-                title="Slide Galeri"
+                title="Sanal Mikroskop"
                 subtitle={galeriSubtitle}
-                icon={<Camera size={38} />}
+                icon={<Microscope size={38} />}
                 color="tile-edu-galeri"
                 size="medium"
                 href="/galeri/"

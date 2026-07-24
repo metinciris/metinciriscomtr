@@ -57,9 +57,10 @@ export const MAKALE_SUBTITLES = [
 ];
 
 export const GALERI_SUBTITLES = [
-  'Sanal mikroskop galerisi',
-  'Histopatoloji vaka arşivi',
   'Dijital patoloji slaytları',
+  'Histopatoloji vaka arşivi',
+  'Yüksek çözünürlüklü lamlar',
+  'İnteraktif doku inceleme',
 ];
 
 // ── AKADEMİK / PROFESYONEL SÜTUNU ───────────────────────────

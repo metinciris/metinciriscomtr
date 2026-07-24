@@ -58,9 +58,9 @@ const ARCHIVE_LINKS = [
     color: '#8E44AD',
   },
   {
-    title: 'Slide Galeri',
+    title: 'Sanal Mikroskop',
     description: 'Sanal mikroskopi ve histopatoloji vaka arşivi.',
-    icon: Camera,
+    icon: Microscope,
     page: 'galeri',
     color: '#2563eb',
   },
