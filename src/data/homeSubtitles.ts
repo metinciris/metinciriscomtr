@@ -56,6 +56,12 @@ export const MAKALE_SUBTITLES = [
   'Yeni yayınlar',
 ];
 
+export const GALERI_SUBTITLES = [
+  'Sanal mikroskop galerisi',
+  'Histopatoloji vaka arşivi',
+  'Dijital patoloji slaytları',
+];
+
 // ── AKADEMİK / PROFESYONEL SÜTUNU ───────────────────────────
 export const NGS_SUBTITLES = [
   'DNA ve RNA panelleri',

@@ -6,6 +6,7 @@ import {
   FolderOpen,
   Calendar,
   Camera,
+  Microscope,
 } from 'lucide-react';
 
 interface UniversiteProps {
@@ -27,6 +28,13 @@ const ARCHIVE_LINKS = [
     icon: Calendar,
     page: 'ders-programi',
     color: '#003E7E',
+  },
+  {
+    title: 'Ayın Vakası',
+    description: 'Her ay güncellenen ilginç patoloji vakası ve sanal mikroskopi incelemesi.',
+    icon: Microscope,
+    page: 'ayin-vakasi',
+    color: '#C0265E',
   },
   {
     title: 'Öğrenci Yemek Listesi',

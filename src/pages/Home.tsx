@@ -17,6 +17,7 @@ import {
   Calendar,
   Landmark,
   Dna,
+  Camera,
 } from 'lucide-react';
 import { useRotatingText } from '../hooks/useRotatingText';
 import { useWeather } from '../hooks/useWeather';
@@ -26,6 +27,7 @@ import {
   DIS_SUBTITLES,
   ECZA_SUBTITLES,
   MAKALE_SUBTITLES,
+  GALERI_SUBTITLES,
   HASTANE_YEMEK_SUBTITLES,
   YAYIN_SUBTITLES,
   PORTFOLYO_SUBTITLES,
@@ -76,6 +78,7 @@ export function Home({ onNavigate }: HomeProps) {
   const disSubtitle        = useRotatingText(DIS_SUBTITLES, 4000);
   const eczaSubtitle       = useRotatingText(ECZA_SUBTITLES, 4000);
   const makaleSubtitle     = useRotatingText(MAKALE_SUBTITLES, 4000);
+  const galeriSubtitle     = useRotatingText(GALERI_SUBTITLES, 4000);
 
   const ngsSubtitle        = useRotatingText(NGS_SUBTITLES, 4000);
   const yayinSubtitle      = useRotatingText(YAYIN_SUBTITLES, 4000);
@@ -301,15 +304,15 @@ export function Home({ onNavigate }: HomeProps) {
                 onClick={() => onNavigate('makale-takip')}
               />
 
-              {/* Ayın Vakası */}
+              {/* Slide Galeri */}
               <MetroTile
-                title="Ayın Vakası"
-                subtitle="Kendinizi test edin"
-                icon={<Microscope size={38} />}
-                color="tile-edu-case"
+                title="Slide Galeri"
+                subtitle={galeriSubtitle}
+                icon={<Camera size={38} />}
+                color="tile-edu-galeri"
                 size="medium"
-                href="/ayin-vakasi/"
-                onClick={() => onNavigate('ayin-vakasi')}
+                href="/galeri/"
+                onClick={() => onNavigate('galeri')}
               />
 
             </div>
