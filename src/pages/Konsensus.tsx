@@ -17,6 +17,8 @@ import {
   dateKeyInTz,
   parseYMD,
   getMeetingStatus,
+  canShowZoomInfo,
+  canShowPoster,
 } from '../components/Konsensus/utils';
 
 import { MeetingCard } from '../components/Konsensus/MeetingCard';
@@ -68,9 +70,40 @@ export function Konsensus() {
     if (isFetchingRef.current) return;
     isFetchingRef.current = true;
     try {
-      const { data, error } = await supabase.rpc('get_public_meetings');
-      if (!error && data) {
-        setMeetings(data as Meeting[]);
+      const { data: rpcData, error: rpcError } = await supabase.rpc('get_public_meetings');
+
+      if (!rpcError && rpcData) {
+        setMeetings(rpcData as Meeting[]);
+      } else {
+        // Fallback to table query with client-side masking until RPC migration is executed in Supabase SQL Editor
+        const { data, error } = await supabase
+          .from('meetings')
+          .select('id, title, organizer, date, time, duration, description, poster_url, zoom_link, zoom_id, zoom_password')
+          .order('date', { ascending: true })
+          .order('time', { ascending: true });
+
+        if (!error && data) {
+          const currentTime = new Date();
+          const sanitized = (data as Meeting[]).map((m) => {
+            const zoomVisible = canShowZoomInfo(m, currentTime);
+            const posterVisible = canShowPoster(m, currentTime);
+            const has_zoom_info = Boolean(
+              (m.zoom_link && m.zoom_link.trim()) ||
+              (m.zoom_id && m.zoom_id.trim()) ||
+              (m.zoom_password && m.zoom_password.trim())
+            );
+
+            return {
+              ...m,
+              has_zoom_info,
+              zoom_link: zoomVisible ? m.zoom_link : null,
+              zoom_id: zoomVisible ? m.zoom_id : null,
+              zoom_password: zoomVisible ? m.zoom_password : null,
+              poster_url: posterVisible ? m.poster_url : null,
+            };
+          });
+          setMeetings(sanitized);
+        }
       }
     } catch (err) {
       console.error('Fetch public meetings error:', err);
