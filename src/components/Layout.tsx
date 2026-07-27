@@ -46,6 +46,7 @@ const PAGE_NAMES: Record<string, string> = {
   'online-test-analiz': 'Online Test Analiz',
   'euro-maclar': 'Euro Maçlar',
   konsensus: 'Konsensüs',
+  'konsensus-yonetim': 'Konsensüs Yönetim',
   'pubmed-makale-takip': 'PubMed Makale Takip',
   'avif-donusturucu': 'AVIF Dönüştürücü',
   'sjogren-raporlama': 'Sjögren Raporlama',

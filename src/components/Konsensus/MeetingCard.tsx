@@ -25,6 +25,9 @@ import {
     parseYMD,
     MONTH_NAMES,
     dateKeyInTz,
+    canShowZoomInfo,
+    canShowPoster,
+    getZoomVisibilityCountdown,
 } from './utils';
 
 interface MeetingCardProps {
@@ -60,16 +63,16 @@ export function MeetingCard({
     // Total "past" state covers both archived and today's finished meetings
     const isActuallyPast = isArchived || isPastToday;
 
-    const hasPoster = !!meeting.poster_url;
+    const zoomVisible = isAdmin || canShowZoomInfo(meeting, now);
+    const posterVisible = isAdmin || canShowPoster(meeting, now);
+
+    const hasPoster = posterVisible && !!meeting.poster_url;
     const duration = Math.max(15, meeting.duration ?? 60);
 
     const hasZoomLink = !!(meeting.zoom_link && meeting.zoom_link.trim());
     const hasZoomId = !!(meeting.zoom_id && meeting.zoom_id.trim());
     const hasZoomPassword = !!(meeting.zoom_password && meeting.zoom_password.trim());
-    const hasZoomInfo = hasZoomLink || hasZoomId || hasZoomPassword;
-
-    const showJoin = hasZoomLink && !isActuallyPast;
-    const showZoomInfo = hasZoomInfo && !isActuallyPast;
+    const hasZoomInfo = Boolean(meeting.has_zoom_info || hasZoomLink || hasZoomId || hasZoomPassword);
 
     const posterButtonOnly = isActuallyPast && hasPoster;
 
@@ -233,16 +236,54 @@ export function MeetingCard({
                             )}
 
                             {!isActuallyPast && (
-                                <div className="mt-5 pt-4 border-t border-gray-100">
-                                    {showZoomInfo ? (
-                                        <>
-                                            {showJoin && (
+                                <div className="mt-5 pt-4 border-t border-gray-100 space-y-4">
+                                    {!hasZoomInfo ? (
+                                        <div className="rounded-2xl bg-gray-50 border border-gray-100 px-4 py-3 text-sm font-semibold text-gray-600">
+                                            Güncel toplantı bilgilerini bu sayfadan takip edin.
+                                        </div>
+                                    ) : !zoomVisible ? (
+                                        <div className="rounded-2xl bg-amber-50/80 border border-amber-200 p-4 space-y-1.5 shadow-sm">
+                                            <div className="flex items-center gap-2 text-amber-900 font-black text-sm">
+                                                <Video className="w-4 h-4 text-amber-600 shrink-0" />
+                                                <span>Zoom bilgileri henüz gizli</span>
+                                            </div>
+                                            <p className="text-xs font-semibold text-amber-800 leading-relaxed">
+                                                Toplantı başlamadan 2 saat önce bağlantı, ID ve parola görünecek.
+                                            </p>
+                                            {getZoomVisibilityCountdown(meeting, now) && (
+                                                <div className="pt-1 text-xs font-black text-amber-900 flex items-center gap-1.5">
+                                                    <Timer className="w-3.5 h-3.5 text-amber-700" />
+                                                    <span>{getZoomVisibilityCountdown(meeting, now)}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-3">
+                                            <div className="rounded-2xl bg-emerald-50 border border-emerald-200 p-4 space-y-1 shadow-sm">
+                                                <div className="flex items-center gap-2 text-emerald-900 font-black text-sm">
+                                                    <Video className="w-4 h-4 text-emerald-600 shrink-0" />
+                                                    <span>Zoom bağlantısı yayınlandı!</span>
+                                                </div>
+                                                {isUpcoming && meetingStart && (
+                                                    <p className="text-xs font-semibold text-emerald-800">
+                                                        Toplantıya {getCountdownString(meetingStart, now).replace('BAŞLIYOR (Son ', 'son ')}
+                                                    </p>
+                                                )}
+                                                {isLive && (
+                                                    <p className="text-xs font-bold text-emerald-800">
+                                                        Toplantı şu anda canlı devam ediyor.
+                                                    </p>
+                                                )}
+                                            </div>
+
+                                            {hasZoomLink && (
                                                 <a
                                                     href={meeting.zoom_link!}
-                                                    className={`inline-flex items-center px-6 py-3 text-sm font-black rounded-xl transition shadow-md ${isLive
-                                                        ? 'bg-green-600 hover:bg-green-700 text-white shadow-green-200'
-                                                        : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-200'
-                                                        }`}
+                                                    className={`inline-flex items-center px-6 py-3 text-sm font-black rounded-xl transition shadow-md ${
+                                                        isLive
+                                                            ? 'bg-green-600 hover:bg-green-700 text-white shadow-green-200'
+                                                            : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-200'
+                                                    }`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                 >
@@ -252,7 +293,7 @@ export function MeetingCard({
                                             )}
 
                                             {(hasZoomId || hasZoomPassword) && (
-                                                <div className="mt-3 flex flex-wrap gap-2">
+                                                <div className="flex flex-wrap gap-2">
                                                     {hasZoomId && (
                                                         <div className="bg-gray-100 px-3 py-2 rounded-xl text-sm font-semibold text-gray-700">
                                                             <span className="font-black text-gray-900">Zoom ID:</span> {meeting.zoom_id}
@@ -271,20 +312,12 @@ export function MeetingCard({
                                                     )}
                                                 </div>
                                             )}
-
-                                            <div className="mt-3 text-xs font-semibold text-gray-500">
-                                                Toplantı bilgileri değişirse güncel ayrıntılar bu sayfada paylaşılır.
-                                            </div>
-                                        </>
-                                    ) : (
-                                        <div className="rounded-2xl bg-gray-50 border border-gray-100 px-4 py-3 text-sm font-semibold text-gray-600">
-                                            Ayrıntıları ve güncel toplantı bilgilerini bu sayfadan takip edin.
                                         </div>
                                     )}
 
                                     <div className="mt-4 flex flex-wrap gap-2">
                                         <button
-                                            onClick={() => window.open(buildGoogleCalendarUrl(meeting), '_blank')}
+                                            onClick={() => window.open(buildGoogleCalendarUrl(meeting, now), '_blank')}
                                             className="inline-flex items-center px-3 py-2 rounded-xl bg-blue-50 text-blue-800 hover:bg-blue-100 text-sm font-black transition border border-blue-100"
                                         >
                                             <ExternalLink className="w-4 h-4 mr-2" />
@@ -292,7 +325,7 @@ export function MeetingCard({
                                         </button>
 
                                         <button
-                                            onClick={() => downloadIcs(meeting)}
+                                            onClick={() => downloadIcs(meeting, now)}
                                             className="inline-flex items-center px-3 py-2 rounded-xl bg-indigo-50 text-indigo-800 hover:bg-indigo-100 text-sm font-black transition border border-indigo-100"
                                         >
                                             <Download className="w-4 h-4 mr-2" />
@@ -300,7 +333,7 @@ export function MeetingCard({
                                         </button>
 
                                         <button
-                                            onClick={() => shareWhatsApp(meeting)}
+                                            onClick={() => shareWhatsApp(meeting, now)}
                                             className="inline-flex items-center px-3 py-2 rounded-xl bg-green-50 text-green-800 hover:bg-green-100 text-sm font-black transition border border-green-100"
                                         >
                                             <MessageCircle className="w-4 h-4 mr-2" />
@@ -332,3 +365,4 @@ export function MeetingCard({
         </div>
     );
 }
+
