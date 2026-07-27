@@ -1,7 +1,12 @@
 {
-  "date": "26.07.2026",
-  "items": [],
-  "kcal": null,
+  "date": "27.07.2026",
+  "items": [
+    "YÜZÜK ÇORBASI",
+    "BAHÇIVAN KEBABI",
+    "ARPA ŞEHRİYELİ PİRİNÇ PİLAVI",
+    "KASE YOĞURT"
+  ],
+  "kcal": "1000",
   "source": "https://w3.sdu.edu.tr/aylik-yemek-listesi?dosya=yemekler_ogle&tur=2",
-  "updatedAt": "2026-07-26T09:29:01.807Z"
+  "updatedAt": "2026-07-27T08:02:55.379Z"
 }
