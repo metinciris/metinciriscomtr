@@ -66,12 +66,19 @@ export function toCompact(dateStr: string, timeStr: string) {
     return `${yy}${mo}${da}T${h}${mi}00`;
 }
 
-export function canShowZoomInfo(m: Meeting, now = new Date()): boolean {
-    if (!m.date) return false;
+export function getMeetingStartInstant(m: Meeting): Date {
+    if (!m.date) return new Date(NaN);
     const { y, m: month, d } = parseYMD(m.date);
     const [hh, mm] = (m.time || '20:00').split(':').map(Number);
-    const meetingStartUTC = Date.UTC(y, month - 1, d, hh - 3, mm, 0, 0);
-    const zoomVisibleStart = meetingStartUTC - 120 * 60 * 1000;
+    return new Date(Date.UTC(y, month - 1, d, hh - 3, mm, 0, 0));
+}
+
+export function canShowZoomInfo(m: Meeting, now = new Date()): boolean {
+    if (!m.date) return false;
+    const meetingStart = getMeetingStartInstant(m);
+    const zoomVisibleStart = meetingStart.getTime() - 120 * 60 * 1000;
+
+    const { y, m: month, d } = parseYMD(m.date);
     const zoomVisibleEnd = Date.UTC(y, month - 1, d + 1, -3, 0, 0);
 
     const nowTs = now.getTime();
@@ -91,10 +98,8 @@ export function canShowPoster(m: Meeting, now = new Date()): boolean {
 
 export function getZoomVisibilityCountdown(m: Meeting, now = new Date()): string {
     if (!m.date) return '';
-    const { y, m: month, d } = parseYMD(m.date);
-    const [hh, mm] = (m.time || '20:00').split(':').map(Number);
-    const meetingStartUTC = Date.UTC(y, month - 1, d, hh - 3, mm, 0, 0);
-    const zoomVisibleStart = meetingStartUTC - 120 * 60 * 1000;
+    const meetingStart = getMeetingStartInstant(m);
+    const zoomVisibleStart = meetingStart.getTime() - 120 * 60 * 1000;
     const diffMs = zoomVisibleStart - now.getTime();
 
     if (diffMs <= 0) return '';
@@ -200,18 +205,26 @@ export function downloadIcs(m: Meeting, now = new Date()) {
     URL.revokeObjectURL(url);
 }
 
-export function getMeetingStatus(m: Meeting, now: Date) {
+export function getMeetingStatus(m: Meeting, now = new Date()) {
     const todayKey = dateKeyInTz(now, IST_TZ);
-    if (m.date !== todayKey) return { isLive: false, isUpcoming: false, isPastToday: m.date < todayKey };
+    const isPastTodayDate = m.date < todayKey;
+    const isFutureDate = m.date > todayKey;
 
+    if (isPastTodayDate) {
+        return { isLive: false, isUpcoming: false, isPastToday: true, meetingStart: getMeetingStartInstant(m) };
+    }
+    if (isFutureDate) {
+        return { isLive: false, isUpcoming: true, isPastToday: false, meetingStart: getMeetingStartInstant(m) };
+    }
+
+    const meetingStart = getMeetingStartInstant(m);
     const duration = Math.max(15, m.duration ?? 60);
-    const [hh, mm] = (m.time || '20:00').split(':').map(Number);
-    const meetingStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hh, mm, 0, 0);
     const meetingEnd = new Date(meetingStart.getTime() + duration * 60000);
 
-    const isLive = now >= meetingStart && now <= meetingEnd;
-    const isUpcoming = now < meetingStart;
-    const isPastToday = now > meetingEnd;
+    const nowTs = now.getTime();
+    const isLive = nowTs >= meetingStart.getTime() && nowTs <= meetingEnd.getTime();
+    const isUpcoming = nowTs < meetingStart.getTime();
+    const isPastToday = nowTs > meetingEnd.getTime();
 
     return { isLive, isUpcoming, isPastToday, meetingStart };
 }
@@ -308,8 +321,14 @@ export function shareWhatsApp(m: Meeting, now = new Date()) {
     }
 
     const showZoom = canShowZoomInfo(m, now);
+    const hasZoomInfo = Boolean(
+        m.has_zoom_info ||
+        (m.zoom_link && m.zoom_link.trim()) ||
+        (m.zoom_id && m.zoom_id.trim()) ||
+        (m.zoom_password && m.zoom_password.trim())
+    );
 
-    if (showZoom) {
+    if (showZoom && hasZoomInfo) {
         if (m.zoom_id || m.zoom_password || m.zoom_link) {
             msg += `\n🔗 *Zoom Bilgileri:*\n`;
             if (m.zoom_id) msg += `• ID: ${m.zoom_id}\n`;
@@ -318,7 +337,7 @@ export function shareWhatsApp(m: Meeting, now = new Date()) {
                 msg += `• Bağlantı: ${m.zoom_link}\n`;
             }
         }
-    } else {
+    } else if (!showZoom && hasZoomInfo) {
         msg += `\nGüncel Zoom katılım bilgileri toplantıdan 2 saat önce yayınlanacaktır:\nhttps://konsensus.bolt.host\n`;
     }
 

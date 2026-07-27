@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { pushService } from '../services/pushService';
 import {
@@ -17,8 +17,6 @@ import {
   dateKeyInTz,
   parseYMD,
   getMeetingStatus,
-  canShowZoomInfo,
-  canShowPoster,
 } from '../components/Konsensus/utils';
 
 import { MeetingCard } from '../components/Konsensus/MeetingCard';
@@ -64,37 +62,45 @@ export function Konsensus() {
     return () => clearInterval(id);
   }, []);
 
+  const isFetchingRef = useRef(false);
+
   const fetchMeetings = useCallback(async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from('meetings')
-      .select('id, title, organizer, date, time, duration, description, poster_url, zoom_link, zoom_id, zoom_password')
-      .order('date', { ascending: true })
-      .order('time', { ascending: true });
-
-    if (!error && data) {
-      const currentTime = new Date();
-      const sanitized = (data as Meeting[]).map((m) => {
-        const zoomVisible = canShowZoomInfo(m, currentTime);
-        const posterVisible = canShowPoster(m, currentTime);
-        const has_zoom_info = Boolean(m.zoom_link || m.zoom_id || m.zoom_password);
-
-        return {
-          ...m,
-          has_zoom_info,
-          zoom_link: zoomVisible ? m.zoom_link : null,
-          zoom_id: zoomVisible ? m.zoom_id : null,
-          zoom_password: zoomVisible ? m.zoom_password : null,
-          poster_url: posterVisible ? m.poster_url : null,
-        };
-      });
-      setMeetings(sanitized);
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
+    try {
+      const { data, error } = await supabase.rpc('get_public_meetings');
+      if (!error && data) {
+        setMeetings(data as Meeting[]);
+      }
+    } catch (err) {
+      console.error('Fetch public meetings error:', err);
+    } finally {
+      setLoading(false);
+      isFetchingRef.current = false;
     }
-    setLoading(false);
   }, []);
 
   useEffect(() => {
     fetchMeetings();
+
+    const intervalId = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        fetchMeetings();
+      }
+    }, 60000);
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchMeetings();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearInterval(intervalId);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [fetchMeetings]);
 
   useEffect(() => {

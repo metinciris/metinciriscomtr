@@ -73,6 +73,7 @@ export function MeetingCard({
     const hasZoomId = !!(meeting.zoom_id && meeting.zoom_id.trim());
     const hasZoomPassword = !!(meeting.zoom_password && meeting.zoom_password.trim());
     const hasZoomInfo = Boolean(meeting.has_zoom_info || hasZoomLink || hasZoomId || hasZoomPassword);
+    const showActionsSection = isAdmin || !isArchived;
 
     const posterButtonOnly = isActuallyPast && hasPoster;
 
@@ -223,7 +224,7 @@ export function MeetingCard({
 
                             <div className="flex-1" />
 
-                            {posterButtonOnly && (
+                            {isArchived && hasPoster && (
                                 <div className="mt-5 pt-4 border-t border-gray-100">
                                     <button
                                         onClick={() => onPosterClick(meeting.poster_url!)}
@@ -235,7 +236,7 @@ export function MeetingCard({
                                 </div>
                             )}
 
-                            {!isActuallyPast && (
+                            {showActionsSection && (
                                 <div className="mt-5 pt-4 border-t border-gray-100 space-y-4">
                                     {!hasZoomInfo ? (
                                         <div className="rounded-2xl bg-gray-50 border border-gray-100 px-4 py-3 text-sm font-semibold text-gray-600">
@@ -301,7 +302,7 @@ export function MeetingCard({
                                                     )}
 
                                                     {hasZoomPassword && (
-                                                        <details className="bg-gray-100 px-3 py-2 rounded-xl text-sm font-semibold text-gray-700">
+                                                        <details className="bg-gray-100 px-3 py-2 rounded-xl text-sm font-semibold text-gray-700" open={isAdmin}>
                                                             <summary className="cursor-pointer font-black text-blue-700">
                                                                 Şifreyi Göster
                                                             </summary>
@@ -344,7 +345,7 @@ export function MeetingCard({
                             )}
                         </div>
 
-                        {hasPoster && !isActuallyPast ? (
+                        {hasPoster && !isArchived ? (
                             <div className="lg:col-span-6 flex h-full">
                                 <button
                                     onClick={() => onPosterClick(meeting.poster_url!)}
