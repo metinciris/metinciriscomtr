@@ -35,6 +35,7 @@ export const validPages = [
     'online-test-analiz',
     'euro-maclar',
     'konsensus',
+    'konsensus-yonetim',
     'pubmed-makale-takip',
     'avif-donusturucu',
     'sjogren-raporlama',

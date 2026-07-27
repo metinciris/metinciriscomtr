@@ -179,6 +179,10 @@ const Konsensus = React.lazy(() =>
   import('./pages/Konsensus').then((m) => ({ default: m.Konsensus })),
 );
 
+const KonsensusYonetim = React.lazy(() =>
+  import('./pages/KonsensusYonetim').then((m) => ({ default: m.KonsensusYonetim })),
+);
+
 const PubMedMakaleTakvim = React.lazy(() =>
   import('./pages/PubMedMakaleTakvim').then((m) => ({
     default: m.PubMedMakaleTakvim,
@@ -391,6 +395,8 @@ export default function App() {
         return <EuroMaclar />;
       case 'konsensus':
         return <Konsensus />;
+      case 'konsensus-yonetim':
+        return <KonsensusYonetim />;
       case 'pubmed-makale-takip':
         return <PubMedMakaleTakvim />;
       case 'avif-donusturucu':

@@ -6,6 +6,7 @@ export type Meeting = {
     time: string; // HH:mm
     duration?: number | null; // minutes
     description?: string | null;
+    has_zoom_info?: boolean | null;
     zoom_link?: string | null;
     zoom_id?: string | null;
     zoom_password?: string | null;

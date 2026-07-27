@@ -336,6 +336,15 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         priority: 0.7,
         changefreq: 'daily'
     },
+    'konsensus-yonetim': {
+        slug: 'konsensus-yonetim',
+        title: 'Patoloji Konsensus Yönetim Paneli | Prof Dr Metin Çiriş',
+        description: 'Konsensus toplantıları yönetim paneli.',
+        noindex: true,
+        lastmod: '2026-07-27',
+        priority: 0.1,
+        changefreq: 'monthly'
+    },
     'pubmed-makale-takip': {
         slug: 'pubmed-makale-takip',
         title: 'PubMed Patoloji Günlük Makale Takibi | Prof Dr Metin Çiriş',
