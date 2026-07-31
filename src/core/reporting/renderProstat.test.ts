@@ -35,9 +35,7 @@ describe('renderProstatReport - Prostat İğne Biyopsisi Rapor Üretimi', () => 
     for (let i = 1; i <= 12; i++) {
       if (i === 2) {
         values[`kor_${i}`] = {
-          tani: 'tumor',
-          primer_patern: 4,
-          sekonder_patern: 3,
+          tani: '4+3',
           tumor_yuzdesi: 40,
         };
       } else {
@@ -60,7 +58,7 @@ describe('renderProstatReport - Prostat İğne Biyopsisi Rapor Üretimi', () => 
     const values: Record<string, any> = {
       kor_sayisi: 12,
       yuzde_taban: '12kor',
-      kor_1: { tani: 'tumor', primer_patern: 3, sekonder_patern: 4, tumor_yuzdesi: 20 },
+      kor_1: { tani: '3+4', tumor_yuzdesi: 20 },
     };
 
     const res = renderProstatReport(schema, values);

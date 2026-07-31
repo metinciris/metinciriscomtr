@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import kolorektalSchema from './kolorektal-rezeksiyon.json';
 import prostatSchema from './prostat-igne-biyopsi.json';
 import { ReportSchema, Alan } from './_schema';
+import { evaluateVisibility } from '../../core/reporting/render';
 
 describe('Report Schemas Validation', () => {
   const schemas: ReportSchema[] = [
@@ -114,6 +115,13 @@ describe('Report Schemas Validation', () => {
             }
           });
         });
+      });
+      it('evaluates iceriyor operator correctly for visibility conditions (e.g. tani contains +)', () => {
+        const cond = { alan: 'tani', operator: 'iceriyor' as const, deger: '+' };
+        expect(evaluateVisibility(cond, { tani: '3+4' })).toBe(true);
+        expect(evaluateVisibility(cond, { tani: '5+5' })).toBe(true);
+        expect(evaluateVisibility(cond, { tani: 'benign' })).toBe(false);
+        expect(evaluateVisibility(cond, { tani: 'asap' })).toBe(false);
       });
     });
   });

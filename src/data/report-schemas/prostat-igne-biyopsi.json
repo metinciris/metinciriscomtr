@@ -46,7 +46,7 @@
           "altAlanlar": [
             {
               "id": "tani",
-              "etiket": "Tanı",
+              "etiket": "Tanı / Gleason Skoru",
               "tip": "select",
               "zorunlu": true,
               "secenekler": [
@@ -54,30 +54,16 @@
                 { "deger": "doku_yok", "etiket": "Doku izlenmedi" },
                 { "deger": "fibromuskuler", "etiket": "Gland içermeyen fibromusküler doku" },
                 { "deger": "atrofik_inflamatuvar", "etiket": "Atrofik-inflamatuvar benign" },
-                { "deger": "tumor", "etiket": "Tümör var" },
+                { "deger": "3+3", "etiket": "Adenokarsinom (Gleason 3+3=6, Grade Grup 1)" },
+                { "deger": "3+4", "etiket": "Adenokarsinom (Gleason 3+4=7, Grade Grup 2)" },
+                { "deger": "4+3", "etiket": "Adenokarsinom (Gleason 4+3=7, Grade Grup 3)" },
+                { "deger": "3+5", "etiket": "Adenokarsinom (Gleason 3+5=8, Grade Grup 4)" },
+                { "deger": "5+3", "etiket": "Adenokarsinom (Gleason 5+3=8, Grade Grup 4)" },
+                { "deger": "4+4", "etiket": "Adenokarsinom (Gleason 4+4=8, Grade Grup 4)" },
+                { "deger": "4+5", "etiket": "Adenokarsinom (Gleason 4+5=9, Grade Grup 5)" },
+                { "deger": "5+4", "etiket": "Adenokarsinom (Gleason 5+4=9, Grade Grup 5)" },
+                { "deger": "5+5", "etiket": "Adenokarsinom (Gleason 5+5=10, Grade Grup 5)" },
                 { "deger": "asap", "etiket": "ASAP (Atipik küçük asiner proliferasyon)" }
-              ]
-            },
-            {
-              "id": "primer_patern",
-              "etiket": "Primer Gleason Paterni",
-              "tip": "select",
-              "gorunurKosul": { "alan": "tani", "operator": "esittir", "deger": "tumor" },
-              "secenekler": [
-                { "deger": "3", "etiket": "Patern 3" },
-                { "deger": "4", "etiket": "Patern 4" },
-                { "deger": "5", "etiket": "Patern 5" }
-              ]
-            },
-            {
-              "id": "sekonder_patern",
-              "etiket": "Sekonder Gleason Paterni",
-              "tip": "select",
-              "gorunurKosul": { "alan": "tani", "operator": "esittir", "deger": "tumor" },
-              "secenekler": [
-                { "deger": "3", "etiket": "Patern 3" },
-                { "deger": "4", "etiket": "Patern 4" },
-                { "deger": "5", "etiket": "Patern 5" }
               ]
             },
             {
@@ -87,7 +73,7 @@
               "min": 1,
               "max": 100,
               "birim": "%",
-              "gorunurKosul": { "alan": "tani", "operator": "esittir", "deger": "tumor" }
+              "gorunurKosul": { "alan": "tani", "operator": "iceriyor", "deger": "+" }
             },
             {
               "id": "patern4_yuzdesi",
@@ -96,7 +82,8 @@
               "min": 1,
               "max": 100,
               "birim": "%",
-              "yardim": "Tümör odasında Patern 4 oranı"
+              "yardim": "Tümör odasında Patern 4 oranı",
+              "gorunurKosul": { "alan": "tani", "operator": "iceriyor", "deger": "+" }
             },
             {
               "id": "patern5_yuzdesi",
@@ -105,17 +92,20 @@
               "min": 1,
               "max": 100,
               "birim": "%",
-              "yardim": "Tümör odasında Patern 5 oranı"
+              "yardim": "Tümör odasında Patern 5 oranı",
+              "gorunurKosul": { "alan": "tani", "operator": "iceriyor", "deger": "+" }
             },
             {
               "id": "perinoral_invazyon",
               "etiket": "Perinöral İnvazyon",
-              "tip": "boolean"
+              "tip": "boolean",
+              "gorunurKosul": { "alan": "tani", "operator": "iceriyor", "deger": "+" }
             },
             {
               "id": "kribriform_intraduktal",
               "etiket": "Kribriform Patern / İntraduktal Karsinom",
-              "tip": "boolean"
+              "tip": "boolean",
+              "gorunurKosul": { "alan": "tani", "operator": "iceriyor", "deger": "+" }
             },
             {
               "id": "ek_hedef_kor",

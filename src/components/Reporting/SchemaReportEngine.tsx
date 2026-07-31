@@ -78,7 +78,7 @@ export const SchemaReportEngine: React.FC<SchemaReportEngineProps> = ({ schema }
     for (let i = 1; i <= korSayisi; i++) {
       const kVals = values[`kor_${i}`] || {};
       const tani = kVals['tani'];
-      const isTumor = tani === 'tumor';
+      const isTumor = !!tani && tani.includes('+');
       const yuzde = kVals['tumor_yuzdesi'] != null ? Number(kVals['tumor_yuzdesi']) : undefined;
 
       map[i] = {

@@ -147,10 +147,11 @@ export function renderProstatReport(
       continue;
     }
 
-    if (taniVal === 'tumor') {
+    if (taniVal && taniVal.includes('+')) {
       pozitifKorSayisi++;
-      const pPat = kVals['primer_patern'] ? Number(kVals['primer_patern']) : null;
-      const sPat = kVals['sekonder_patern'] ? Number(kVals['sekonder_patern']) : null;
+      const parts = taniVal.split('+');
+      const pPat = Number(parts[0]);
+      const sPat = Number(parts[1]);
       const tumorPct = kVals['tumor_yuzdesi'] != null ? Number(kVals['tumor_yuzdesi']) : 0;
       const pat4Pct = kVals['patern4_yuzdesi'] != null ? Number(kVals['patern4_yuzdesi']) : null;
       const pat5Pct = kVals['patern5_yuzdesi'] != null ? Number(kVals['patern5_yuzdesi']) : null;
@@ -164,7 +165,7 @@ export function renderProstatReport(
       }
 
       let gleasonStr = '';
-      if (pPat && sPat) {
+      if (!isNaN(pPat) && !isNaN(sPat)) {
         try {
           const gRes = deriveGleasonGrade({
             primer: pPat as GleasonPatern,
