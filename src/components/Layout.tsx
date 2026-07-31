@@ -122,7 +122,7 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
               {/* Avatar */}
               <div className="w-12 h-12 bg-[#00A6D6] rounded-xl overflow-hidden flex items-center justify-center">
                 <img
-                  src="/img/avatar-96.avif"
+                  src="/img/metinciris.avif"
                   alt="Prof. Dr. Metin Çiriş"
                   className="w-full h-full object-cover"
                   width={48}

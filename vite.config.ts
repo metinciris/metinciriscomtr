@@ -33,13 +33,13 @@ export default defineConfig({
             if (id.includes('recharts') || id.includes('d3-')) {
               return 'vendor-charts';
             }
-            // Medya / ağır dosya işleme kütüphaneleri
-            if (
-              id.includes('jszip') ||
-              id.includes('heic2any') ||
-              id.includes('@jsquash')
-            ) {
-              return 'vendor-media';
+            // Ağır görsel dönüştürücü
+            if (id.includes('heic2any') || id.includes('@jsquash')) {
+              return 'vendor-heic';
+            }
+            // Zipleme kütüphanesi
+            if (id.includes('jszip')) {
+              return 'vendor-zip';
             }
             // Supabase
             if (id.includes('@supabase')) {
