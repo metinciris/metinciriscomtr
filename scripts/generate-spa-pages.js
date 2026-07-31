@@ -277,6 +277,7 @@ function parseRegistry(content) {
       slug,
       title,
       description: readString('description'),
+      navGroup: readString('navGroup'),
       lastmod: readString('lastmod') || new Date().toISOString().slice(0, 10),
       priority: priorityMatch ? Number.parseFloat(priorityMatch[1]) : 0.5,
       changefreq: readString('changefreq') || 'monthly',
@@ -927,19 +928,47 @@ async function main() {
   mkdirSync(radarDir, { recursive: true });
   writeFileSync(join(radarDir, 'rss.xml'), `${rssLines.join('\n')}\n`, 'utf8');
 
-  // --- LLMs.txt Generation for AI Agents ---
+  // --- LLMs.txt Generation for AI Agents (Grouped by Hubs) ---
   const llmsLines = [
     '# Prof. Dr. İbrahim Metin Çiriş — Tıbbi Patoloji & Dijital Patoloji',
     '',
     '> SDÜ Tıp Fakültesi Tıbbi Patoloji AD. Tanısal ve moleküler patoloji',
     '> araçları, sinoptik raporlama modülleri ve eğitim materyalleri.',
     '',
-    '## Tanısal & Raporlama Araçları',
   ];
 
-  for (const [id, meta] of Object.entries(registry)) {
-    if (meta.noindex || !meta.slug) continue;
-    llmsLines.push(`- [${meta.title.split('|')[0].trim()}](${SITE_URL}/${meta.slug}/): ${meta.description}`);
+  const GROUPS = [
+    { key: 'raporlama', title: '## Tanısal & Raporlama Araçları' },
+    { key: 'akademik', title: '## Akademik & Araştırma Kaynakları' },
+    { key: 'egitim', title: '## Eğitim Materyalleri' },
+    { key: 'hastalar', title: '## Hasta Bilgilendirme' },
+    { key: 'araclar', title: '## Yardımcı Araçlar' },
+  ];
+
+  const handledIds = new Set();
+
+  GROUPS.forEach(group => {
+    const groupItems = Object.entries(registry).filter(([id, meta]) => !meta.noindex && meta.slug && meta.navGroup === group.key);
+    if (groupItems.length > 0) {
+      llmsLines.push(group.title);
+      groupItems.forEach(([id, meta]) => {
+        handledIds.add(id);
+        const titleClean = meta.title.split('|')[0].trim();
+        llmsLines.push(`- [${titleClean}](${SITE_URL}/${meta.slug}/): ${meta.description}`);
+      });
+      llmsLines.push('');
+    }
+  });
+
+  // Optional section for ungrouped pages (food menus, countdowns, etc.)
+  const optionalItems = Object.entries(registry).filter(([id, meta]) => !meta.noindex && meta.slug && !handledIds.has(id));
+  if (optionalItems.length > 0) {
+    llmsLines.push('## Optional');
+    optionalItems.forEach(([id, meta]) => {
+      const titleClean = meta.title.split('|')[0].trim();
+      llmsLines.push(`- [${titleClean}](${SITE_URL}/${meta.slug}/): ${meta.description}`);
+    });
+    llmsLines.push('');
   }
 
   writeFileSync(join(distDir, 'llms.txt'), `${llmsLines.join('\n')}\n`, 'utf8');

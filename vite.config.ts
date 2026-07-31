@@ -24,7 +24,7 @@ export default defineConfig({
   build: {
     target: 'esnext',
     outDir: 'dist',
-    sourcemap: 'hidden',
+    sourcemap: true,
     rollupOptions: {
       output: {
         manualChunks(id) {
