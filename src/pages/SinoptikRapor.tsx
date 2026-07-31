@@ -8,11 +8,7 @@ import { SEO } from '../components/SEO';
 export function SinoptikRapor() {
   return (
     <>
-      <SEO
-        title="Sinoptik Patoloji Raporu | Prof Dr Metin Çiriş"
-        description="CAP ve AJCC standartlarına uygun şema tabanlı sinoptik patoloji raporlama motoru."
-        keywords="sinoptik rapor, patoloji raporlama, kolorektal karsinom, CAP protokolü, AJCC evreleme"
-      />
+      <SEO currentPage="sinoptik-rapor" />
       <SchemaReportEngine schema={kolorektalSchema as unknown as ReportSchema} />
     </>
   );
