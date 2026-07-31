@@ -1,4 +1,4 @@
-import { useEffect, type FC } from 'react';
+import { useEffect } from 'react';
 import { PAGE_REGISTRY } from '../core/data/registry';
 import { getCanonicalUrl, getStructuredData } from '../core/seo/seo-utils';
 
@@ -6,7 +6,7 @@ interface SEOProps {
   currentPage: string;
 }
 
-export const SEO: FC<SEOProps> = ({ currentPage }) => {
+export const SEO = ({ currentPage }: SEOProps) => {
   useEffect(() => {
     // Blog liste, sayfalama ve yazı sayfaları kendi SEO verilerini yönetir.
     // Bu kontrol olmazsa genel /blog metadatası yazıya özel başlığı ve canonical URL'yi ezer.

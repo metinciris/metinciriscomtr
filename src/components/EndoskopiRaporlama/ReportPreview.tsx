@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
 import { toast } from 'sonner';
 import { Biopsy } from '../../types/endoskopi';

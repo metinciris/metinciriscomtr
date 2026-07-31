@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from "react";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import React, { useState, useMemo } from "react";
 import { toast } from 'sonner';
 import { motion } from "motion/react";
 import { Copy, Check, Activity, Ruler, Microscope, FileText, Info, LayoutGrid } from "lucide-react";

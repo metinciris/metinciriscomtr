@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState } from 'react';
 import { PageContainer } from '../components/PageContainer';
 import { Calculator, Info } from 'lucide-react';

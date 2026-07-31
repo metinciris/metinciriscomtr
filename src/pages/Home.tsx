@@ -93,6 +93,9 @@ export function Home({ onNavigate }: HomeProps) {
   /* ── Hava durumu (Isparta) – Open-Meteo ── */
   const weather = useWeather();
 
+  /* ── Son kullanılan araçlar ── */
+  const { recentPages } = useRecentPages();
+
   /* ── Son güncelleme etiketi ── */
   const weatherUpdated = weather.temp !== null ? 'Canlı veri' : 'Yükleniyor…';
 
@@ -137,30 +140,25 @@ export function Home({ onNavigate }: HomeProps) {
         </section>
 
         {/* ══════════ SON KULLANILAN ARAÇLAR (Hızlı Erişim) ══════════ */}
-        {(() => {
-          const { recentPages } = useRecentPages();
-          if (recentPages.length === 0) return null;
-
-          return (
-            <section className="mb-8 p-4 bg-white/80 backdrop-blur-md rounded-2xl border border-slate-200/80 shadow-sm" aria-label="Son ziyaret edilenler">
-              <div className="flex items-center space-x-2 mb-3 text-slate-700 font-semibold text-sm">
-                <Clock size={16} className="text-blue-600" />
-                <span>Son Ziyaret Ettiğiniz Araçlar</span>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {recentPages.map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => onNavigate(item.id)}
-                    className="px-3.5 py-1.5 bg-blue-50/80 hover:bg-blue-100 text-blue-700 rounded-xl text-xs font-medium border border-blue-200/60 transition-all flex items-center space-x-1.5 cursor-pointer"
-                  >
-                    <span>{item.navLabel}</span>
-                  </button>
-                ))}
-              </div>
-            </section>
-          );
-        })()}
+        {recentPages.length > 0 && (
+          <section className="mb-8 p-4 bg-white/80 backdrop-blur-md rounded-2xl border border-slate-200/80 shadow-sm" aria-label="Son ziyaret edilenler">
+            <div className="flex items-center space-x-2 mb-3 text-slate-700 font-semibold text-sm">
+              <Clock size={16} className="text-blue-600" />
+              <span>Son Ziyaret Ettiğiniz Araçlar</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {recentPages.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => onNavigate(item.id)}
+                  className="px-3.5 py-1.5 bg-blue-50/80 hover:bg-blue-100 text-blue-700 rounded-xl text-xs font-medium border border-blue-200/60 transition-all flex items-center space-x-1.5 cursor-pointer"
+                >
+                  <span>{item.navLabel}</span>
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* ══════════ KARO IZGARASI ══════════ */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-10">
