@@ -19,7 +19,7 @@ export function ReferenceCenter({ onNavigate }: ReferenceCenterProps) {
       links: [
         { title: 'Patoloji Tanı Tuzakları ve İpuçları', slug: 'tani-tuzaklari' },
         { title: 'Ayın Patoloji Vakası', slug: 'ayin-vakasi' },
-        { title: 'Sinoptik Patoloji Raporlama Motoru', slug: 'sinoptik-rapor' },
+        { title: 'Kolorektal Rezeksiyon Raporlama', slug: 'kolorektal-rapor' },
         { title: 'GIST Raporlama Rehberi', slug: 'gist-raporlama' },
         { title: 'Meme Karsinomunda HER2 İHK Algoritması', slug: 'meme-her2' },
       ]

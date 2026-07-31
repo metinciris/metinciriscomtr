@@ -93,9 +93,9 @@ export const SchemaReportEngine: React.FC<SchemaReportEngineProps> = ({ schema }
       <div className="border-b border-slate-800 pb-5">
         <h1 className="text-2xl font-bold text-slate-100">{schema.baslik}</h1>
         {schema.kaynak && (
-          <p className="text-xs text-slate-400 mt-1">
-            Kaynak: <span className="text-slate-300 font-medium">{schema.kaynak}</span>
-            {schema.surum && <span className="ml-2 bg-slate-800 px-2 py-0.5 rounded text-[10px] text-slate-400 font-mono">v{schema.surum}</span>}
+          <p className="text-sm text-slate-200 font-medium mt-1">
+            Kaynak: <span className="text-sky-400 font-semibold">{schema.kaynak}</span>
+            {schema.surum && <span className="ml-2 bg-slate-800 px-2 py-0.5 rounded text-xs text-slate-200 font-mono">v{schema.surum}</span>}
           </p>
         )}
       </div>

@@ -63,15 +63,15 @@ export const ReportOutput: React.FC<ReportOutputProps> = ({
     <div className="space-y-6 sticky top-6">
       {/* Warning Box for Missing Required Fields */}
       {renderResult.missingRequiredFields.length > 0 && (
-        <div className="bg-amber-950/40 border border-amber-800/60 rounded-xl p-4 text-amber-200 text-sm">
+        <div className="bg-amber-50 border-2 border-amber-500 rounded-xl p-4 text-amber-950 shadow-sm">
           <div className="flex items-start space-x-3">
-            <span className="text-amber-400 text-lg font-bold">⚠️</span>
+            <span className="text-amber-600 text-xl font-bold">⚠️</span>
             <div>
-              <p className="font-semibold text-amber-300">Zorunlu Alan Eksikleri</p>
-              <p className="text-xs text-amber-200/80 mt-0.5">
-                Aşağıdaki alanlar henüz doldurulmadı ve raporda <code className="bg-amber-900/60 px-1 py-0.5 rounded text-amber-200">[BELİRTİLMEDİ]</code> olarak işaretlendi:
+              <p className="font-bold text-amber-950 text-sm">Zorunlu Alan Eksikleri</p>
+              <p className="text-xs text-amber-900 font-medium mt-0.5">
+                Aşağıdaki alanlar henüz doldurulmadı ve raporda <code className="bg-amber-200 text-amber-950 px-1 py-0.5 rounded font-bold">[BELİRTİLMEDİ]</code> olarak işaretlendi:
               </p>
-              <ul className="list-disc list-inside mt-1.5 space-y-0.5 text-xs text-amber-200/90 font-medium">
+              <ul className="list-disc list-inside mt-2 space-y-1 text-xs text-amber-950 font-bold">
                 {renderResult.missingRequiredFields.map((field, idx) => (
                   <li key={idx}>{field}</li>
                 ))}
