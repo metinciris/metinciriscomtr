@@ -707,8 +707,7 @@ function updateServiceWorkerVersion() {
 
   let swContent = readFileSync(swPath, 'utf8');
   const buildId = Date.now();
-  swContent = swContent.replace(/metinciris-assets-v[^'"`]+/g, `metinciris-assets-v${buildId}`);
-  swContent = swContent.replace(/metinciris-static-v[^'"`]+/g, `metinciris-static-v${buildId}`);
+  swContent = swContent.replace(/metinciris-shell-v[^'"`]+/g, `metinciris-shell-v${buildId}`);
   writeFileSync(swPath, swContent, 'utf8');
 }
 

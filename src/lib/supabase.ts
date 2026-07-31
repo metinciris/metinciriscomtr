@@ -1,27 +1,11 @@
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js';
 
 // Supabase configuration for Konsensus app
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
-let _supabaseClient: SupabaseClient | null = null;
-
-export const getSupabase = (): SupabaseClient => {
-  if (!_supabaseClient) {
-    _supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
-  }
-  return _supabaseClient;
-};
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const supabase: SupabaseClient = new Proxy({} as any, {
-  get(_target, prop, receiver) {
-    const client = getSupabase();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const value = Reflect.get(client as any, prop, receiver);
-    return typeof value === 'function' ? value.bind(client) : value;
-  },
-});
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const getSupabase = () => supabase;
 
 // Meeting type definition
 export interface Meeting {

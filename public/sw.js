@@ -1,7 +1,7 @@
 // Web Push and Asset Caching Service Worker for Metin Ciris App
 
-const CACHE_NAME = 'metinciris-assets-v1';
-const ASSETS_CACHE = 'metinciris-static-v1';
+const CACHE_NAME = 'metinciris-shell-v1';
+const ASSETS_CACHE = 'metinciris-assets-static';
 
 // Assets that should be cached on install (optional, but good for critical paths)
 const PRECACHE_ASSETS = [
