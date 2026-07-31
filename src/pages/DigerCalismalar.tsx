@@ -15,6 +15,22 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
     const items = [
         // Raporlama Araçları
         {
+            title: "Prostat İğne Biyopsi",
+            subtitle: "Gleason skorlama, Grade Group, kor haritası",
+            icon: <Microscope size={40} />,
+            color: "bg-blue-900",
+            page: 'prostat-igne-biyopsi',
+            category: 'raporlama'
+        },
+        {
+            title: "Kolorektal Rezeksiyon",
+            subtitle: "Kolorektal karsinom patolojik evreleme",
+            icon: <FileText size={40} />,
+            color: "bg-sky-700",
+            page: 'kolorektal-rapor',
+            category: 'raporlama'
+        },
+        {
             title: "Sjögren Raporlama",
             subtitle: "Minör tükrük bezi biyopsisi",
             icon: <Microscope size={40} />,

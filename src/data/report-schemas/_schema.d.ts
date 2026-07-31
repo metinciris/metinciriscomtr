@@ -1,6 +1,6 @@
 // src/data/report-schemas/_schema.d.ts
 
-export type FieldType = 'select' | 'multiselect' | 'number' | 'text' | 'textarea' | 'boolean';
+export type FieldType = 'select' | 'multiselect' | 'number' | 'text' | 'textarea' | 'boolean' | 'tekrarliGrup';
 export type Operator = 'esittir' | 'esitDegil' | 'iceriyor' | 'buyuktur';
 
 export interface FieldOption {
@@ -17,10 +17,14 @@ export interface VisibilityCondition {
   deger: string | boolean | number;
 }
 
-export interface FieldDefinition {
+export interface BaseFieldDefinition {
   id: string;
   etiket: string;
-  tip: FieldType;
+  gorunurKosul?: VisibilityCondition | null;
+}
+
+export interface NormalFieldDefinition extends BaseFieldDefinition {
+  tip: Exclude<FieldType, 'tekrarliGrup'>;
   zorunlu?: boolean;
   birim?: string;
   ondalik?: number;
@@ -31,15 +35,24 @@ export interface FieldDefinition {
   ornek?: string;
   evrelemeRolu?: 'pT' | 'pN' | 'pM' | null;
   raporSatiri?: string;
-  gorunurKosul?: VisibilityCondition | null;
   secenekler?: FieldOption[];
 }
+
+export interface TekrarliGrupAlan extends BaseFieldDefinition {
+  tip: 'tekrarliGrup';
+  sayiKaynagi: { alan: string } | { sabit: number };
+  ogeEtiketi: string;
+  altAlanlar: Alan[];
+}
+
+export type FieldDefinition = NormalFieldDefinition | TekrarliGrupAlan;
+export type Alan = FieldDefinition;
 
 export interface SectionDefinition {
   id: string;
   baslik: string;
   gorunurKosul?: VisibilityCondition | null;
-  alanlar: FieldDefinition[];
+  alanlar: Alan[];
 }
 
 export interface ReportSchema {
@@ -51,3 +64,4 @@ export interface ReportSchema {
   not?: string;
   bolumler: SectionDefinition[];
 }
+

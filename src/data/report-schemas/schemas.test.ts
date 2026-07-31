@@ -1,9 +1,14 @@
 import { describe, it, expect } from 'vitest';
 import kolorektalSchema from './kolorektal-rezeksiyon.json';
-import { ReportSchema } from './_schema';
+import prostatSchema from './prostat-igne-biyopsi.json';
+import { ReportSchema, Alan } from './_schema';
 
 describe('Report Schemas Validation', () => {
-  const schemas: ReportSchema[] = [kolorektalSchema as unknown as ReportSchema];
+  const schemas: ReportSchema[] = [
+    kolorektalSchema as unknown as ReportSchema,
+    prostatSchema as unknown as ReportSchema,
+  ];
+
 
   schemas.forEach((schema) => {
     describe(`Schema: ${schema.id}`, () => {
@@ -18,39 +23,94 @@ describe('Report Schemas Validation', () => {
         const sectionIds = new Set<string>();
         const fieldIds = new Set<string>();
 
+        const checkFields = (fields: Alan[]) => {
+          fields.forEach((field) => {
+            expect(fieldIds.has(field.id)).toBe(false);
+            fieldIds.add(field.id);
+            if (field.tip === 'tekrarliGrup') {
+              checkFields(field.altAlanlar);
+            }
+          });
+        };
+
         schema.bolumler.forEach((section) => {
           expect(sectionIds.has(section.id)).toBe(false);
           sectionIds.add(section.id);
-
-          section.alanlar.forEach((field) => {
-            expect(fieldIds.has(field.id)).toBe(false);
-            fieldIds.add(field.id);
-          });
+          checkFields(section.alanlar);
         });
       });
 
       it('ensures visibility conditions reference existing field IDs', () => {
         const allFieldIds = new Set<string>();
-        schema.bolumler.forEach((s) => s.alanlar.forEach((f) => allFieldIds.add(f.id)));
+        const collectIds = (fields: Alan[]) => {
+          fields.forEach((f) => {
+            allFieldIds.add(f.id);
+            if (f.tip === 'tekrarliGrup') {
+              collectIds(f.altAlanlar);
+            }
+          });
+        };
+        schema.bolumler.forEach((s) => collectIds(s.alanlar));
+
+        const checkVisibility = (fields: Alan[]) => {
+          fields.forEach((field) => {
+            if (field.gorunurKosul) {
+              expect(allFieldIds.has(field.gorunurKosul.alan)).toBe(true);
+            }
+            if (field.tip === 'tekrarliGrup') {
+              checkVisibility(field.altAlanlar);
+            }
+          });
+        };
 
         schema.bolumler.forEach((section) => {
           if (section.gorunurKosul) {
             expect(allFieldIds.has(section.gorunurKosul.alan)).toBe(true);
           }
-          section.alanlar.forEach((field) => {
-            if (field.gorunurKosul) {
-              expect(allFieldIds.has(field.gorunurKosul.alan)).toBe(true);
-            }
-          });
+          checkVisibility(section.alanlar);
         });
       });
 
       it('ensures select/multiselect fields have options', () => {
-        schema.bolumler.forEach((section) => {
-          section.alanlar.forEach((field) => {
+        const checkOptions = (fields: Alan[]) => {
+          fields.forEach((field) => {
             if (field.tip === 'select' || field.tip === 'multiselect') {
               expect(Array.isArray(field.secenekler)).toBe(true);
               expect(field.secenekler!.length).toBeGreaterThan(0);
+            }
+            if (field.tip === 'tekrarliGrup') {
+              checkOptions(field.altAlanlar);
+            }
+          });
+        };
+        schema.bolumler.forEach((section) => {
+          checkOptions(section.alanlar);
+        });
+      });
+
+      it('ensures tekrarliGrup field references valid number field in sayiKaynagi.alan', () => {
+        const fieldMap = new Map<string, Alan>();
+        const mapFields = (fields: Alan[]) => {
+          fields.forEach((f) => {
+            fieldMap.set(f.id, f);
+            if (f.tip === 'tekrarliGrup') {
+              mapFields(f.altAlanlar);
+            }
+          });
+        };
+        schema.bolumler.forEach((s) => mapFields(s.alanlar));
+
+        schema.bolumler.forEach((section) => {
+          section.alanlar.forEach((field) => {
+            if (field.tip === 'tekrarliGrup') {
+              if ('alan' in field.sayiKaynagi) {
+                const targetId = field.sayiKaynagi.alan;
+                expect(fieldMap.has(targetId)).toBe(true);
+                const targetField = fieldMap.get(targetId)!;
+                expect(targetField.tip).toBe('number');
+              } else if ('sabit' in field.sayiKaynagi) {
+                expect(field.sayiKaynagi.sabit).toBeGreaterThan(0);
+              }
             }
           });
         });
@@ -58,3 +118,4 @@ describe('Report Schemas Validation', () => {
     });
   });
 });
+

@@ -1,15 +1,116 @@
 // src/components/Reporting/FieldRenderer.tsx
 import React from 'react';
-import { FieldDefinition } from '../../data/report-schemas/_schema';
+import { FieldDefinition, VisibilityCondition } from '../../data/report-schemas/_schema';
 
 interface FieldRendererProps {
   field: FieldDefinition;
   value: any;
   onChange: (value: any) => void;
+  allValues?: Record<string, any>;
+  onBatchChange?: (updates: Record<string, any>) => void;
 }
 
-export const FieldRenderer: React.FC<FieldRendererProps> = ({ field, value, onChange }) => {
+export function evaluateVisibilityLocal(
+  condition: VisibilityCondition | null | undefined,
+  values: Record<string, any>,
+): boolean {
+  if (!condition) return true;
+
+  const targetValue = values[condition.alan];
+  const expectedValue = condition.deger;
+
+  switch (condition.operator) {
+    case 'esittir':
+      return targetValue === expectedValue;
+    case 'esitDegil':
+      return targetValue !== expectedValue && targetValue != null && targetValue !== '';
+    case 'iceriyor':
+      if (Array.isArray(targetValue)) {
+        return targetValue.includes(expectedValue as string);
+      }
+      if (typeof targetValue === 'string') {
+        return targetValue.includes(expectedValue as string);
+      }
+      return false;
+    case 'buyuktur':
+      return Number(targetValue) > Number(expectedValue);
+    default:
+      return true;
+  }
+}
+
+export const FieldRenderer: React.FC<FieldRendererProps> = ({
+  field,
+  value,
+  onChange,
+  allValues = {},
+  onBatchChange,
+}) => {
   const inputId = `field-${field.id}`;
+
+  if (field.tip === 'tekrarliGrup') {
+    let sayi = 12;
+    if ('sabit' in field.sayiKaynagi) {
+      sayi = field.sayiKaynagi.sabit;
+    } else if ('alan' in field.sayiKaynagi) {
+      const v = allValues[field.sayiKaynagi.alan];
+      sayi = v != null && !isNaN(Number(v)) ? Number(v) : 12;
+    }
+
+    const indisler = Array.from({ length: sayi }, (_, i) => i + 1);
+
+    return (
+      <div className="space-y-4 pt-2">
+        {indisler.map((index) => {
+          const ogeBaslik = field.ogeEtiketi.replace('{index}', String(index));
+          const groupValuesKey = `kor_${index}`;
+          const currentGroupVals = allValues[groupValuesKey] || {};
+
+          return (
+            <div
+              key={index}
+              className="bg-slate-50/80 border border-slate-200 rounded-xl p-4 space-y-3"
+            >
+              <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                <span className="font-extrabold text-sm text-sky-950">{ogeBaslik}</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {field.altAlanlar.map((altField) => {
+                  if (!evaluateVisibilityLocal(altField.gorunurKosul, currentGroupVals)) {
+                    return null;
+                  }
+                  const altValue = currentGroupVals[altField.id];
+                  return (
+                    <FieldRenderer
+                      key={altField.id}
+                      field={altField}
+                      value={altValue}
+                      onChange={(val) => {
+                        const updatedGroup = {
+                          ...currentGroupVals,
+                          [altField.id]: val,
+                        };
+                        if (onBatchChange) {
+                          onBatchChange({ [groupValuesKey]: updatedGroup });
+                        } else {
+                          onChange({
+                            ...(value || {}),
+                            [groupValuesKey]: updatedGroup,
+                          });
+                        }
+                      }}
+                      allValues={allValues}
+                      onBatchChange={onBatchChange}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-1.5">
@@ -126,3 +227,4 @@ export const FieldRenderer: React.FC<FieldRendererProps> = ({ field, value, onCh
     </div>
   );
 };
+

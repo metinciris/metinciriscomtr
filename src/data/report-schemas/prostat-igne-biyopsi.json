@@ -1,0 +1,168 @@
+{
+  "id": "prostat-igne-biyopsi",
+  "baslik": "Prostat İğne Biyopsisi",
+  "kaynak": "Hazırlayanın kendi laboratuvar protokolü — CAP metni içermez",
+  "evrelemeSistemi": "prostatGleason",
+  "surum": "2026.1-taslak",
+  "not": "İçerik yayına almadan önce ISUP/CAP güncel tablolarıyla doğrulanmalıdır.",
+  "bolumler": [
+    {
+      "id": "genel",
+      "baslik": "Genel ve Biyopsi Bilgileri",
+      "alanlar": [
+        {
+          "id": "kor_sayisi",
+          "etiket": "İncelenen toplam kor sayısı",
+          "tip": "number",
+          "zorunlu": true,
+          "min": 1,
+          "max": 30,
+          "ornek": "12",
+          "raporSatiri": "İncelenen toplam kor sayısı: {deger}"
+        },
+        {
+          "id": "yuzde_taban",
+          "etiket": "Yüzde hesap tabanı",
+          "tip": "select",
+          "zorunlu": true,
+          "raporSatiri": "Yüzde hesaplama tabanı: {deger}",
+          "secenekler": [
+            { "deger": "12kor", "etiket": "Standart 12 kor üzerinden" },
+            { "deger": "toplamkor", "etiket": "Toplam incelenen kor üzerinden (>12 kor)" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kor_bulgulari",
+      "baslik": "Kor Bazlı Bulgular",
+      "alanlar": [
+        {
+          "id": "korlar",
+          "etiket": "Kor Listesi",
+          "tip": "tekrarliGrup",
+          "sayiKaynagi": { "alan": "kor_sayisi" },
+          "ogeEtiketi": "{index}. Kor",
+          "altAlanlar": [
+            {
+              "id": "tani",
+              "etiket": "Tanı",
+              "tip": "select",
+              "zorunlu": true,
+              "secenekler": [
+                { "deger": "benign", "etiket": "Benign prostat dokusu" },
+                { "deger": "doku_yok", "etiket": "Doku izlenmedi" },
+                { "deger": "fibromuskuler", "etiket": "Gland içermeyen fibromusküler doku" },
+                { "deger": "atrofik_inflamatuvar", "etiket": "Atrofik-inflamatuvar benign" },
+                { "deger": "tumor", "etiket": "Tümör var" },
+                { "deger": "asap", "etiket": "ASAP (Atipik küçük asiner proliferasyon)" }
+              ]
+            },
+            {
+              "id": "primer_patern",
+              "etiket": "Primer Gleason Paterni",
+              "tip": "select",
+              "gorunurKosul": { "alan": "tani", "operator": "esittir", "deger": "tumor" },
+              "secenekler": [
+                { "deger": "3", "etiket": "Patern 3" },
+                { "deger": "4", "etiket": "Patern 4" },
+                { "deger": "5", "etiket": "Patern 5" }
+              ]
+            },
+            {
+              "id": "sekonder_patern",
+              "etiket": "Sekonder Gleason Paterni",
+              "tip": "select",
+              "gorunurKosul": { "alan": "tani", "operator": "esittir", "deger": "tumor" },
+              "secenekler": [
+                { "deger": "3", "etiket": "Patern 3" },
+                { "deger": "4", "etiket": "Patern 4" },
+                { "deger": "5", "etiket": "Patern 5" }
+              ]
+            },
+            {
+              "id": "tumor_yuzdesi",
+              "etiket": "Tümör Yüzdesi (%)",
+              "tip": "number",
+              "min": 1,
+              "max": 100,
+              "birim": "%",
+              "gorunurKosul": { "alan": "tani", "operator": "esittir", "deger": "tumor" }
+            },
+            {
+              "id": "patern4_yuzdesi",
+              "etiket": "Patern 4 Yüzdesi (%)",
+              "tip": "number",
+              "min": 1,
+              "max": 100,
+              "birim": "%",
+              "yardim": "Tümör odasında Patern 4 oranı"
+            },
+            {
+              "id": "patern5_yuzdesi",
+              "etiket": "Patern 5 Yüzdesi (%)",
+              "tip": "number",
+              "min": 1,
+              "max": 100,
+              "birim": "%",
+              "yardim": "Tümör odasında Patern 5 oranı"
+            },
+            {
+              "id": "perinoral_invazyon",
+              "etiket": "Perinöral İnvazyon",
+              "tip": "boolean"
+            },
+            {
+              "id": "kribriform_intraduktal",
+              "etiket": "Kribriform Patern / İntraduktal Karsinom",
+              "tip": "boolean"
+            },
+            {
+              "id": "ek_hedef_kor",
+              "etiket": "Ek / Hedef Kor",
+              "tip": "boolean",
+              "yardim": "Standart sistematik korlar dışındaki ek/hedef biyopsi örneği"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ek_bulgular",
+      "baslik": "Ek Genel Bulgular",
+      "alanlar": [
+        {
+          "id": "epe",
+          "etiket": "Ekstraprostatik Ekstansiyon (EPE)",
+          "tip": "select",
+          "raporSatiri": "Ekstraprostatik ekstansiyon: {deger}",
+          "secenekler": [
+            { "deger": "yok", "etiket": "Saptanmadı" },
+            { "deger": "supheli", "etiket": "Şüpheli" },
+            { "deger": "var", "etiket": "Mevcut" }
+          ]
+        },
+        {
+          "id": "pni_genel",
+          "etiket": "Perinöral İnvazyon (Genel)",
+          "tip": "select",
+          "raporSatiri": "Perinöral invazyon (genel): {deger}",
+          "secenekler": [
+            { "deger": "yok", "etiket": "Saptanmadı" },
+            { "deger": "var", "etiket": "Mevcut" }
+          ]
+        },
+        {
+          "id": "lvi",
+          "etiket": "Lenfovasküler İnvazyon",
+          "tip": "select",
+          "raporSatiri": "Lenfovasküler invazyon: {deger}",
+          "secenekler": [
+            { "deger": "yok", "etiket": "Saptanmadı" },
+            { "deger": "var", "etiket": "Mevcut" }
+          ]
+        }
+      ]
+    }
+  ]
+}
