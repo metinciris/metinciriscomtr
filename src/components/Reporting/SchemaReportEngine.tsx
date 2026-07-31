@@ -64,24 +64,24 @@ export const SchemaReportEngine: React.FC<SchemaReportEngineProps> = ({ schema }
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Draft Found Banner */}
       {hasSavedDraft && (
-        <div className="bg-sky-950/80 border border-sky-700/60 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg">
-          <div className="flex items-center space-x-3 text-sky-200 text-sm">
+        <div className="bg-sky-50 border border-sky-300 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+          <div className="flex items-center space-x-3 text-sky-950 text-sm">
             <span className="text-xl">💾</span>
             <div>
-              <p className="font-semibold">Kaydedilmiş taslak bulundu</p>
-              <p className="text-xs text-sky-300/80">Kaldığınız yerden devam edebilir veya sıfırlayabilirsiniz.</p>
+              <p className="font-bold text-sky-950">Kaydedilmiş taslak bulundu</p>
+              <p className="text-xs text-sky-900 font-medium">Kaldığınız yerden devam edebilir veya sıfırlayabilirsiniz.</p>
             </div>
           </div>
           <div className="flex items-center space-x-2">
             <button
               onClick={loadDraft}
-              className="px-3.5 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-lg text-xs font-semibold shadow-md transition-all"
+              className="px-4 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold shadow transition-all"
             >
               Devam Et
             </button>
             <button
               onClick={clearDraft}
-              className="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-medium border border-slate-700 transition-all"
+              className="px-4 py-1.5 bg-white hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-semibold border border-slate-300 shadow-sm transition-all"
             >
               Sıfırla
             </button>
@@ -90,13 +90,20 @@ export const SchemaReportEngine: React.FC<SchemaReportEngineProps> = ({ schema }
       )}
 
       {/* Header */}
-      <div className="border-b border-slate-800 pb-5">
-        <h1 className="text-2xl font-bold text-slate-100">{schema.baslik}</h1>
+      <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm">
+        <h1 className="text-2xl font-extrabold text-slate-900 leading-tight">{schema.baslik}</h1>
         {schema.kaynak && (
-          <p className="text-sm text-slate-200 font-medium mt-1">
-            Kaynak: <span className="text-sky-400 font-semibold">{schema.kaynak}</span>
-            {schema.surum && <span className="ml-2 bg-slate-800 px-2 py-0.5 rounded text-xs text-slate-200 font-mono">v{schema.surum}</span>}
-          </p>
+          <div className="text-sm text-slate-700 font-medium mt-2 flex items-center space-x-2">
+            <span className="text-slate-600 font-semibold">Kaynak:</span>
+            <span className="bg-sky-100 border border-sky-300 text-sky-900 font-bold px-2.5 py-0.5 rounded-md text-xs">
+              {schema.kaynak}
+            </span>
+            {schema.surum && (
+              <span className="bg-slate-100 border border-slate-300 text-slate-800 font-mono font-bold px-2 py-0.5 rounded text-xs">
+                v{schema.surum}
+              </span>
+            )}
+          </div>
         )}
       </div>
 
@@ -110,9 +117,9 @@ export const SchemaReportEngine: React.FC<SchemaReportEngineProps> = ({ schema }
             return (
               <div
                 key={section.id}
-                className="bg-slate-900/60 border border-slate-800/80 rounded-xl p-5 space-y-4 shadow-sm"
+                className="bg-white border border-slate-200/80 rounded-2xl p-6 space-y-4 shadow-sm"
               >
-                <h2 className="text-base font-semibold text-sky-400 border-b border-slate-800 pb-2">
+                <h2 className="text-base font-bold text-sky-900 border-b border-slate-200 pb-2.5">
                   {section.baslik}
                 </h2>
                 <div className="grid grid-cols-1 gap-4 pt-1">

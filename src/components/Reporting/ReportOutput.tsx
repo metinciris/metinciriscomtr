@@ -63,13 +63,13 @@ export const ReportOutput: React.FC<ReportOutputProps> = ({
     <div className="space-y-6 sticky top-6">
       {/* Warning Box for Missing Required Fields */}
       {renderResult.missingRequiredFields.length > 0 && (
-        <div className="bg-amber-50 border-2 border-amber-500 rounded-xl p-4 text-amber-950 shadow-sm">
+        <div className="bg-amber-50 border-2 border-amber-500 rounded-2xl p-4 text-amber-950 shadow-sm">
           <div className="flex items-start space-x-3">
             <span className="text-amber-600 text-xl font-bold">⚠️</span>
             <div>
               <p className="font-bold text-amber-950 text-sm">Zorunlu Alan Eksikleri</p>
               <p className="text-xs text-amber-900 font-medium mt-0.5">
-                Aşağıdaki alanlar henüz doldurulmadı ve raporda <code className="bg-amber-200 text-amber-950 px-1 py-0.5 rounded font-bold">[BELİRTİLMEDİ]</code> olarak işaretlendi:
+                Aşağıdaki alanlar henüz doldurulmadı ve raporda <code className="bg-amber-200 text-amber-950 px-1.5 py-0.5 rounded font-bold">[BELİRTİLMEDİ]</code> olarak işaretlendi:
               </p>
               <ul className="list-disc list-inside mt-2 space-y-1 text-xs text-amber-950 font-bold">
                 {renderResult.missingRequiredFields.map((field, idx) => (
@@ -83,22 +83,22 @@ export const ReportOutput: React.FC<ReportOutputProps> = ({
 
       {/* Staging Summary Card */}
       {stagingResult && (
-        <div className="bg-slate-900/80 border border-sky-800/50 rounded-xl p-4 shadow-lg backdrop-blur-sm">
-          <h4 className="text-xs font-semibold uppercase tracking-wider text-sky-400 mb-2">
+        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+          <h4 className="text-xs font-bold uppercase tracking-wider text-sky-800 mb-2">
             Patolojik Evreleme ({stagingResult.ajccBaski ? `AJCC ${stagingResult.ajccBaski}` : 'AJCC'})
           </h4>
           {stagingResult.ozet ? (
-            <div className="text-lg font-bold text-slate-100 bg-sky-950/50 px-3 py-2 rounded-lg border border-sky-900/60 text-sky-200">
+            <div className="text-base font-bold text-sky-950 bg-sky-50 px-3.5 py-2.5 rounded-xl border border-sky-200 text-sky-900">
               {stagingResult.ozet}
             </div>
           ) : (
-            <p className="text-xs text-slate-400 italic">Evre hesaplanabilmesi için gerekli alanları doldurun.</p>
+            <p className="text-xs text-slate-500 italic">Evre hesaplanabilmesi için gerekli alanları doldurun.</p>
           )}
 
           {stagingResult.uyarilar.length > 0 && (
             <div className="mt-3 space-y-1">
               {stagingResult.uyarilar.map((warn, i) => (
-                <p key={i} className="text-xs text-amber-400/90 flex items-start space-x-1.5">
+                <p key={i} className="text-xs text-amber-800 font-semibold flex items-start space-x-1.5">
                   <span>•</span>
                   <span>{warn}</span>
                 </p>
@@ -109,16 +109,16 @@ export const ReportOutput: React.FC<ReportOutputProps> = ({
       )}
 
       {/* Preview Header & Copy Actions */}
-      <div className="bg-slate-900 rounded-xl border border-slate-800 p-5 shadow-xl">
-        <div className="flex items-center justify-between pb-4 border-b border-slate-800">
-          <h3 className="text-base font-semibold text-slate-100 flex items-center space-x-2">
+      <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+        <div className="flex items-center justify-between pb-4 border-b border-slate-200">
+          <h3 className="text-base font-bold text-slate-900 flex items-center space-x-2">
             <span>Rapor Önizleme</span>
           </h3>
           <div className="flex items-center space-x-2">
             <button
               onClick={handleCopyText}
               disabled={copying}
-              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-medium border border-slate-700 transition-all flex items-center space-x-1.5"
+              className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold border border-slate-300 transition-all flex items-center space-x-1.5"
               title="LIS veya Not Defteri için düz metin"
             >
               <span>📋</span>
@@ -127,7 +127,7 @@ export const ReportOutput: React.FC<ReportOutputProps> = ({
             <button
               onClick={handleCopyRichText}
               disabled={copying}
-              className="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-lg text-xs font-medium shadow-md shadow-sky-600/20 transition-all flex items-center space-x-1.5"
+              className="px-3.5 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold shadow-md shadow-sky-600/20 transition-all flex items-center space-x-1.5"
               title="Word veya Zengin Metin Düzenleyiciler İçin"
             >
               <span>✨</span>
@@ -137,15 +137,15 @@ export const ReportOutput: React.FC<ReportOutputProps> = ({
         </div>
 
         {/* Output Text View */}
-        <pre className="mt-4 p-4 rounded-lg bg-slate-950 border border-slate-800/80 font-mono text-xs text-slate-300 whitespace-pre-wrap break-words leading-relaxed max-h-[500px] overflow-y-auto selection:bg-sky-500 selection:text-white">
+        <pre className="mt-4 p-4 rounded-xl bg-slate-900 border border-slate-800 font-mono text-xs text-slate-100 whitespace-pre-wrap break-words leading-relaxed max-h-[500px] overflow-y-auto selection:bg-sky-500 selection:text-white">
           {renderResult.plainText}
         </pre>
 
         {onClearForm && (
-          <div className="mt-4 pt-3 border-t border-slate-800 flex justify-end">
+          <div className="mt-4 pt-3 border-t border-slate-200 flex justify-end">
             <button
               onClick={onClearForm}
-              className="text-xs text-slate-400 hover:text-rose-400 transition-colors"
+              className="text-xs text-slate-500 hover:text-rose-600 font-semibold transition-colors"
             >
               Formu Temizle
             </button>
