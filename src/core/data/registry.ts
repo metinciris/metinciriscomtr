@@ -208,7 +208,7 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         navLabel: 'Podcast',
         navGroup: 'egitim',
         onNavigateProp: true,
-        load: () => import('@/pages/Podcast'),
+        load: () => import('@/pages/Podcast').then(m => ({ default: (m.default || m.Podcast) as unknown as React.ComponentType<Record<string, unknown>> })),
     },
     blog: {
         slug: 'blog',
@@ -306,7 +306,7 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         changefreq: 'monthly',
         navLabel: 'GİST Raporlama',
         navGroup: 'raporlama',
-        load: () => import('@/pages/GistRaporlama'),
+        load: () => import('@/pages/GistRaporlama').then(m => ({ default: (m.default || m.GistRaporlama) as unknown as React.ComponentType<Record<string, unknown>> })),
     },
     makale: {
         slug: 'makale',
@@ -510,7 +510,7 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         changefreq: 'monthly',
         navLabel: 'Sjögren Raporlama',
         navGroup: 'raporlama',
-        load: () => import('@/pages/SjogrenRaporlama'),
+        load: () => import('@/pages/SjogrenRaporlama').then(m => ({ default: (m.default || m.SjogrenRaporlama) as unknown as React.ComponentType<Record<string, unknown>> })),
     },
     'tiiab-raporlama': {
         slug: 'tiiab-raporlama',
@@ -522,7 +522,7 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         changefreq: 'monthly',
         navLabel: 'TİİAB Raporlama',
         navGroup: 'raporlama',
-        load: () => import('@/pages/TiiabRaporlama'),
+        load: () => import('@/pages/TiiabRaporlama').then(m => ({ default: (m.default || m.TiiabRaporlama) as unknown as React.ComponentType<Record<string, unknown>> })),
     },
     'endoskopi-raporlama': {
         slug: 'endoskopi-raporlama',
@@ -534,7 +534,7 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         changefreq: 'monthly',
         navLabel: 'Endoskopi Raporlama',
         navGroup: 'raporlama',
-        load: () => import('@/pages/EndoskopiRaporlama'),
+        load: () => import('@/pages/EndoskopiRaporlama').then(m => ({ default: (m.default || m.EndoskopiRaporlama) as unknown as React.ComponentType<Record<string, unknown>> })),
     },
     'dunya-saatleri': {
         slug: 'dunya-saatleri',
