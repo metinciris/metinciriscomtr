@@ -85,7 +85,7 @@ export const generateSjogrenReport = (inputs: SjogrenInputs): string => {
         lines.push(`Yağlanma:\t${yagOpt?.label || ""}`);
 
         // Diğer
-        const otherItems = [];
+        const otherItems: string[] = [];
         if (otherFindings.enYogun) otherItems.push("Fokus sayımında gland yapısında en yoğun 4 mm2 alan değerlendirilmiştir.");
         if (otherFindings.mukozal) otherItems.push("Minör tükrük bezi içermeyen mukozal fragman izlenmiştir.");
         if (otherFindings.plazmaNadir) otherItems.push("Nadir plazma hücresi izlenmiştir.");
@@ -100,7 +100,7 @@ export const generateSjogrenReport = (inputs: SjogrenInputs): string => {
         }
     } else {
         // Glandüler doku yoksa
-        const otherItems = [];
+        const otherItems: string[] = [];
         if (otherFindings.enYogun) otherItems.push("Fokus sayımında gland yapısında en yoğun 4 mm2 alan değerlendirilmiştir.");
         if (otherFindings.mukozal) otherItems.push("Minör tükrük bezi içermeyen mukozal fragman izlenmiştir.");
         if (otherFindings.plazmaNadir) otherItems.push("Nadir plazma hücresi izlenmiştir.");

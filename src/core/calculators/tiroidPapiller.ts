@@ -127,7 +127,7 @@ function generateFindingsText(t: Tumor, indent: string = ''): string {
 
     let lvi = 'Lenfatik ve/veya venöz invazyon: ' + t.lvInvasion;
     if (t.lvInvasion === 'VARDIR') {
-        const lviTypes = [];
+        const lviTypes: string[] = [];
         if (t.lymphaticInvasion) lviTypes.push('lenfatik invazyon');
         if (t.angioinvasion) lviTypes.push('anjioinvazyon');
         if (lviTypes.length) lvi += '. İzlenen invazyon tipi: ' + lviTypes.join(' ve ');

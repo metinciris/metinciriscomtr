@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { PageContainer } from '../components/PageContainer';
 import { Calculator, Info } from 'lucide-react';
 import { calculateRCBValue, RcbInputs } from '../core/calculators/rcb';
+import { ReportingDisclaimer } from '../components/ReportingDisclaimer';
 
 export function RcbCalculator() {
     const [d1, setD1] = useState("");
@@ -208,6 +209,7 @@ export function RcbCalculator() {
                         </div>
                     </div>
                 </div>
+                <ReportingDisclaimer />
             </div>
         </PageContainer>
     );

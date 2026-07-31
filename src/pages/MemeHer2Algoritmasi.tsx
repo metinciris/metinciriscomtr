@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { PageContainer } from '../components/PageContainer';
+import { ReportingDisclaimer } from '../components/ReportingDisclaimer';
 import {
   AlertTriangle,
   ChevronDown,
@@ -952,6 +953,8 @@ export function MemeHer2Algoritmasi() {
           Focus on HER2-Low and Ultralow Categories. <em>Modern Pathology</em>, 2026.
         </p>
       </div>
+
+      <ReportingDisclaimer />
     </PageContainer>
   );
 }

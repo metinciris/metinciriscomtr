@@ -3,7 +3,7 @@ import React from 'react';
 import { Layout } from './components/Layout';
 import { Toaster } from 'sonner';
 import { SEO } from './components/SEO';
-import { PAGE_REGISTRY, validPages } from './core/data/registry';
+import { PAGE_REGISTRY, validPages, getNavLabel } from './core/data/registry';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { trackPageView } from './utils/analytics';
 
@@ -37,10 +37,21 @@ function getLazy(pageId: string): LazyComponent {
 
 export default function App() {
   const [currentPage, setCurrentPage] = React.useState('home');
+  const [routeAnnouncement, setRouteAnnouncement] = React.useState('');
 
-  // Sayfa değiştikçe analytics gönder
+  // Sayfa değiştikçe analytics gönder, odağı <main> öğesine taşı ve ekran okuyucuya bildir
   React.useEffect(() => {
     trackPageView(currentPage);
+
+    const pageLabel = getNavLabel(currentPage);
+    setRouteAnnouncement(`${pageLabel} sayfası yüklendi.`);
+
+    // Klavye odağını ana içeriğe geçir (a11y)
+    const mainEl = document.getElementById('main-content');
+    if (mainEl) {
+      mainEl.setAttribute('tabindex', '-1');
+      mainEl.focus({ preventScroll: true });
+    }
   }, [currentPage]);
 
   // Path'ten sayfa adını çıkar
@@ -97,6 +108,11 @@ export default function App() {
   return (
     <>
       <SEO currentPage={currentPage} />
+
+      {/* Ekran okuyucular için dinamik yönlendirme duyurusu (a11y) */}
+      <div className="sr-only" aria-live="polite" aria-atomic="true">
+        {routeAnnouncement}
+      </div>
 
       <Layout currentPage={currentPage} onNavigate={navigate}>
         <ErrorBoundary>

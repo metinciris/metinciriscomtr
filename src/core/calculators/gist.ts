@@ -85,7 +85,7 @@ export function riskFrom(sizeCm: number | undefined, mitos: number | undefined, 
 }
 
 export function generateGistReport(data: GistData): string {
-    const lines = [];
+    const lines: string[] = [];
     if (data.histoTip) lines.push(`Histolojik Tip: ${data.histoTip}`);
 
     const ebc = formatNumber(data.enBuyukCm);

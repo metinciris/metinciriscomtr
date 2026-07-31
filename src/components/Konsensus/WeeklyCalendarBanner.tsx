@@ -22,7 +22,7 @@ export function WeeklyCalendarBanner({ meetings, now, onDayClick }: WeeklyCalend
     
     const mondayNoon = new Date(todayNoon.getTime() - diffToMonday * 24 * 60 * 60 * 1000);
 
-    const weekDays = [];
+    const weekDays: Array<{ key: string; dateObj: Date; dayName: string; dayOfMonth: number; count: number; isPast: boolean; isToday: boolean }> = [];
     const dayNames = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
 
     for (let i = 0; i < 7; i++) {

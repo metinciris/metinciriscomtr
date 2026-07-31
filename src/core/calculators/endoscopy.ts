@@ -148,7 +148,7 @@ export function generateBiopsyReport(
         }
     }
 
-    biopsy.customNotes.forEach(note => {
+    (biopsy.customNotes || []).forEach(note => {
         const line = `     - ${note}${note.endsWith('.') ? '' : '.'}`;
         lines.push(shouldHighlight('customNotes') ? `<mark>${line}</mark>` : line);
     });
