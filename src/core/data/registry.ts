@@ -539,8 +539,9 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
     'sinoptik-rapor': {
         slug: 'sinoptik-rapor',
         title: 'Sinoptik Patoloji Raporlama Motoru | Prof Dr Metin Çiriş',
-        description: 'CAP ve AJCC standartlarına uygun, şema tabanlı sinoptik patoloji raporlama motoru.',
-        keywords: 'sinoptik rapor, patoloji raporlama, kolorektal karsinom, CAP protokolü, AJCC evreleme',
+        description: 'Şema tabanlı sinoptik patoloji raporlama motoru.',
+        keywords: 'sinoptik rapor, patoloji raporlama, kolorektal karsinom',
+        noindex: true,
         lastmod: '2026-07-31',
         priority: 0.8,
         changefreq: 'monthly',

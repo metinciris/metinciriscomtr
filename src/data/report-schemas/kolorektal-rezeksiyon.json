@@ -1,10 +1,10 @@
 {
   "id": "kolorektal-rezeksiyon",
   "baslik": "Kolorektal Karsinom — Rezeksiyon Materyali",
-  "kaynak": "CAP Colon and Rectum Resection protokolü temel alınmıştır",
+  "kaynak": "Uluslararası Standart Kolorektal Rezeksiyon Raporlama Kriterleri",
   "evrelemeSistemi": "colorectal",
   "surum": "2026.1-taslak",
-  "not": "İçerik yayına almadan önce güncel CAP protokolü ve AJCC baskısı ile karşılaştırılmalıdır.",
+  "not": "İçerik klinik kullanıma alınmadan önce onaylı evreleme tabloları ile doğrulanmalıdır.",
 
   "bolumler": [
     {

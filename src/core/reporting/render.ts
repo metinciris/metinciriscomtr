@@ -130,7 +130,8 @@ export function renderReport(
 
   // Append Staging Result if present
   if (stagingResult && (stagingResult.ozet || stagingResult.uyarilar.length > 0)) {
-    plainLines.push(`\r\n[PATOLOJİK EVRELEME (AJCC 8. Baskı)]`);
+    const baskiStr = stagingResult.ajccBaski ? `AJCC ${stagingResult.ajccBaski}` : 'AJCC';
+    plainLines.push(`\r\n[PATOLOJİK EVRELEME (${baskiStr})]`);
     if (stagingResult.ozet) {
       plainLines.push(`Evre Özeti: ${stagingResult.ozet}`);
     }
@@ -140,7 +141,7 @@ export function renderReport(
 
     htmlSections.push(`
       <div style="margin-top: 16px; padding: 12px; background-color: #f0f9ff; border-left: 4px solid #0284c7; border-radius: 4px;">
-        <h3 style="color: #0369a1; margin-top: 0; margin-bottom: 6px;">Patolojik Evreleme (AJCC)</h3>
+        <h3 style="color: #0369a1; margin-top: 0; margin-bottom: 6px;">Patolojik Evreleme (${baskiStr})</h3>
         ${stagingResult.ozet ? `<p style="font-weight: bold; margin: 4px 0; color: #0f172a;">${stagingResult.ozet}</p>` : ''}
         ${stagingResult.uyarilar.length > 0 ? `<p style="font-size: 0.9em; color: #475569; margin: 4px 0;"><em>Notlar: ${stagingResult.uyarilar.join('; ')}</em></p>` : ''}
       </div>

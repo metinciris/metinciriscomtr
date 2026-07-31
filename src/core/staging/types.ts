@@ -17,6 +17,7 @@ export interface StagingResult {
   evreGrubu: string | null;
   /** Rapora yazılacak tek satırlık özet, ör. "pT3 pN1b pM0 — Evre IIIB" */
   ozet: string | null;
+  ajccBaski?: string;
   uyarilar: string[];
   eksikAlanlar: string[];
 }

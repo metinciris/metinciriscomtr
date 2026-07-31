@@ -85,7 +85,7 @@ export const ReportOutput: React.FC<ReportOutputProps> = ({
       {stagingResult && (
         <div className="bg-slate-900/80 border border-sky-800/50 rounded-xl p-4 shadow-lg backdrop-blur-sm">
           <h4 className="text-xs font-semibold uppercase tracking-wider text-sky-400 mb-2">
-            Patolojik Evreleme (AJCC 8. Baskı)
+            Patolojik Evreleme ({stagingResult.ajccBaski ? `AJCC ${stagingResult.ajccBaski}` : 'AJCC'})
           </h4>
           {stagingResult.ozet ? (
             <div className="text-lg font-bold text-slate-100 bg-sky-950/50 px-3 py-2 rounded-lg border border-sky-900/60 text-sky-200">

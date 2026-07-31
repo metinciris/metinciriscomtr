@@ -124,5 +124,5 @@ export function deriveColorectalStage(input: StagingInput): StagingResult {
   const ozet =
     pT && pN ? `${pT} ${pN} ${pM}${evreGrubu ? ` — Evre ${evreGrubu}` : ''}` : null;
 
-  return { pT, pN, pM, evreGrubu, ozet, uyarilar, eksikAlanlar };
+  return { pT, pN, pM, evreGrubu, ozet, ajccBaski: AJCC_BASKI, uyarilar, eksikAlanlar };
 }
