@@ -13,6 +13,7 @@ import {
   mkdirSync,
   readFileSync,
   writeFileSync,
+  readdirSync,
 } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -712,11 +713,30 @@ function updateServiceWorkerVersion() {
 
 async function main() {
   ensureBuildExists();
-  const indexContent = readFileSync(indexPath, 'utf8');
+  const rawIndexContent = readFileSync(indexPath, 'utf8');
   const registry = parseRegistry(readFileSync(registryPath, 'utf8'));
   const sitemapEntries = new Map();
 
   console.log('SPA sayfaları ve statik SEO içerikleri üretiliyor...');
+
+  // --- Inline Render-Blocking CSS ---
+  let indexContent = rawIndexContent;
+  try {
+    const assetsDir = join(distDir, 'assets');
+    if (existsSync(assetsDir)) {
+      const cssFileName = readdirSync(assetsDir).find(f => f.startsWith('index-') && f.endsWith('.css'));
+      if (cssFileName) {
+        const cssContent = readFileSync(join(assetsDir, cssFileName), 'utf8');
+        indexContent = indexContent.replace(
+          /<link rel="stylesheet"[^>]*href=["'][^"']*assets\/index-[^"']+\.css["'][^>]*>/i,
+          `<style>${cssContent}</style>`
+        );
+        console.log(`Critical CSS (${cssFileName}) inline olarak eklendi.`);
+      }
+    }
+  } catch (err) {
+    console.warn('CSS inline ekleme atlandı:', err.message);
+  }
 
   for (const [id, meta] of Object.entries(registry)) {
     if (!meta.slug && id !== 'home') continue;
@@ -907,8 +927,25 @@ async function main() {
   mkdirSync(radarDir, { recursive: true });
   writeFileSync(join(radarDir, 'rss.xml'), `${rssLines.join('\n')}\n`, 'utf8');
 
+  // --- LLMs.txt Generation for AI Agents ---
+  const llmsLines = [
+    '# Prof. Dr. İbrahim Metin Çiriş — Tıbbi Patoloji & Dijital Patoloji',
+    '',
+    '> SDÜ Tıp Fakültesi Tıbbi Patoloji AD. Tanısal ve moleküler patoloji',
+    '> araçları, sinoptik raporlama modülleri ve eğitim materyalleri.',
+    '',
+    '## Tanısal & Raporlama Araçları',
+  ];
+
+  for (const [id, meta] of Object.entries(registry)) {
+    if (meta.noindex || !meta.slug) continue;
+    llmsLines.push(`- [${meta.title.split('|')[0].trim()}](${SITE_URL}/${meta.slug}/): ${meta.description}`);
+  }
+
+  writeFileSync(join(distDir, 'llms.txt'), `${llmsLines.join('\n')}\n`, 'utf8');
+
   console.log(
-    `Tamamlandı: ${posts.length} blog yazısı, search-index.json, RSS ve sitemap üretildi.`,
+    `Tamamlandı: ${posts.length} blog yazısı, search-index.json, llms.txt, RSS ve sitemap üretildi.`,
   );
 }
 
