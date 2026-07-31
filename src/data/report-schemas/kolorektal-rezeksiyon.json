@@ -1,0 +1,360 @@
+{
+  "id": "kolorektal-rezeksiyon",
+  "baslik": "Kolorektal Karsinom — Rezeksiyon Materyali",
+  "kaynak": "CAP Colon and Rectum Resection protokolü temel alınmıştır",
+  "evrelemeSistemi": "colorectal",
+  "surum": "2026.1-taslak",
+  "not": "İçerik yayına almadan önce güncel CAP protokolü ve AJCC baskısı ile karşılaştırılmalıdır.",
+
+  "bolumler": [
+    {
+      "id": "prosedur",
+      "baslik": "Prosedür ve Örnek",
+      "alanlar": [
+        {
+          "id": "prosedur_tipi",
+          "etiket": "Cerrahi prosedür",
+          "tip": "select",
+          "zorunlu": true,
+          "raporSatiri": "Prosedür: {deger}",
+          "secenekler": [
+            { "deger": "sag_hemikolektomi", "etiket": "Sağ hemikolektomi" },
+            { "deger": "genisletilmis_sag", "etiket": "Genişletilmiş sağ hemikolektomi" },
+            { "deger": "transvers_kolektomi", "etiket": "Transvers kolektomi" },
+            { "deger": "sol_hemikolektomi", "etiket": "Sol hemikolektomi" },
+            { "deger": "sigmoidektomi", "etiket": "Sigmoid kolektomi" },
+            { "deger": "lar", "etiket": "Düşük anterior rezeksiyon (LAR)" },
+            { "deger": "apr", "etiket": "Abdominoperineal rezeksiyon (APR)" },
+            { "deger": "total_kolektomi", "etiket": "Total kolektomi" },
+            { "deger": "diger", "etiket": "Diğer" }
+          ]
+        },
+        {
+          "id": "prosedur_diger",
+          "etiket": "Prosedür açıklaması",
+          "tip": "text",
+          "gorunurKosul": { "alan": "prosedur_tipi", "operator": "esittir", "deger": "diger" },
+          "raporSatiri": "Prosedür açıklaması: {deger}"
+        },
+        {
+          "id": "neoadjuvan_tedavi",
+          "etiket": "Neoadjuvan tedavi öyküsü var",
+          "tip": "boolean",
+          "raporSatiri": "Neoadjuvan tedavi: uygulanmış"
+        }
+      ]
+    },
+
+    {
+      "id": "makroskopi",
+      "baslik": "Makroskopik Bulgular",
+      "alanlar": [
+        {
+          "id": "tumor_yeri",
+          "etiket": "Tümör lokalizasyonu",
+          "tip": "select",
+          "zorunlu": true,
+          "raporSatiri": "Tümör yerleşimi: {deger}",
+          "secenekler": [
+            { "deger": "cekum", "etiket": "Çekum" },
+            { "deger": "cikan", "etiket": "Çıkan kolon" },
+            { "deger": "hepatik_fleksura", "etiket": "Hepatik fleksura" },
+            { "deger": "transvers", "etiket": "Transvers kolon" },
+            { "deger": "splenik_fleksura", "etiket": "Splenik fleksura" },
+            { "deger": "inen", "etiket": "İnen kolon" },
+            { "deger": "sigmoid", "etiket": "Sigmoid kolon" },
+            { "deger": "rektosigmoid", "etiket": "Rektosigmoid bileşke" },
+            { "deger": "rektum", "etiket": "Rektum" }
+          ]
+        },
+        {
+          "id": "tumor_boyutu",
+          "etiket": "En büyük tümör çapı",
+          "tip": "number",
+          "birim": "cm",
+          "ondalik": 1,
+          "min": 0,
+          "max": 30,
+          "zorunlu": true,
+          "raporSatiri": "Tümör boyutu: {deger} cm"
+        },
+        {
+          "id": "makroskopik_perforasyon",
+          "etiket": "Makroskopik tümör perforasyonu",
+          "tip": "boolean",
+          "raporSatiri": "Makroskopik tümör perforasyonu: mevcut"
+        }
+      ]
+    },
+
+    {
+      "id": "histoloji",
+      "baslik": "Histolojik Bulgular",
+      "alanlar": [
+        {
+          "id": "histolojik_tip",
+          "etiket": "Histolojik tip",
+          "tip": "select",
+          "zorunlu": true,
+          "raporSatiri": "Histolojik tip: {deger}",
+          "secenekler": [
+            { "deger": "adenokarsinom", "etiket": "Adenokarsinom, NOS" },
+            { "deger": "musinoz", "etiket": "Müsinöz adenokarsinom" },
+            { "deger": "tasli_yuzuk", "etiket": "Taşlı yüzük hücreli karsinom" },
+            { "deger": "medduller", "etiket": "Medüller karsinom" },
+            { "deger": "serrated", "etiket": "Serrated adenokarsinom" },
+            { "deger": "mikropapiller", "etiket": "Mikropapiller adenokarsinom" },
+            { "deger": "adenoskuamoz", "etiket": "Adenoskuamöz karsinom" },
+            { "deger": "indiferansiye", "etiket": "İndiferansiye karsinom" },
+            { "deger": "diger", "etiket": "Diğer" }
+          ]
+        },
+        {
+          "id": "histolojik_derece",
+          "etiket": "Histolojik derece",
+          "tip": "select",
+          "zorunlu": true,
+          "raporSatiri": "Histolojik derece: {deger}",
+          "secenekler": [
+            { "deger": "dusuk", "etiket": "Düşük dereceli (iyi–orta diferansiye)" },
+            { "deger": "yuksek", "etiket": "Yüksek dereceli (az diferansiye)" },
+            { "deger": "uygulanamaz", "etiket": "Uygulanamaz" }
+          ]
+        }
+      ]
+    },
+
+    {
+      "id": "invazyon",
+      "baslik": "Tümör Yayılımı",
+      "alanlar": [
+        {
+          "id": "invazyon_derinligi",
+          "etiket": "İnvazyon derinliği",
+          "tip": "select",
+          "zorunlu": true,
+          "evrelemeRolu": "pT",
+          "raporSatiri": "Tümör yayılımı: {deger}",
+          "secenekler": [
+            { "deger": "yok", "etiket": "Rezidü tümör saptanmadı", "pT": "T0" },
+            { "deger": "intramukozal", "etiket": "Lamina propria / muskularis mukoza (intramukozal)", "pT": "Tis" },
+            { "deger": "submukoza", "etiket": "Submukoza", "pT": "T1" },
+            { "deger": "muskularis_propria", "etiket": "Muskularis propria", "pT": "T2" },
+            { "deger": "perikolik", "etiket": "Muskularis propriayı aşarak perikolik/perirektal dokuya", "pT": "T3" },
+            { "deger": "visseral_periton", "etiket": "Visseral peritonu penetre ediyor", "pT": "T4a" },
+            { "deger": "komsu_organ", "etiket": "Komşu organ/yapıya direkt invazyon veya yapışıklık", "pT": "T4b" }
+          ]
+        },
+        {
+          "id": "lvi",
+          "etiket": "Lenfovasküler invazyon",
+          "tip": "select",
+          "raporSatiri": "Lenfovasküler invazyon: {deger}",
+          "secenekler": [
+            { "deger": "yok", "etiket": "Saptanmadı" },
+            { "deger": "kucuk_damar", "etiket": "Mevcut — küçük damar" },
+            { "deger": "buyuk_damar", "etiket": "Mevcut — büyük damar (venöz)" },
+            { "deger": "her_ikisi", "etiket": "Mevcut — hem küçük hem büyük damar" }
+          ]
+        },
+        {
+          "id": "pni",
+          "etiket": "Perinöral invazyon",
+          "tip": "select",
+          "raporSatiri": "Perinöral invazyon: {deger}",
+          "secenekler": [
+            { "deger": "yok", "etiket": "Saptanmadı" },
+            { "deger": "var", "etiket": "Mevcut" }
+          ]
+        },
+        {
+          "id": "tumor_tomurcuklanmasi",
+          "etiket": "Tümör tomurcuklanması (ITBCC)",
+          "tip": "select",
+          "yardim": "0,785 mm² alanda en yoğun odakta sayım",
+          "raporSatiri": "Tümör tomurcuklanması: {deger}",
+          "secenekler": [
+            { "deger": "dusuk", "etiket": "Düşük (Bd1, 0–4 tomurcuk)" },
+            { "deger": "orta", "etiket": "Orta (Bd2, 5–9 tomurcuk)" },
+            { "deger": "yuksek", "etiket": "Yüksek (Bd3, ≥10 tomurcuk)" }
+          ]
+        }
+      ]
+    },
+
+    {
+      "id": "lenf_nodlari",
+      "baslik": "Bölgesel Lenf Nodları",
+      "alanlar": [
+        {
+          "id": "ln_toplam",
+          "etiket": "İncelenen lenf nodu sayısı",
+          "tip": "number",
+          "min": 0,
+          "max": 200,
+          "zorunlu": true,
+          "evrelemeRolu": "pN",
+          "raporSatiri": "İncelenen lenf nodu sayısı: {deger}"
+        },
+        {
+          "id": "ln_pozitif",
+          "etiket": "Metastaz içeren lenf nodu sayısı",
+          "tip": "number",
+          "min": 0,
+          "max": 200,
+          "zorunlu": true,
+          "evrelemeRolu": "pN",
+          "raporSatiri": "Metastatik lenf nodu sayısı: {deger}"
+        },
+        {
+          "id": "tumor_depoziti",
+          "etiket": "Tümör depoziti sayısı",
+          "tip": "number",
+          "min": 0,
+          "max": 50,
+          "evrelemeRolu": "pN",
+          "yardim": "Lenf nodu yapısı içermeyen, damar/sinir ilişkisi gösterilemeyen mezenterik tümör odakları",
+          "raporSatiri": "Tümör depoziti: {deger} adet"
+        }
+      ]
+    },
+
+    {
+      "id": "sinirlar",
+      "baslik": "Cerrahi Sınırlar",
+      "alanlar": [
+        {
+          "id": "proksimal_sinir",
+          "etiket": "Proksimal sınır",
+          "tip": "select",
+          "zorunlu": true,
+          "raporSatiri": "Proksimal cerrahi sınır: {deger}",
+          "secenekler": [
+            { "deger": "temiz", "etiket": "Tümörden uzak" },
+            { "deger": "tutulmus", "etiket": "Tümör ile tutulmuş" }
+          ]
+        },
+        {
+          "id": "distal_sinir",
+          "etiket": "Distal sınır",
+          "tip": "select",
+          "zorunlu": true,
+          "raporSatiri": "Distal cerrahi sınır: {deger}",
+          "secenekler": [
+            { "deger": "temiz", "etiket": "Tümörden uzak" },
+            { "deger": "tutulmus", "etiket": "Tümör ile tutulmuş" }
+          ]
+        },
+        {
+          "id": "radyal_sinir",
+          "etiket": "Radyal / sirkumferansiyel sınır (CRM)",
+          "tip": "select",
+          "zorunlu": true,
+          "raporSatiri": "Radyal (sirkumferansiyel) sınır: {deger}",
+          "secenekler": [
+            { "deger": "temiz", "etiket": "Tümörden uzak (>1 mm)" },
+            { "deger": "yakin", "etiket": "Yakın (≤1 mm)" },
+            { "deger": "tutulmus", "etiket": "Tümör ile tutulmuş" }
+          ]
+        },
+        {
+          "id": "en_yakin_sinir_mesafe",
+          "etiket": "En yakın sınıra uzaklık",
+          "tip": "number",
+          "birim": "mm",
+          "ondalik": 1,
+          "raporSatiri": "Tümörün en yakın cerrahi sınıra uzaklığı: {deger} mm"
+        }
+      ]
+    },
+
+    {
+      "id": "tedavi_yaniti",
+      "baslik": "Neoadjuvan Tedavi Yanıtı",
+      "gorunurKosul": { "alan": "neoadjuvan_tedavi", "operator": "esittir", "deger": true },
+      "alanlar": [
+        {
+          "id": "tedavi_yaniti_skoru",
+          "etiket": "Tedavi yanıtı (modifiye Ryan skoru)",
+          "tip": "select",
+          "raporSatiri": "Neoadjuvan tedavi yanıtı: {deger}",
+          "secenekler": [
+            { "deger": "0", "etiket": "Skor 0 — Tam yanıt (rezidü tümör hücresi yok)" },
+            { "deger": "1", "etiket": "Skor 1 — Belirgin yanıt (tek hücre veya küçük gruplar)" },
+            { "deger": "2", "etiket": "Skor 2 — Kısmi yanıt (rezidü tümör, belirgin fibrozis)" },
+            { "deger": "3", "etiket": "Skor 3 — Zayıf/yanıt yok" }
+          ]
+        }
+      ]
+    },
+
+    {
+      "id": "yardimci",
+      "baslik": "Yardımcı Çalışmalar",
+      "alanlar": [
+        {
+          "id": "mmr_durumu",
+          "etiket": "MMR immünohistokimyası",
+          "tip": "select",
+          "raporSatiri": "MMR protein ekspresyonu: {deger}",
+          "secenekler": [
+            { "deger": "korunmus", "etiket": "Korunmuş (MLH1, PMS2, MSH2, MSH6 eksprese)" },
+            { "deger": "mlh1_pms2_kayip", "etiket": "MLH1 ve PMS2 kaybı" },
+            { "deger": "msh2_msh6_kayip", "etiket": "MSH2 ve MSH6 kaybı" },
+            { "deger": "pms2_kayip", "etiket": "İzole PMS2 kaybı" },
+            { "deger": "msh6_kayip", "etiket": "İzole MSH6 kaybı" },
+            { "deger": "yapilmadi", "etiket": "Çalışılmadı" }
+          ]
+        },
+        {
+          "id": "mmr_yorum",
+          "etiket": "MMR yorumu",
+          "tip": "textarea",
+          "satir": 3,
+          "gorunurKosul": { "alan": "mmr_durumu", "operator": "esitDegil", "deger": "yapilmadi" },
+          "raporSatiri": "Yorum: {deger}"
+        },
+        {
+          "id": "molekuler",
+          "etiket": "Moleküler çalışmalar",
+          "tip": "multiselect",
+          "raporSatiri": "Moleküler çalışma istendi: {deger}",
+          "secenekler": [
+            { "deger": "kras", "etiket": "KRAS" },
+            { "deger": "nras", "etiket": "NRAS" },
+            { "deger": "braf", "etiket": "BRAF V600E" },
+            { "deger": "msi_pcr", "etiket": "MSI (PCR)" },
+            { "deger": "her2", "etiket": "HER2" }
+          ]
+        }
+      ]
+    },
+
+    {
+      "id": "ek_bulgular",
+      "baslik": "Ek Bulgular ve Not",
+      "alanlar": [
+        {
+          "id": "eslik_eden",
+          "etiket": "Eşlik eden bulgular",
+          "tip": "multiselect",
+          "raporSatiri": "Eşlik eden bulgular: {deger}",
+          "secenekler": [
+            { "deger": "adenom", "etiket": "Adenom(lar)" },
+            { "deger": "polipozis", "etiket": "Polipozis" },
+            { "deger": "ibd", "etiket": "İnflamatuvar barsak hastalığı" },
+            { "deger": "divertikulozis", "etiket": "Divertikülozis" },
+            { "deger": "displazi", "etiket": "Displazi" }
+          ]
+        },
+        {
+          "id": "serbest_not",
+          "etiket": "Ek açıklama",
+          "tip": "textarea",
+          "satir": 4,
+          "raporSatiri": "Not: {deger}"
+        }
+      ]
+    }
+  ]
+}

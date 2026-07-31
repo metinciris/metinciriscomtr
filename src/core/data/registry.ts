@@ -536,6 +536,18 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         navGroup: 'raporlama',
         load: () => import('@/pages/EndoskopiRaporlama').then(m => ({ default: m.default as unknown as React.ComponentType<Record<string, unknown>> })),
     },
+    'sinoptik-rapor': {
+        slug: 'sinoptik-rapor',
+        title: 'Sinoptik Patoloji Raporlama Motoru | Prof Dr Metin Çiriş',
+        description: 'CAP ve AJCC standartlarına uygun, şema tabanlı sinoptik patoloji raporlama motoru.',
+        keywords: 'sinoptik rapor, patoloji raporlama, kolorektal karsinom, CAP protokolü, AJCC evreleme',
+        lastmod: '2026-07-31',
+        priority: 0.8,
+        changefreq: 'monthly',
+        navLabel: 'Sinoptik Raporlama',
+        navGroup: 'raporlama',
+        load: () => import('@/pages/SinoptikRapor').then(m => ({ default: m.SinoptikRapor as unknown as React.ComponentType<Record<string, unknown>> })),
+    },
     'dunya-saatleri': {
         slug: 'dunya-saatleri',
         title: 'Dünya Saatleri | Prof Dr Metin Çiriş',
