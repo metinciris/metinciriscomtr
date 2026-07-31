@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { toast } from 'sonner';
 import { motion } from "motion/react";
 import { Copy, Check, Activity, Ruler, Microscope, FileText, Info, LayoutGrid } from "lucide-react";
 import { PageContainer } from "../components/PageContainer";
@@ -92,6 +93,7 @@ export default function GistRaporlama() {
         if (navigator.clipboard) {
             navigator.clipboard.writeText(rapor);
             setCopied(true);
+            toast.success("GİST rapor şablonu panoya kopyalandı.");
             setTimeout(() => setCopied(false), 2000);
         }
     };

@@ -1,4 +1,5 @@
 import React from 'react';
+import { toast } from 'sonner';
 import { Biopsy } from '../../types/endoskopi';
 import { Copy } from 'lucide-react';
 import { generateFullEndoskopiReport } from '../../core/calculators/endoscopy';
@@ -20,6 +21,7 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
     // Remove highlight tags before copying
     const cleanText = reportText.replace(/<\/?mark>/g, '');
     navigator.clipboard.writeText(cleanText);
+    toast.success("Endoskopi rapor şablonu panoya kopyalandı.");
   };
 
   return (

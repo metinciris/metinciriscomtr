@@ -65,6 +65,18 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Ctrl+K / Cmd+K arama kısayolu
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsSearchOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
   const pageName = getNavLabel(currentPage);
@@ -207,10 +219,15 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
               {/* Arama */}
               <button
                 onClick={() => setIsSearchOpen(true)}
-                className="p-2 ml-1 text-white/80 hover:text-white hover:bg-white/10 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-white/20"
-                aria-label="Sitede ara"
+                className="px-3 py-1.5 ml-1 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-white/20 flex items-center space-x-2 text-sm"
+                aria-label="Sitede ara (Ctrl+K)"
+                title="Sitede ara (Ctrl+K)"
               >
-                <Search size={20} />
+                <Search size={18} />
+                <span className="hidden lg:inline text-xs text-white/60">Ara</span>
+                <kbd className="hidden lg:inline-block px-1.5 py-0.5 text-[10px] font-semibold text-white/70 bg-white/10 border border-white/20 rounded">
+                  Ctrl+K
+                </kbd>
               </button>
             </nav>
 

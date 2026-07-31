@@ -141,7 +141,17 @@ export function SearchModal({ isOpen, onClose, onNavigate }: SearchModalProps) {
                           {result.description}
                         </p>
                       </div>
-                      <span className="ml-4 shrink-0 text-xs font-medium px-2.5 py-1 rounded-full bg-gray-100 text-gray-600 border border-gray-200">
+                      <span className={`ml-4 shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full border ${
+                        result.type === 'Araç'
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                          : result.type === 'Raporlama'
+                          ? 'bg-blue-50 text-blue-700 border-blue-200'
+                          : result.type === 'Eğitim'
+                          ? 'bg-purple-50 text-purple-700 border-purple-200'
+                          : result.type === 'Blog'
+                          ? 'bg-amber-50 text-amber-700 border-amber-200'
+                          : 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                      }`}>
                         {result.type}
                       </span>
                     </div>

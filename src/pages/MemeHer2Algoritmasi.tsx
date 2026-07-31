@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { toast } from 'sonner';
 import { PageContainer } from '../components/PageContainer';
 import { ReportingDisclaimer } from '../components/ReportingDisclaimer';
 import {
@@ -449,6 +450,7 @@ export function MemeHer2Algoritmasi() {
     if (finalResult) {
       navigator.clipboard.writeText(finalResult.reportSentence).then(() => {
         setCopied(true);
+        toast.success("HER2 rapor cümlesi panoya kopyalandı.");
         setTimeout(() => setCopied(false), 2500);
       });
     }
