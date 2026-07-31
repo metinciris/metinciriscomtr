@@ -33,6 +33,17 @@ export default defineConfig({
             if (id.includes('recharts') || id.includes('d3-')) {
               return 'vendor-charts';
             }
+            // Markdown işleme — react-markdown + parse5 + micromark + unified
+            if (
+              id.includes('react-markdown') || id.includes('micromark') ||
+              id.includes('parse5') || id.includes('unified') ||
+              id.includes('remark') || id.includes('rehype') ||
+              id.includes('mdast-') || id.includes('hast-') ||
+              id.includes('unist-') || id.includes('vfile') ||
+              id.includes('property-information') || id.includes('entities/')
+            ) {
+              return 'vendor-markdown';
+            }
             // Ağır görsel dönüştürücü
             if (id.includes('heic2any') || id.includes('@jsquash')) {
               return 'vendor-heic';
