@@ -1,69 +1,26 @@
 import React, { useState } from 'react';
-import { Menu, Home, User, BookOpen, ChevronUp, ChevronRight, X, Search } from 'lucide-react';
+import {
+  Menu,
+  Home,
+  Users,
+  FileText,
+  BookOpen,
+  GraduationCap,
+  Wrench,
+  ChevronUp,
+  ChevronRight,
+  ChevronDown,
+  X,
+  Search,
+} from 'lucide-react';
 import { SearchModal } from './SearchModal';
+import { PAGE_REGISTRY, getPagesByGroup, getNavLabel, type NavGroup } from '../core/data/registry';
 
 interface LayoutProps {
   children: React.ReactNode;
   currentPage: string;
   onNavigate: (page: string) => void;
 }
-
-/** Sayfa adından görüntü adı üret */
-const PAGE_NAMES: Record<string, string> = {
-  home: 'Ana Sayfa',
-  'basvuru-merkezi': 'Başvuru Merkezi',
-  iletisim: 'İletişim',
-  'biyopsi-sonucu': 'Biyopsi Sonucu',
-  'baktigim-biyopsiler': 'Baktığım Biyopsiler',
-  'nobetci-eczane': 'Nöbetçi Eczane',
-  'hastane-yemek': 'Hastane Yemek',
-  'ders-programi': 'Ders Programı',
-  'ogrenci-yemek': 'Öğrenci Yemek',
-  'donem-3': 'Dönem 3',
-  galeri: 'Galeri',
-  portfolyo: 'Portfolyo',
-  'sinav-analizi': 'Sınav Analizi',
-  yayinlar: 'Yayınlar',
-  podcast: 'Podcast',
-  blog: 'Blog',
-  github: 'GitHub',
-  facebook: 'Facebook',
-  universite: 'SDÜ ve Üniversite',
-  'diger-calismalar': 'Diğer Çalışmalar',
-  'fetus-uzunluklari': 'Fetus Uzunlukları',
-  'rcb-calculator': 'RCB Calculator',
-  'gist-raporlama': 'GİST Raporlama',
-  makale: 'Makale',
-  deprem: 'Deprem',
-  'svs-reader': 'SVS Reader',
-  'tani-tuzaklari': 'Tanı Tuzakları',
-  'ayin-vakasi': 'Ayın Vakası',
-  'prizma-3d': 'Prizma 3D',
-  finans: 'Finans',
-  'makale-takip': 'Makale Takip',
-  'lenf-nodu': 'Lenf Nodu',
-  'pubmed-trend': 'PubMed Trend',
-  'online-test-analiz': 'Online Test Analiz',
-  'euro-maclar': 'Euro Maçlar',
-  konsensus: 'Konsensüs',
-  'konsensus-yonetim': 'Konsensüs Yönetim',
-  'pubmed-makale-takip': 'PubMed Makale Takip',
-  'avif-donusturucu': 'AVIF Dönüştürücü',
-  'sjogren-raporlama': 'Sjögren Raporlama',
-  'endoskopi-raporlama': 'Endoskopi Raporlama',
-  'tiiab-raporlama': 'TİİAB Raporlama',
-  'dunya-saatleri': 'Dünya Saatleri',
-  'patoloji-sozlugu': 'Patoloji Sözlüğü',
-  'vki-hesaplama': 'VKİ Hesaplama',
-  'geri-sayim': 'Geri Sayım',
-  'mitoz-donusturucu': 'Mitoz Dönüştürücü',
-  'hematoloji-hesaplayici': 'Hematoloji Hesaplayıcı',
-  'testis-ght-ihk': 'Testis GHT İHK',
-  'tiroid-papiller-karsinom': 'Tiroid Papiller Karsinom',
-  ngs: 'NGS Gen Arama',
-  'ngs-test-secimi': 'NGS Test Seçimi',
-  'meme-her2': 'Meme HER2',
-};
 
 const BASE_URL = 'https://metinciris.com.tr';
 
@@ -72,8 +29,19 @@ function navHref(path: string): string {
   return path === 'home' ? '/' : `/${path}/`;
 }
 
+/** Mega menü hub tanımları */
+const NAV_HUBS: { id: NavGroup; label: string; icon: React.ElementType }[] = [
+  { id: 'hastalar', label: 'Hastalar', icon: Users },
+  { id: 'raporlama', label: 'Raporlama', icon: FileText },
+  { id: 'egitim', label: 'Eğitim', icon: GraduationCap },
+  { id: 'akademik', label: 'Akademik', icon: BookOpen },
+  { id: 'araclar', label: 'Araçlar', icon: Wrench },
+];
+
 export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  const [openMobileHub, setOpenMobileHub] = React.useState<NavGroup | null>(null);
+  const [activeHub, setActiveHub] = React.useState<NavGroup | null>(null);
   const [showScrollTop, setShowScrollTop] = React.useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const currentYear = new Date().getFullYear();
@@ -85,14 +53,31 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Menü dışına tıklandığında kapat
+  const menuRef = React.useRef<HTMLDivElement>(null);
+  React.useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setActiveHub(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
-  const navItems = [
-    { name: 'Ana Sayfa', path: 'home', icon: Home },
-    { name: 'Biyopsi', path: 'baktigim-biyopsiler', icon: User },
-  ];
+  const pageName = getNavLabel(currentPage);
 
-  const pageName = PAGE_NAMES[currentPage] || currentPage;
+  // Mevcut sayfanın hangi hub'a ait olduğunu bul
+  const currentGroup = PAGE_REGISTRY[currentPage]?.navGroup;
+
+  const handleNavClick = (pageId: string) => {
+    onNavigate(pageId);
+    setActiveHub(null);
+    setMobileMenuOpen(false);
+    setOpenMobileHub(null);
+  };
 
   return (
     <div className="min-h-screen bg-[#f0f0f0]">
@@ -104,19 +89,21 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
         İçeriğe geç
       </a>
 
-      {/* Header */}
       {/* Header Wrapper to reserve space and prevent CLS */}
       <div className="h-20 md:h-16 w-full" aria-hidden="true" />
-      <header className="bg-[#1e1e1e]/80 backdrop-blur-md text-white fixed top-0 left-0 right-0 z-50 shadow-lg border-b border-white/5 transition-colors duration-300" role="banner">
+      <header
+        className="bg-[#1e1e1e]/80 backdrop-blur-md text-white fixed top-0 left-0 right-0 z-50 shadow-lg border-b border-white/5 transition-colors duration-300"
+        role="banner"
+      >
         <div className="container mx-auto px-4 max-w-none">
-          <div className="flex items-center justify-between h-20 md:h-16">
-            {/* Logo + isim - Left side — real <a> for SEO */}
+          <div className="flex items-center justify-between h-20 md:h-16" ref={menuRef}>
+            {/* Logo + isim - Left side */}
             <a
               href="/"
               className="flex items-center space-x-3 min-h-[48px] py-2 px-2 no-underline text-white"
               onClick={(e) => {
                 e.preventDefault();
-                onNavigate('home');
+                handleNavClick('home');
               }}
               aria-label="Ana sayfaya git"
             >
@@ -143,38 +130,92 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
               </div>
             </a>
 
-            {/* Desktop Navigation - Right side — real <a> elements */}
+            {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center space-x-1" aria-label="Ana navigasyon">
-              {navItems.map((item) => (
-                <a
-                  key={item.path}
-                  href={navHref(item.path)}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    onNavigate(item.path);
-                  }}
-                  aria-current={currentPage === item.path ? 'page' : undefined}
-                  className={`px-4 py-2 flex items-center space-x-2 transition-colors no-underline ${currentPage === item.path
+              {/* Ana Sayfa */}
+              <a
+                href="/"
+                onClick={(e) => { e.preventDefault(); handleNavClick('home'); }}
+                aria-current={currentPage === 'home' ? 'page' : undefined}
+                className={`px-3 py-2 flex items-center space-x-1.5 transition-colors no-underline rounded text-sm ${
+                  currentPage === 'home'
                     ? 'bg-[#0078D4] text-white'
                     : 'text-white/80 hover:bg-white/10'
-                    }`}
-                  style={{ backgroundColor: currentPage === item.path ? '#0078D4' : 'transparent' }}
-                >
-                  <item.icon size={18} aria-hidden="true" />
-                  <span>{item.name}</span>
-                </a>
-              ))}
+                }`}
+              >
+                <Home size={16} aria-hidden="true" />
+                <span>Ana Sayfa</span>
+              </a>
+
+              {/* Hub dropdown'ları */}
+              {NAV_HUBS.map((hub) => {
+                const hubPages = getPagesByGroup(hub.id);
+                const isHubActive = currentGroup === hub.id;
+                const isOpen = activeHub === hub.id;
+                const Icon = hub.icon;
+
+                return (
+                  <div key={hub.id} className="relative">
+                    <button
+                      onClick={() => setActiveHub(isOpen ? null : hub.id)}
+                      onKeyDown={(e) => e.key === 'Escape' && setActiveHub(null)}
+                      aria-expanded={isOpen}
+                      aria-haspopup="true"
+                      className={`px-3 py-2 flex items-center space-x-1.5 transition-colors rounded text-sm focus:outline-none focus:ring-2 focus:ring-white/20 ${
+                        isHubActive
+                          ? 'bg-[#0078D4] text-white'
+                          : 'text-white/80 hover:bg-white/10'
+                      }`}
+                    >
+                      <Icon size={16} aria-hidden="true" />
+                      <span>{hub.label}</span>
+                      <ChevronDown
+                        size={14}
+                        aria-hidden="true"
+                        className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+                      />
+                    </button>
+
+                    {/* Dropdown panel */}
+                    {isOpen && (
+                      <div
+                        className="absolute top-full left-0 mt-1 w-56 bg-[#1e1e1e]/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl py-2 z-[200] animate-fade-in"
+                        role="menu"
+                      >
+                        {hubPages.map((page) => (
+                          <a
+                            key={page.id}
+                            href={navHref(page.id)}
+                            onClick={(e) => { e.preventDefault(); handleNavClick(page.id); }}
+                            aria-current={currentPage === page.id ? 'page' : undefined}
+                            role="menuitem"
+                            className={`block px-4 py-2.5 text-sm transition-colors no-underline ${
+                              currentPage === page.id
+                                ? 'text-[#0078D4] bg-blue-600/10'
+                                : 'text-white/80 hover:text-white hover:bg-white/10'
+                            }`}
+                          >
+                            {page.navLabel ?? page.id}
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+
+              {/* Arama */}
               <button
                 onClick={() => setIsSearchOpen(true)}
-                className="p-2 ml-2 text-white/80 hover:text-white hover:bg-white/10 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-white/20"
+                className="p-2 ml-1 text-white/80 hover:text-white hover:bg-white/10 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-white/20"
                 aria-label="Sitede ara"
               >
                 <Search size={20} />
               </button>
             </nav>
 
+            {/* Mobil: Arama + Hamburger */}
             <div className="flex md:hidden items-center space-x-1">
-              {/* Mobile Search Button */}
               <button
                 type="button"
                 className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded focus:outline-none"
@@ -183,8 +224,6 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
               >
                 <Search size={22} />
               </button>
-              
-              {/* Mobile Menu Button */}
               <button
                 type="button"
                 className="p-2 hover:bg-white/10 rounded focus:outline-none"
@@ -196,50 +235,91 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
               </button>
             </div>
           </div>
-
-          {/* Mobile Navigation Overlay */}
-          {mobileMenuOpen && (
-            <div
-              className={`fixed inset-0 z-[100] bg-[#1e1e1e]/95 backdrop-blur-xl flex flex-col pt-24 px-6 animate-fade-in`}
-            >
-              {/* Close Button at top-right */}
-              <button
-                onClick={() => setMobileMenuOpen(false)}
-                className="absolute top-6 right-4 p-2 text-white/80 hover:text-white bg-white/10 rounded-full"
-                aria-label="Menüyü kapat"
-              >
-                <X size={32} />
-              </button>
-
-              <nav className="flex flex-col space-y-6" aria-label="Mobil navigasyon">
-                {navItems.map((item, index) => (
-                  <a
-                    key={item.path}
-                    href={navHref(item.path)}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      onNavigate(item.path);
-                      setMobileMenuOpen(false);
-                    }}
-                    className={`text-2xl font-medium flex items-center space-x-4 p-4 rounded-xl transition-all animate-slide-down no-underline ${currentPage === item.path
-                      ? 'bg-blue-600/20 text-[#0078D4]'
-                      : 'text-white/80 hover:text-white hover:bg-white/5'
-                      }`}
-                    style={{ animationDelay: `${0.1 + index * 0.1}s` }}
-                  >
-                    <item.icon size={28} />
-                    <span>{item.name}</span>
-                  </a>
-                ))}
-              </nav>
-
-              <div className="mt-auto mb-12 text-center text-white/40 text-sm">
-                <p>© {currentYear} Prof Dr Metin Çiriş</p>
-              </div>
-            </div>
-          )}
         </div>
       </header>
+
+      {/* Mobil Menü Overlay */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-[100] bg-[#1e1e1e]/95 backdrop-blur-xl flex flex-col pt-24 px-4 overflow-y-auto animate-fade-in">
+          {/* Kapat butonu */}
+          <button
+            onClick={() => setMobileMenuOpen(false)}
+            className="absolute top-6 right-4 p-2 text-white/80 hover:text-white bg-white/10 rounded-full"
+            aria-label="Menüyü kapat"
+          >
+            <X size={32} />
+          </button>
+
+          <nav className="flex flex-col space-y-2" aria-label="Mobil navigasyon">
+            {/* Ana Sayfa */}
+            <a
+              href="/"
+              onClick={(e) => { e.preventDefault(); handleNavClick('home'); }}
+              className={`flex items-center space-x-3 p-4 rounded-xl transition-all no-underline text-xl font-medium ${
+                currentPage === 'home'
+                  ? 'bg-blue-600/20 text-[#0078D4]'
+                  : 'text-white/80 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Home size={24} />
+              <span>Ana Sayfa</span>
+            </a>
+
+            {/* Hub accordion'ları */}
+            {NAV_HUBS.map((hub) => {
+              const hubPages = getPagesByGroup(hub.id);
+              const isOpen = openMobileHub === hub.id;
+              const Icon = hub.icon;
+
+              return (
+                <div key={hub.id}>
+                  <button
+                    onClick={() => setOpenMobileHub(isOpen ? null : hub.id)}
+                    className={`w-full flex items-center justify-between p-4 rounded-xl transition-all text-xl font-medium focus:outline-none ${
+                      currentGroup === hub.id
+                        ? 'bg-blue-600/20 text-[#0078D4]'
+                        : 'text-white/80 hover:text-white hover:bg-white/5'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <Icon size={24} />
+                      <span>{hub.label}</span>
+                    </div>
+                    <ChevronDown
+                      size={20}
+                      className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+                    />
+                  </button>
+
+                  {/* Accordion içeriği */}
+                  {isOpen && (
+                    <div className="ml-4 mt-1 flex flex-col space-y-1">
+                      {hubPages.map((page) => (
+                        <a
+                          key={page.id}
+                          href={navHref(page.id)}
+                          onClick={(e) => { e.preventDefault(); handleNavClick(page.id); }}
+                          className={`block px-4 py-3 rounded-lg text-base transition-all no-underline ${
+                            currentPage === page.id
+                              ? 'text-[#0078D4] bg-blue-600/10'
+                              : 'text-white/70 hover:text-white hover:bg-white/5'
+                          }`}
+                        >
+                          {page.navLabel ?? page.id}
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </nav>
+
+          <div className="mt-auto mb-12 pt-8 text-center text-white/40 text-sm">
+            <p>© {currentYear} Prof Dr Metin Çiriş</p>
+          </div>
+        </div>
+      )}
 
       {/* Breadcrumb — Ana sayfa hariç */}
       {currentPage !== 'home' && currentPage !== '404' && currentPage !== 'hematoloji-hesaplayici' && (
@@ -283,9 +363,7 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
                 className="text-slate-700 font-medium border-none p-0 cursor-default"
                 itemProp="item"
               >
-                <span itemProp="name">
-                  {pageName}
-                </span>
+                <span itemProp="name">{pageName}</span>
               </a>
               <meta itemProp="position" content="2" />
             </li>
@@ -300,10 +378,11 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
       <button
         onClick={scrollToTop}
         aria-label="Sayfanın başına dön"
-        className={`fixed bottom-6 right-6 z-40 p-3 rounded-full bg-[#1e1e1e] text-white shadow-lg hover:bg-[#333] hover:scale-110 active:scale-95 transition-all duration-300 ${showScrollTop
-          ? 'opacity-100 translate-y-0'
-          : 'opacity-0 translate-y-4 pointer-events-none'
-          }`}
+        className={`fixed bottom-6 right-6 z-40 p-3 rounded-full bg-[#1e1e1e] text-white shadow-lg hover:bg-[#333] hover:scale-110 active:scale-95 transition-all duration-300 ${
+          showScrollTop
+            ? 'opacity-100 translate-y-0'
+            : 'opacity-0 translate-y-4 pointer-events-none'
+        }`}
       >
         <ChevronUp size={22} aria-hidden="true" />
       </button>
@@ -389,10 +468,10 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
         </div>
       </footer>
 
-      <SearchModal 
-        isOpen={isSearchOpen} 
-        onClose={() => setIsSearchOpen(false)} 
-        onNavigate={onNavigate} 
+      <SearchModal
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+        onNavigate={onNavigate}
       />
     </div>
   );

@@ -26,8 +26,40 @@ export default defineConfig({
     outDir: 'dist',
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor-react': ['react', 'react-dom'],
+        manualChunks(id) {
+          // Grafik kütüphaneleri — sadece recharts kullanan sayfalarda yüklenir
+          if (id.includes('recharts') || id.includes('d3-') || id.includes('victory')) {
+            return 'vendor-charts';
+          }
+          // Medya / dosya işleme — avif-donusturucu ve benzeri sayfalarda
+          if (
+            id.includes('jszip') ||
+            id.includes('heic2any') ||
+            id.includes('@jsquash') ||
+            id.includes('file-saver')
+          ) {
+            return 'vendor-media';
+          }
+          // Markdown / içerik işleme — blog ve makale sayfalarında
+          if (
+            id.includes('react-markdown') ||
+            id.includes('remark') ||
+            id.includes('rehype') ||
+            id.includes('dompurify') ||
+            id.includes('micromark') ||
+            id.includes('mdast') ||
+            id.includes('hast')
+          ) {
+            return 'vendor-content';
+          }
+          // Supabase — sadece blog/konsensus gibi backend bağlantılı sayfalarda
+          if (id.includes('@supabase')) {
+            return 'vendor-supabase';
+          }
+          // React çekirdeği — her sayfada gerekli
+          if (id.includes('react-dom') || id.includes('/react/') || id.includes('react/')) {
+            return 'vendor-react';
+          }
         },
       },
     },

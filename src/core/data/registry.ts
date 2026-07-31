@@ -1,4 +1,9 @@
+import type React from 'react';
+
 export const BASE_URL = 'https://metinciris.com.tr';
+
+/** Mega menü hub grupları */
+export type NavGroup = 'hastalar' | 'raporlama' | 'egitim' | 'akademik' | 'araclar';
 
 export interface PageMetadata {
     slug: string;
@@ -9,6 +14,15 @@ export interface PageMetadata {
     lastmod?: string;
     priority?: number;
     changefreq?: 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never';
+    /** Lazy import — App.tsx switch/case'ini ortadan kaldırır */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    load?: () => Promise<{ default: React.ComponentType<any> }>;
+    /** Breadcrumb ve menü etiketi */
+    navLabel?: string;
+    /** Hangi mega menü hub'ına ait */
+    navGroup?: NavGroup;
+    /** Bu sayfa onNavigate prop'u bekliyor mu? */
+    onNavigateProp?: boolean;
 }
 
 export const PAGE_REGISTRY: Record<string, PageMetadata> = {
@@ -19,7 +33,10 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'patoloji, biyopsi, tıbbi patoloji, Metin Çiriş, tanısal patoloji, moleküler patoloji, dijital patoloji, patoloji uzmanı',
         lastmod: '2026-07-16',
         priority: 1.0,
-        changefreq: 'weekly'
+        changefreq: 'weekly',
+        navLabel: 'Ana Sayfa',
+        onNavigateProp: true,
+        load: () => import('@/pages/Home').then(m => ({ default: m.Home as unknown as React.ComponentType<Record<string, unknown>> })),
     },
     'basvuru-merkezi': {
         slug: 'basvuru-merkezi',
@@ -28,7 +45,11 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'patoloji rehberleri, tanısal patoloji, moleküler patoloji, raporlama, patoloji araçları',
         lastmod: '2026-07-16',
         priority: 0.9,
-        changefreq: 'weekly'
+        changefreq: 'weekly',
+        navLabel: 'Başvuru Merkezi',
+        navGroup: 'akademik',
+        onNavigateProp: true,
+        load: () => import('@/pages/ReferenceCenter').then(m => ({ default: m.ReferenceCenter as unknown as React.ComponentType<Record<string, unknown>> })),
     },
     iletisim: {
         slug: 'iletisim',
@@ -37,7 +58,10 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'iletişim, adres, telefon, SDÜ patoloji, Metin Çiriş iletişim',
         lastmod: '2026-07-16',
         priority: 0.9,
-        changefreq: 'monthly'
+        changefreq: 'monthly',
+        navLabel: 'İletişim',
+        navGroup: 'hastalar',
+        load: () => import('@/pages/Iletisim').then(m => ({ default: m.Iletisim as unknown as React.ComponentType<Record<string, unknown>> })),
     },
     'biyopsi-sonucu': {
         slug: 'biyopsi-sonucu',
@@ -46,7 +70,11 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'biyopsi sonucu, patoloji raporu, biyopsi sorgulama, patoloji sonucu',
         lastmod: '2026-07-16',
         priority: 0.9,
-        changefreq: 'monthly'
+        changefreq: 'monthly',
+        navLabel: 'Biyopsi Sonucu',
+        navGroup: 'hastalar',
+        onNavigateProp: true,
+        load: () => import('@/pages/BiyopsiSonucu').then(m => ({ default: m.BiyopsiSonucu as unknown as React.ComponentType<Record<string, unknown>> })),
     },
     'baktigim-biyopsiler': {
         slug: 'baktigim-biyopsiler',
@@ -55,7 +83,10 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'biyopsi türleri, patoloji uzmanlığı, tiroid biyopsi, meme patoloji',
         lastmod: '2026-07-16',
         priority: 0.8,
-        changefreq: 'monthly'
+        changefreq: 'monthly',
+        navLabel: 'Baktığım Biyopsiler',
+        navGroup: 'hastalar',
+        load: () => import('@/pages/BaktigimBiyopsiler').then(m => ({ default: m.BaktigimBiyopsiler as unknown as React.ComponentType<Record<string, unknown>> })),
     },
     'nobetci-eczane': {
         slug: 'nobetci-eczane',
@@ -64,7 +95,10 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'nöbetçi eczane, Isparta eczane, gece eczane, Isparta nöbetçi eczaneler, eczane telefon',
         lastmod: '2026-07-16',
         priority: 0.7,
-        changefreq: 'daily'
+        changefreq: 'daily',
+        navLabel: 'Nöbetçi Eczane',
+        navGroup: 'hastalar',
+        load: () => import('@/pages/NobetciEczane').then(m => ({ default: m.NobetciEczane as unknown as React.ComponentType<Record<string, unknown>> })),
     },
     'hastane-yemek': {
         slug: 'hastane-yemek',
@@ -73,7 +107,10 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'sdü hastane yemek, sdü hastane yemek listesi, metin çiriş yemek, metin ciriş, süleyman demirel üniversitesi hastane yemek, isparta hastane yemek menüsü, sdu hastane yemek, sdü yemekhane, hastane günlük menü, sdu tip fakultesi yemek, sdü araştırma hastanesi yemek',
         lastmod: '2026-07-16',
         priority: 0.6,
-        changefreq: 'daily'
+        changefreq: 'daily',
+        navLabel: 'Hastane Yemek',
+        navGroup: 'araclar',
+        load: () => import('@/pages/HastaneYemek').then(m => ({ default: m.HastaneYemek as unknown as React.ComponentType<Record<string, unknown>> })),
     },
     'ders-programi': {
         slug: 'ders-programi',
@@ -82,7 +119,10 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'ders programı, tıp fakültesi, akademik takvim, SDÜ tıp',
         lastmod: '2026-07-16',
         priority: 0.7,
-        changefreq: 'weekly'
+        changefreq: 'weekly',
+        navLabel: 'Ders Programı',
+        navGroup: 'egitim',
+        load: () => import('@/pages/DersProgrami').then(m => ({ default: m.DersProgrami as unknown as React.ComponentType<Record<string, unknown>> })),
     },
     'ogrenci-yemek': {
         slug: 'ogrenci-yemek',
@@ -91,7 +131,10 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'öğrenci yemek, SDÜ yemekhane, kampüs yemek',
         lastmod: '2026-07-16',
         priority: 0.6,
-        changefreq: 'daily'
+        changefreq: 'daily',
+        navLabel: 'Öğrenci Yemek',
+        navGroup: 'araclar',
+        load: () => import('@/pages/OgrenciYemek').then(m => ({ default: m.OgrenciYemek as unknown as React.ComponentType<Record<string, unknown>> })),
     },
     'donem-3': {
         slug: 'donem-3',
@@ -100,7 +143,10 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'dönem 3, patoloji dersi, tıp öğrencisi, preklinik patoloji',
         lastmod: '2026-07-16',
         priority: 0.7,
-        changefreq: 'weekly'
+        changefreq: 'weekly',
+        navLabel: 'Dönem 3',
+        navGroup: 'egitim',
+        load: () => import('@/pages/Donem3').then(m => ({ default: m.Donem3 as unknown as React.ComponentType<Record<string, unknown>> })),
     },
     galeri: {
         slug: 'galeri',
@@ -109,7 +155,10 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'galeri, fotoğraflar, akademik etkinlik, kongre',
         lastmod: '2026-07-16',
         priority: 0.5,
-        changefreq: 'monthly'
+        changefreq: 'monthly',
+        navLabel: 'Galeri',
+        navGroup: 'akademik',
+        load: () => import('@/pages/Galeri').then(m => ({ default: m.Galeri as unknown as React.ComponentType<Record<string, unknown>> })),
     },
     portfolyo: {
         slug: 'portfolyo',
@@ -118,7 +167,10 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'akademik cv, özgeçmiş, araştırma projeleri, akademik kariyer',
         lastmod: '2026-07-16',
         priority: 0.8,
-        changefreq: 'monthly'
+        changefreq: 'monthly',
+        navLabel: 'Portfolyo',
+        navGroup: 'akademik',
+        load: () => import('@/pages/Portfolyo').then(m => ({ default: m.Portfolyo as unknown as React.ComponentType<Record<string, unknown>> })),
     },
     'sinav-analizi': {
         slug: 'sinav-analizi',
@@ -127,7 +179,11 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'sınav analizi, patoloji sınavı, başarı oranı, sınav istatistikleri',
         lastmod: '2026-07-16',
         priority: 0.6,
-        changefreq: 'monthly'
+        changefreq: 'monthly',
+        navLabel: 'Sınav Analizi',
+        navGroup: 'egitim',
+        onNavigateProp: true,
+        load: () => import('@/pages/SinavAnalizi').then(m => ({ default: m.SinavAnalizi as unknown as React.ComponentType<Record<string, unknown>> })),
     },
     yayinlar: {
         slug: 'yayinlar',
@@ -136,7 +192,10 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'akademik yayınlar, makaleler, SCI yayınlar, patoloji araştırma',
         lastmod: '2026-07-16',
         priority: 0.8,
-        changefreq: 'monthly'
+        changefreq: 'monthly',
+        navLabel: 'Yayınlar',
+        navGroup: 'akademik',
+        load: () => import('@/pages/Yayinlar').then(m => ({ default: m.Yayinlar as unknown as React.ComponentType<Record<string, unknown>> })),
     },
     podcast: {
         slug: 'podcast',
@@ -145,7 +204,11 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'patoloji podcast, tıp podcast, sesli eğitim, vaka tartışması',
         lastmod: '2026-07-16',
         priority: 0.7,
-        changefreq: 'weekly'
+        changefreq: 'weekly',
+        navLabel: 'Podcast',
+        navGroup: 'egitim',
+        onNavigateProp: true,
+        load: () => import('@/pages/Podcast'),
     },
     blog: {
         slug: 'blog',
@@ -154,7 +217,10 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'patoloji blog, tıbbi yazılar, bilimsel haberler, sağlık blog',
         lastmod: '2026-07-16',
         priority: 0.8,
-        changefreq: 'weekly'
+        changefreq: 'weekly',
+        navLabel: 'Blog',
+        navGroup: 'akademik',
+        load: () => import('@/pages/Blog').then(m => ({ default: m.Blog as unknown as React.ComponentType<Record<string, unknown>> })),
     },
     github: {
         slug: 'github',
@@ -163,7 +229,10 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'açık kaynak, github, tıbbi yazılım, patoloji araçları',
         lastmod: '2026-07-16',
         priority: 0.5,
-        changefreq: 'monthly'
+        changefreq: 'monthly',
+        navLabel: 'GitHub',
+        navGroup: 'akademik',
+        load: () => import('@/pages/GitHub').then(m => ({ default: m.GitHub as unknown as React.ComponentType<Record<string, unknown>> })),
     },
     facebook: {
         slug: 'facebook',
@@ -172,7 +241,10 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'facebook, sosyal medya, duyurular',
         lastmod: '2026-07-16',
         priority: 0.4,
-        changefreq: 'monthly'
+        changefreq: 'monthly',
+        navLabel: 'Facebook',
+        navGroup: 'akademik',
+        load: () => import('@/pages/Facebook').then(m => ({ default: m.Facebook as unknown as React.ComponentType<Record<string, unknown>> })),
     },
     universite: {
         slug: 'universite',
@@ -181,7 +253,11 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'SDÜ, üniversite, ders notları, patoloji eğitim, Süleyman Demirel Üniversitesi, kampüs',
         lastmod: '2026-07-16',
         priority: 0.5,
-        changefreq: 'monthly'
+        changefreq: 'monthly',
+        navLabel: 'SDÜ ve Üniversite',
+        navGroup: 'egitim',
+        onNavigateProp: true,
+        load: () => import('@/pages/Universite').then(m => ({ default: m.Universite as unknown as React.ComponentType<Record<string, unknown>> })),
     },
     'diger-calismalar': {
         slug: 'diger-calismalar',
@@ -190,7 +266,11 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'projeler, yan çalışmalar, yazılım projeleri',
         lastmod: '2026-07-16',
         priority: 0.6,
-        changefreq: 'monthly'
+        changefreq: 'monthly',
+        navLabel: 'Diğer Çalışmalar',
+        navGroup: 'akademik',
+        onNavigateProp: true,
+        load: () => import('@/pages/DigerCalismalar').then(m => ({ default: m.DigerCalismalar as unknown as React.ComponentType<Record<string, unknown>> })),
     },
     'fetus-uzunluklari': {
         slug: 'fetus-uzunluklari',
@@ -199,7 +279,10 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'fetus uzunluğu, fetal ölçüm, gebelik haftası, perinatal patoloji',
         lastmod: '2026-07-16',
         priority: 0.7,
-        changefreq: 'monthly'
+        changefreq: 'monthly',
+        navLabel: 'Fetus Uzunlukları',
+        navGroup: 'raporlama',
+        load: () => import('@/pages/FetusUzunluklari').then(m => ({ default: m.FetusUzunluklari as unknown as React.ComponentType<Record<string, unknown>> })),
     },
     'rcb-calculator': {
         slug: 'rcb-calculator',
@@ -208,7 +291,10 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'RCB hesaplama, residual cancer burden, meme kanseri, neoadjuvan tedavi',
         lastmod: '2026-07-16',
         priority: 0.7,
-        changefreq: 'monthly'
+        changefreq: 'monthly',
+        navLabel: 'RCB Hesaplayıcı',
+        navGroup: 'raporlama',
+        load: () => import('@/pages/RcbCalculator').then(m => ({ default: m.RcbCalculator as unknown as React.ComponentType<Record<string, unknown>> })),
     },
     'gist-raporlama': {
         slug: 'gist-raporlama',
@@ -217,7 +303,10 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'GIST, gastrointestinal stromal tümör, patoloji raporlama, GIST kriterleri',
         lastmod: '2026-07-16',
         priority: 0.7,
-        changefreq: 'monthly'
+        changefreq: 'monthly',
+        navLabel: 'GİST Raporlama',
+        navGroup: 'raporlama',
+        load: () => import('@/pages/GistRaporlama'),
     },
     makale: {
         slug: 'makale',
@@ -226,7 +315,11 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'günün makalesi, patoloji literatür, PubMed, bilimsel makale',
         lastmod: '2026-07-16',
         priority: 0.8,
-        changefreq: 'daily'
+        changefreq: 'daily',
+        navLabel: 'Günün Makalesi',
+        navGroup: 'akademik',
+        onNavigateProp: true,
+        load: () => import('@/pages/Makale').then(m => ({ default: m.Makale as unknown as React.ComponentType<Record<string, unknown>> })),
     },
     deprem: {
         slug: 'deprem',
@@ -235,7 +328,10 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'deprem, Isparta deprem, sismik aktivite, AFAD deprem, son depremler, deprem haritası',
         lastmod: '2026-07-16',
         priority: 0.7,
-        changefreq: 'hourly'
+        changefreq: 'hourly',
+        navLabel: 'Deprem',
+        navGroup: 'araclar',
+        load: () => import('@/pages/Deprem').then(m => ({ default: m.Deprem as unknown as React.ComponentType<Record<string, unknown>> })),
     },
     'svs-reader': {
         slug: 'svs-reader',
@@ -244,7 +340,10 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'SVS reader, sanal mikroskopi, dijital patoloji, WSI görüntüleyici',
         lastmod: '2026-07-16',
         priority: 0.8,
-        changefreq: 'monthly'
+        changefreq: 'monthly',
+        navLabel: 'SVS Sanal Mikroskopi',
+        navGroup: 'egitim',
+        load: () => import('@/pages/SvsReader').then(m => ({ default: m.SvsReader as unknown as React.ComponentType<Record<string, unknown>> })),
     },
     'tani-tuzaklari': {
         slug: 'tani-tuzaklari',
@@ -253,7 +352,10 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'tanı tuzakları, patoloji pitfalls, ayırıcı tanı, tanı hataları',
         lastmod: '2026-07-16',
         priority: 0.9,
-        changefreq: 'weekly'
+        changefreq: 'weekly',
+        navLabel: 'Tanı Tuzakları',
+        navGroup: 'egitim',
+        load: () => import('@/pages/TaniTuzaklari').then(m => ({ default: m.TaniTuzaklari as unknown as React.ComponentType<Record<string, unknown>> })),
     },
     'ayin-vakasi': {
         slug: 'ayin-vakasi',
@@ -262,7 +364,10 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'ayın vakası, patoloji vaka, sanal mikroskopi, eğitim vakası',
         lastmod: '2026-07-16',
         priority: 0.8,
-        changefreq: 'monthly'
+        changefreq: 'monthly',
+        navLabel: 'Ayın Vakası',
+        navGroup: 'egitim',
+        load: () => import('@/pages/AyinVakasi').then(m => ({ default: m.AyinVakasi as unknown as React.ComponentType<Record<string, unknown>> })),
     },
     'prizma-3d': {
         slug: 'prizma-3d',
@@ -271,7 +376,10 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: '3D prizma, makroskopi, patoloji görselleştirme, 3 boyutlu',
         lastmod: '2026-07-16',
         priority: 0.6,
-        changefreq: 'monthly'
+        changefreq: 'monthly',
+        navLabel: '3D Prizma',
+        navGroup: 'araclar',
+        load: () => import('@/pages/Prizma3D').then(m => ({ default: m.Prizma3D as unknown as React.ComponentType<Record<string, unknown>> })),
     },
     'makale-takip': {
         slug: 'makale-takip',
@@ -280,7 +388,10 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'literatür takip, patoloji yayınlar, yeni makaleler, bilimsel takip',
         lastmod: '2026-07-16',
         priority: 0.7,
-        changefreq: 'daily'
+        changefreq: 'daily',
+        navLabel: 'Literatür Takip',
+        navGroup: 'akademik',
+        load: () => import('@/pages/PatolojiMakaleTakip').then(m => ({ default: m.PatolojiMakaleTakip as unknown as React.ComponentType<Record<string, unknown>> })),
     },
     'lenf-nodu': {
         slug: 'lenf-nodu',
@@ -289,7 +400,10 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'lenf nodu sayacı, makroskopi, patoloji araç, lenf nodu sayımı',
         lastmod: '2026-07-16',
         priority: 0.6,
-        changefreq: 'monthly'
+        changefreq: 'monthly',
+        navLabel: 'Lenf Nodu Sayacı',
+        navGroup: 'raporlama',
+        load: () => import('@/pages/LenfNoduSayaci').then(m => ({ default: m.LenfNoduSayaci as unknown as React.ComponentType<Record<string, unknown>> })),
     },
     finans: {
         slug: 'finans',
@@ -298,7 +412,10 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'ekonomik göstergeler, döviz kuru, enflasyon, faiz oranı, dolar tl, altın fiyatları, borsa',
         lastmod: '2026-07-16',
         priority: 0.6,
-        changefreq: 'hourly'
+        changefreq: 'hourly',
+        navLabel: 'Finans',
+        navGroup: 'araclar',
+        load: () => import('@/pages/Finans').then(m => ({ default: m.Finans as unknown as React.ComponentType<Record<string, unknown>> })),
     },
     'pubmed-trend': {
         slug: 'pubmed-trend',
@@ -307,7 +424,10 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'PubMed trend, yayın analizi, bilimsel trend, literatür istatistik',
         lastmod: '2026-07-16',
         priority: 0.7,
-        changefreq: 'weekly'
+        changefreq: 'weekly',
+        navLabel: 'PubMed Trend',
+        navGroup: 'akademik',
+        load: () => import('@/pages/PubMedTrend').then(m => ({ default: m.PubMedTrend as unknown as React.ComponentType<Record<string, unknown>> })),
     },
     'online-test-analiz': {
         slug: 'online-test-analiz',
@@ -316,7 +436,10 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'online sınav analizi, test analizi, optik form, patoloji eğitim',
         lastmod: '2026-07-16',
         priority: 0.7,
-        changefreq: 'monthly'
+        changefreq: 'monthly',
+        navLabel: 'Online Test Analiz',
+        navGroup: 'egitim',
+        load: () => import('@/pages/OnlineTestAnaliz').then(m => ({ default: m.OnlineTestAnaliz as unknown as React.ComponentType<Record<string, unknown>> })),
     },
     'euro-maclar': {
         slug: 'euro-maclar',
@@ -325,16 +448,22 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'avrupa kupaları, euroleague, basketbol, voleybol, türk takımları, maç takibi, fenerbahçe, anadolu efes, vakıfbank',
         lastmod: '2026-07-16',
         priority: 0.6,
-        changefreq: 'daily'
+        changefreq: 'daily',
+        navLabel: 'Euro Maçlar',
+        navGroup: 'araclar',
+        load: () => import('@/pages/EuroMaclar').then(m => ({ default: m.EuroMaclar as unknown as React.ComponentType<Record<string, unknown>> })),
     },
-    'konsensus': {
+    konsensus: {
         slug: 'konsensus',
         title: 'Patoloji Konsensus Toplantı Takibi | Prof Dr Metin Çiriş',
         description: 'Tıbbi patoloji konsensus toplantılarını canlı takip edin. Toplantı takvimi, Zoom erişim linkleri ve vaka tartışma arşivi.',
         keywords: 'patoloji konsensus, toplantı takibi, patoloji eğitim, online toplantı, patoloji vakaları',
         lastmod: '2026-07-16',
         priority: 0.7,
-        changefreq: 'daily'
+        changefreq: 'daily',
+        navLabel: 'Konsensüs',
+        navGroup: 'akademik',
+        load: () => import('@/pages/Konsensus').then(m => ({ default: m.Konsensus as unknown as React.ComponentType<Record<string, unknown>> })),
     },
     'konsensus-yonetim': {
         slug: 'konsensus-yonetim',
@@ -343,7 +472,9 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         noindex: true,
         lastmod: '2026-07-27',
         priority: 0.1,
-        changefreq: 'monthly'
+        changefreq: 'monthly',
+        navLabel: 'Konsensüs Yönetim',
+        load: () => import('@/pages/KonsensusYonetim').then(m => ({ default: m.KonsensusYonetim as unknown as React.ComponentType<Record<string, unknown>> })),
     },
     'pubmed-makale-takip': {
         slug: 'pubmed-makale-takip',
@@ -352,7 +483,10 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'patoloji makale, PubMed takip, günlük patoloji, tıp literatürü, makale özetleri, patoloji yayınları',
         lastmod: '2026-07-16',
         priority: 0.8,
-        changefreq: 'daily'
+        changefreq: 'daily',
+        navLabel: 'PubMed Makale Takip',
+        navGroup: 'akademik',
+        load: () => import('@/pages/PubMedMakaleTakvim').then(m => ({ default: m.PubMedMakaleTakvim as unknown as React.ComponentType<Record<string, unknown>> })),
     },
     'avif-donusturucu': {
         slug: 'avif-donusturucu',
@@ -361,7 +495,10 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'avif dönüştürücü, resim sıkıştırma, avif converter, kaliteli resim dönüştürme, online avif',
         lastmod: '2026-07-16',
         priority: 0.7,
-        changefreq: 'monthly'
+        changefreq: 'monthly',
+        navLabel: 'AVIF Dönüştürücü',
+        navGroup: 'araclar',
+        load: () => import('@/pages/AvifConverter').then(m => ({ default: m.AvifConverter as unknown as React.ComponentType<Record<string, unknown>> })),
     },
     'sjogren-raporlama': {
         slug: 'sjogren-raporlama',
@@ -370,7 +507,10 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'sjögren raporlama, minör tükrük bezi, patoloji raporu, fokus skoru, sjögren sendromu',
         lastmod: '2026-07-16',
         priority: 0.7,
-        changefreq: 'monthly'
+        changefreq: 'monthly',
+        navLabel: 'Sjögren Raporlama',
+        navGroup: 'raporlama',
+        load: () => import('@/pages/SjogrenRaporlama'),
     },
     'tiiab-raporlama': {
         slug: 'tiiab-raporlama',
@@ -379,7 +519,10 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'TİİAB raporlama, tiroid biyopsi, Bethesda 2023, patoloji raporu, tiroid ince iğne',
         lastmod: '2026-07-16',
         priority: 0.7,
-        changefreq: 'monthly'
+        changefreq: 'monthly',
+        navLabel: 'TİİAB Raporlama',
+        navGroup: 'raporlama',
+        load: () => import('@/pages/TiiabRaporlama'),
     },
     'endoskopi-raporlama': {
         slug: 'endoskopi-raporlama',
@@ -388,7 +531,10 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'endoskopi raporlama, mide biyopsisi, kolon biyopsisi, patoloji raporu, GİS patoloji',
         lastmod: '2026-07-16',
         priority: 0.7,
-        changefreq: 'monthly'
+        changefreq: 'monthly',
+        navLabel: 'Endoskopi Raporlama',
+        navGroup: 'raporlama',
+        load: () => import('@/pages/EndoskopiRaporlama'),
     },
     'dunya-saatleri': {
         slug: 'dunya-saatleri',
@@ -397,7 +543,10 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'dünya saatleri, saat dilimleri, toplantı planlama, timezone, world clock',
         lastmod: '2026-07-16',
         priority: 0.5,
-        changefreq: 'monthly'
+        changefreq: 'monthly',
+        navLabel: 'Dünya Saatleri',
+        navGroup: 'araclar',
+        load: () => import('@/pages/DunyaSaatleri').then(m => ({ default: m.DunyaSaatleri as unknown as React.ComponentType<Record<string, unknown>> })),
     },
     ngs: {
         slug: 'ngs',
@@ -406,7 +555,10 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'NGS gen paneli, patoloji NGS, kapsamlı genomik profilleme, RNA füzyon paneli, TMB, MSI',
         lastmod: '2026-07-16',
         priority: 0.8,
-        changefreq: 'monthly'
+        changefreq: 'monthly',
+        navLabel: 'NGS Gen Arama',
+        navGroup: 'akademik',
+        load: () => import('@/pages/Ngs').then(m => ({ default: m.Ngs as unknown as React.ComponentType<Record<string, unknown>> })),
     },
     'ngs-test-secimi': {
         slug: 'ngs-test-secimi',
@@ -415,7 +567,10 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'NGS test seçimi, örnek gönderimi, doku seçimi, fiksasyon süresi, preanalitik süreçler',
         lastmod: '2026-07-16',
         priority: 0.8,
-        changefreq: 'monthly'
+        changefreq: 'monthly',
+        navLabel: 'NGS Test Seçimi',
+        navGroup: 'akademik',
+        load: () => import('@/pages/NgsTestSecimi').then(m => ({ default: m.NgsTestSecimi as unknown as React.ComponentType<Record<string, unknown>> })),
     },
     'patoloji-sozlugu': {
         slug: 'patoloji-sozlugu',
@@ -424,7 +579,11 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'patoloji sözlüğü, tıbbi terimler, patoloji raporu, hasta rehberi, atipi, benign, malign',
         lastmod: '2026-07-16',
         priority: 0.7,
-        changefreq: 'monthly'
+        changefreq: 'monthly',
+        navLabel: 'Patoloji Sözlüğü',
+        navGroup: 'hastalar',
+        onNavigateProp: true,
+        load: () => import('@/pages/PatolojiSozlugu').then(m => ({ default: m.PatolojiSozlugu as unknown as React.ComponentType<Record<string, unknown>> })),
     },
     'vki-hesaplama': {
         slug: 'vki-hesaplama',
@@ -433,7 +592,46 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'vki hesaplama, vki, vücut kitle indeksi, ideal kilo hesaplama, obezite testi',
         lastmod: '2026-02-27',
         priority: 0.7,
-        changefreq: 'monthly'
+        changefreq: 'monthly',
+        navLabel: 'VKİ Hesaplama',
+        navGroup: 'araclar',
+        load: () => import('@/pages/VucutKitleIndeksi').then(m => ({ default: m.VucutKitleIndeksi as unknown as React.ComponentType<Record<string, unknown>> })),
+    },
+    'geri-sayim': {
+        slug: 'geri-sayim',
+        title: 'Geri Sayım | Prof Dr Metin Çiriş',
+        description: 'Önemli etkinlikler ve tarihler için kişisel geri sayım zamanlayıcısı.',
+        keywords: 'geri sayım, zamanlayıcı, countdown, etkinlik sayacı',
+        lastmod: '2026-07-16',
+        priority: 0.4,
+        changefreq: 'monthly',
+        navLabel: 'Geri Sayım',
+        navGroup: 'araclar',
+        load: () => import('@/pages/GeriSayim').then(m => ({ default: m.GeriSayim as unknown as React.ComponentType<Record<string, unknown>> })),
+    },
+    'mitoz-donusturucu': {
+        slug: 'mitoz-donusturucu',
+        title: 'Mitoz Sayısı Dönüştürücü | Prof Dr Metin Çiriş',
+        description: 'Farklı büyütme ve alan büyüklükleri arasında mitoz sayısı dönüştürme aracı.',
+        keywords: 'mitoz sayısı, mitoz dönüştürücü, patoloji hesaplayıcı, HPF',
+        lastmod: '2026-07-16',
+        priority: 0.7,
+        changefreq: 'monthly',
+        navLabel: 'Mitoz Dönüştürücü',
+        navGroup: 'raporlama',
+        load: () => import('@/pages/MitozDonusturucu').then(m => ({ default: m.MitozDonusturucu as unknown as React.ComponentType<Record<string, unknown>> })),
+    },
+    'hematoloji-hesaplayici': {
+        slug: 'hematoloji-hesaplayici',
+        title: 'Hematoloji Hesaplayıcı | Prof Dr Metin Çiriş',
+        description: 'Tam kan sayımı ve hematoloji değerleri hesaplama aracı.',
+        keywords: 'hematoloji, tam kan sayımı, hematoloji hesaplayıcı',
+        lastmod: '2026-07-16',
+        priority: 0.6,
+        changefreq: 'monthly',
+        navLabel: 'Hematoloji Hesaplayıcı',
+        navGroup: 'raporlama',
+        load: () => import('@/pages/HematolojiHesaplayici').then(m => ({ default: m.HematolojiHesaplayici as unknown as React.ComponentType<Record<string, unknown>> })),
     },
     'testis-ght-ihk': {
         slug: 'testis-ght-ihk',
@@ -442,7 +640,10 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'testis tümörü, germ hücreli tümör, immünohistokimya, seminom, embriyonel karsinom, yolk sac, koryokarsinom, patoloji',
         lastmod: '2026-06-05',
         priority: 0.8,
-        changefreq: 'monthly'
+        changefreq: 'monthly',
+        navLabel: 'Testis GHT İHK',
+        navGroup: 'raporlama',
+        load: () => import('@/pages/TestisGermCellIhcAssistant').then(m => ({ default: m.TestisGermCellIhcAssistant as unknown as React.ComponentType<Record<string, unknown>> })),
     },
     'tiroid-papiller-karsinom': {
         slug: 'tiroid-papiller-karsinom',
@@ -451,9 +652,11 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'tiroid kanseri, papiller karsinom, patoloji raporu, tiroid patolojisi, lenf nodu metastazı, tümör odağı',
         lastmod: '2026-06-12',
         priority: 0.8,
-        changefreq: 'monthly'
+        changefreq: 'monthly',
+        navLabel: 'Tiroid Papiller Karsinom',
+        navGroup: 'raporlama',
+        load: () => import('@/pages/TiroidPapillerKarsinom').then(m => ({ default: m.TiroidPapillerKarsinom as unknown as React.ComponentType<Record<string, unknown>> })),
     },
-
     'meme-her2': {
         slug: 'meme-her2',
         title: 'Meme Karsinomunda HER2 IHK Skorlama Algoritması | Prof Dr Metin Çiriş',
@@ -461,10 +664,26 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         keywords: 'HER2 IHK, her2 skorlama, her2-low, her2-ultralow, meme kanseri, patoloji, immunohistokimya, ISH, refleks ISH',
         lastmod: '2026-07-06',
         priority: 0.8,
-        changefreq: 'monthly'
+        changefreq: 'monthly',
+        navLabel: 'Meme HER2',
+        navGroup: 'raporlama',
+        load: () => import('@/pages/MemeHer2Algoritmasi').then(m => ({ default: m.MemeHer2Algoritmasi as unknown as React.ComponentType<Record<string, unknown>> })),
     },
 };
 
 export const getPages = () => Object.values(PAGE_REGISTRY);
 export const getPageBySlug = (slug: string) => Object.values(PAGE_REGISTRY).find(p => p.slug === slug);
 export const getPageById = (id: string) => PAGE_REGISTRY[id];
+
+/** validPages — tek kaynak, data/pages.ts'i kullanmayın */
+export const validPages = Object.keys(PAGE_REGISTRY);
+
+/** Sayfa görünen adı — Layout.tsx PAGE_NAMES dict'ini kullanmayın */
+export const getNavLabel = (pageId: string): string =>
+    PAGE_REGISTRY[pageId]?.navLabel ?? pageId;
+
+/** Hub'a göre gruplandırılmış sayfalar */
+export const getPagesByGroup = (group: NavGroup) =>
+    Object.entries(PAGE_REGISTRY)
+        .filter(([, meta]) => meta.navGroup === group)
+        .map(([id, meta]) => ({ id, ...meta }));

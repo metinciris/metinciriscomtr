@@ -3,267 +3,14 @@ import React from 'react';
 import { Layout } from './components/Layout';
 import { Toaster } from 'sonner';
 import { SEO } from './components/SEO';
-import { validPages } from './data/pages';
+import { PAGE_REGISTRY, validPages } from './core/data/registry';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { trackPageView } from './utils/analytics';
 
-/**
- * Sayfaları lazy yükle:
- * - Named export olanlar: .then(m => ({ default: m.X }))
- * - Default export olanlar: direkt import()
- */
-
-// Home ve Hasta/Öğrenci/Akademik sayfaları
-const Home = React.lazy(() =>
-  import('./pages/Home').then((m) => ({ default: m.Home })),
-);
-
-const Iletisim = React.lazy(() =>
-  import('./pages/Iletisim').then((m) => ({ default: m.Iletisim })),
-);
-
-const BiyopsiSonucu = React.lazy(() =>
-  import('./pages/BiyopsiSonucu').then((m) => ({
-    default: m.BiyopsiSonucu,
-  })),
-);
-
-const BaktigimBiyopsiler = React.lazy(() =>
-  import('./pages/BaktigimBiyopsiler').then((m) => ({
-    default: m.BaktigimBiyopsiler,
-  })),
-);
-
-const NobetciEczane = React.lazy(() =>
-  import('./pages/NobetciEczane').then((m) => ({
-    default: m.NobetciEczane,
-  })),
-);
-
-const DersProgrami = React.lazy(() =>
-  import('./pages/DersProgrami').then((m) => ({ default: m.DersProgrami })),
-);
-
-const OgrenciYemek = React.lazy(() =>
-  import('./pages/OgrenciYemek').then((m) => ({
-    default: m.OgrenciYemek,
-  })),
-);
-
-const HastaneYemek = React.lazy(() =>
-  import('./pages/HastaneYemek').then((m) => ({
-    default: m.HastaneYemek,
-  })),
-);
-
-const Donem3 = React.lazy(() =>
-  import('./pages/Donem3').then((m) => ({ default: m.Donem3 })),
-);
-
-const Galeri = React.lazy(() =>
-  import('./pages/Galeri').then((m) => ({ default: m.Galeri })),
-);
-
-// Akademik / diğer
-const Portfolyo = React.lazy(() =>
-  import('./pages/Portfolyo').then((m) => ({ default: m.Portfolyo })),
-);
-
-const SinavAnalizi = React.lazy(() =>
-  import('./pages/SinavAnalizi').then((m) => ({
-    default: m.SinavAnalizi,
-  })),
-);
-
-const Yayinlar = React.lazy(() =>
-  import('./pages/Yayinlar').then((m) => ({ default: m.Yayinlar })),
-);
-
-const Blog = React.lazy(() =>
-  import('./pages/Blog').then((m) => ({ default: m.Blog })),
-);
-
-const GitHubPage = React.lazy(() =>
-  import('./pages/GitHub').then((m) => ({ default: m.GitHub })),
-);
-
-const FacebookPage = React.lazy(() =>
-  import('./pages/Facebook').then((m) => ({ default: m.Facebook })),
-);
-
-const UniversitePage = React.lazy(() =>
-  import('./pages/Universite').then((m) => ({ default: m.Universite })),
-);
-
-const DigerCalismalar = React.lazy(() =>
-  import('./pages/DigerCalismalar').then((m) => ({
-    default: m.DigerCalismalar,
-  })),
-);
-
-const FetusUzunluklari = React.lazy(() =>
-  import('./pages/FetusUzunluklari').then((m) => ({
-    default: m.FetusUzunluklari,
-  })),
-);
-
-const RcbCalculator = React.lazy(() =>
-  import('./pages/RcbCalculator').then((m) => ({
-    default: m.RcbCalculator,
-  })),
-);
-
-const Makale = React.lazy(() =>
-  import('./pages/Makale').then((m) => ({ default: m.Makale })),
-);
-
-const Deprem = React.lazy(() =>
-  import('./pages/Deprem').then((m) => ({ default: m.Deprem })),
-);
-
-// Default export olan sayfalar
-const Podcast = React.lazy(() => import('./pages/Podcast'));
-const GistRaporlama = React.lazy(() => import('./pages/GistRaporlama'));
-
-const SvsReader = React.lazy(() =>
-  import('./pages/SvsReader').then((m) => ({ default: m.SvsReader })),
-);
-
-const TaniTuzaklari = React.lazy(() =>
-  import('./pages/TaniTuzaklari').then((m) => ({ default: m.TaniTuzaklari })),
-);
-
-const AyinVakasi = React.lazy(() =>
-  import('./pages/AyinVakasi').then((m) => ({ default: m.AyinVakasi })),
-);
-
-const Prizma3D = React.lazy(() =>
-  import('./pages/Prizma3D').then((m) => ({ default: m.Prizma3D })),
-);
-
-const Finans = React.lazy(() =>
-  import('./pages/Finans').then((m) => ({ default: m.Finans })),
-);
-
-const NotFound = React.lazy(() =>
-  import('./pages/NotFound').then((m) => ({ default: m.NotFound })),
-);
-
-const PatolojiMakaleTakip = React.lazy(() =>
-  import('./pages/PatolojiMakaleTakip').then((m) => ({
-    default: m.PatolojiMakaleTakip,
-  })),
-);
-
-const LenfNoduSayaci = React.lazy(() =>
-  import('./pages/LenfNoduSayaci').then((m) => ({
-    default: m.LenfNoduSayaci,
-  })),
-);
-
-const PubMedTrend = React.lazy(() =>
-  import('./pages/PubMedTrend').then((m) => ({ default: m.PubMedTrend })),
-);
-
-const OnlineTestAnaliz = React.lazy(() =>
-  import('./pages/OnlineTestAnaliz').then((m) => ({
-    default: m.OnlineTestAnaliz,
-  })),
-);
-
-const EuroMaclar = React.lazy(() =>
-  import('./pages/EuroMaclar').then((m) => ({ default: m.EuroMaclar })),
-);
-
-const Konsensus = React.lazy(() =>
-  import('./pages/Konsensus').then((m) => ({ default: m.Konsensus })),
-);
-
-const KonsensusYonetim = React.lazy(() =>
-  import('./pages/KonsensusYonetim').then((m) => ({ default: m.KonsensusYonetim })),
-);
-
-const PubMedMakaleTakvim = React.lazy(() =>
-  import('./pages/PubMedMakaleTakvim').then((m) => ({
-    default: m.PubMedMakaleTakvim,
-  })),
-);
-
-const AvifConverter = React.lazy(() =>
-  import('./pages/AvifConverter').then((m) => ({ default: m.AvifConverter })),
-);
-
-const SjogrenRaporlama = React.lazy(() => import('./pages/SjogrenRaporlama'));
-const EndoskopiRaporlama = React.lazy(() =>
-  import('./pages/EndoskopiRaporlama'),
-);
-const TiiabRaporlama = React.lazy(() => import('./pages/TiiabRaporlama'));
-
-const DunyaSaatleri = React.lazy(() =>
-  import('./pages/DunyaSaatleri').then((m) => ({ default: m.DunyaSaatleri })),
-);
-
-const PatolojiSozlugu = React.lazy(() =>
-  import('./pages/PatolojiSozlugu').then((m) => ({
-    default: m.PatolojiSozlugu,
-  })),
-);
-
-const VucutKitleIndeksi = React.lazy(() =>
-  import('./pages/VucutKitleIndeksi').then((m) => ({
-    default: m.VucutKitleIndeksi,
-  })),
-);
-
-const GeriSayim = React.lazy(() =>
-  import('./pages/GeriSayim').then((m) => ({ default: m.GeriSayim })),
-);
-
-const MitozDonusturucu = React.lazy(() =>
-  import('./pages/MitozDonusturucu').then((m) => ({
-    default: m.MitozDonusturucu,
-  })),
-);
-
-const HematolojiHesaplayici = React.lazy(() =>
-  import('./pages/HematolojiHesaplayici').then((m) => ({
-    default: m.HematolojiHesaplayici,
-  })),
-);
-
-const TestisGhtIhk = React.lazy(() =>
-  import('./pages/TestisGermCellIhcAssistant').then((m) => ({
-    default: m.TestisGermCellIhcAssistant,
-  })),
-);
-
-const TiroidPapillerKarsinom = React.lazy(() =>
-  import('./pages/TiroidPapillerKarsinom').then((m) => ({
-    default: m.TiroidPapillerKarsinom,
-  })),
-);
-
-const Ngs = React.lazy(() =>
-  import('./pages/Ngs').then((m) => ({ default: m.Ngs })),
-);
-
-const MemeHer2Algoritmasi = React.lazy(() =>
-  import('./pages/MemeHer2Algoritmasi').then((m) => ({
-    default: m.MemeHer2Algoritmasi,
-  })),
-);
-
-const ReferenceCenter = React.lazy(() =>
-  import('./pages/ReferenceCenter').then((m) => ({
-    default: m.ReferenceCenter,
-  })),
-);
-
-const NgsTestSecimi = React.lazy(() =>
-  import('./pages/NgsTestSecimi').then((m) => ({
-    default: m.NgsTestSecimi,
-  })),
-);
+// 404 sayfası için fallback loader
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const notFoundLoader = (): Promise<{ default: React.ComponentType<any> }> =>
+  import('./pages/NotFound').then(m => ({ default: m.NotFound }));
 
 export default function App() {
   const [currentPage, setCurrentPage] = React.useState('home');
@@ -320,124 +67,21 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const renderPage = () => {
-    switch (currentPage) {
-      // Hasta Bölümü
-      case 'iletisim':
-        return <Iletisim />;
-      case 'biyopsi-sonucu':
-        return <BiyopsiSonucu onNavigate={navigate} />;
-      case 'baktigim-biyopsiler':
-        return <BaktigimBiyopsiler />;
-      case 'nobetci-eczane':
-        return <NobetciEczane />;
-      case 'hastane-yemek':
-        return <HastaneYemek />;
+  /**
+   * Registry'den sayfa bileşenini yükle.
+   * onNavigateProp: true olan sayfalar navigate fonksiyonunu prop olarak alır.
+   * useMemo: currentPage değiştiğinde sadece yeni loader oluşturulur.
+   */
+  const pageMeta = PAGE_REGISTRY[currentPage];
+  const loader = pageMeta?.load ?? notFoundLoader;
 
-      // Öğrenci Bölümü
-      case 'ders-programi':
-        return <DersProgrami />;
-      case 'ogrenci-yemek':
-        return <OgrenciYemek />;
-      case 'donem-3':
-        return <Donem3 />;
-      case 'galeri':
-        return <Galeri />;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const Page = React.useMemo(() => React.lazy(loader), [currentPage]);
 
-      // Akademik / diğer
-      case 'portfolyo':
-        return <Portfolyo />;
-      case 'sinav-analizi':
-        return <SinavAnalizi onNavigate={navigate} />;
-      case 'yayinlar':
-        return <Yayinlar />;
-      case 'podcast':
-        return <Podcast onNavigate={navigate} />;
-      case 'blog':
-        return <Blog />;
-      case 'github':
-        return <GitHubPage />;
-      case 'facebook':
-        return <FacebookPage />;
-      case 'universite':
-        return <UniversitePage onNavigate={navigate} />;
-      case 'diger-calismalar':
-        return <DigerCalismalar onNavigate={navigate} />;
-      case 'fetus-uzunluklari':
-        return <FetusUzunluklari />;
-      case 'rcb-calculator':
-        return <RcbCalculator />;
-      case 'gist-raporlama':
-        return <GistRaporlama />;
-      case 'makale':
-        return <Makale onNavigate={navigate} />;
-      case 'deprem':
-        return <Deprem />;
-      case 'svs-reader':
-        return <SvsReader />;
-      case 'tani-tuzaklari':
-        return <TaniTuzaklari />;
-      case 'ayin-vakasi':
-        return <AyinVakasi />;
-      case 'prizma-3d':
-        return <Prizma3D />;
-      case 'finans':
-        return <Finans />;
-      case 'makale-takip':
-        return <PatolojiMakaleTakip />;
-      case 'lenf-nodu':
-        return <LenfNoduSayaci />;
-      case 'pubmed-trend':
-        return <PubMedTrend />;
-      case 'online-test-analiz':
-        return <OnlineTestAnaliz />;
-      case 'euro-maclar':
-        return <EuroMaclar />;
-      case 'konsensus':
-        return <Konsensus />;
-      case 'konsensus-yonetim':
-        return <KonsensusYonetim />;
-      case 'pubmed-makale-takip':
-        return <PubMedMakaleTakvim />;
-      case 'avif-donusturucu':
-        return <AvifConverter />;
-      case 'sjogren-raporlama':
-        return <SjogrenRaporlama />;
-      case 'endoskopi-raporlama':
-        return <EndoskopiRaporlama />;
-      case 'tiiab-raporlama':
-        return <TiiabRaporlama />;
-      case 'dunya-saatleri':
-        return <DunyaSaatleri />;
-      case 'patoloji-sozlugu':
-        return <PatolojiSozlugu onNavigate={navigate} />;
-      case 'vki-hesaplama':
-        return <VucutKitleIndeksi />;
-      case 'geri-sayim':
-        return <GeriSayim />;
-      case 'mitoz-donusturucu':
-        return <MitozDonusturucu />;
-      case 'hematoloji-hesaplayici':
-        return <HematolojiHesaplayici />;
-      case 'testis-ght-ihk':
-        return <TestisGhtIhk />;
-      case 'tiroid-papiller-karsinom':
-        return <TiroidPapillerKarsinom />;
-      case 'ngs':
-        return <Ngs />;
-      case 'ngs-test-secimi':
-        return <NgsTestSecimi />;
-      case 'meme-her2':
-        return <MemeHer2Algoritmasi />;
-      case 'basvuru-merkezi':
-        return <ReferenceCenter onNavigate={navigate} />;
-      case '404':
-        return <NotFound onNavigate={navigate} />;
-      case 'home':
-      default:
-        return <Home onNavigate={navigate} />;
-    }
-  };
+  // onNavigate prop'u gereken sayfalar için
+  const pageProps: Record<string, unknown> = pageMeta?.onNavigateProp
+    ? { onNavigate: navigate }
+    : {};
 
   return (
     <>
@@ -463,7 +107,7 @@ export default function App() {
               </div>
             }
           >
-            {renderPage()}
+            <Page {...pageProps} />
           </React.Suspense>
         </ErrorBoundary>
       </Layout>
