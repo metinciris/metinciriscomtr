@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 
 interface StoredDraft {
   timestamp: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   values: Record<string, any>;
 }
 
@@ -10,6 +11,7 @@ const DRAFT_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 export function useReportState(schemaId: string) {
   const storageKey = `draft:${schemaId}`;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [values, setValues] = useState<Record<string, any>>({});
   const [hasSavedDraft, setHasSavedDraft] = useState<boolean>(false);
   const [draftLoaded, setDraftLoaded] = useState<boolean>(false);
@@ -35,9 +37,9 @@ export function useReportState(schemaId: string) {
 
   // Save values with 2-second debounce
   const valuesRef = useRef(values);
-  valuesRef.current = values;
 
   useEffect(() => {
+    valuesRef.current = values;
     const timer = setTimeout(() => {
       if (Object.keys(valuesRef.current).length > 0) {
         try {
@@ -80,6 +82,7 @@ export function useReportState(schemaId: string) {
     }
   }, [storageKey]);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const updateValue = useCallback((fieldId: string, val: any) => {
     setValues((prev) => ({
       ...prev,
