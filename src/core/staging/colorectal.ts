@@ -12,21 +12,51 @@ export const AJCC_BASKI = '8 (doğrulanmadı)';
 
 const T_DEGERLERI = ['T0', 'Tis', 'T1', 'T2', 'T3', 'T4a', 'T4b'] as const;
 
-/** AJCC: N sınıflaması yalnızca nod sayısı ve tümör depozitine bağlıdır. */
-export function derivePN(
-  pozitif: number | null | undefined,
-  depozit: number | null | undefined,
-): string | null {
-  if (pozitif == null) return null;
-  if (pozitif < 0) return null;
+export type PNInput = {
+  lenfNoduToplam: number | null | undefined;
+  lenfNoduPozitif: number | null | undefined;
+  tumorDepoziti: number | null | undefined;
+};
 
-  if (pozitif === 0) {
-    // Nod negatif ama tümör depoziti varsa N1c
-    return depozit != null && depozit > 0 ? 'N1c' : 'N0';
+/** AJCC: N sınıflaması nod sayısı, toplam incelenen nod ve tümör depozitine bağlıdır. */
+export function derivePN({
+  lenfNoduToplam,
+  lenfNoduPozitif,
+  tumorDepoziti,
+}: PNInput): string | null {
+  if (
+    lenfNoduToplam == null ||
+    lenfNoduPozitif == null ||
+    tumorDepoziti == null
+  ) {
+    return null;
   }
-  if (pozitif === 1) return 'N1a';
-  if (pozitif <= 3) return 'N1b';
-  if (pozitif <= 6) return 'N2a';
+
+  if (
+    !Number.isInteger(lenfNoduToplam) ||
+    !Number.isInteger(lenfNoduPozitif) ||
+    !Number.isInteger(tumorDepoziti) ||
+    lenfNoduToplam < 0 ||
+    lenfNoduPozitif < 0 ||
+    tumorDepoziti < 0 ||
+    lenfNoduPozitif > lenfNoduToplam
+  ) {
+    return null;
+  }
+
+  // Hiç bölgesel nod incelenmemişse pN0 atanamaz.
+  if (lenfNoduToplam === 0) {
+    return null;
+  }
+
+  if (lenfNoduPozitif === 0) {
+    return tumorDepoziti > 0 ? 'N1c' : 'N0';
+  }
+
+  if (lenfNoduPozitif === 1) return 'N1a';
+  if (lenfNoduPozitif <= 3) return 'N1b';
+  if (lenfNoduPozitif <= 6) return 'N2a';
+
   return 'N2b';
 }
 
@@ -36,14 +66,16 @@ const isN1 = (n: string) => n === 'N1a' || n === 'N1b' || n === 'N1c';
 export function deriveEvreGrubu(
   pT: string | null,
   pN: string | null,
-  pM: string | null,
+  pM: string | null | undefined,
 ): string | null {
-  if (!pT || !pN) return null;
+  if (!pT || !pN || !pM) return null;
 
   // M1 her şeyin önüne geçer
   if (pM === 'M1a') return 'IVA';
   if (pM === 'M1b') return 'IVB';
   if (pM === 'M1c') return 'IVC';
+
+  if (pM !== 'M0') return null;
 
   if (pT === 'T0') return null; // rezidü tümör yok — ypT0 yorumu ayrı ele alınır
   if (pT === 'Tis') return pN === 'N0' ? '0' : null;
@@ -94,6 +126,11 @@ export function deriveColorectalStage(input: StagingInput): StagingResult {
 
   if (toplam == null) eksikAlanlar.push('İncelenen lenf nodu sayısı');
   if (pozitif == null) eksikAlanlar.push('Metastatik lenf nodu sayısı');
+  if (input.metastazDurumu === undefined) eksikAlanlar.push('Uzak metastaz durumu');
+
+  if (toplam === 0) {
+    uyarilar.push('İncelenen lenf nodu bulunmadığı için pN sınıflaması (pN0) yapılamaz.');
+  }
 
   if (toplam != null && pozitif != null && pozitif > toplam) {
     uyarilar.push(
@@ -101,7 +138,7 @@ export function deriveColorectalStage(input: StagingInput): StagingResult {
     );
   }
 
-  if (toplam != null && toplam < 12) {
+  if (toplam != null && toplam > 0 && toplam < 12) {
     uyarilar.push(
       `Yalnızca ${toplam} lenf nodu incelendi. Yeterli evreleme için en az 12 nod önerilir.`,
     );
@@ -113,16 +150,32 @@ export function deriveColorectalStage(input: StagingInput): StagingResult {
     );
   }
 
-  const pN = derivePN(pozitif, depozit);
-  const pM = input.pM ?? 'M0';
-  const evreGrubu = deriveEvreGrubu(pT, pN, pM);
+  const pN = derivePN({ lenfNoduToplam: toplam, lenfNoduPozitif: pozitif, tumorDepoziti: depozit });
+  const metastazDurumu = input.metastazDurumu ?? null;
+  const metastazPatolojikDogrulandi = !!input.metastazPatolojikDogrulandi;
 
-  if (pT && pN && !evreGrubu) {
-    uyarilar.push(`${pT} / ${pN} kombinasyonu için evre grubu türetilemedi — elle kontrol edin.`);
+  // Patolojide pM yalnızca doğrulanmış metastaz varlığında (M1x) pM olarak atanır
+  let pM: string | null = null;
+  if (metastazDurumu && metastazDurumu.startsWith('M1') && metastazPatolojikDogrulandi) {
+    pM = metastazDurumu;
   }
 
-  const ozet =
-    pT && pN ? `${pT} ${pN} ${pM}${evreGrubu ? ` — Evre ${evreGrubu}` : ''}` : null;
+  const evreGrubu = deriveEvreGrubu(pT, pN, metastazDurumu);
+
+  if (pT && pN && metastazDurumu && !evreGrubu) {
+    uyarilar.push(`${pT} / ${pN} / ${metastazDurumu} kombinasyonu için evre grubu türetilemedi — elle kontrol edin.`);
+  }
+
+  let ozet: string | null = null;
+  if (pT && pN) {
+    if (pM) {
+      ozet = `p${pT} p${pN} p${pM}${evreGrubu ? ` — Anatomic evre grubu ${evreGrubu}` : ''}`;
+    } else if (metastazDurumu === 'M0') {
+      ozet = `p${pT} p${pN}; M0 bilgisi mevcut${evreGrubu ? ` — Anatomic evre grubu ${evreGrubu}` : ''}`;
+    } else {
+      ozet = `p${pT} p${pN}`;
+    }
+  }
 
   return { pT, pN, pM, evreGrubu, ozet, ajccBaski: AJCC_BASKI, uyarilar, eksikAlanlar };
 }

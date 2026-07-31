@@ -50,7 +50,8 @@ export const SchemaReportEngine: React.FC<SchemaReportEngineProps> = ({ schema }
       lenfNoduToplam: values['ln_toplam'] != null ? Number(values['ln_toplam']) : null,
       lenfNoduPozitif: values['ln_pozitif'] != null ? Number(values['ln_pozitif']) : null,
       tumorDepoziti: values['tumor_depoziti'] != null ? Number(values['tumor_depoziti']) : null,
-      pM: values['pM'] ?? 'M0',
+      metastazDurumu: values['metastaz_durumu'] ?? null,
+      metastazPatolojikDogrulandi: values['metastaz_patolojik_dogrulandi'] ?? false,
     });
   }, [schema, values]);
 
