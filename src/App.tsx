@@ -7,10 +7,33 @@ import { PAGE_REGISTRY, validPages } from './core/data/registry';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { trackPageView } from './utils/analytics';
 
-// 404 sayfası için fallback loader
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const notFoundLoader = (): Promise<{ default: React.ComponentType<any> }> =>
-  import('./pages/NotFound').then(m => ({ default: m.NotFound }));
+type LazyComponent = React.LazyExoticComponent<React.ComponentType<any>>;
+
+/**
+ * Sayfa bileşenlerini cache'le.
+ * React.lazy() her zaman aynı referansı döndürmeli — render içinde
+ * yeni React.lazy() çağırmak React'in component type'ı değişmiş
+ * sanmasına ve her seferinde unmount/remount yapmasına neden olur.
+ */
+const lazyCache: Record<string, LazyComponent> = {};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const notFoundLazy: LazyComponent = React.lazy(() =>
+  import('./pages/NotFound').then(m => ({ default: m.NotFound }))
+);
+
+function getLazy(pageId: string): LazyComponent {
+  if (!lazyCache[pageId]) {
+    const meta = PAGE_REGISTRY[pageId];
+    if (meta?.load) {
+      lazyCache[pageId] = React.lazy(meta.load);
+    } else {
+      lazyCache[pageId] = notFoundLazy;
+    }
+  }
+  return lazyCache[pageId];
+}
 
 export default function App() {
   const [currentPage, setCurrentPage] = React.useState('home');
@@ -21,7 +44,7 @@ export default function App() {
   }, [currentPage]);
 
   // Path'ten sayfa adını çıkar
-  const getPageFromPath = (pathname: string): string => {
+  const getPageFromPath = React.useCallback((pathname: string): string => {
     const path = pathname.replace(/^\/+|\/+$/g, '') || 'home';
 
     // Blog ana sayfası, sayfalama ve tekil yazı adresleri
@@ -30,7 +53,7 @@ export default function App() {
     }
 
     return validPages.includes(path) ? path : '404';
-  };
+  }, []);
 
   // Path tabanlı navigation (SEO dostu)
   React.useEffect(() => {
@@ -41,8 +64,6 @@ export default function App() {
       sessionStorage.removeItem('spa-redirect-path');
       const page = getPageFromPath(redirectPath);
       setCurrentPage(page);
-
-      // URL'yi güncelle
       window.history.replaceState({ page }, '', redirectPath);
       return;
     }
@@ -53,35 +74,25 @@ export default function App() {
       setCurrentPage(page);
     };
 
-    // Geri/ileri butonları
     window.addEventListener('popstate', handlePathChange);
     handlePathChange();
 
     return () => window.removeEventListener('popstate', handlePathChange);
-  }, []);
+  }, [getPageFromPath]);
 
-  const navigate = (page: string) => {
+  const navigate = React.useCallback((page: string) => {
     const path = page === 'home' ? '/' : `/${page}`;
     window.history.pushState({ page }, '', path);
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  }, []);
 
-  /**
-   * Registry'den sayfa bileşenini yükle.
-   * onNavigateProp: true olan sayfalar navigate fonksiyonunu prop olarak alır.
-   * useMemo: currentPage değiştiğinde sadece yeni loader oluşturulur.
-   */
   const pageMeta = PAGE_REGISTRY[currentPage];
-  const loader = pageMeta?.load ?? notFoundLoader;
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const Page = React.useMemo(() => React.lazy(loader), [currentPage]);
+  // getLazy her zaman aynı React.lazy referansını döndürür — cache sayesinde
+  const Page = getLazy(currentPage);
 
-  // onNavigate prop'u gereken sayfalar için
-  const pageProps: Record<string, unknown> = pageMeta?.onNavigateProp
-    ? { onNavigate: navigate }
-    : {};
+  const pageProps = pageMeta?.onNavigateProp ? { onNavigate: navigate } : {};
 
   return (
     <>
