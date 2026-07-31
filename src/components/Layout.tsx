@@ -134,7 +134,7 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
                   Prof Dr Metin Çiriş
                 </div>
                 <p
-                  className="text-white/70 m-0 mt-0.5"
+                  className="text-gray-200 m-0 mt-0.5"
                   style={{ fontSize: '0.75rem' }}
                 >
                   Tıbbi Patoloji Uzmanı
@@ -152,7 +152,7 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
                 className={`px-3 py-2 flex items-center space-x-1.5 transition-colors no-underline rounded text-sm ${
                   currentPage === 'home'
                     ? 'bg-[#0078D4] text-white'
-                    : 'text-white/80 hover:bg-white/10'
+                    : 'text-gray-100 hover:bg-white/10'
                 }`}
               >
                 <Home size={16} aria-hidden="true" />
@@ -176,7 +176,7 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
                       className={`px-3 py-2 flex items-center space-x-1.5 transition-colors rounded text-sm focus:outline-none focus:ring-2 focus:ring-white/20 ${
                         isHubActive
                           ? 'bg-[#0078D4] text-white'
-                          : 'text-white/80 hover:bg-white/10'
+                          : 'text-gray-100 hover:bg-white/10'
                       }`}
                     >
                       <Icon size={16} aria-hidden="true" />
@@ -204,7 +204,7 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
                             className={`block px-4 py-2.5 text-sm transition-colors no-underline ${
                               currentPage === page.id
                                 ? 'text-[#0078D4] bg-blue-600/10'
-                                : 'text-white/80 hover:text-white hover:bg-white/10'
+                                : 'text-gray-100 hover:text-white hover:bg-white/10'
                             }`}
                           >
                             {page.navLabel ?? page.id}
@@ -219,13 +219,13 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
               {/* Arama */}
               <button
                 onClick={() => setIsSearchOpen(true)}
-                className="px-3 py-1.5 ml-1 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-white/20 flex items-center space-x-2 text-sm"
+                className="px-3 py-1.5 ml-1 text-gray-100 hover:text-white hover:bg-white/10 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-white/20 flex items-center space-x-2 text-sm"
                 aria-label="Sitede ara (Ctrl+K)"
                 title="Sitede ara (Ctrl+K)"
               >
                 <Search size={18} />
-                <span className="hidden lg:inline text-xs text-white/60">Ara</span>
-                <kbd className="hidden lg:inline-block px-1.5 py-0.5 text-[10px] font-semibold text-white/70 bg-white/10 border border-white/20 rounded">
+                <span className="hidden lg:inline text-xs text-gray-200">Ara</span>
+                <kbd className="hidden lg:inline-block px-1.5 py-0.5 text-[10px] font-semibold text-white bg-white/20 border border-white/30 rounded">
                   Ctrl+K
                 </kbd>
               </button>
@@ -235,7 +235,7 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
             <div className="flex md:hidden items-center space-x-1">
               <button
                 type="button"
-                className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded focus:outline-none"
+                className="p-2 text-gray-100 hover:text-white hover:bg-white/10 rounded focus:outline-none"
                 onClick={() => setIsSearchOpen(true)}
                 aria-label="Sitede ara"
               >
@@ -261,7 +261,7 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
           {/* Kapat butonu */}
           <button
             onClick={() => setMobileMenuOpen(false)}
-            className="absolute top-6 right-4 p-2 text-white/80 hover:text-white bg-white/10 rounded-full"
+            className="absolute top-6 right-4 p-2 text-gray-100 hover:text-white bg-white/10 rounded-full"
             aria-label="Menüyü kapat"
           >
             <X size={32} />
@@ -275,7 +275,7 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
               className={`flex items-center space-x-3 p-4 rounded-xl transition-all no-underline text-xl font-medium ${
                 currentPage === 'home'
                   ? 'bg-blue-600/20 text-[#0078D4]'
-                  : 'text-white/80 hover:text-white hover:bg-white/5'
+                  : 'text-gray-100 hover:text-white hover:bg-white/5'
               }`}
             >
               <Home size={24} />
@@ -295,7 +295,7 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
                     className={`w-full flex items-center justify-between p-4 rounded-xl transition-all text-xl font-medium focus:outline-none ${
                       currentGroup === hub.id
                         ? 'bg-blue-600/20 text-[#0078D4]'
-                        : 'text-white/80 hover:text-white hover:bg-white/5'
+                        : 'text-gray-100 hover:text-white hover:bg-white/5'
                     }`}
                   >
                     <div className="flex items-center space-x-3">
@@ -319,7 +319,7 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
                           className={`block px-4 py-3 rounded-lg text-base transition-all no-underline ${
                             currentPage === page.id
                               ? 'text-[#0078D4] bg-blue-600/10'
-                              : 'text-white/70 hover:text-white hover:bg-white/5'
+                              : 'text-gray-200 hover:text-white hover:bg-white/5'
                           }`}
                         >
                           {page.navLabel ?? page.id}
@@ -332,7 +332,7 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
             })}
           </nav>
 
-          <div className="mt-auto mb-12 pt-8 text-center text-white/40 text-sm">
+          <div className="mt-auto mb-12 pt-8 text-center text-gray-300 text-sm">
             <p>© {currentYear} Prof Dr Metin Çiriş</p>
           </div>
         </div>
@@ -410,7 +410,7 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
               <h3>Prof Dr Metin Çiriş</h3>
-              <p className="text-white/70 mt-2">
+              <p className="text-gray-200 mt-2">
                 Tıbbi Patoloji Uzmanı
               </p>
             </div>
@@ -423,7 +423,7 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
                     e.preventDefault();
                     onNavigate('iletisim');
                   }}
-                  className="text-white/70 hover:text-white transition-colors no-underline"
+                  className="text-gray-200 hover:text-white transition-colors no-underline"
                 >
                   İletişim
                 </a>
@@ -433,7 +433,7 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
                     e.preventDefault();
                     onNavigate('yayinlar');
                   }}
-                  className="text-white/70 hover:text-white transition-colors no-underline"
+                  className="text-gray-200 hover:text-white transition-colors no-underline"
                 >
                   Yayınlar
                 </a>
@@ -443,7 +443,7 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
                     e.preventDefault();
                     onNavigate('blog');
                   }}
-                  className="text-white/70 hover:text-white transition-colors no-underline"
+                  className="text-gray-200 hover:text-white transition-colors no-underline"
                 >
                   Blog
                 </a>
@@ -451,7 +451,7 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
             </div>
             <div>
               <h4>İletişim Bilgileri</h4>
-              <div className="text-white/70 mt-2 flex flex-col items-start">
+              <div className="text-gray-200 mt-2 flex flex-col items-start">
                 <a
                   href="mailto:ibrahimciris@sdu.edu.tr"
                   className="hover:text-white transition-colors flex items-center min-h-[48px] py-2"
@@ -477,7 +477,7 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
               </div>
             </div>
           </div>
-          <div className="border-t border-white/20 mt-8 pt-6 text-center text-white/60">
+          <div className="border-t border-white/20 mt-8 pt-6 text-center text-gray-300">
             <p className="m-0">
               © {currentYear} Prof Dr Metin Çiriş – Tıbbi Patoloji Uzmanı
             </p>
