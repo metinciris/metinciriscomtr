@@ -1,13 +1,7 @@
 {
-  "date": "31.07.2026",
-  "items": [
-    "MERCİMEK ÇORBASI",
-    "PATLICAN MUSAKKA",
-    "TEL ŞEHRİYELİ PİRİNÇ PİLAVI",
-    "CACIK",
-    "SIZE NASIL YARDIMCI OLABILIRIM?"
-  ],
-  "kcal": "1000",
+  "date": "01.08.2026",
+  "items": [],
+  "kcal": null,
   "source": "https://w3.sdu.edu.tr/aylik-yemek-listesi?dosya=yemekler_ogle&tur=2",
-  "updatedAt": "2026-07-31T10:02:26.070Z"
+  "updatedAt": "2026-08-01T07:03:20.497Z"
 }
