@@ -49,7 +49,7 @@ export default function SjogrenRaporlama() {
         setOtherFindings(prev => ({ ...prev, [key]: !prev[key] }));
     };
 
-    const resetForm = () => {
+    const resetForm = (showToast = true) => {
         setStains(["Masson Trikrom boyası"]);
         setYeterlilik("yeterli");
         setIzlenenMm2("1");
@@ -66,7 +66,9 @@ export default function SjogrenRaporlama() {
             mukozal: false,
         });
         setCustomOther("");
-        toast.success("Form sıfırlandı");
+        if (showToast === true) {
+            toast.success("Form sıfırlandı");
+        }
     };
 
     // --- Report Calculation ---
@@ -83,11 +85,16 @@ export default function SjogrenRaporlama() {
         });
     }, [stains, yeterlilik, izlenenMm2, fokus, fibrozis, yaglanma, otherFindings, customOther]);
 
-    const copyToClipboard = () => {
-        navigator.clipboard.writeText(report);
-        setCopied(true);
-        toast.success("Rapor kopyalandı");
-        setTimeout(() => setCopied(false), 2000);
+    const copyToClipboard = async () => {
+        try {
+            await navigator.clipboard.writeText(report);
+            setCopied(true);
+            toast.success("Rapor kopyalandı");
+            resetForm(false);
+            setTimeout(() => setCopied(false), 2000);
+        } catch {
+            toast.error("Kopyalama başarısız oldu");
+        }
     };
 
     // --- Styling ---
@@ -158,7 +165,7 @@ export default function SjogrenRaporlama() {
                     </div>
                     <div className="flex items-center gap-2">
                         <button
-                            onClick={resetForm}
+                            onClick={() => resetForm()}
                             className="flex items-center gap-2 px-3 py-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all text-xs font-bold"
                         >
                             <RotateCcw className="w-3.5 h-3.5" />
