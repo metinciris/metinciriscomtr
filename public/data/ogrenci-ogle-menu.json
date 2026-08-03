@@ -1,7 +1,12 @@
 {
-  "date": "02.08.2026",
-  "items": [],
-  "kcal": null,
+  "date": "03.08.2026",
+  "items": [
+    "NOHUTLU TARHANA ÇORBASI",
+    "KIYMALI ISPANAK",
+    "NAPOLİTEN SOSLU MAKARNA",
+    "KASE YOĞURT"
+  ],
+  "kcal": "950",
   "source": "https://w3.sdu.edu.tr/aylik-yemek-listesi?dosya=yemekler_ogle&tur=2",
-  "updatedAt": "2026-08-02T09:28:20.163Z"
+  "updatedAt": "2026-08-03T07:58:17.877Z"
 }
