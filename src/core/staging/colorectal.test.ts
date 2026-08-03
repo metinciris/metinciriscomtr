@@ -131,7 +131,7 @@ describe('derivePN — bölgesel lenf nodu sınıflaması', () => {
     ).toBeNull();
   });
 
-  it('toplam nod sayısı bilinmiyorsa pN kategorisi atanmaz', () => {
+  it('Lenf nodlarının değerlendirilip değerlendirilmediği bilinmiyorsa pN atanmaz', () => {
     expect(
       derivePN({
         lenfNoduToplam: null,
@@ -139,6 +139,26 @@ describe('derivePN — bölgesel lenf nodu sınıflaması', () => {
         tumorDepoziti: 0,
       }),
     ).toBeNull();
+  });
+
+  it('pozitif nod sayısı biliniyorsa depozit bilinmese bile pN kategorisi pozitif nod sayısından türetilir', () => {
+    expect(
+      derivePN({
+        lenfNoduToplam: 18,
+        lenfNoduPozitif: 2,
+        tumorDepoziti: null,
+      }),
+    ).toBe('N1b');
+  });
+
+  it('0 nod incelenmiş ancak tümör depoziti varsa N1c atanır', () => {
+    expect(
+      derivePN({
+        lenfNoduToplam: 0,
+        lenfNoduPozitif: 0,
+        tumorDepoziti: 1,
+      }),
+    ).toBe('N1c');
   });
 
   it('depozit durumu bilinmiyorsa nod-negatif olguda N0 veya N1c seçmez', () => {
@@ -210,6 +230,19 @@ describe('deriveEvreGrubu — uzak metastaz', () => {
     expect(deriveEvreGrubu('T1', 'N0', 'M1a')).toBe('IVA');
     expect(deriveEvreGrubu('T4b', 'N2b', 'M1b')).toBe('IVB');
     expect(deriveEvreGrubu('T2', 'N1a', 'M1c')).toBe('IVC');
+  });
+
+  it('M1 varlığında T veya N bilinmese bile evre IV grubunu türetir', () => {
+    expect(deriveEvreGrubu(null, 'N0', 'M1a')).toBe('IVA');
+    expect(deriveEvreGrubu('T3', null, 'M1b')).toBe('IVB');
+    expect(deriveEvreGrubu(null, null, 'M1c')).toBe('IVC');
+    expect(deriveEvreGrubu(null, null, 'M1')).toBe('IV');
+  });
+
+  it('alt kategori belirlenemeyen genel N1, N2 veya M1 durumlarını evreler', () => {
+    expect(deriveEvreGrubu('T3', 'N1', 'M0')).toBe('IIIB');
+    expect(deriveEvreGrubu('T4a', 'N2', 'M0')).toBe('IIIC');
+    expect(deriveEvreGrubu('T3', 'N1a', 'M1')).toBe('IV');
   });
 
   it('M durumu bilinmiyorsa evre grubu türetmez', () => {

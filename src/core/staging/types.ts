@@ -6,8 +6,8 @@ export interface StagingInput {
   lenfNoduToplam?: number | null;
   lenfNoduPozitif?: number | null;
   tumorDepoziti?: number | null;
-  /** Uzak metastaz durumu: M0 (klinik/görüntüleme) veya M1a/M1b/M1c */
-  metastazDurumu?: 'M0' | 'M1a' | 'M1b' | 'M1c' | null;
+  /** Uzak metastaz durumu: M0 (klinik/görüntüleme) veya M1, M1a, M1b, M1c */
+  metastazDurumu?: 'M0' | 'M1' | 'M1a' | 'M1b' | 'M1c' | string | null;
   /** Patolojik olarak doğrulanmış metastaz varlığı (pM1 için) */
   metastazPatolojikDogrulandi?: boolean | null;
 }
