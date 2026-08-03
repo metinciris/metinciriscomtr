@@ -322,10 +322,18 @@ function stripManagedMetadata(html, { removeJsonLd = false } = {}) {
     ['name', 'twitter:title'],
     ['name', 'twitter:description'],
     ['name', 'twitter:url'],
+    ['name', 'twitter:image'],
+    ['name', 'twitter:image:alt'],
     ['property', 'og:title'],
     ['property', 'og:description'],
     ['property', 'og:url'],
     ['property', 'og:type'],
+    ['property', 'og:image'],
+    ['property', 'og:image:secure_url'],
+    ['property', 'og:image:type'],
+    ['property', 'og:image:width'],
+    ['property', 'og:image:height'],
+    ['property', 'og:image:alt'],
     ['property', 'article:published_time'],
     ['property', 'article:modified_time'],
     ['property', 'article:author'],
@@ -366,6 +374,8 @@ function injectMetadata(
     previousPath,
     nextPath,
     structuredData,
+    image,
+    imageAlt,
   },
 ) {
   let html = stripManagedMetadata(sourceHtml, {
@@ -373,6 +383,9 @@ function injectMetadata(
   });
   const canonicalUrl = `${SITE_URL}${canonicalPath}`;
   const cleanDescription = truncateAtWord(description || '', 158);
+  const imageUrl = image || 'https://metinciris.com.tr/img/og-card.jpg';
+  const cleanImageAlt = imageAlt || title || 'Prof. Dr. İbrahim Metin Çiriş | Tıbbi Patoloji Uzmanı';
+
   const lines = [
     '<!-- generated-page-meta:start -->',
     `<title>${escapeHtml(title)}</title>`,
@@ -389,10 +402,18 @@ function injectMetadata(
     `<meta property="og:title" content="${escapeHtml(title)}">`,
     `<meta property="og:description" content="${escapeHtml(cleanDescription)}">`,
     `<meta property="og:url" content="${escapeHtml(canonicalUrl)}">`,
+    `<meta property="og:image" content="${escapeHtml(imageUrl)}">`,
+    `<meta property="og:image:secure_url" content="${escapeHtml(imageUrl)}">`,
+    '<meta property="og:image:type" content="image/jpeg">',
+    '<meta property="og:image:width" content="1200">',
+    '<meta property="og:image:height" content="630">',
+    `<meta property="og:image:alt" content="${escapeHtml(cleanImageAlt)}">`,
     '<meta name="twitter:card" content="summary_large_image">',
     `<meta name="twitter:title" content="${escapeHtml(title)}">`,
     `<meta name="twitter:description" content="${escapeHtml(cleanDescription)}">`,
     `<meta name="twitter:url" content="${escapeHtml(canonicalUrl)}">`,
+    `<meta name="twitter:image" content="${escapeHtml(imageUrl)}">`,
+    `<meta name="twitter:image:alt" content="${escapeHtml(cleanImageAlt)}">`,
   ];
 
   if (previousPath) {

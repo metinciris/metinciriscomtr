@@ -81,6 +81,7 @@ export const SEO = ({ currentPage }: SEOProps) => {
       element.setAttribute('content', content);
     };
 
+    const imageUrl = 'https://metinciris.com.tr/img/og-card.jpg';
     setMeta('meta[property="og:title"]', 'property', 'og:title', meta.title);
     setMeta(
       'meta[property="og:description"]',
@@ -90,6 +91,12 @@ export const SEO = ({ currentPage }: SEOProps) => {
     );
     setMeta('meta[property="og:url"]', 'property', 'og:url', canonicalUrl);
     setMeta('meta[property="og:type"]', 'property', 'og:type', 'website');
+    setMeta('meta[property="og:image"]', 'property', 'og:image', imageUrl);
+    setMeta('meta[property="og:image:secure_url"]', 'property', 'og:image:secure_url', imageUrl);
+    setMeta('meta[property="og:image:type"]', 'property', 'og:image:type', 'image/jpeg');
+    setMeta('meta[property="og:image:width"]', 'property', 'og:image:width', '1200');
+    setMeta('meta[property="og:image:height"]', 'property', 'og:image:height', '630');
+    setMeta('meta[property="og:image:alt"]', 'property', 'og:image:alt', meta.title);
     setMeta('meta[name="twitter:title"]', 'name', 'twitter:title', meta.title);
     setMeta(
       'meta[name="twitter:description"]',
@@ -99,6 +106,8 @@ export const SEO = ({ currentPage }: SEOProps) => {
     );
     setMeta('meta[name="twitter:url"]', 'name', 'twitter:url', canonicalUrl);
     setMeta('meta[name="twitter:card"]', 'name', 'twitter:card', 'summary_large_image');
+    setMeta('meta[name="twitter:image"]', 'name', 'twitter:image', imageUrl);
+    setMeta('meta[name="twitter:image:alt"]', 'name', 'twitter:image:alt', meta.title);
 
     let jsonLdScript = document.querySelector<HTMLScriptElement>(
       'script[type="application/ld+json"]',

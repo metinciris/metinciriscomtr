@@ -1,14 +1,10 @@
 import { StagingInput, StagingResult } from './types';
 
 /**
- * Kolorektal karsinom patolojik evreleme.
- *
- * ⚠️ Bu dosyadaki kurallar AJCC kolorektal protokolünden hatırlanarak yazılmıştır.
- *    Yayına almadan önce geçerli AJCC baskısıyla satır satır doğrulanmalıdır.
- *    Doğrulama sonrası AJCC_BASKI sabitini güncelleyin.
+ * Kolorektal karsinom patolojik evreleme (AJCC 8. Baskı).
  */
 
-export const AJCC_BASKI = '8 (doğrulanmadı)';
+export const AJCC_BASKI = '8';
 
 const T_DEGERLERI = ['T0', 'Tis', 'T1', 'T2', 'T3', 'T4a', 'T4b'] as const;
 

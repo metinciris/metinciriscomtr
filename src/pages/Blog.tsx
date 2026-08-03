@@ -351,6 +351,7 @@ function setPageSeo({
       ? 'noindex, follow'
       : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1',
   );
+  const imageUrl = 'https://metinciris.com.tr/img/og-card.jpg';
   upsertMeta('meta[property="og:title"]', { property: 'og:title' }, title);
   upsertMeta(
     'meta[property="og:description"]',
@@ -359,6 +360,12 @@ function setPageSeo({
   );
   upsertMeta('meta[property="og:url"]', { property: 'og:url' }, canonicalUrl);
   upsertMeta('meta[property="og:type"]', { property: 'og:type' }, type);
+  upsertMeta('meta[property="og:image"]', { property: 'og:image' }, imageUrl);
+  upsertMeta('meta[property="og:image:secure_url"]', { property: 'og:image:secure_url' }, imageUrl);
+  upsertMeta('meta[property="og:image:type"]', { property: 'og:image:type' }, 'image/jpeg');
+  upsertMeta('meta[property="og:image:width"]', { property: 'og:image:width' }, '1200');
+  upsertMeta('meta[property="og:image:height"]', { property: 'og:image:height' }, '630');
+  upsertMeta('meta[property="og:image:alt"]', { property: 'og:image:alt' }, title);
   upsertMeta('meta[name="twitter:title"]', { name: 'twitter:title' }, title);
   upsertMeta(
     'meta[name="twitter:description"]',
@@ -367,6 +374,8 @@ function setPageSeo({
   );
   upsertMeta('meta[name="twitter:url"]', { name: 'twitter:url' }, canonicalUrl);
   upsertMeta('meta[name="twitter:card"]', { name: 'twitter:card' }, 'summary_large_image');
+  upsertMeta('meta[name="twitter:image"]', { name: 'twitter:image' }, imageUrl);
+  upsertMeta('meta[name="twitter:image:alt"]', { name: 'twitter:image:alt' }, title);
 
   upsertLink('link[rel="canonical"]', { rel: 'canonical' }, canonicalUrl);
   upsertLink(
