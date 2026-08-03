@@ -206,26 +206,71 @@ Tarama büyütmesinde görülen sıra dışı ama anlamlı şekiller, bazen tan�
                             <AnimatePresence>
                                 {isRevealed && (
                                     <motion.div
-                                        initial={{ opacity: 0, y: 10 }}
+                                        initial={{ opacity: 0, y: 15 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: 10 }}
-                                        className="w-full text-left bg-white border-l-8 border-[#008a00] p-6 md:p-10 shadow-xl mt-4"
+                                        transition={{ duration: 0.4, ease: 'easeOut' }}
+                                        className="w-full text-left bg-white border-l-8 border-emerald-600 p-6 md:p-12 shadow-2xl rounded-r-2xl mt-6"
                                     >
-                                        <div className="flex flex-col gap-4">
+                                        <div className="flex flex-col gap-6">
                                             <div>
-                                                <span
-                                                    className="inline-block px-3 py-1 font-bold text-xs uppercase tracking-wide mb-4"
-                                                    style={{ backgroundColor: '#008a00', color: '#ffffff' }}
-                                                >
-                                                    Doğru Tanı
-                                                </span>
-                                                <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-6 leading-tight">
+                                                <div className="flex items-center gap-2 mb-4">
+                                                    <span className="inline-flex items-center gap-1.5 px-4 py-1.5 font-bold text-xs uppercase tracking-widest rounded-full bg-emerald-600 text-white shadow-sm">
+                                                        ✓ Doğru Tanı
+                                                    </span>
+                                                    <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                                        • Patoloji Vaka Analizi
+                                                    </span>
+                                                </div>
+
+                                                <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-8 leading-tight tracking-tight border-b border-gray-100 pb-6">
                                                     {currentCase.diagnosis}
                                                 </h2>
-                                                <div className="prose prose-lg text-gray-800 max-w-none prose-headings:font-bold prose-headings:text-gray-900 prose-headings:mt-6 prose-headings:mb-3 prose-p:leading-relaxed prose-li:my-1 prose-blockquote:border-l-4 prose-blockquote:border-purple-600 prose-blockquote:bg-purple-50 prose-blockquote:p-4 prose-blockquote:rounded-r prose-a:text-purple-700 prose-a:font-semibold hover:prose-a:underline">
+
+                                                <div className="prose-container max-w-none text-gray-800">
                                                     <ReactMarkdown
                                                         remarkPlugins={[remarkGfm]}
                                                         rehypePlugins={[rehypeRaw]}
+                                                        components={{
+                                                            h1: ({ node, ...props }) => (
+                                                                <h1 className="text-3xl font-extrabold text-gray-900 mt-8 mb-4 pb-3 border-b-2 border-purple-200" {...props} />
+                                                            ),
+                                                            h2: ({ node, ...props }) => (
+                                                                <h2 className="text-2xl md:text-3xl font-bold text-purple-950 mt-10 mb-4 pb-2 border-b border-purple-100 flex items-center gap-2" {...props} />
+                                                            ),
+                                                            h3: ({ node, ...props }) => (
+                                                                <h3 className="text-xl font-bold text-purple-900 mt-8 mb-3" {...props} />
+                                                            ),
+                                                            p: ({ node, ...props }) => (
+                                                                <p className="text-base md:text-lg text-gray-700 leading-relaxed my-4 font-normal" {...props} />
+                                                            ),
+                                                            ul: ({ node, ...props }) => (
+                                                                <ul className="my-5 space-y-3 pl-6 list-disc marker:text-purple-600 marker:text-lg" {...props} />
+                                                            ),
+                                                            ol: ({ node, ...props }) => (
+                                                                <ol className="my-5 space-y-3 pl-6 list-decimal marker:text-purple-600 marker:font-bold" {...props} />
+                                                            ),
+                                                            li: ({ node, ...props }) => (
+                                                                <li className="text-base md:text-lg text-gray-800 leading-relaxed pl-1" {...props} />
+                                                            ),
+                                                            blockquote: ({ node, ...props }) => (
+                                                                <blockquote className="my-8 p-6 bg-gradient-to-r from-purple-50 via-purple-50/60 to-indigo-50/40 border-l-4 border-purple-600 rounded-r-2xl text-purple-950 font-medium italic text-lg md:text-xl shadow-xs" {...props} />
+                                                            ),
+                                                            strong: ({ node, ...props }) => (
+                                                                <strong className="font-bold text-purple-950 bg-purple-100/70 px-1.5 py-0.5 rounded text-[0.95em]" {...props} />
+                                                            ),
+                                                            a: ({ node, href, children, ...props }) => (
+                                                                <a
+                                                                    href={href}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="inline-flex items-center gap-1 text-purple-700 hover:text-purple-900 font-bold underline underline-offset-4 decoration-purple-400 hover:decoration-purple-700 transition-colors"
+                                                                    {...props}
+                                                                >
+                                                                    {children} ↗
+                                                                </a>
+                                                            )
+                                                        }}
                                                     >
                                                         {currentCase.description}
                                                     </ReactMarkdown>
@@ -252,4 +297,5 @@ Tarama büyütmesinde görülen sıra dışı ama anlamlı şekiller, bazen tan�
         </PageContainer>
     );
 }
+
 
