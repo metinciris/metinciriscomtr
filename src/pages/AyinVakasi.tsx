@@ -1,24 +1,97 @@
 import React, { useState } from 'react';
 import { PageContainer } from '../components/PageContainer';
 import { motion, AnimatePresence } from 'motion/react';
-import { Microscope, ArrowRight, Eye, AlertCircle } from 'lucide-react';
+import { Microscope, ArrowRight, Eye, Tag } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import rehypeRaw from 'rehype-raw';
 
 export function AyinVakasi() {
     const [isRevealed, setIsRevealed] = useState(false);
 
-    // Mock Data - Case 22
-    // Mock Data - Case 26 (Amiloid Guatr)
+    // Case 41 - Enkapsüle papiller tiroid karsinomu
     const currentCase = {
-        id: 'case-26',
+        id: 'case-41',
         title: 'Ayın Vakası',
-        history: 'Papiller tiroid karsinomu şüphesi nedeniyle bir patoloji konsültasyonu istenmiştir.',
-        diagnosis: 'Amiloid Guatr',
-        description: `Histolojik görünüm normal tiroid dokusundan belirgin şekilde farklıdır. Tiroid folikülleri belirgin atrofik bir patern göstermektedir.
-        
-Dr. Kıvanç Kozan'a dijital tarama için teşekkürler.`,
+        tag: 'Tiroid Patolojisi',
+        history: 'Tiroid patolojisinde tanıya giden ilk ipucu bazen nükleer ayrıntılar değil, mimaridir. Düşük büyütmede kapsül veya kist duvarına kalın bir sapla tutunan, yukarı doğru dallanarak genişleyen "ağaçsı" bir siluet gösteren bu vakayı sanal mikroskopta inceleyerek tanınızı tahmin edin.',
+        diagnosis: 'Enkapsüle papiller tiroid karsinomu: Düşük büyütmede bir “ağaç” silueti',
+        description: `Patolojide bazen tanıya giden ilk ipucu nükleer ayrıntılar değil, mimaridir.  
+Bu olguda da düşük büyütmede dikkat çeken ilk şey, lezyonun genel siluetidir: kapsül ya da kist duvarına **kalın bir sapla tutunan**, yukarı doğru dallanarak genişleyen bir yapı. İlk bakışta bir **çınar ağacını** andırıyor. Siz bunu başka bir ağaç türüne benzetebilirsiniz; ama her hâlükârda, akılda kalıcı bir “ağaçsı” görünüm sunduğu açık.
+
+## Neden dikkat çekici?
+
+Enkapsüle papiller tiroid karsinomlarında çoğu zaman odak noktası kapsül, invazyon varlığı/yokluğu ve klasik papiller tiroid karsinomu nükleer özellikleridir. Ancak bazı olgularda düşük büyütmedeki genel organizasyon da oldukça öğretici olabilir.
+
+Bu vakada:
+
+- Lezyon belirgin şekilde **enkapsüle / sınırlı** izleniyor.
+- Ana kitle, duvara ya da kapsüle **dar olmayan, kalın bir bağlantı alanı** ile oturuyor.
+- Yukarı doğru uzanan papiller ve dallanan yapılar, adeta bir **gövde ve taç** oluşturuyor.
+- Bu görünüm, lezyonun yalnızca mikroskobik değil, aynı zamanda **görsel hafızada da yer etmesini** sağlıyor.
+
+## Mimari görünüm neden önemli?
+
+Düşük büyütmede dikkatli bakmak, özellikle tiroid lezyonlarında çok değerlidir. Çünkü bazı lezyonlar daha ilk tarama anında:
+
+- papiller mi,
+- folliküler mi,
+- kistik değişiklik gösteriyor mu,
+- kapsülle ilişkisi nasıl,
+- intrakistik/pedinküllü bir gelişim paterni var mı
+
+gibi soruların önemli bir kısmını önümüze koyar.
+
+Bu olguda “ağaç” benzeri görünüm, lezyonun:
+
+- **ekzofitik / polipoid benzeri** bir büyüme karakteri taşıdığını,
+- **papiller mimarinin baskın** olduğunu,
+- ve lezyonun çevre duvarla ilişkisini tek bakışta göstermesi açısından  
+öğretici bir örnek oluşturuyor.
+
+## Tanısal açıdan akılda tutulabilecek noktalar
+
+Bu tür bir olguda değerlendirirken klasik başlıklar yine önemini korur:
+
+### 1. Enkapsülasyon
+Lezyonun gerçekten iyi sınırlı ya da kapsüllü olup olmadığı dikkatle değerlendirilmelidir.
+
+### 2. Kapsül invazyonu / damar invazyonu
+Özellikle enkapsüle tiroid neoplazmlarında tanı ve biyolojik davranış açısından kritik basamaktır.
+
+### 3. Nükleer özellikler
+Papiller tiroid karsinomu lehine nükleer berraklaşma, nükleer çentiklenme, nükleer üst üste binme ve psödoinklüzyonlar aranmalıdır.
+
+### 4. Papiller mimari
+Papiller yapıların yaygınlığı, dallanma biçimi ve fibro-vasküler kor varlığı değerlendirilmelidir.
+
+### 5. Eşlik eden kistik değişiklik
+Bazı olgularda bu tip “saplı” ya da duvara oturan görünüm, kistik boşluk veya genişlemiş bir alanla ilişkili olabilir.
+
+## Görsel hafızada kalan olgular neden değerli?
+
+Patolojide bazı preparatlar yalnızca tanı koydurmaz; aynı zamanda öğretir.  
+Bu vaka da onlardan biri. Çünkü:
+
+> Bazen bir lezyonun mimarisi, kitabî bir tariften daha akılda kalıcıdır.
+
+Bir “çınar ağacı” gibi görünen bu enkapsüle papiller tiroid karsinomu, düşük büyütmenin önemini ve mimarinin tanısal düşüncedeki yerini hatırlatıyor.
+
+## Sanal mikroskop
+
+Vakayı sanal mikroskop üzerinden incelemek için:  
+[https://metinciris.github.io/gallery-41/](https://metinciris.github.io/gallery-41/)
+
+## Kısa not
+
+Bu tür olgular, tiroid patolojisinde yalnızca nükleer ayrıntılara değil, **genel doku mimarisine** de dikkat etmenin ne kadar öğretici olduğunu gösteriyor.  
+Tarama büyütmesinde görülen sıra dışı ama anlamlı şekiller, bazen tanı sürecinin en akılda kalıcı parçaları oluyor.`,
         slides: [
-            { label: 'H&E', url: 'https://metinciris.github.io/gallery-26/', thumbnail: 'https://metinciris.github.io/gallery-26/thumbnail.jpg' },
-            { label: 'Kongo Red', url: 'https://metinciris.github.io/gallery-27/', thumbnail: 'https://metinciris.github.io/gallery-27/thumbnail.jpg' }
+            {
+                label: 'Sanal Mikroskop Preparatı',
+                url: 'https://metinciris.github.io/gallery-41/',
+                thumbnail: 'https://raw.githubusercontent.com/metinciris/gallery-41/main/thumbnail.jpg'
+            }
         ]
     };
 
@@ -26,55 +99,75 @@ Dr. Kıvanç Kozan'a dijital tarama için teşekkürler.`,
         <PageContainer>
             <div className="max-w-4xl mx-auto pb-20">
                 {/* Header */}
-                <div className="mb-8 border-b-4 border-purple-600 pb-4">
-                    <h1 className="text-4xl md:text-5xl font-light text-gray-800">
-                        Ayın <span className="font-bold text-purple-700">Vakası</span>
-                    </h1>
-                    <p className="text-xl text-gray-500 mt-2 font-light">
-                        Kendinizi test edin, tanıyı tahmin edin.
-                    </p>
+                <div className="mb-8 border-b-4 border-purple-600 pb-4 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                    <div>
+                        <h1 className="text-4xl md:text-5xl font-light text-gray-800">
+                            Ayın <span className="font-bold text-purple-700">Vakası</span>
+                        </h1>
+                        <p className="text-xl text-gray-500 mt-2 font-light">
+                            Kendinizi test edin, tanıyı tahmin edin.
+                        </p>
+                    </div>
+                    {currentCase.tag && (
+                        <div className="flex items-center gap-2 bg-purple-100 text-purple-800 px-3 py-1.5 rounded-full text-sm font-semibold w-fit">
+                            <Tag size={16} />
+                            <span>{currentCase.tag}</span>
+                        </div>
+                    )}
                 </div>
 
                 {/* Case Card */}
                 <div className="bg-white shadow-xl border border-gray-100 overflow-hidden">
                     {/* Image Section - Vertical Stack */}
-                    <div className="bg-gray-200 flex flex-col items-center justify-center overflow-hidden group">
+                    <div className="bg-gray-900 flex flex-col items-center justify-center overflow-hidden group relative">
                         {currentCase.slides.map((slide, idx) => (
-                            <div key={idx} className="w-full relative">
+                            <a
+                                key={idx}
+                                href={slide.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-full relative block overflow-hidden group"
+                            >
                                 <img
                                     src={slide.thumbnail}
                                     alt={`${slide.label} thumbnail`}
-                                    className="w-full h-auto max-h-[600px] object-contain transition-transform duration-700 hover:scale-105"
+                                    className="w-full h-auto max-h-[600px] object-contain transition-transform duration-700 group-hover:scale-105"
                                     loading="lazy"
                                 />
-                                <div className="absolute bottom-0 left-0 bg-black/50 text-white px-3 py-1 text-sm font-bold">
-                                    {slide.label}
+                                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent text-white px-4 py-3 flex justify-between items-center">
+                                    <span className="font-bold text-sm md:text-base flex items-center gap-2">
+                                        <Microscope size={18} className="text-purple-400" />
+                                        {slide.label}
+                                    </span>
+                                    <span className="text-xs bg-purple-600/90 text-white px-2.5 py-1 rounded font-medium group-hover:bg-purple-500 transition-colors">
+                                        Sanal Mikroskopta Aç ↗
+                                    </span>
                                 </div>
-                            </div>
+                            </a>
                         ))}
                     </div>
 
-                    {/* Clinical History Section - Now Below Image - Metro Style */}
+                    {/* Clinical History Section - Metro Style */}
                     <div
                         className="p-6 md:p-8"
                         style={{ backgroundColor: '#4B0082', color: '#ffffff' }}
                     >
                         <div className="flex items-center gap-3 font-bold uppercase tracking-widest text-sm mb-3" style={{ color: '#e9d5ff' }}>
                             <Microscope size={20} />
-                            Bilgi
+                            Vaka Bilgisi & Klinik İpucu
                         </div>
-                        <p className="text-xl md:text-3xl font-light leading-relaxed" style={{ color: '#ffffff' }}>
+                        <p className="text-xl md:text-2xl font-light leading-relaxed" style={{ color: '#ffffff' }}>
                             {currentCase.history}
                         </p>
                     </div>
 
                     {/* Interaction Section */}
-                    <div className="p-8 md:p-12" style={{ backgroundColor: '#eeeeee' }}>
-                        <div className="flex flex-col items-center justify-center space-y-10">
+                    <div className="p-8 md:p-12" style={{ backgroundColor: '#f8fafc' }}>
+                        <div className="flex flex-col items-center justify-center space-y-8">
 
-                            {/* Action Buttons - Metro Style: Flat, Bold, Sharp */}
+                            {/* Action Buttons */}
                             <div className="flex flex-col md:flex-row gap-6 w-full md:w-auto justify-center items-stretch">
-                                {/* Sanal Mikroskop Button - Metro Blue */}
+                                {/* Sanal Mikroskop Button */}
                                 {currentCase.slides.map((slide, idx) => (
                                     <a
                                         key={idx}
@@ -82,23 +175,23 @@ Dr. Kıvanç Kozan'a dijital tarama için teşekkürler.`,
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="flex items-center justify-center px-8 py-5 font-bold text-lg transition-all shadow-md active:scale-95 w-full md:w-auto min-w-[280px]"
-                                        style={{ backgroundColor: idx === 0 ? '#0072C6' : '#B91D47', color: '#ffffff', textDecoration: 'none' }} // Blue for H&E, Red for Congo Red (Metro style)
+                                        style={{ backgroundColor: '#0072C6', color: '#ffffff', textDecoration: 'none' }}
                                     >
                                         <Microscope className="mr-3 h-6 w-6" />
-                                        {slide.label}
+                                        Sanal Mikroskop İncele
                                         <ArrowRight className="ml-3 h-5 w-5" />
                                     </a>
                                 ))}
 
-                                {/* Reveal Button - Metro Purple */}
+                                {/* Reveal Button */}
                                 {!isRevealed && (
                                     <button
                                         onClick={() => setIsRevealed(true)}
-                                        className="flex items-center justify-center px-8 py-5 font-bold text-lg transition-all shadow-md active:scale-95 w-full md:w-auto min-w-[320px]"
+                                        className="flex items-center justify-center px-8 py-5 font-bold text-lg transition-all shadow-md active:scale-95 w-full md:w-auto min-w-[320px] cursor-pointer"
                                         style={{ backgroundColor: '#603cba', color: '#ffffff' }}
                                     >
                                         <Eye className="mr-3 h-6 w-6" />
-                                        Cevabı Göster
+                                        Cevabı ve Detayları Göster
                                     </button>
                                 )}
                             </div>
@@ -116,7 +209,7 @@ Dr. Kıvanç Kozan'a dijital tarama için teşekkürler.`,
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: 10 }}
-                                        className="w-full text-left bg-white border-l-8 border-[#008a00] p-8 shadow-xl mt-4"
+                                        className="w-full text-left bg-white border-l-8 border-[#008a00] p-6 md:p-10 shadow-xl mt-4"
                                     >
                                         <div className="flex flex-col gap-4">
                                             <div>
@@ -126,13 +219,16 @@ Dr. Kıvanç Kozan'a dijital tarama için teşekkürler.`,
                                                 >
                                                     Doğru Tanı
                                                 </span>
-                                                <h2 className="text-4xl font-black text-gray-800 mb-6 leading-tight">
+                                                <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-6 leading-tight">
                                                     {currentCase.diagnosis}
                                                 </h2>
-                                                <div className="prose prose-lg text-gray-700 max-w-none">
-                                                    <p className="whitespace-pre-line leading-relaxed">
+                                                <div className="prose prose-lg text-gray-800 max-w-none prose-headings:font-bold prose-headings:text-gray-900 prose-headings:mt-6 prose-headings:mb-3 prose-p:leading-relaxed prose-li:my-1 prose-blockquote:border-l-4 prose-blockquote:border-purple-600 prose-blockquote:bg-purple-50 prose-blockquote:p-4 prose-blockquote:rounded-r prose-a:text-purple-700 prose-a:font-semibold hover:prose-a:underline">
+                                                    <ReactMarkdown
+                                                        remarkPlugins={[remarkGfm]}
+                                                        rehypePlugins={[rehypeRaw]}
+                                                    >
                                                         {currentCase.description}
-                                                    </p>
+                                                    </ReactMarkdown>
                                                 </div>
                                             </div>
                                         </div>
@@ -146,7 +242,7 @@ Dr. Kıvanç Kozan'a dijital tarama için teşekkürler.`,
                     {/* Navigation / Footer hints */}
                     {isRevealed && (
                         <div className="mt-8 text-center pb-8">
-                            <p className="text-gray-400 italic">
+                            <p className="text-gray-500 italic">
                                 Gelecek ay yeni bir vaka ile görüşmek üzere...
                             </p>
                         </div>
@@ -156,3 +252,4 @@ Dr. Kıvanç Kozan'a dijital tarama için teşekkürler.`,
         </PageContainer>
     );
 }
+
