@@ -89,7 +89,7 @@ export default function SjogrenRaporlama() {
         try {
             await navigator.clipboard.writeText(report);
             setCopied(true);
-            toast.success("Rapor kopyalandı");
+            toast.success("Rapor kopyalandı, ayrıca sıfırlandı");
             resetForm(false);
             setTimeout(() => setCopied(false), 2000);
         } catch {
