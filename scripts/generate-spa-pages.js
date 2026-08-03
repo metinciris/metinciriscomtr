@@ -288,6 +288,22 @@ function parseRegistry(content) {
   return pages;
 }
 
+function loadPatolojiSozluguFaqs() {
+  const filePath = join(rootDir, 'src', 'data', 'patolojiSozluguData.ts');
+  if (!existsSync(filePath)) return [];
+  const content = readFileSync(filePath, 'utf8');
+  const faqs = [];
+  const faqRegex = /\{\s*question:\s*(["'])([\s\S]*?)\1\s*,\s*answer:\s*(["'])([\s\S]*?)\3\s*\}/g;
+  let match;
+  while ((match = faqRegex.exec(content)) !== null) {
+    faqs.push({
+      question: match[2].trim(),
+      answer: stripMarkdown(match[4].trim()),
+    });
+  }
+  return faqs;
+}
+
 function removeTagByAttribute(html, tag, attribute, value) {
   const pattern = new RegExp(
     `<${tag}\\b(?=[^>]*\\b${escapeRegExp(attribute)}\\s*=\\s*["']${escapeRegExp(value)}["'])[^>]*>\\s*`,
@@ -738,16 +754,81 @@ async function main() {
     console.warn('CSS inline ekleme atlandı:', err.message);
   }
 
+  // --- Inject Site-wide JSON-LD (Person + Organization + WebSite) ---
+  const globalSiteGraph = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Person',
+        '@id': 'https://metinciris.com.tr/#kisi',
+        name: 'İbrahim Metin Çiriş',
+        alternateName: 'Metin Çiriş',
+        honorificPrefix: 'Prof. Dr.',
+        jobTitle: 'Tıbbi Patoloji Uzmanı',
+        url: 'https://metinciris.com.tr/',
+        image: 'https://metinciris.com.tr/img/metinciris.avif',
+        worksFor: { '@id': 'https://metinciris.com.tr/#kurum' },
+        affiliation: { '@id': 'https://metinciris.com.tr/#kurum' },
+        sameAs: [
+          'https://orcid.org/0000-0002-5619-4989',
+          'https://scholar.google.com.tr/citations?user=QZkewskAAAAJ&hl=tr',
+        ],
+      },
+      {
+        '@type': 'CollegeOrUniversity',
+        '@id': 'https://metinciris.com.tr/#kurum',
+        name: 'Süleyman Demirel Üniversitesi Tıp Fakültesi Tıbbi Patoloji Anabilim Dalı',
+        address: {
+          '@type': 'PostalAddress',
+          addressLocality: 'Isparta',
+          addressCountry: 'TR',
+        },
+      },
+      {
+        '@type': 'WebSite',
+        '@id': 'https://metinciris.com.tr/#site',
+        url: 'https://metinciris.com.tr/',
+        name: 'Prof. Dr. İbrahim Metin Çiriş — Tıbbi Patoloji',
+        inLanguage: 'tr',
+        publisher: { '@id': 'https://metinciris.com.tr/#kisi' },
+      },
+    ],
+  };
+
+  const globalJsonLdTag = `<script type="application/ld+json">\n${safeJsonForHtml(globalSiteGraph)}\n</script>`;
+  indexContent = indexContent.replace(/<\/head>/i, `${globalJsonLdTag}\n</head>`);
+
   for (const [id, meta] of Object.entries(registry)) {
     if (!meta.slug && id !== 'home') continue;
     const canonicalPath = meta.slug ? `/${meta.slug}/` : '/';
     const routePath = meta.slug || '';
-    const html = injectMetadata(indexContent, {
+    let html = injectMetadata(indexContent, {
       title: meta.title,
       description: meta.description,
       canonicalPath,
       noindex: meta.noindex,
     });
+
+    if (id === 'patoloji-sozlugu' || meta.slug === 'patoloji-sozlugu') {
+      const faqs = loadPatolojiSozluguFaqs();
+      if (faqs.length > 0) {
+        const faqStructuredData = {
+          '@context': 'https://schema.org',
+          '@type': 'FAQPage',
+          mainEntity: faqs.map((faq) => ({
+            '@type': 'Question',
+            name: faq.question,
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: faq.answer,
+            },
+          })),
+        };
+        const faqTag = `<script type="application/ld+json">\n${safeJsonForHtml(faqStructuredData)}\n</script>`;
+        html = html.replace(/<\/head>/i, `${faqTag}\n</head>`);
+      }
+    }
+
     writeRoute(routePath, html);
 
     if (!meta.noindex) {

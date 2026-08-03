@@ -477,10 +477,33 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
               </div>
             </div>
           </div>
-          <div className="border-t border-white/20 mt-8 pt-6 text-center text-gray-300">
+          <div className="border-t border-white/20 mt-8 pt-6 text-center text-gray-300 text-xs md:text-sm">
             <p className="m-0">
               © {currentYear} Prof Dr Metin Çiriş – Tıbbi Patoloji Uzmanı
             </p>
+            <div className="mt-2 flex items-center justify-center gap-2 flex-wrap text-gray-300">
+              <a
+                href="/kvkk-aydinlatma-metni/"
+                onClick={(e) => {
+                  e.preventDefault();
+                  onNavigate('kvkk-aydinlatma-metni');
+                }}
+                className="text-gray-300 hover:text-white transition-colors no-underline"
+              >
+                KVKK Aydınlatma Metni
+              </a>
+              <span aria-hidden="true"> · </span>
+              <a
+                href="/gizlilik-politikasi/"
+                onClick={(e) => {
+                  e.preventDefault();
+                  onNavigate('gizlilik-politikasi');
+                }}
+                className="text-gray-300 hover:text-white transition-colors no-underline"
+              >
+                Gizlilik Politikası
+              </a>
+            </div>
           </div>
         </div>
       </footer>

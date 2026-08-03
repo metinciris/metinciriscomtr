@@ -695,6 +695,28 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         navGroup: 'raporlama',
         load: () => import('@/pages/MemeHer2Algoritmasi').then(m => ({ default: m.MemeHer2Algoritmasi as unknown as React.ComponentType<Record<string, unknown>> })),
     },
+    'kvkk-aydinlatma-metni': {
+        slug: 'kvkk-aydinlatma-metni',
+        title: 'KVKK Aydınlatma Metni | Prof Dr Metin Çiriş',
+        description: 'Kişisel verilerin korunması kanunu kapsamında aydınlatma metni.',
+        lastmod: '2026-08-03',
+        priority: 0.3,
+        changefreq: 'yearly',
+        navLabel: undefined,
+        noindex: false,
+        load: () => import('@/pages/KvkkAydinlatma').then(m => ({ default: m.KvkkAydinlatma as unknown as React.ComponentType<Record<string, unknown>> })),
+    },
+    'gizlilik-politikasi': {
+        slug: 'gizlilik-politikasi',
+        title: 'Gizlilik Politikası | Prof Dr Metin Çiriş',
+        description: 'Kişisel verilerin işlenmesi ve çerez politikası hakkında bilgilendirme.',
+        lastmod: '2026-08-03',
+        priority: 0.3,
+        changefreq: 'yearly',
+        navLabel: undefined,
+        noindex: false,
+        load: () => import('@/pages/GizlilikPolitikasi').then(m => ({ default: m.GizlilikPolitikasi as unknown as React.ComponentType<Record<string, unknown>> })),
+    },
 };
 
 export const getPages = () => Object.values(PAGE_REGISTRY);
