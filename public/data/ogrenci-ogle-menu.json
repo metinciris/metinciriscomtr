@@ -1,12 +1,13 @@
 {
-  "date": "04.08.2026",
+  "date": "05.08.2026",
   "items": [
-    "ARPA ŞEHRİYE ÇORBASI",
-    "PİLİÇ KANAT",
-    "SEBZELİ BULGUR PİLAVI",
-    "AYRAN"
+    "&#199;ARŞAMBA",
+    "KÖYLÜM ÇORBASI",
+    "HÜNKAR BEĞENDİ",
+    "TEL ŞEHRİYELİ PİRİNÇ PİLAVI",
+    "İNCİR TATLISI"
   ],
-  "kcal": "1000",
+  "kcal": null,
   "source": "https://w3.sdu.edu.tr/aylik-yemek-listesi?dosya=yemekler_ogle&tur=2",
-  "updatedAt": "2026-08-04T10:05:28.907Z"
+  "updatedAt": "2026-08-05T07:16:23.507Z"
 }
