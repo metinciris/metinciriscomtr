@@ -1,13 +1,12 @@
 {
-  "date": "05.08.2026",
+  "date": "06.08.2026",
   "items": [
-    "&#199;ARŞAMBA",
-    "KÖYLÜM ÇORBASI",
-    "HÜNKAR BEĞENDİ",
-    "TEL ŞEHRİYELİ PİRİNÇ PİLAVI",
-    "İNCİR TATLISI"
+    "YAYLA ÇORBASI",
+    "KIYMALI KURU FASULYE",
+    "MEYANE PİLAVI",
+    "ÇOBAN SALATA"
   ],
-  "kcal": null,
+  "kcal": "950",
   "source": "https://w3.sdu.edu.tr/aylik-yemek-listesi?dosya=yemekler_ogle&tur=2",
-  "updatedAt": "2026-08-05T10:03:00.907Z"
+  "updatedAt": "2026-08-06T07:17:53.684Z"
 }
