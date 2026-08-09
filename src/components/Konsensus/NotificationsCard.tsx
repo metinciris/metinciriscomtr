@@ -87,7 +87,8 @@ export function NotificationsCard({
                         <div className="min-w-0 flex-1">
                             <div className="font-black text-sm text-gray-900">Google Takvim</div>
                             <p className="text-xs text-gray-500 mt-1">
-                                Toplantılar ve tarih-saat değişiklikleri takviminize yansısın. Google Takvim’in ilk aboneliği bilgisayardan yapılmalı.
+                                Toplantılar ve tarih-saat değişiklikleri takviminize yansısın.{' '}
+                                <strong className="font-black text-gray-700">Google Takvim’in ilk aboneliği bilgisayardan yapılmalı.</strong>
                             </p>
                             <a
                                 href={GOOGLE_CALENDAR_URL}
@@ -95,7 +96,7 @@ export function NotificationsCard({
                                 rel="noopener noreferrer"
                                 className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-black hover:bg-emerald-700 transition"
                             >
-                                Google Takvim’e ekle
+                                PC üzerinden Google Takvim’e ekle
                                 <ExternalLink className="w-3.5 h-3.5" />
                             </a>
                         </div>
