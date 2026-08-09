@@ -1,5 +1,5 @@
-import React from 'react';
-import { Bell, CalendarDays, ExternalLink, Send } from 'lucide-react';
+import React, { useState } from 'react';
+import { Bell, CalendarDays, ChevronDown, ExternalLink, Send } from 'lucide-react';
 
 const TELEGRAM_URL = 'https://t.me/konsensustakip';
 const GOOGLE_CALENDAR_URL = 'https://calendar.google.com/calendar/u/0?cid=YTZmOTYwZDE3ZTQ1ZDYxODU3NDI2NTc3ZTE1YzU4NDkzZTc2ZjY5ZmRmOGU2MmFlMTFkMmFlMjM4MTQwZDgyZUBncm91cC5jYWxlbmRhci5nb29nbGUuY29t';
@@ -14,91 +14,94 @@ export function NotificationsCard({
     pushLoading: boolean;
     togglePush: () => void;
 }) {
-    return (
-        <div className="bg-white rounded-3xl shadow-xl p-6 sm:p-7 border border-gray-100">
-            <div className="mb-5">
-                <div className="flex items-center gap-2 text-gray-900">
-                    <Bell className="w-5 h-5 text-blue-600" />
-                    <h2 className="text-lg font-black">Bildirim ve Takip</h2>
-                </div>
-                <p className="text-sm text-gray-500 mt-1">
-                    Size uygun yöntemi seçin. Birden fazlasını kullanabilirsiniz.
-                </p>
-            </div>
+    const [open, setOpen] = useState(false);
 
-            <div className="space-y-3">
-                <div className="rounded-2xl border border-blue-100 bg-blue-50/50 p-4">
-                    <div className="flex items-start gap-3">
-                        <div className="p-2 rounded-xl bg-blue-100 text-blue-700 shrink-0">
-                            <Bell className="w-5 h-5" />
-                        </div>
+    return (
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+            <button
+                type="button"
+                onClick={() => setOpen((value) => !value)}
+                aria-expanded={open}
+                className="w-full p-4 flex items-center gap-3 text-left hover:bg-gray-50 transition"
+            >
+                <div className="p-2 rounded-xl bg-blue-50 text-blue-700 shrink-0">
+                    <Bell className="w-5 h-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                    <div className="font-black text-gray-900">Bildirim ve Takip</div>
+                    <div className="text-xs sm:text-sm text-gray-500 mt-0.5">
+                        Telegram kanalımız üzerinden bildirim alın; diğer seçenekler için açın.
+                    </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                    {pushEnabled && <span className="w-2 h-2 rounded-full bg-emerald-500" title="Tarayıcı bildirimi açık" />}
+                    <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+                </div>
+            </button>
+
+            {open && (
+                <div className="border-t border-gray-100 p-4 space-y-3">
+                    <div className="flex items-start gap-3 rounded-xl bg-blue-50/60 p-3">
+                        <Bell className="w-5 h-5 text-blue-700 shrink-0 mt-0.5" />
                         <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2 flex-wrap">
-                                <div className="font-black text-gray-900">Tarayıcı bildirimi</div>
-                                <span className={`inline-flex items-center gap-1.5 text-xs font-bold ${pushEnabled ? 'text-emerald-700' : 'text-gray-500'}`}>
-                                    <span className={`w-2 h-2 rounded-full ${pushEnabled ? 'bg-emerald-500' : 'bg-gray-300'}`} />
+                                <span className="font-black text-sm text-gray-900">Tarayıcı bildirimi</span>
+                                <span className={`text-xs font-bold ${pushEnabled ? 'text-emerald-700' : 'text-gray-500'}`}>
                                     {pushEnabled ? 'Açık' : 'Kapalı'}
                                 </span>
                             </div>
-                            <div className="text-sm text-gray-500 mt-1">Toplantıdan 15 dakika önce bu cihazda uyarı alın.</div>
+                            <p className="text-xs text-gray-500 mt-1">Toplantıdan 15 dakika önce bu cihazda uyarı alın.</p>
                             <button
+                                type="button"
                                 onClick={togglePush}
                                 disabled={pushLoading}
-                                className={`mt-3 inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-black transition ${pushEnabled
+                                className={`mt-2 px-3 py-1.5 rounded-lg text-xs font-black transition ${pushEnabled
                                     ? 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
-                                    : 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm'
+                                    : 'bg-blue-600 text-white hover:bg-blue-700'
                                     }`}
                             >
-                                {pushLoading ? 'İşlem…' : pushEnabled ? 'Bildirimi kapat' : 'Bildirimi etkinleştir'}
+                                {pushLoading ? 'İşlem…' : pushEnabled ? 'Kapat' : 'Etkinleştir'}
                             </button>
                         </div>
                     </div>
-                </div>
 
-                <div className="rounded-2xl border border-sky-100 bg-sky-50/50 p-4">
-                    <div className="flex items-start gap-3">
-                        <div className="p-2 rounded-xl bg-sky-100 text-sky-700 shrink-0">
-                            <Send className="w-5 h-5" />
-                        </div>
+                    <div className="flex items-start gap-3 rounded-xl bg-sky-50/60 p-3">
+                        <Send className="w-5 h-5 text-sky-700 shrink-0 mt-0.5" />
                         <div className="min-w-0 flex-1">
-                            <div className="font-black text-gray-900">Telegram kanalı</div>
-                            <div className="text-sm text-gray-500 mt-1">Yeni ve yaklaşan toplantı duyurularını Telegram üzerinden takip edin.</div>
+                            <div className="font-black text-sm text-gray-900">Telegram kanalı</div>
+                            <p className="text-xs text-gray-500 mt-1">Toplantı duyurularını ve hatırlatmaları Telegram’dan takip edin.</p>
                             <a
                                 href={TELEGRAM_URL}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-sky-600 text-white text-sm font-black hover:bg-sky-700 transition shadow-sm"
+                                className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-600 text-white text-xs font-black hover:bg-sky-700 transition"
                             >
                                 Kanala katıl
-                                <ExternalLink className="w-4 h-4" />
+                                <ExternalLink className="w-3.5 h-3.5" />
                             </a>
                         </div>
                     </div>
-                </div>
 
-                <div className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-4">
-                    <div className="flex items-start gap-3">
-                        <div className="p-2 rounded-xl bg-emerald-100 text-emerald-700 shrink-0">
-                            <CalendarDays className="w-5 h-5" />
-                        </div>
+                    <div className="flex items-start gap-3 rounded-xl bg-emerald-50/60 p-3">
+                        <CalendarDays className="w-5 h-5 text-emerald-700 shrink-0 mt-0.5" />
                         <div className="min-w-0 flex-1">
-                            <div className="font-black text-gray-900">Patoloji Konsensus Takvimi</div>
-                            <div className="text-sm text-gray-500 mt-1">Toplantılar ve tarih-saat değişiklikleri takviminize otomatik yansısın.</div>
-                            <div className="mt-3 flex flex-wrap gap-2">
+                            <div className="font-black text-sm text-gray-900">Takvim</div>
+                            <p className="text-xs text-gray-500 mt-1">Toplantılar ve tarih-saat değişiklikleri takviminize yansısın.</p>
+                            <div className="mt-2 flex flex-wrap gap-2">
                                 <a
                                     href={GOOGLE_CALENDAR_URL}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 text-white text-sm font-black hover:bg-emerald-700 transition shadow-sm"
+                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-black hover:bg-emerald-700 transition"
                                 >
-                                    Google Takvim’e ekle
-                                    <ExternalLink className="w-4 h-4" />
+                                    Google Takvim
+                                    <ExternalLink className="w-3.5 h-3.5" />
                                 </a>
                                 <a
                                     href={ICAL_URL}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white text-gray-600 border border-gray-200 text-sm font-bold hover:bg-gray-50 transition"
+                                    className="inline-flex items-center px-3 py-1.5 rounded-lg bg-white text-gray-600 border border-gray-200 text-xs font-bold hover:bg-gray-50 transition"
                                 >
                                     iCal / Outlook
                                 </a>
@@ -106,7 +109,7 @@ export function NotificationsCard({
                         </div>
                     </div>
                 </div>
-            </div>
+            )}
         </div>
     );
 }
