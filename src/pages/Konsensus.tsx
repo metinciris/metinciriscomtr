@@ -52,7 +52,6 @@ export function Konsensus() {
   const [showPast, setShowPast] = useState(false);
   const [showAllPast, setShowAllPast] = useState(false);
 
-  // Toast state
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
   const showToast = (message: string, type: ToastType = 'success') => {
@@ -75,7 +74,6 @@ export function Konsensus() {
       if (!rpcError && rpcData) {
         setMeetings(rpcData as Meeting[]);
       } else {
-        // Fallback to table query with client-side masking until RPC migration is executed in Supabase SQL Editor
         const { data, error } = await supabase
           .from('meetings')
           .select('id, title, organizer, date, time, duration, description, poster_url, zoom_link, zoom_id, zoom_password')
@@ -244,7 +242,6 @@ export function Konsensus() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* SEO-friendly hidden description for bots */}
       <div
         aria-hidden="false"
         style={{
@@ -268,27 +265,19 @@ export function Konsensus() {
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
       <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-8 sm:p-10 rounded-3xl shadow-lg relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32" />
-          <div className="relative z-10 text-center">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight">
-              Patoloji Konsensus Toplantı Takibi
-            </h1>
-            <p className="mt-3 text-white/90 text-sm sm:text-base font-semibold">
-              Telegram kanalımız üzerinden{' '}
-              <a href="https://t.me/konsensustakip" target="_blank" rel="noopener noreferrer" className="underline underline-offset-4 font-black hover:text-white">
-                (tıklayın)
-              </a>{' '}
-              bildirim alın. Toplantılardan önce bildirim gönderilir.
-            </p>
-
-            <div className="mt-6 lg:hidden text-left">
-              <NotificationsCard pushEnabled={pushEnabled} pushLoading={pushLoading} togglePush={togglePush} />
-            </div>
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-gray-900">
+            Patoloji Konsensus Toplantı Takibi
+          </h1>
+          <p className="mt-2 text-sm sm:text-base text-gray-500 font-semibold">
+            Güncel toplantıları, yaklaşan oturumları ve konsensus takvimini tek yerden takip edin.
+          </p>
+          <div className="mt-4 lg:hidden">
+            <NotificationsCard pushEnabled={pushEnabled} pushLoading={pushLoading} togglePush={togglePush} />
           </div>
         </div>
 
-        <div className="mt-8 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           <div className="lg:col-span-8 space-y-8">
             {selectedOrganizer && (
               <div className="bg-white border border-blue-100 rounded-3xl p-4 sm:p-5 shadow-sm flex items-center justify-between">
