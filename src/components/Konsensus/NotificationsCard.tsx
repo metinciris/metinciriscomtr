@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bell } from 'lucide-react';
+import { Bell, CalendarPlus, ExternalLink } from 'lucide-react';
 
 export function NotificationsCard({
     pushEnabled,
@@ -10,6 +10,8 @@ export function NotificationsCard({
     pushLoading: boolean;
     togglePush: () => void;
 }) {
+    const calendarUrl = (import.meta.env.VITE_CONSENSUS_CALENDAR_URL ?? '').trim();
+
     return (
         <div className="bg-white rounded-3xl shadow-xl p-6 sm:p-7 border border-gray-100">
             <div className="flex items-start justify-between gap-3">
@@ -41,6 +43,31 @@ export function NotificationsCard({
             >
                 {pushLoading ? 'İşlem…' : pushEnabled ? 'Bildirimleri kapat' : 'Bildirimleri etkinleştir'}
             </button>
+
+            {calendarUrl && (
+                <div className="mt-5 pt-5 border-t border-gray-100">
+                    <div className="flex items-start gap-3">
+                        <div className="p-2.5 rounded-2xl bg-emerald-50 text-emerald-700">
+                            <CalendarPlus className="w-5 h-5" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                            <div className="font-black text-gray-900">Konsensus Takvimi</div>
+                            <div className="text-sm text-gray-500 mt-1">
+                                Google Takvim’e bir kez ekleyin; toplantı tarih ve saat değişiklikleri takviminize yansısın.
+                            </div>
+                            <a
+                                href={calendarUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="mt-3 inline-flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-emerald-600 text-white font-black hover:bg-emerald-700 transition shadow-md shadow-emerald-100"
+                            >
+                                Google Takvim’de takip et
+                                <ExternalLink className="w-4 h-4" />
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
