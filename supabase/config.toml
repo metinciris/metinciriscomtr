@@ -1,0 +1,2 @@
+[functions.sync-consensus-calendar]
+verify_jwt = false
