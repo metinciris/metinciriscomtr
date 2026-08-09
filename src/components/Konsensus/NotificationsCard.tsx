@@ -1,6 +1,9 @@
 import React from 'react';
 import { Bell, CalendarPlus, ExternalLink } from 'lucide-react';
 
+const GOOGLE_CALENDAR_URL = 'https://calendar.google.com/calendar/u/0?cid=YTZmOTYwZDE3ZTQ1ZDYxODU3NDI2NTc3ZTE1YzU4NDkzZTc2ZjY5ZmRmOGU2MmFlMTFkMmFlMjM4MTQwZDgyZUBncm91cC5jYWxlbmRhci5nb29nbGUuY29t';
+const ICAL_URL = 'https://calendar.google.com/calendar/ical/a6f960d17e45d61857426577e15c58493e76f69fdf8e62ae11d2ae238140d82e%40group.calendar.google.com/public/basic.ics';
+
 export function NotificationsCard({
     pushEnabled,
     pushLoading,
@@ -10,8 +13,6 @@ export function NotificationsCard({
     pushLoading: boolean;
     togglePush: () => void;
 }) {
-    const calendarUrl = (import.meta.env.VITE_CONSENSUS_CALENDAR_URL ?? '').trim();
-
     return (
         <div className="bg-white rounded-3xl shadow-xl p-6 sm:p-7 border border-gray-100">
             <div className="flex items-start justify-between gap-3">
@@ -44,30 +45,45 @@ export function NotificationsCard({
                 {pushLoading ? 'İşlem…' : pushEnabled ? 'Bildirimleri kapat' : 'Bildirimleri etkinleştir'}
             </button>
 
-            {calendarUrl && (
-                <div className="mt-5 pt-5 border-t border-gray-100">
-                    <div className="flex items-start gap-3">
-                        <div className="p-2.5 rounded-2xl bg-emerald-50 text-emerald-700">
-                            <CalendarPlus className="w-5 h-5" />
+            <div className="mt-5 pt-5 border-t border-gray-100">
+                <div className="flex items-start gap-3">
+                    <div className="p-2.5 rounded-2xl bg-emerald-50 text-emerald-700">
+                        <CalendarPlus className="w-5 h-5" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                        <div className="font-black text-gray-900">Patoloji Konsensus Takvimi</div>
+                        <div className="text-sm text-gray-500 mt-1">
+                            Takvimi bir kez ekleyin; yeni toplantılar ve tarih-saat değişiklikleri otomatik olarak takviminize yansısın.
                         </div>
-                        <div className="min-w-0 flex-1">
-                            <div className="font-black text-gray-900">Konsensus Takvimi</div>
-                            <div className="text-sm text-gray-500 mt-1">
-                                Google Takvim’e bir kez ekleyin; toplantı tarih ve saat değişiklikleri takviminize yansısın.
-                            </div>
+
+                        <div className="mt-3 flex flex-col sm:flex-row gap-2">
                             <a
-                                href={calendarUrl}
+                                href={GOOGLE_CALENDAR_URL}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="mt-3 inline-flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-emerald-600 text-white font-black hover:bg-emerald-700 transition shadow-md shadow-emerald-100"
+                                className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-emerald-600 text-white font-black hover:bg-emerald-700 transition shadow-md shadow-emerald-100"
                             >
-                                Google Takvim’de takip et
+                                Google Takvim’e ekle
+                                <ExternalLink className="w-4 h-4" />
+                            </a>
+
+                            <a
+                                href={ICAL_URL}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-gray-100 text-gray-700 font-black hover:bg-gray-200 transition"
+                            >
+                                Apple / Outlook / iCal
                                 <ExternalLink className="w-4 h-4" />
                             </a>
                         </div>
+
+                        <div className="text-xs text-gray-400 mt-2">
+                            Google Takvim’e ilk ekleme işlemi bilgisayar tarayıcısında daha sorunsuz çalışır.
+                        </div>
                     </div>
                 </div>
-            )}
+            </div>
         </div>
     );
 }
