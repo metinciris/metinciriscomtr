@@ -75,8 +75,6 @@ export function MeetingCard({
     const hasZoomInfo = Boolean(meeting.has_zoom_info || hasZoomLink || hasZoomId || hasZoomPassword);
     const showActionsSection = isAdmin || !isArchived;
 
-    const posterButtonOnly = isActuallyPast && hasPoster;
-
     const tomorrowKey = React.useMemo(() => {
         const { y, m, d } = parseYMD(nowKey);
         const base = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
@@ -89,6 +87,8 @@ export function MeetingCard({
         const month = MONTH_NAMES[m - 1] ? MONTH_NAMES[m - 1].slice(0, 3).toUpperCase() : '';
         return { dayStr: day, monthStr: month };
     }, [meeting.date]);
+
+    const detailUrl = `/konsensus/toplanti/${encodeURIComponent(String(meeting.id))}`;
 
     return (
         <div
@@ -187,16 +187,16 @@ export function MeetingCard({
 
                             <div className="mt-3 flex flex-wrap gap-2">
                                 <div className={`inline-flex items-center px-3 py-2 rounded-xl text-sm font-black border ${
-                                    isActuallyPast 
-                                        ? 'bg-gray-100 border-gray-200 text-gray-500' 
+                                    isActuallyPast
+                                        ? 'bg-gray-100 border-gray-200 text-gray-500'
                                         : 'bg-blue-50 border-blue-100 text-blue-900 shadow-sm'
                                 }`}>
                                     <Calendar className="w-4 h-4 mr-2 text-blue-600" />
                                     {formatDateTR(meeting.date)}
                                 </div>
                                 <div className={`inline-flex items-center px-3 py-2 rounded-xl text-sm font-black border ${
-                                    isActuallyPast 
-                                        ? 'bg-gray-100 border-gray-200 text-gray-500' 
+                                    isActuallyPast
+                                        ? 'bg-gray-100 border-gray-200 text-gray-500'
                                         : 'bg-indigo-50 border-indigo-100 text-indigo-900 shadow-sm'
                                 }`}>
                                     <Clock className="w-4 h-4 mr-2 text-indigo-600" />
@@ -209,6 +209,17 @@ export function MeetingCard({
                                         TSİ
                                     </span>
                                 </div>
+                                <a
+                                    href={detailUrl}
+                                    className={`inline-flex items-center px-3 py-2 rounded-xl text-sm font-black border transition ${
+                                        isActuallyPast
+                                            ? 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                                            : 'bg-violet-50 border-violet-100 text-violet-800 hover:bg-violet-100 shadow-sm'
+                                    }`}
+                                >
+                                    <ExternalLink className="w-4 h-4 mr-2" />
+                                    Toplantı Detayı
+                                </a>
                             </div>
 
                             {meeting.description && (
@@ -366,4 +377,3 @@ export function MeetingCard({
         </div>
     );
 }
-
