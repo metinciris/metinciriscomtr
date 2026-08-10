@@ -6,6 +6,7 @@ import {
   buildGoogleCalendarUrl,
   canShowZoomInfo,
   formatDateTR,
+  getMeetingStatus,
   getOrganizerWithEmoji,
   toTimeRange,
 } from '../components/Konsensus/utils';
@@ -81,6 +82,7 @@ export function KonsensusToplanti() {
 
   const duration = Math.max(15, meeting.duration ?? 60);
   const zoomVisible = canShowZoomInfo(meeting, new Date());
+  const { isPastToday: isPastMeeting } = getMeetingStatus(meeting, new Date());
   const hasZoomLink = !!meeting.zoom_link?.trim();
   const hasZoomId = !!meeting.zoom_id?.trim();
   const hasZoomPassword = !!meeting.zoom_password?.trim();
@@ -173,11 +175,11 @@ export function KonsensusToplanti() {
                     )}
                   </div>
                 </div>
-              ) : (
+              ) : !isPastMeeting ? (
                 <div className="rounded-2xl bg-gray-50 border border-gray-100 px-4 py-3 text-sm font-semibold text-gray-600">
                   Güncel katılım bilgileri toplantı saatine yaklaşıldığında bu sayfada görünür.
                 </div>
-              )}
+              ) : null}
 
               <button
                 onClick={() => window.open(buildGoogleCalendarUrl(meeting, now), '_blank')}
