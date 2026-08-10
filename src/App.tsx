@@ -26,6 +26,13 @@ const notFoundLazy: LazyComponent = React.lazy(() =>
 
 function getLazy(pageId: string): LazyComponent {
   if (!lazyCache[pageId]) {
+    if (pageId === 'konsensus-toplanti') {
+      lazyCache[pageId] = React.lazy(() =>
+        import('./pages/KonsensusToplanti').then(m => ({ default: m.KonsensusToplanti }))
+      );
+      return lazyCache[pageId];
+    }
+
     const meta = PAGE_REGISTRY[pageId];
     if (meta?.load) {
       lazyCache[pageId] = React.lazy(meta.load);
@@ -42,9 +49,10 @@ export default function App() {
 
   // Sayfa değiştikçe analytics gönder, odağı <main> öğesine taşı ve ekran okuyucuya bildir
   React.useEffect(() => {
-    trackPageView(currentPage);
+    const registryPage = currentPage === 'konsensus-toplanti' ? 'konsensus' : currentPage;
+    trackPageView(registryPage);
 
-    const pageLabel = getNavLabel(currentPage);
+    const pageLabel = getNavLabel(registryPage);
     setRouteAnnouncement(`${pageLabel} sayfası yüklendi.`);
 
     // Klavye odağını ana içeriğe geçir (a11y)
@@ -62,6 +70,11 @@ export default function App() {
     // Blog ana sayfası, sayfalama ve tekil yazı adresleri
     if (path === 'blog' || path.startsWith('blog/')) {
       return 'blog';
+    }
+
+    // Konsensus toplantı detay sayfası: /konsensus/toplanti/:id
+    if (/^konsensus\/toplanti\/[^/]+$/.test(path)) {
+      return 'konsensus-toplanti';
     }
 
     return validPages.includes(path) ? path : '404';
@@ -99,7 +112,8 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
-  const pageMeta = PAGE_REGISTRY[currentPage];
+  const registryPage = currentPage === 'konsensus-toplanti' ? 'konsensus' : currentPage;
+  const pageMeta = PAGE_REGISTRY[registryPage];
 
   // getLazy her zaman aynı React.lazy referansını döndürür — cache sayesinde
   const Page = getLazy(currentPage);
@@ -108,14 +122,14 @@ export default function App() {
 
   return (
     <>
-      <SEO currentPage={currentPage} />
+      <SEO currentPage={registryPage} />
 
       {/* Ekran okuyucular için dinamik yönlendirme duyurusu (a11y) */}
       <div className="sr-only" aria-live="polite" aria-atomic="true">
         {routeAnnouncement}
       </div>
 
-      <Layout currentPage={currentPage} onNavigate={navigate}>
+      <Layout currentPage={registryPage} onNavigate={navigate}>
         <ErrorBoundary>
           <React.Suspense
             fallback={
