@@ -37,6 +37,32 @@ function SectionTitle({ title, icon }: { title: string; icon: React.ReactNode })
   );
 }
 
+function stripOrganizerPrefix(title: string): string {
+  const trimmed = title.trim();
+
+  for (const organizer of ORGANIZER_OPTIONS) {
+    if (trimmed === organizer) return '';
+
+    for (const separator of [' – ', ' - ']) {
+      const prefix = `${organizer}${separator}`;
+      if (trimmed.startsWith(prefix)) {
+        return trimmed.slice(prefix.length).trim();
+      }
+    }
+  }
+
+  return trimmed;
+}
+
+function buildMeetingTitle(topic: string, organizer: string): string {
+  const cleanTopic = stripOrganizerPrefix(topic);
+  const cleanOrganizer = organizer.trim();
+
+  if (!cleanOrganizer) return cleanTopic;
+  if (!cleanTopic) return cleanOrganizer;
+  return `${cleanOrganizer} – ${cleanTopic}`;
+}
+
 export function KonsensusYonetim() {
   const [now, setNow] = useState<Date>(new Date());
   const nowKey = useMemo(() => dateKeyInTz(now, IST_TZ), [now]);
@@ -75,10 +101,19 @@ export function KonsensusYonetim() {
   };
 
   const getFormOrganizer = useCallback(() => {
-    return formData.organizer === 'Diğer' ? formData.customOrganizer.trim() : formData.organizer.trim();
-  }, [formData.organizer, formData.customOrganizer]);
+    return formData.organizer.trim();
+  }, [formData.organizer]);
 
-  const isFormValid = useCallback(() => !!(formData.title && formData.date && formData.time), [formData.title, formData.date, formData.time]);
+  const cleanFormTopic = useMemo(() => stripOrganizerPrefix(formData.title), [formData.title]);
+  const titlePreview = useMemo(
+    () => buildMeetingTitle(formData.title, formData.organizer),
+    [formData.title, formData.organizer]
+  );
+
+  const isFormValid = useCallback(
+    () => !!(cleanFormTopic && formData.date && formData.time),
+    [cleanFormTopic, formData.date, formData.time]
+  );
 
   const fetchMeetings = useCallback(async () => {
     setLoading(true);
@@ -218,8 +253,9 @@ export function KonsensusYonetim() {
 
     try {
       const organizer = getFormOrganizer();
+      const topic = stripOrganizerPrefix(formData.title);
       const payload = {
-        title: formData.title,
+        title: buildMeetingTitle(topic, organizer),
         organizer: organizer || null,
         date: formData.date,
         time: formData.time,
@@ -284,9 +320,9 @@ export function KonsensusYonetim() {
     const isKnownOrganizer = ORGANIZER_OPTIONS.includes((m.organizer || '') as any);
     setFormData({
       id: m.id,
-      title: m.title || '',
-      organizer: isKnownOrganizer ? (m.organizer || '') : 'Diğer',
-      customOrganizer: isKnownOrganizer ? '' : (m.organizer || ''),
+      title: stripOrganizerPrefix(m.title || ''),
+      organizer: isKnownOrganizer ? (m.organizer || '') : '',
+      customOrganizer: '',
       date: m.date || nowKey,
       time: m.time || '20:00',
       duration: m.duration ?? 60,
@@ -296,7 +332,9 @@ export function KonsensusYonetim() {
       zoomPassword: m.zoom_password ?? '',
       posterUrl: m.poster_url ?? '',
     });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setTimeout(() => {
+      document.getElementById('meeting-form-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 0);
     showToast('Düzenleme modu aktif', 'info');
   }, [nowKey]);
 
@@ -518,41 +556,9 @@ export function KonsensusYonetim() {
             </div>
 
             <div className="lg:col-span-4 space-y-8 lg:sticky lg:top-8">
-              <AdminPanel isAdmin={isAdmin} onLogin={handleLogin} onLogout={handleLogout} />
-
               <MonthlyCalendar meetings={meetings} onDayClick={handleDayClick} />
 
-              <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100 overflow-hidden relative">
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-400 to-orange-500" />
-                <h2 className="text-xl font-black text-gray-900 mb-6 flex items-center">
-                  <span className="text-2xl mr-3">🏆</span> En Aktif Gruplar
-                </h2>
-                <div className="space-y-3">
-                  {groupStats.map((s, idx) => (
-                    <button
-                      key={s.name}
-                      onClick={() => {
-                        setSelectedOrganizer(s.name);
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                      }}
-                      className={`w-full flex items-center justify-between p-3 rounded-2xl transition ${selectedOrganizer === s.name ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'bg-gray-50 hover:bg-blue-50'
-                        }`}
-                    >
-                      <div className="flex items-center gap-3 overflow-hidden">
-                        <span className={`w-7 h-7 rounded-full grid place-items-center text-xs font-black shrink-0 ${selectedOrganizer === s.name ? 'bg-blue-400 text-white' : 'bg-gray-200 text-gray-700'}`}>
-                          {idx + 1}
-                        </span>
-                        <span className="text-sm font-black truncate">{getOrganizerWithEmoji(s.name)}</span>
-                      </div>
-                      <span className={`px-2.5 py-1 rounded-xl text-xs font-black ${selectedOrganizer === s.name ? 'bg-blue-500 text-white' : 'bg-blue-100 text-blue-800'}`}>
-                        {s.count}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="bg-white rounded-3xl shadow-xl p-6 sm:p-8 border border-gray-100">
+              <div id="meeting-form-card" className="bg-white rounded-3xl shadow-xl p-6 sm:p-8 border border-gray-100 scroll-mt-8">
                 <div className="flex items-center justify-between gap-3 mb-6">
                   <h3 className="text-lg sm:text-xl font-black text-gray-900 flex items-center gap-2">
                     <Plus className="w-5 h-5 text-blue-700" />
@@ -595,24 +601,21 @@ export function KonsensusYonetim() {
                         </option>
                       ))}
                     </select>
-                    {formData.organizer === 'Diğer' && (
-                      <input
-                        value={formData.customOrganizer}
-                        onChange={(e) => setFormData((p) => ({ ...p, customOrganizer: e.target.value }))}
-                        placeholder="Özel düzenleyici"
-                        className="w-full px-4 py-3 rounded-2xl bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent font-semibold mt-2"
-                      />
-                    )}
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-sm font-black text-gray-700">Başlık *</label>
+                    <label className="text-sm font-black text-gray-700">Toplantı konusu *</label>
                     <input
                       value={formData.title}
                       onChange={(e) => setFormData((p) => ({ ...p, title: e.target.value }))}
-                      placeholder="Toplantı başlığı"
+                      placeholder="Örn. Papiller Meme Lezyonları"
                       className="w-full px-4 py-3 rounded-2xl bg-gray-50 border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent font-semibold"
                     />
+                    {titlePreview && (
+                      <p className="text-xs leading-relaxed text-gray-500">
+                        Kaydedilecek başlık: <span className="font-black text-gray-700">{titlePreview}</span>
+                      </p>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -732,6 +735,38 @@ export function KonsensusYonetim() {
                     {actionLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
                     {formData.id ? 'Güncelle' : 'Kaydet'}
                   </button>
+                </div>
+              </div>
+
+              <AdminPanel isAdmin={isAdmin} onLogin={handleLogin} onLogout={handleLogout} />
+
+              <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100 overflow-hidden relative">
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-400 to-orange-500" />
+                <h2 className="text-xl font-black text-gray-900 mb-6 flex items-center">
+                  <span className="text-2xl mr-3">🏆</span> En Aktif Gruplar
+                </h2>
+                <div className="space-y-3">
+                  {groupStats.map((s, idx) => (
+                    <button
+                      key={s.name}
+                      onClick={() => {
+                        setSelectedOrganizer(s.name);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      className={`w-full flex items-center justify-between p-3 rounded-2xl transition ${selectedOrganizer === s.name ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'bg-gray-50 hover:bg-blue-50'
+                        }`}
+                    >
+                      <div className="flex items-center gap-3 overflow-hidden">
+                        <span className={`w-7 h-7 rounded-full grid place-items-center text-xs font-black shrink-0 ${selectedOrganizer === s.name ? 'bg-blue-400 text-white' : 'bg-gray-200 text-gray-700'}`}>
+                          {idx + 1}
+                        </span>
+                        <span className="text-sm font-black truncate">{getOrganizerWithEmoji(s.name)}</span>
+                      </div>
+                      <span className={`px-2.5 py-1 rounded-xl text-xs font-black ${selectedOrganizer === s.name ? 'bg-blue-500 text-white' : 'bg-blue-100 text-blue-800'}`}>
+                        {s.count}
+                      </span>
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>
