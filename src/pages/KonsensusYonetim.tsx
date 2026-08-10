@@ -79,7 +79,6 @@ export function KonsensusYonetim() {
   const [showPast, setShowPast] = useState(false);
   const [showAllPast, setShowAllPast] = useState(false);
 
-  // Toast state
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
   const [formData, setFormData] = useState<MeetingFormData & { id?: string | number }>({
@@ -556,8 +555,6 @@ export function KonsensusYonetim() {
             </div>
 
             <div className="lg:col-span-4 space-y-8 lg:sticky lg:top-8">
-              <MonthlyCalendar meetings={meetings} onDayClick={handleDayClick} />
-
               <div id="meeting-form-card" className="bg-white rounded-3xl shadow-xl p-6 sm:p-8 border border-gray-100 scroll-mt-8">
                 <div className="flex items-center justify-between gap-3 mb-6">
                   <h3 className="text-lg sm:text-xl font-black text-gray-900 flex items-center gap-2">
@@ -737,6 +734,8 @@ export function KonsensusYonetim() {
                   </button>
                 </div>
               </div>
+
+              <MonthlyCalendar meetings={meetings} onDayClick={handleDayClick} />
 
               <AdminPanel isAdmin={isAdmin} onLogin={handleLogin} onLogout={handleLogout} />
 
