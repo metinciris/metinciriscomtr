@@ -8,8 +8,8 @@ RETURNS TABLE (
     id TEXT,
     title TEXT,
     organizer TEXT,
-    date TEXT,
-    time TEXT,
+    "date" TEXT,
+    "time" TEXT,
     duration INT,
     description TEXT,
     poster_url TEXT,
@@ -18,16 +18,11 @@ RETURNS TABLE (
     zoom_id TEXT,
     zoom_password TEXT
 )
-LANGUAGE plpgsql
+LANGUAGE sql
+STABLE
 SECURITY DEFINER
 SET search_path = public
 AS $$
-DECLARE
-    now_ist TIMESTAMP;
-BEGIN
-    now_ist := NOW() AT TIME ZONE 'Europe/Istanbul';
-
-    RETURN QUERY
     SELECT
         m.id::text AS id,
         m.title,
@@ -38,35 +33,43 @@ BEGIN
         m.description,
         m.poster_url,
         (
-            (m.zoom_link IS NOT NULL AND TRIM(m.zoom_link) != '') OR
-            (m.zoom_id IS NOT NULL AND TRIM(m.zoom_id) != '') OR
-            (m.zoom_password IS NOT NULL AND TRIM(m.zoom_password) != '')
+            (m.zoom_link IS NOT NULL AND TRIM(m.zoom_link) <> '') OR
+            (m.zoom_id IS NOT NULL AND TRIM(m.zoom_id) <> '') OR
+            (m.zoom_password IS NOT NULL AND TRIM(m.zoom_password) <> '')
         ) AS has_zoom_info,
         CASE
             WHEN (
-                now_ist >= ((m.date || ' ' || COALESCE(NULLIF(m.time, ''), '20:00') || ':00')::timestamp - INTERVAL '120 minutes')
-                AND now_ist < ((m.date::date + INTERVAL '1 day')::timestamp)
+                (NOW() AT TIME ZONE 'Europe/Istanbul') >= (
+                    (m.date || ' ' || COALESCE(NULLIF(m.time, ''), '20:00') || ':00')::timestamp
+                    - INTERVAL '120 minutes'
+                )
+                AND (NOW() AT TIME ZONE 'Europe/Istanbul') < ((m.date::date + INTERVAL '1 day')::timestamp)
             ) THEN m.zoom_link
             ELSE NULL
         END AS zoom_link,
         CASE
             WHEN (
-                now_ist >= ((m.date || ' ' || COALESCE(NULLIF(m.time, ''), '20:00') || ':00')::timestamp - INTERVAL '120 minutes')
-                AND now_ist < ((m.date::date + INTERVAL '1 day')::timestamp)
+                (NOW() AT TIME ZONE 'Europe/Istanbul') >= (
+                    (m.date || ' ' || COALESCE(NULLIF(m.time, ''), '20:00') || ':00')::timestamp
+                    - INTERVAL '120 minutes'
+                )
+                AND (NOW() AT TIME ZONE 'Europe/Istanbul') < ((m.date::date + INTERVAL '1 day')::timestamp)
             ) THEN m.zoom_id
             ELSE NULL
         END AS zoom_id,
         CASE
             WHEN (
-                now_ist >= ((m.date || ' ' || COALESCE(NULLIF(m.time, ''), '20:00') || ':00')::timestamp - INTERVAL '120 minutes')
-                AND now_ist < ((m.date::date + INTERVAL '1 day')::timestamp)
+                (NOW() AT TIME ZONE 'Europe/Istanbul') >= (
+                    (m.date || ' ' || COALESCE(NULLIF(m.time, ''), '20:00') || ':00')::timestamp
+                    - INTERVAL '120 minutes'
+                )
+                AND (NOW() AT TIME ZONE 'Europe/Istanbul') < ((m.date::date + INTERVAL '1 day')::timestamp)
             ) THEN m.zoom_password
             ELSE NULL
         END AS zoom_password
-    FROM public.meetings m
+    FROM public.meetings AS m
     WHERE m.id::text = p_id
     LIMIT 1;
-END;
 $$;
 
 GRANT EXECUTE ON FUNCTION public.get_public_meeting(TEXT) TO anon, authenticated, service_role;
