@@ -1,7 +1,12 @@
 {
-  "date": "09.08.2026",
-  "items": [],
-  "kcal": null,
+  "date": "10.08.2026",
+  "items": [
+    "DOMATES ÇORBASI",
+    "FIRIN TAVUK",
+    "ARPA ŞEHRİYE PİLAVI",
+    "KASE YOĞURT"
+  ],
+  "kcal": "1000",
   "source": "https://w3.sdu.edu.tr/aylik-yemek-listesi?dosya=yemekler_ogle&tur=2",
-  "updatedAt": "2026-08-09T08:05:25.509Z"
+  "updatedAt": "2026-08-10T05:56:34.646Z"
 }
