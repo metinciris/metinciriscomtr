@@ -1,7 +1,12 @@
 {
-  "date": "16.08.2026",
-  "items": [],
-  "kcal": null,
+  "date": "17.08.2026",
+  "items": [
+    "EZOGELİN ÇORBASI",
+    "ZEYTİNYAĞLI TAZE FASULYE",
+    "BOLONEZ SOSLU MAKARNA",
+    "KASE YOĞURT"
+  ],
+  "kcal": "950",
   "source": "https://w3.sdu.edu.tr/aylik-yemek-listesi?dosya=yemekler_ogle&tur=2",
-  "updatedAt": "2026-08-16T07:51:05.046Z"
+  "updatedAt": "2026-08-17T05:09:46.452Z"
 }
