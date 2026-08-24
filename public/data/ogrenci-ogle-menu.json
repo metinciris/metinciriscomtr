@@ -1,7 +1,12 @@
 {
-  "date": "23.08.2026",
-  "items": [],
-  "kcal": null,
+  "date": "24.08.2026",
+  "items": [
+    "DOMATES ÇORBASI",
+    "KIYMALI BEZELYE",
+    "MANTI",
+    "KARPUZ"
+  ],
+  "kcal": "950",
   "source": "https://w3.sdu.edu.tr/aylik-yemek-listesi?dosya=yemekler_ogle&tur=2",
-  "updatedAt": "2026-08-23T07:53:28.678Z"
+  "updatedAt": "2026-08-24T05:19:30.554Z"
 }
