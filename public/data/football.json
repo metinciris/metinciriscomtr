@@ -1,1 +1,32 @@
-[]
+[
+  {
+    "id": "football-CL-575334",
+    "sport": "football",
+    "competition": "UEFA Champions League",
+    "season": "2025/26",
+    "homeTeam": "Sporting Clube de Portugal",
+    "awayTeam": "Galatasaray SK",
+    "startTimeUTC": "2026-09-09T19:00:00Z",
+    "startTimeLocal": "2026-09-09T22:00:00+03:00",
+    "status": "scheduled",
+    "scoreHome": null,
+    "scoreAway": null,
+    "source": "football-data",
+    "lastFetchedAt": "2026-08-30T20:50:23.893Z"
+  },
+  {
+    "id": "football-CL-575335",
+    "sport": "football",
+    "competition": "UEFA Champions League",
+    "season": "2025/26",
+    "homeTeam": "Fenerbahçe SK",
+    "awayTeam": "AS Roma",
+    "startTimeUTC": "2026-09-10T16:45:00Z",
+    "startTimeLocal": "2026-09-10T19:45:00+03:00",
+    "status": "scheduled",
+    "scoreHome": null,
+    "scoreAway": null,
+    "source": "football-data",
+    "lastFetchedAt": "2026-08-30T20:50:23.893Z"
+  }
+]
