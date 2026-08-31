@@ -1,7 +1,13 @@
 {
-  "date": "30.08.2026",
-  "items": [],
-  "kcal": null,
+  "date": "31.08.2026",
+  "items": [
+    "ARPA ŞEHRİYE ÇORBASI",
+    "ORMAN KEBABI",
+    "MEYANE PİLAVI",
+    "KASE YOĞURT",
+    "SIZE NASIL YARDIMCI OLABILIRIM?"
+  ],
+  "kcal": "1000",
   "source": "https://w3.sdu.edu.tr/aylik-yemek-listesi?dosya=yemekler_ogle&tur=2",
-  "updatedAt": "2026-08-30T13:02:52.623Z"
+  "updatedAt": "2026-08-31T11:04:25.218Z"
 }
