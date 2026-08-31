@@ -119,6 +119,17 @@ export function getZoomVisibilityCountdown(m: Meeting, now = new Date()): string
     return `Zoom bilgileri ${mins} dakika sonra yayınlanacak.`;
 }
 
+export function getEffectiveZoomLink(m: Meeting): string | null {
+    if (m.zoom_link && m.zoom_link.trim()) {
+        return m.zoom_link.trim();
+    }
+    if (m.zoom_id && m.zoom_id.trim()) {
+        const cleanId = m.zoom_id.trim().replace(/\s+/g, '');
+        return `https://zoom.us/j/${cleanId}`;
+    }
+    return null;
+}
+
 export function buildGoogleCalendarUrl(m: Meeting, now = new Date()) {
     const duration = Math.max(15, m.duration ?? 60);
     const start = toCompact(m.date, m.time || '20:00');
@@ -126,11 +137,12 @@ export function buildGoogleCalendarUrl(m: Meeting, now = new Date()) {
     const end = toCompact(endParts.date, endParts.time);
 
     const showZoom = canShowZoomInfo(m, now);
+    const zoomLink = getEffectiveZoomLink(m);
 
     let details = (m.description ?? '').trim();
     if (m.organizer) details = `Düzenleyen: ${m.organizer}\n\n${details}`;
     if (showZoom) {
-        if (m.zoom_link) details += `\n\nZoom: ${m.zoom_link}`;
+        if (zoomLink) details += `\n\nZoom: ${zoomLink}`;
         if (m.zoom_id) details += `\nZoom ID: ${m.zoom_id}`;
         if (m.zoom_password) details += `\nŞifre: ${m.zoom_password}`;
     }
@@ -153,16 +165,17 @@ export function buildIcs(m: Meeting, now = new Date()) {
     const end = toCompact(endParts.date, endParts.time);
 
     const showZoom = canShowZoomInfo(m, now);
+    const zoomLink = getEffectiveZoomLink(m);
 
     let description = (m.description ?? '').replace(/\n/g, '\\n');
     if (m.organizer) description = `Düzenleyen: ${m.organizer}\\n\\n${description}`;
     if (showZoom) {
-        if (m.zoom_link) description += `\\n\\nZoom: ${m.zoom_link}`;
+        if (zoomLink) description += `\\n\\nZoom: ${zoomLink}`;
         if (m.zoom_id) description += `\\nZoom ID: ${m.zoom_id}`;
         if (m.zoom_password) description += `\\nŞifre: ${m.zoom_password}`;
     }
 
-    const location = (showZoom && m.zoom_link) ? `LOCATION:${m.zoom_link}` : '';
+    const location = (showZoom && zoomLink) ? `LOCATION:${zoomLink}` : '';
 
     return [
         'BEGIN:VCALENDAR',
@@ -321,21 +334,20 @@ export function shareWhatsApp(m: Meeting, now = new Date()) {
     }
 
     const showZoom = canShowZoomInfo(m, now);
+    const zoomLink = getEffectiveZoomLink(m);
     const hasZoomInfo = Boolean(
         m.has_zoom_info ||
-        (m.zoom_link && m.zoom_link.trim()) ||
+        zoomLink ||
         (m.zoom_id && m.zoom_id.trim()) ||
         (m.zoom_password && m.zoom_password.trim())
     );
 
     if (showZoom && hasZoomInfo) {
-        if (m.zoom_id || m.zoom_password || m.zoom_link) {
+        if (m.zoom_id || m.zoom_password || zoomLink) {
             msg += `\n🔗 *Zoom Bilgileri:*\n`;
             if (m.zoom_id) msg += `• ID: ${m.zoom_id}\n`;
             if (m.zoom_password) msg += `• Şifre: ${m.zoom_password}\n`;
-            if (!m.zoom_id && !m.zoom_password && m.zoom_link) {
-                msg += `• Bağlantı: ${m.zoom_link}\n`;
-            }
+            if (zoomLink) msg += `• Bağlantı: ${zoomLink}\n`;
         }
     } else if (!showZoom && hasZoomInfo) {
         msg += `\nGüncel Zoom katılım bilgileri toplantıdan 2 saat önce yayınlanacaktır:\nhttps://konsensus.bolt.host\n`;

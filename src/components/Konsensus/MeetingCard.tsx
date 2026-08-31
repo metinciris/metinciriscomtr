@@ -28,6 +28,7 @@ import {
     canShowZoomInfo,
     canShowPoster,
     getZoomVisibilityCountdown,
+    getEffectiveZoomLink,
 } from './utils';
 
 interface MeetingCardProps {
@@ -69,7 +70,8 @@ export function MeetingCard({
     const hasPoster = posterVisible && !!meeting.poster_url;
     const duration = Math.max(15, meeting.duration ?? 60);
 
-    const hasZoomLink = !!(meeting.zoom_link && meeting.zoom_link.trim());
+    const effectiveZoomLink = getEffectiveZoomLink(meeting);
+    const hasZoomLink = !!effectiveZoomLink;
     const hasZoomId = !!(meeting.zoom_id && meeting.zoom_id.trim());
     const hasZoomPassword = !!(meeting.zoom_password && meeting.zoom_password.trim());
     const hasZoomInfo = Boolean(meeting.has_zoom_info || hasZoomLink || hasZoomId || hasZoomPassword);
@@ -290,7 +292,7 @@ export function MeetingCard({
 
                                             {hasZoomLink && (
                                                 <a
-                                                    href={meeting.zoom_link!}
+                                                    href={effectiveZoomLink!}
                                                     className={`inline-flex items-center px-6 py-3 text-sm font-black rounded-xl transition shadow-md ${
                                                         isLive
                                                             ? 'bg-green-600 hover:bg-green-700 text-white shadow-green-200'

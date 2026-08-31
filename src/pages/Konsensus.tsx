@@ -19,6 +19,7 @@ import {
   getMeetingStatus,
   canShowZoomInfo,
   canShowPoster,
+  getEffectiveZoomLink,
 } from '../components/Konsensus/utils';
 
 import { MeetingCard } from '../components/Konsensus/MeetingCard';
@@ -86,7 +87,7 @@ export function Konsensus() {
             const zoomVisible = canShowZoomInfo(m, currentTime);
             const posterVisible = canShowPoster(m, currentTime);
             const has_zoom_info = Boolean(
-              (m.zoom_link && m.zoom_link.trim()) ||
+              getEffectiveZoomLink(m) ||
               (m.zoom_id && m.zoom_id.trim()) ||
               (m.zoom_password && m.zoom_password.trim())
             );

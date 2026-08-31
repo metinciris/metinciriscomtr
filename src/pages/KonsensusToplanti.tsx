@@ -1,11 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, Calendar, Clock, ExternalLink, Image as ImageIcon, Loader2, Video } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, Download, ExternalLink, Image as ImageIcon, Loader2, Video } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Meeting } from '../components/Konsensus/types';
 import {
   buildGoogleCalendarUrl,
   canShowZoomInfo,
+  downloadIcs,
   formatDateTR,
+  getEffectiveZoomLink,
   getMeetingStatus,
   getOrganizerWithEmoji,
   toTimeRange,
@@ -83,7 +85,8 @@ export function KonsensusToplanti() {
   const duration = Math.max(15, meeting.duration ?? 60);
   const zoomVisible = canShowZoomInfo(meeting, new Date());
   const { isPastToday: isPastMeeting } = getMeetingStatus(meeting, new Date());
-  const hasZoomLink = !!meeting.zoom_link?.trim();
+  const zoomLink = getEffectiveZoomLink(meeting);
+  const hasZoomLink = !!zoomLink;
   const hasZoomId = !!meeting.zoom_id?.trim();
   const hasZoomPassword = !!meeting.zoom_password?.trim();
 
@@ -154,7 +157,7 @@ export function KonsensusToplanti() {
                   <div className="mt-4 flex flex-wrap gap-3">
                     {hasZoomLink && (
                       <a
-                        href={meeting.zoom_link!}
+                        href={zoomLink!}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-blue-600 text-white font-black hover:bg-blue-700 transition"
@@ -181,13 +184,23 @@ export function KonsensusToplanti() {
                 </div>
               ) : null}
 
-              <button
-                onClick={() => window.open(buildGoogleCalendarUrl(meeting, now), '_blank')}
-                className="inline-flex items-center gap-2 px-4 py-3 rounded-2xl bg-blue-50 text-blue-800 hover:bg-blue-100 text-sm font-black transition border border-blue-100"
-              >
-                <ExternalLink className="w-4 h-4" />
-                Takvime ekle
-              </button>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => window.open(buildGoogleCalendarUrl(meeting, now), '_blank')}
+                  className="inline-flex items-center gap-2 px-4 py-3 rounded-2xl bg-blue-50 text-blue-800 hover:bg-blue-100 text-sm font-black transition border border-blue-100"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  Takvime ekle
+                </button>
+
+                <button
+                  onClick={() => downloadIcs(meeting, now)}
+                  className="inline-flex items-center gap-2 px-4 py-3 rounded-2xl bg-indigo-50 text-indigo-800 hover:bg-indigo-100 text-sm font-black transition border border-indigo-100"
+                >
+                  <Download className="w-4 h-4" />
+                  iCal (.ics) indir
+                </button>
+              </div>
             </div>
           </div>
         </article>
