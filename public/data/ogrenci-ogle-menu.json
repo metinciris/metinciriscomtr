@@ -1,12 +1,13 @@
 {
-  "date": "01.09.2026",
+  "date": "02.09.2026",
   "items": [
-    "TOYGA ÇORBA",
-    "RULO KÖFTE",
-    "PATATES PÜRESİ",
-    "REVANİ"
+    "&#199;ARŞAMBA",
+    "KREMALI SEBZE ÇORBASI",
+    "KIYMALI NOHUT",
+    "ARPA ŞEHRİYELİ PİRİNÇ PİLAVI",
+    "KARIŞIK TURŞU"
   ],
-  "kcal": "1300",
+  "kcal": "950",
   "source": "https://w3.sdu.edu.tr/aylik-yemek-listesi?dosya=yemekler_ogle&tur=2",
-  "updatedAt": "2026-09-01T12:37:51.009Z"
+  "updatedAt": "2026-09-02T08:57:37.954Z"
 }
