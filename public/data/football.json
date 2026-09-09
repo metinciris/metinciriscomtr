@@ -9,10 +9,10 @@
     "startTimeUTC": "2026-09-09T19:00:00Z",
     "startTimeLocal": "2026-09-09T22:00:00+03:00",
     "status": "scheduled",
-    "scoreHome": null,
-    "scoreAway": null,
+    "scoreHome": 3,
+    "scoreAway": 1,
     "source": "football-data",
-    "lastFetchedAt": "2026-09-09T11:03:17.325Z"
+    "lastFetchedAt": "2026-09-09T20:46:28.015Z"
   },
   {
     "id": "football-CL-575335",
@@ -27,6 +27,6 @@
     "scoreHome": null,
     "scoreAway": null,
     "source": "football-data",
-    "lastFetchedAt": "2026-09-09T11:03:17.325Z"
+    "lastFetchedAt": "2026-09-09T20:46:28.015Z"
   }
 ]
