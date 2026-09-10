@@ -1,13 +1,12 @@
 {
-  "date": "09.09.2026",
+  "date": "10.09.2026",
   "items": [
-    "&#199;ARŞAMBA",
-    "MERCİMEK ÇORBASI",
-    "SUCUK İÇİ KÖFTE",
-    "ARPA ŞEHRİYELİ PİRİNÇ PİLAVI",
-    "KASE AYRAN"
+    "YAYLA ÇORBASI",
+    "KIYMALI PATATES OTURTMA",
+    "TEL ŞEHRİYELİ BULGUR PİLAVI",
+    "KEŞKÜL"
   ],
-  "kcal": "1000",
+  "kcal": "1200",
   "source": "https://w3.sdu.edu.tr/aylik-yemek-listesi?dosya=yemekler_ogle&tur=2",
-  "updatedAt": "2026-09-09T12:23:58.522Z"
+  "updatedAt": "2026-09-10T09:04:56.578Z"
 }
