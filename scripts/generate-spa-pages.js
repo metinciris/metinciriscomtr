@@ -26,7 +26,7 @@ const indexPath = join(distDir, 'index.html');
 const registryPath = join(rootDir, 'src', 'core', 'data', 'registry.ts');
 
 const SITE_URL = (process.env.SITE_URL || 'https://metinciris.com.tr').replace(/\/+$/, '');
-const POSTS_PER_PAGE = positiveInteger(process.env.BLOG_POSTS_PER_PAGE, 12);
+const POSTS_PER_PAGE = positiveInteger(process.env.BLOG_POSTS_PER_PAGE, 9);
 const BLOG_LABEL = process.env.BLOG_LABEL || 'Blog';
 const [workflowOwner, workflowRepo] = (process.env.GITHUB_REPOSITORY || '/').split('/');
 const REPO_OWNER =

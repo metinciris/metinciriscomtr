@@ -19,7 +19,7 @@ import { Input } from '../components/ui/input';
 import './Blog.css';
 
 const SITE_URL = 'https://metinciris.com.tr';
-const DEFAULT_POSTS_PER_PAGE = 12;
+const DEFAULT_POSTS_PER_PAGE = 9;
 const BLOG_DESCRIPTION =
   'Tıbbi patoloji, moleküler patoloji, güncel kılavuzlar ve bilimsel gelişmeler üzerine yazılar.';
 
