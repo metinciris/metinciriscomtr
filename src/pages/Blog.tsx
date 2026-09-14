@@ -128,13 +128,13 @@ function stripMarkdown(value: string): string {
     .trim();
 }
 
-function makeExcerpt(bodyText: string, maxLength = 260): string {
+function makeExcerpt(bodyText: string, maxLength = 500): string {
   const plain = stripMarkdown(bodyText);
   if (plain.length <= maxLength) return plain;
 
   const shortened = plain.slice(0, maxLength + 1);
   const lastSpace = shortened.lastIndexOf(' ');
-  return `${shortened.slice(0, lastSpace > 120 ? lastSpace : maxLength).trim()}…`;
+  return `${shortened.slice(0, lastSpace > 250 ? lastSpace : maxLength).trim()}…`;
 }
 
 function normalizeIssue(issue: GitHubIssue): BlogPost {
@@ -769,7 +769,7 @@ function BlogList({
                       </a>
                     </h2>
 
-                    <p className="text-gray-600 mb-4 line-clamp-6 text-sm leading-relaxed">
+                    <p className="text-gray-600 mb-4 line-clamp-8 text-sm leading-relaxed">
                       {post.excerpt || 'Yazının tamamını okumak için devam edin.'}
                     </p>
 

@@ -110,7 +110,7 @@ function truncateAtWord(value, maxLength) {
   return `${candidate.slice(0, lastSpace > maxLength * 0.55 ? lastSpace : maxLength).trim()}…`;
 }
 
-function makeExcerpt(value, maxLength = 260) {
+function makeExcerpt(value, maxLength = 500) {
   return truncateAtWord(stripMarkdown(value), maxLength);
 }
 
@@ -562,7 +562,7 @@ function renderStaticList(posts, currentPage, totalPages) {
     <h2 class="text-xl font-bold mb-3 text-gray-900 line-clamp-2"><a href="${escapeHtml(
       post.path,
     )}" class="hover:text-[#27AE60] transition-colors">${escapeHtml(post.title)}</a></h2>
-    <p class="text-gray-600 mb-4 line-clamp-6 text-sm leading-relaxed">${escapeHtml(
+    <p class="text-gray-600 mb-4 line-clamp-8 text-sm leading-relaxed">${escapeHtml(
       post.excerpt || 'Yazının tamamını okumak için devam edin.',
     )}</p>
     <div class="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between gap-3 text-sm text-gray-500">
