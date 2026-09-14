@@ -1,7 +1,12 @@
 {
-  "date": "13.09.2026",
-  "items": [],
-  "kcal": null,
+  "date": "14.09.2026",
+  "items": [
+    "YÜZÜK ÇORBASI",
+    "İZMİR KÖFTE",
+    "TEL ŞEHRİYELİ PİRİNÇ PİLAVI",
+    "KASE YOĞURT"
+  ],
+  "kcal": "1000",
   "source": "https://w3.sdu.edu.tr/aylik-yemek-listesi?dosya=yemekler_ogle&tur=2",
-  "updatedAt": "2026-09-13T12:47:00.514Z"
+  "updatedAt": "2026-09-14T10:04:12.242Z"
 }
