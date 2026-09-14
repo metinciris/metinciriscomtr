@@ -67,7 +67,7 @@ jobs:
           BLOG_REPO_OWNER: metinciris
           BLOG_REPO_NAME: metinciriscomtr
           BLOG_LABEL: Blog
-          BLOG_POSTS_PER_PAGE: 12
+          BLOG_POSTS_PER_PAGE: 9
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
           VITE_ADMIN_UIDS: ${{ secrets.VITE_ADMIN_UIDS }}
