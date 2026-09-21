@@ -12,7 +12,7 @@
     "scoreHome": 3,
     "scoreAway": 1,
     "source": "football-data",
-    "lastFetchedAt": "2026-09-21T12:29:29.015Z"
+    "lastFetchedAt": "2026-09-21T21:52:01.458Z"
   },
   {
     "id": "football-CL-575335",
@@ -27,6 +27,6 @@
     "scoreHome": 1,
     "scoreAway": 1,
     "source": "football-data",
-    "lastFetchedAt": "2026-09-21T12:29:29.015Z"
+    "lastFetchedAt": "2026-09-21T21:52:01.458Z"
   }
 ]
