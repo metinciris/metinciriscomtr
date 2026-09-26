@@ -5,7 +5,6 @@
  * - Throttled request queue (max 3 concurrent)
  * - Session cache for repeated queries
  * - ESpell suggestions
- * - Optional proxy support via config
  * 
  * Usage Notes:
  * - Last 20 years data: From current year back 20 years
@@ -15,9 +14,7 @@
 
 // Configuration
 const CONFIG = {
-    // Use proxy if available, otherwise direct NCBI
-    baseUrl: import.meta.env.VITE_PUBMED_PROXY_URL || 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils',
-    apiKey: import.meta.env.VITE_PUBMED_API_KEY || '',
+    baseUrl: 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils',
     maxConcurrent: 3,
     requestDelay: 350, // ms between requests to avoid rate limiting
 };
@@ -127,15 +124,12 @@ class ThrottleQueue {
 
 const requestQueue = new ThrottleQueue(CONFIG.maxConcurrent, CONFIG.requestDelay);
 
-// Build URL with API key
+// Build PubMed E-utilities URL
 function buildUrl(endpoint: string, params: Record<string, string>): string {
     const url = new URL(`${CONFIG.baseUrl}/${endpoint}`);
     Object.entries(params).forEach(([key, value]) => {
         url.searchParams.append(key, value);
     });
-    if (CONFIG.apiKey) {
-        url.searchParams.append('api_key', CONFIG.apiKey);
-    }
     return url.toString();
 }
 

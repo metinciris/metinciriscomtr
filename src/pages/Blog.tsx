@@ -12,7 +12,7 @@ import {
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
-import DOMPurify from 'dompurify';
+import rehypeSanitize from 'rehype-sanitize';
 
 import { PageContainer } from '../components/PageContainer';
 import { Input } from '../components/ui/input';
@@ -821,10 +821,6 @@ function BlogPostDetail({ post, posts }: { post: BlogPost; posts: BlogPost[] }) 
       ),
     [post.labels],
   );
-  const sanitizedBody = useMemo(
-    () => DOMPurify.sanitize(post.body.replace(/\r\n/g, '\n')),
-    [post.body],
-  );
   const description = post.excerpt || makeExcerpt(post.bodyText, 155) || BLOG_DESCRIPTION;
 
   useEffect(() => {
@@ -924,8 +920,8 @@ function BlogPostDetail({ post, posts }: { post: BlogPost; posts: BlogPost[] }) 
 
       <article className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 md:p-10">
         <div className="blog-content-markdown max-w-none">
-          <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
-            {sanitizedBody}
+          <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw, rehypeSanitize]}>
+            {post.body}
           </ReactMarkdown>
         </div>
       </article>
