@@ -74,7 +74,7 @@ jobs:
           VITE_VAPID_PUBLIC_KEY: ${{ secrets.VITE_VAPID_PUBLIC_KEY }}
           VITE_SAVE_SUB_URL: ${{ secrets.VITE_SAVE_SUB_URL }}
           VITE_SEND_PUSH_URL: ${{ secrets.VITE_SEND_PUSH_URL }}
-          VITE_PUBMED_API_KEY: ${{ secrets.VITE_PUBMED_API_KEY }}
+          VITE_PUBMED_PROXY_URL: ${{ secrets.VITE_PUBMED_PROXY_URL }}
           VITE_GITHUB_REPO_OWNER: ${{ secrets.VITE_GITHUB_REPO_OWNER }}
           VITE_GITHUB_REPO_NAME: ${{ secrets.VITE_GITHUB_REPO_NAME }}
           VITE_API_RATE_LIMIT: ${{ secrets.VITE_API_RATE_LIMIT }}
