@@ -17,7 +17,6 @@
 const CONFIG = {
     // Use proxy if available, otherwise direct NCBI
     baseUrl: import.meta.env.VITE_PUBMED_PROXY_URL || 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils',
-    apiKey: import.meta.env.VITE_PUBMED_API_KEY || '',
     maxConcurrent: 3,
     requestDelay: 350, // ms between requests to avoid rate limiting
 };
@@ -133,9 +132,6 @@ function buildUrl(endpoint: string, params: Record<string, string>): string {
     Object.entries(params).forEach(([key, value]) => {
         url.searchParams.append(key, value);
     });
-    if (CONFIG.apiKey) {
-        url.searchParams.append('api_key', CONFIG.apiKey);
-    }
     return url.toString();
 }
 
