@@ -1,7 +1,13 @@
 {
-  "date": "27.09.2026",
-  "items": [],
-  "kcal": null,
+  "date": "28.09.2026",
+  "items": [
+    "ARPA ŞEHRİYE ÇORBASI",
+    "ZEYTİNYAĞLI BAMYA",
+    "CEVİZLİ ERİŞTE",
+    "KASE YOĞURT",
+    "ARPA ŞEHRİYE ÇORBASI"
+  ],
+  "kcal": "950",
   "source": "https://w3.sdu.edu.tr/aylik-yemek-listesi?dosya=yemekler_ogle&tur=2",
-  "updatedAt": "2026-09-27T13:09:33.000Z"
+  "updatedAt": "2026-09-28T11:09:40.982Z"
 }
