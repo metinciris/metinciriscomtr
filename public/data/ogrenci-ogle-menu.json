@@ -1,7 +1,13 @@
 {
-  "date": "04.10.2026",
-  "items": [],
-  "kcal": null,
+  "date": "05.10.2026",
+  "items": [
+    "TARHANA ÇORBASI",
+    "KIYMALI ISPANAK",
+    "SADE MAKARNA",
+    "KASE YOĞURT",
+    "TARHANA ÇORBASI"
+  ],
+  "kcal": "950",
   "source": "https://w3.sdu.edu.tr/aylik-yemek-listesi?dosya=yemekler_ogle&tur=2",
-  "updatedAt": "2026-10-04T13:19:48.154Z"
+  "updatedAt": "2026-10-05T11:46:12.512Z"
 }
