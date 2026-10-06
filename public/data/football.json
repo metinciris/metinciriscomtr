@@ -12,7 +12,7 @@
     "scoreHome": null,
     "scoreAway": null,
     "source": "football-data",
-    "lastFetchedAt": "2026-10-06T13:07:22.452Z"
+    "lastFetchedAt": "2026-10-06T22:32:42.935Z"
   },
   {
     "id": "football-CL-575355",
@@ -27,6 +27,21 @@
     "scoreHome": null,
     "scoreAway": null,
     "source": "football-data",
-    "lastFetchedAt": "2026-10-06T13:07:22.452Z"
+    "lastFetchedAt": "2026-10-06T22:32:42.935Z"
+  },
+  {
+    "id": "football-CL-575360",
+    "sport": "football",
+    "competition": "UEFA Champions League",
+    "season": "2025/26",
+    "homeTeam": "Fenerbahçe SK",
+    "awayTeam": "SK Slavia Praha",
+    "startTimeUTC": "2026-10-20T16:45:00Z",
+    "startTimeLocal": "2026-10-20T19:45:00+03:00",
+    "status": "scheduled",
+    "scoreHome": null,
+    "scoreAway": null,
+    "source": "football-data",
+    "lastFetchedAt": "2026-10-06T22:32:42.935Z"
   }
 ]
