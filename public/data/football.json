@@ -12,7 +12,7 @@
     "scoreHome": null,
     "scoreAway": null,
     "source": "football-data",
-    "lastFetchedAt": "2026-10-07T13:01:50.118Z"
+    "lastFetchedAt": "2026-10-07T22:56:25.063Z"
   },
   {
     "id": "football-CL-575355",
@@ -27,7 +27,7 @@
     "scoreHome": null,
     "scoreAway": null,
     "source": "football-data",
-    "lastFetchedAt": "2026-10-07T13:01:50.119Z"
+    "lastFetchedAt": "2026-10-07T22:56:25.063Z"
   },
   {
     "id": "football-CL-575360",
@@ -42,6 +42,21 @@
     "scoreHome": null,
     "scoreAway": null,
     "source": "football-data",
-    "lastFetchedAt": "2026-10-07T13:01:50.119Z"
+    "lastFetchedAt": "2026-10-07T22:56:25.063Z"
+  },
+  {
+    "id": "football-CL-575369",
+    "sport": "football",
+    "competition": "UEFA Champions League",
+    "season": "2025/26",
+    "homeTeam": "Lille OSC",
+    "awayTeam": "Galatasaray SK",
+    "startTimeUTC": "2026-10-21T16:45:00Z",
+    "startTimeLocal": "2026-10-21T19:45:00+03:00",
+    "status": "scheduled",
+    "scoreHome": null,
+    "scoreAway": null,
+    "source": "football-data",
+    "lastFetchedAt": "2026-10-07T22:56:25.063Z"
   }
 ]
