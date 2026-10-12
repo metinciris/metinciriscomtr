@@ -1,7 +1,13 @@
 {
-  "date": "11.10.2026",
-  "items": [],
-  "kcal": null,
+  "date": "12.10.2026",
+  "items": [
+    "ANDOLÜZ ÇORBASI",
+    "KIYMALI TAZE FASÜLYE",
+    "PEYNİRLİ MAKARNA",
+    "ÜZÜM",
+    "ANDOLÜZ ÇORBASI"
+  ],
+  "kcal": "950",
   "source": "https://w3.sdu.edu.tr/aylik-yemek-listesi?dosya=yemekler_ogle&tur=2",
-  "updatedAt": "2026-10-11T14:15:01.297Z"
+  "updatedAt": "2026-10-12T12:20:20.218Z"
 }
