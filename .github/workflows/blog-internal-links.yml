@@ -1,0 +1,29 @@
+name: Blog dahili baglanti onerileri
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '23 6 * * 2'
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: blog-internal-link-suggestions
+  cancel-in-progress: false
+
+jobs:
+  suggest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Blog yazilarini eslestir ve raporla
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: node scripts/suggest-internal-links.mjs

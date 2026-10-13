@@ -1,0 +1,29 @@
+name: Ayirici tani ic baglantilari
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '41 6 * * 2'
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: differential-diagnosis-links
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Add conservative differential-diagnosis links
+        run: node scripts/link-differential-headings.mjs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}

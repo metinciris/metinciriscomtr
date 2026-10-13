@@ -1,0 +1,77 @@
+/**
+ * Conservative automated crosslinking: links exact differential-diagnosis headings
+ * to existing Blog issues. Does not rewrite scientific prose or titles.
+ */
+const repo = process.env.GITHUB_REPOSITORY;
+const token = process.env.GITHUB_TOKEN;
+if (!repo || !token) throw new Error('Missing GitHub credentials');
+const base = 'https://api.github.com/repos/' + repo;
+async function api(path, opts={}) {
+  const res=await fetch(base+path,{...opts,headers:{Authorization:'Bearer '+token,Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json'}});
+  if(!res.ok) throw new Error(res.status+' '+path+' '+(await res.text()).slice(0,250));
+  return res.json();
+}
+async function getAll() {
+  const result=[];
+  for(let p=1;p<=30;p++){
+    const next=await api('/issues?state=open&per_page=100&page='+p);
+    result.push(...next);
+    if(next.length<100) return result;
+  }
+  throw new Error('Issue list pagination limit reached');
+}
+function slug(t,n) {
+  const s=t.toLocaleLowerCase('tr-TR').replace(/ç/g,'c').replace(/ğ/g,'g').replace(/ı/g,'i').replace(/ö/g,'o').replace(/ş/g,'s').replace(/ü/g,'u').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/&/g,' ve ').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').replace(/-{2,}/g,'-').slice(0,90).replace(/-+$/g,'');
+  return (s||'blog-yazisi')+'-'+n;
+}
+function norm(t) {
+  return String(t||'').toLocaleLowerCase('tr-TR').replace(/^\s*\d+[.)]\s*/, '').replace(/[*_`]/g,'').replace(/[^a-zçğıöşü0-9]+/gi,' ').trim().replace(/\s+/g,' ');
+}
+function coreTitle(title) {
+  // Blog seri adlarında açıklayıcı ikinci cümleyi çıkar.
+  return String(title).replace(/^\s*\d+[.)]\s*/, '').split(/\.\s+/)[0].trim();
+}
+const issues=(await getAll()).filter(i=>!i.pull_request && i.labels?.some(l=>l.name?.toLocaleLowerCase('tr-TR')==='blog'));
+const byName=new Map();
+for(const i of issues) {
+  const name=norm(coreTitle(i.title));
+  if(name.length<8||name.split(' ').length<2) continue;
+  if(!byName.has(name)) byName.set(name,[]);
+  byName.get(name).push(i);
+}
+let changed=0, linked=0;
+const report=[];
+for(const i of issues) {
+  if(changed>=15) break;
+  const original=i.body||'';
+  if(!/^#{1,3}\s*ay[ıi]r[ıi]c[ıi]\s+tan[ıi]/im.test(original)) continue;
+  const rows=original.split('\n');
+  let inDiff=false, diffLevel=2, edits=0;
+  const edited=rows.map(line=>{
+    const heading=line.match(/^(#{1,6})\s+(.+?)\s*$/);
+    if(!heading) return line;
+    const depth=heading[1].length, raw=heading[2];
+    if(/ay[ıi]r[ıi]c[ıi]\s+tan[ıi]/i.test(norm(raw))) {
+      inDiff=true;diffLevel=depth;return line;
+    }
+    if(inDiff && depth<=diffLevel){inDiff=false;return line;}
+    if(!inDiff || depth!==diffLevel+1 || edits>=3 || raw.includes('](')) return line;
+    const name=norm(raw);
+    const choices=byName.get(name)||[];
+    const target=choices.length===1?choices[0]:null;
+    if(!target||target.number===i.number) return line;
+    const url='https://metinciris.com.tr/blog/'+slug(target.title,target.number)+'/';
+    if(original.includes(url)) return line;
+    edits++;
+    report.push('#'+i.number+' → #'+target.number+': '+raw);
+    // Only link existing section heading; paragraph content remains untouched.
+    return heading[1]+' ['+raw+']('+url+')';
+  });
+  if(edits===0) continue;
+  const fresh=await api('/issues/'+i.number);
+  if((fresh.body||'')!==original) {console.log('Skipped concurrently edited issue #'+i.number);continue;}
+  await api('/issues/'+i.number,{method:'PATCH',body:JSON.stringify({body:edited.join('\n')})});
+  changed++;linked+=edits;
+}
+console.log('Updated '+changed+' articles; '+linked+' differential headings linked.');
+console.log(report.join('\n'));
