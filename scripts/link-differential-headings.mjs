@@ -56,11 +56,11 @@ for(const i of issues) {
     }
   }
   for(const line of rows) {
-    const heading=line.match(/^(#{1,6})\\s+(.+?)\\s*$/);
+    const heading=line.match(/^(#{1,6})\s+(.+?)\s*$/);
     if(heading) {
       flushLinks();
       const depth=heading[1].length, raw=heading[2];
-      if(/ay[ıi]r[ıi]c[ıi]\\s+tan[ıi]/i.test(norm(raw))) {
+      if(/ay[ıi]r[ıi]c[ıi]\s+tan[ıi]/i.test(norm(raw))) {
         inDiff=true;diffLevel=depth;
       } else if(inDiff && depth<=diffLevel) {
         inDiff=false;
