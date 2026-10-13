@@ -92,17 +92,17 @@ for(const i of issues) {
   changed++;linked+=edits;
 }
 console.log('Updated '+changed+' articles; '+linked+' differential further-reading links added.');
-console.log(report.map(x=>'#'+x.source+' → #'+x.target+': '+x.heading).join('\\n'));
+console.log(report.map(x=>'#'+x.source+' → #'+x.target+': '+x.heading).join('\n'));
 if(report.length) {
   const all=await getAll();
   const audit=all.find(i=>!i.pull_request && i.title===auditTitle);
-  const prefix='# Blog bağlantı denetim günlüğü\\n\\nBu Issue, otomatik eklenen bağlantıların nasıl seçildiğini ve gelecekte ChatGPT/YZ kontrolünde ele alınacak kayıtları tutar. **YZ kontrolü henüz yapılmadı.**\\n\\n## Seçim kuralları\\n- Kaynak: Blog etiketli açık Issue\\n- Bölüm: Ayırıcı tanı alt başlığı\\n- Hedef: Başka bir blog Issue başlığıyla benzersiz ve tam ad eşleşmesi\\n- Her yazıda en fazla 3 bağlantı; her çalışmada en fazla 15 yazı\\n- Var olan URL yeniden eklenmez; bilimsel içerik değiştirilmez\\n- YZ kontrolü: Tıbbi ilişkisi, bağlantı hedefi, terminoloji, güncellik ve yinelenmeler ayrı denetlenmelidir\\n\\n## Değişiklik geçmişi\\n';
+  const prefix='# Blog bağlantı denetim günlüğü\n\nBu Issue, otomatik eklenen bağlantıların nasıl seçildiğini ve gelecekte ChatGPT/YZ kontrolünde ele alınacak kayıtları tutar. **YZ kontrolü henüz yapılmadı.**\n\n## Seçim kuralları\n- Kaynak: Blog etiketli açık Issue\n- Bölüm: Ayırıcı tanı alt başlığı\n- Hedef: Başka bir blog Issue başlığıyla benzersiz ve tam ad eşleşmesi\n- Her yazıda en fazla 3 bağlantı; her çalışmada en fazla 15 yazı\n- Var olan URL yeniden eklenmez; bilimsel içerik değiştirilmez\n- YZ kontrolü: Tıbbi ilişkisi, bağlantı hedefi, terminoloji, güncellik ve yinelenmeler ayrı denetlenmelidir\n\n## Değişiklik geçmişi\n';
   const previous=audit?.body||'';
-  const oldEntries=previous.includes('## Değişiklik geçmişi\\n')
-    ? previous.split('## Değişiklik geçmişi\\n')[1] : '';
-  const entries=report.map(x=>'- '+x.date+' | [Kaynak #'+x.source+'](https://github.com/'+repo+'/issues/'+x.source+') → [Hedef #'+x.target+'](https://github.com/'+repo+'/issues/'+x.target+') | '+x.heading+' | '+x.method+' | **'+x.status+'**').join('\\n');
-  const updated=prefix+entries+'\\n'+oldEntries;
-  const trimmed=updated.length>60000 ? updated.slice(0,59500)+'\\n\\n_(Eski kayıtlar Issue geçmişinde bulunur.)_' : updated;
+  const oldEntries=previous.includes('## Değişiklik geçmişi\n')
+    ? previous.split('## Değişiklik geçmişi\n')[1] : '';
+  const entries=report.map(x=>'- '+x.date+' | [Kaynak #'+x.source+'](https://github.com/'+repo+'/issues/'+x.source+') → [Hedef #'+x.target+'](https://github.com/'+repo+'/issues/'+x.target+') | '+x.heading+' | '+x.method+' | **'+x.status+'**').join('\n');
+  const updated=prefix+entries+'\n'+oldEntries;
+  const trimmed=updated.length>60000 ? updated.slice(0,59500)+'\n\n_(Eski kayıtlar Issue geçmişinde bulunur.)_' : updated;
   const result=await api(audit?'/issues/'+audit.number:'/issues',{
     method:audit?'PATCH':'POST',
     body:JSON.stringify(audit?{body:trimmed}:{title:auditTitle,body:trimmed})
