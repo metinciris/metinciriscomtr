@@ -24,6 +24,9 @@ function slug(t,n) {
   const s=t.toLocaleLowerCase('tr-TR').replace(/ç/g,'c').replace(/ğ/g,'g').replace(/ı/g,'i').replace(/ö/g,'o').replace(/ş/g,'s').replace(/ü/g,'u').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/&/g,' ve ').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').replace(/-{2,}/g,'-').slice(0,90).replace(/-+$/g,'');
   return (s||'blog-yazisi')+'-'+n;
 }
+function escapeHtml(t) {
+  return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 function norm(t) {
   return String(t||'').toLocaleLowerCase('tr-TR').replace(/^\s*\d+[.)]\s*/, '').replace(/[*_`]/g,'').replace(/[^a-zçğıöşü0-9]+/gi,' ').trim().replace(/\s+/g,' ');
 }
@@ -70,7 +73,7 @@ for(const i of issues) {
         if(target && target.number!==i.number) {
           const url='https://metinciris.com.tr/blog/'+slug(target.title,target.number)+'/';
           if(!original.includes(url)) {
-            pending.push('📖 ['+raw+' hakkında daha fazlasını oku →]('+url+')');
+            pending.push('<div class="blog-related-link">📖 <a href="'+url+'">'+escapeHtml(raw)+' hakkında daha fazlasını oku →</a></div>');
             edits++;
             report.push('#'+i.number+' → #'+target.number+': '+raw);
           }
