@@ -47,31 +47,44 @@ for(const i of issues) {
   if(!/^#{1,3}\s*ay[ıi]r[ıi]c[ıi]\s+tan[ıi]/im.test(original)) continue;
   const rows=original.split('\n');
   let inDiff=false, diffLevel=2, edits=0;
-  const edited=rows.map(line=>{
-    const heading=line.match(/^(#{1,6})\s+(.+?)\s*$/);
-    if(!heading) return line;
-    const depth=heading[1].length, raw=heading[2];
-    if(/ay[ıi]r[ıi]c[ıi]\s+tan[ıi]/i.test(norm(raw))) {
-      inDiff=true;diffLevel=depth;return line;
+  const edited=[];
+  let pending=[];
+  function flushLinks() {
+    if(pending.length) {
+      edited.push('', ...pending, '');
+      pending=[];
     }
-    if(inDiff && depth<=diffLevel){inDiff=false;return line;}
-    if(!inDiff || depth!==diffLevel+1 || edits>=3 || raw.includes('](')) return line;
-    const name=norm(raw);
-    const choices=byName.get(name)||[];
-    const target=choices.length===1?choices[0]:null;
-    if(!target||target.number===i.number) return line;
-    const url='https://metinciris.com.tr/blog/'+slug(target.title,target.number)+'/';
-    if(original.includes(url)) return line;
-    edits++;
-    report.push('#'+i.number+' → #'+target.number+': '+raw);
-    // Only link existing section heading; paragraph content remains untouched.
-    return heading[1]+' ['+raw+']('+url+')';
-  });
+  }
+  for(const line of rows) {
+    const heading=line.match(/^(#{1,6})\\s+(.+?)\\s*$/);
+    if(heading) {
+      flushLinks();
+      const depth=heading[1].length, raw=heading[2];
+      if(/ay[ıi]r[ıi]c[ıi]\\s+tan[ıi]/i.test(norm(raw))) {
+        inDiff=true;diffLevel=depth;
+      } else if(inDiff && depth<=diffLevel) {
+        inDiff=false;
+      } else if(inDiff && depth===diffLevel+1 && edits<3 && !raw.includes('](')) {
+        const choices=byName.get(norm(raw))||[];
+        const target=choices.length===1?choices[0]:null;
+        if(target && target.number!==i.number) {
+          const url='https://metinciris.com.tr/blog/'+slug(target.title,target.number)+'/';
+          if(!original.includes(url)) {
+            pending.push('📖 ['+raw+' hakkında daha fazlasını oku →]('+url+')');
+            edits++;
+            report.push('#'+i.number+' → #'+target.number+': '+raw);
+          }
+        }
+      }
+    }
+    edited.push(line);
+  }
+  flushLinks();
   if(edits===0) continue;
   const fresh=await api('/issues/'+i.number);
   if((fresh.body||'')!==original) {console.log('Skipped concurrently edited issue #'+i.number);continue;}
   await api('/issues/'+i.number,{method:'PATCH',body:JSON.stringify({body:edited.join('\n')})});
   changed++;linked+=edits;
 }
-console.log('Updated '+changed+' articles; '+linked+' differential headings linked.');
+console.log('Updated '+changed+' articles; '+linked+' differential further-reading links added.');
 console.log(report.join('\n'));
