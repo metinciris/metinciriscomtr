@@ -145,3 +145,30 @@
   border: 0 !important;
   border-top: 1px solid #e5e7eb !important;
 }
+
+/* Discrete article-to-article reading prompt. */
+.blog-content-markdown .blog-related-link {
+  display: block;
+  margin: 0.75rem 0 1.25rem;
+  padding: 0.65rem 0.9rem;
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+  border-left: 3px solid #93c5fd;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+.blog-content-markdown .blog-related-link a {
+  color: #1d4ed8 !important;
+  text-decoration: none !important;
+  font-weight: 600 !important;
+  word-break: normal !important;
+  overflow-wrap: anywhere;
+}
+.blog-content-markdown .blog-related-link:hover {
+  background: #dbeafe;
+  border-color: #bfdbfe;
+}
+.blog-content-markdown .blog-related-link a:hover {
+  text-decoration: underline !important;
+}
