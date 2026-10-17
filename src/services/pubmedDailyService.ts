@@ -26,8 +26,7 @@ export interface SearchResult {
 
 // Configuration
 const CONFIG = {
-    baseUrl: import.meta.env.VITE_PUBMED_PROXY_URL || 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils',
-    apiKey: import.meta.env.VITE_PUBMED_API_KEY || '',
+    baseUrl: 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils',
     maxConcurrent: 3,
     requestDelay: 350,
     maxResults: 100, // Max articles per query
@@ -80,15 +79,12 @@ class ThrottleQueue {
 
 const requestQueue = new ThrottleQueue(CONFIG.maxConcurrent, CONFIG.requestDelay);
 
-// Build URL with API key
+// Build PubMed E-utilities URL
 function buildUrl(endpoint: string, params: Record<string, string>): string {
     const url = new URL(`${CONFIG.baseUrl}/${endpoint}`);
     Object.entries(params).forEach(([key, value]) => {
         url.searchParams.append(key, value);
     });
-    if (CONFIG.apiKey) {
-        url.searchParams.append('api_key', CONFIG.apiKey);
-    }
     return url.toString();
 }
 
