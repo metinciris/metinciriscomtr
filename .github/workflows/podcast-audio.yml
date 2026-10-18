@@ -2,6 +2,13 @@ name: Podcast - Ahenk Cep hazir sesler
 
 on:
   workflow_dispatch:
+  # Bootstraps the pilot immediately when it is merged to main.
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/podcast-audio.yml'
+      - 'scripts/render_podcast_audio.py'
+      - 'scripts/podcast-audio-requirements.txt'
   schedule:
     - cron: '21 5 * * *'
 
