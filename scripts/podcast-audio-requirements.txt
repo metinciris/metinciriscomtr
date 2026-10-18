@@ -1,0 +1,7 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.11.0
+ema-lightning==1.1.2
+numpy>=1.26,<3
+soundfile>=0.12,<1
+huggingface_hub>=0.20,<2
+trnorm @ git+https://github.com/ozguradmin/ahenk-turkish-tts@2319ffc7b12a2a70285f0ec32aac3eef5e8e36a5
