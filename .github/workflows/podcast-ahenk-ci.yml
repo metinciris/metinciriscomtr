@@ -13,6 +13,7 @@ on:
       - 'src/lib/podcastPreparedAudio.test.ts'
       - 'scripts/render_podcast_audio.py'
       - 'scripts/test_render_podcast_audio.py'
+      - '.github/workflows/podcast-audio.yml'
       - 'docs/PODCAST-HAZIR-SES.md'
       - 'public/ahenk-cep/**'
       - 'docs/PODCAST-AHENK-CEP.md'
@@ -40,7 +41,7 @@ jobs:
         run: npm run lint
       - name: Check podcast pronunciation and scroll placement
         run: npm run test -- src/lib/ahenkPronunciation.test.ts src/lib/podcastScroll.test.ts src/lib/podcastPreparedAudio.test.ts
-      - name: Check Python Google Sheets PMID parsing
+      - name: Check Python podcast batch generation and sheet parsing
         run: python3 -m unittest scripts.test_render_podcast_audio
       - name: Ensure bundled open-source runtime has required files
         run: |

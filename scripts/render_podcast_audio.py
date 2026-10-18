@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Pre-render a small podcast audio pilot; fail closed on source/model errors.
+"""Incrementally pre-render Ahenk Cep MP3s for all active podcast titles.
 
-Source: same Google Sheets gviz data as src/pages/Podcast.tsx.
-Only the first PILOT_COUNT titles get pre-rendered. Missing/expired clips are
-removed only after successful source retrieval and successful synthesis.
+A standard-library-only preflight runs BEFORE installing any TTS dependencies.
+Each scheduled run renders at most five missing/expired titles. Existing clips
+remain available and retired titles are deleted only after safe planning.
 """
 import argparse
+from collections import OrderedDict, deque
 import hashlib
 import json
 import os
@@ -21,7 +22,9 @@ SHEET_ID = "148p3M41R52gVVjtLSF2Qh8rJvBPEWJ7SV4lgSBQYwLc"
 GID = "1109640564"
 RANGE = "A1:F132"
 JOURNAL_ROWS = {0, 11, 22, 33, 44, 55, 66, 77, 88, 99, 110, 121}
-PILOT_COUNT = 5
+BATCH_SIZE = 5
+MIN_EXPECTED_ARTICLES = 20
+MP3_NAME = re.compile(r'^[a-f0-9]{24}[.]mp3
 MAX_AGE_DAYS = 90
 AUDIO_DIR = Path("public/podcast-audio")
 MANIFEST_PATH = AUDIO_DIR / "manifest.json"
@@ -128,65 +131,225 @@ def render_clip(tts, text, destination):
         os.replace(mp3, destination)
 
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--dry-run", action="store_true")
-    args = parser.parse_args()
-    now = datetime.now(timezone.utc)
-    articles = load_sheet()
-    old = load_manifest()
-    AUDIO_DIR.mkdir(parents=True, exist_ok=True)
-    selected = articles[:PILOT_COUNT]
-    candidates = {}
-    for article in selected:
+def catalog(articles):
+    """Every currently listed title is eligible; preserve insertion order."""
+    entries = OrderedDict()
+    for article in articles:
         key = key_for(article["journal"], article["title"], article["pmid"])
-        text = spoken(article["title"])
-        candidates[key] = {
-            "title": article["title"], "journal": article["journal"],
-            "pmid": article["pmid"], "fingerprint": fingerprint(text),
+        if key in entries:
+            continue
+        entries[key] = {
+            "title": article["title"],
+            "journal": article["journal"],
+            "pmid": article["pmid"],
+            "fingerprint": fingerprint(spoken(article["title"])),
             "file": key + ".mp3",
         }
-    if args.dry_run:
-        print(json.dumps({"selected": len(candidates), "titles": [e["title"] for e in candidates.values()]},
-                         ensure_ascii=False, indent=2))
-        return
-    pending = []
-    for key, entry in candidates.items():
-        previous = old["entries"].get(key, {})
-        path = AUDIO_DIR / entry["file"]
-        try:
-            timestamp = datetime.fromisoformat(previous["generated_at"])
-            valid_age = now - timestamp < timedelta(days=MAX_AGE_DAYS)
-        except (KeyError, ValueError, TypeError):
-            valid_age = False
-        if path.is_file() and path.stat().st_size > 1024 and valid_age and previous.get("fingerprint") == entry["fingerprint"]:
-            entry["generated_at"] = previous["generated_at"]
-        else:
-            pending.append((key, entry))
-    print(f"Podcast audio: {len(candidates)} selected, {len(pending)} to generate.", flush=True)
-    tts = create_tts() if pending else None
-    with tempfile.TemporaryDirectory(dir=AUDIO_DIR) as staging:
+    return entries
+
+
+def playable(previous, candidate):
+    if not isinstance(previous, dict):
+        return False
+    name = previous.get("file")
+    if not isinstance(name, str) or not MP3_NAME.fullmatch(name):
+        return False
+    if name != candidate["file"] or (
+        previous.get("title") != candidate["title"]
+        or previous.get("journal") != candidate["journal"]
+        or normalize_pmid(previous.get("pmid")) != candidate["pmid"]
+    ):
+        return False
+    path = AUDIO_DIR / name
+    return path.is_file() and path.stat().st_size > 1024
+
+
+def fresh(previous, candidate, now):
+    if not playable(previous, candidate):
+        return False
+    if previous.get("fingerprint") != candidate["fingerprint"]:
+        return False
+    try:
+        t = datetime.fromisoformat(previous["generated_at"])
+        if t.tzinfo is None:
+            t = t.replace(tzinfo=timezone.utc)
+        age = now - t.astimezone(timezone.utc)
+        return timedelta(0) <= age < timedelta(days=MAX_AGE_DAYS)
+    except (KeyError, TypeError, ValueError):
+        return False
+
+
+def round_robin_journals(entries, pending_keys, limit):
+    """Make progress across journals, not only the first source rows."""
+    groups = OrderedDict()
+    for key in pending_keys:
+        groups.setdefault(entries[key]["journal"], deque()).append(key)
+    selected = []
+    while len(selected) < limit and any(groups.values()):
+        for queue in groups.values():
+            if queue and len(selected) < limit:
+                selected.append(queue.popleft())
+    return selected
+
+
+def plan_updates(articles, manifest, now):
+    if len(articles) < MIN_EXPECTED_ARTICLES:
+        raise RuntimeError(
+            f"Only {len(articles)} articles returned from Sheets; "
+            "refusing to delete audio on potentially incomplete source data"
+        )
+    entries = catalog(articles)
+    old = manifest["entries"]
+    keys = set(entries)
+    still_listed = len(set(old) & keys)
+    if len(old) >= 20 and still_listed * 2 < len(old):
+        raise RuntimeError(
+            "Over half of cached titles disappeared from Sheets; "
+            "refusing bulk deletion without source review"
+        )
+
+    missing = []
+    due_for_refresh = []
+    for key, article in entries.items():
+        previous = old.get(key)
+        if not playable(previous, article):
+            missing.append(key)
+        elif not fresh(previous, article, now):
+            due_for_refresh.append(key)
+
+    selection = round_robin_journals(entries, missing, BATCH_SIZE)
+    if len(selection) < BATCH_SIZE:
+        selection += round_robin_journals(
+            entries, due_for_refresh, BATCH_SIZE - len(selection)
+        )
+    removed = [key for key in old if key not in keys]
+
+    active_files = {
+        article["file"] for key, article in entries.items()
+        if playable(old.get(key), article)
+    }
+    orphans = sorted(
+        p.name for p in AUDIO_DIR.glob("*.mp3")
+        if MP3_NAME.fullmatch(p.name) and p.name not in active_files
+    )
+    return {
+        "version": 1,
+        "candidates": entries,
+        "selected": selection,
+        "removed": removed,
+        "orphans": orphans,
+        "total": len(entries),
+        "ready": sum(playable(old.get(key), article)
+                     for key, article in entries.items()),
+        "missing": len(missing),
+        "refresh": len(due_for_refresh),
+        "has_changes": bool(selection or removed or orphans),
+    }
+
+
+def execute_plan(plan):
+    """Stage the entire small batch before replacing or deleting live files."""
+    if plan.get("version") != 1:
+        raise RuntimeError("Unknown generation plan")
+    selected = plan["selected"]
+    candidates = plan["candidates"]
+    if (len(selected) > BATCH_SIZE or len(set(selected)) != len(selected)
+            or any(key not in candidates for key in selected)):
+        raise RuntimeError("Unsafe batch or unknown audio key")
+
+    previous = load_manifest()
+    AUDIO_DIR.mkdir(parents=True, exist_ok=True)
+    now = datetime.now(timezone.utc)
+    # Do not lose previously cached clips while the backlog is being filled.
+    entries = {
+        key: dict(previous["entries"][key])
+        for key, article in candidates.items()
+        if playable(previous["entries"].get(key), article)
+    }
+
+    tts = create_tts() if selected else None
+    with tempfile.TemporaryDirectory(prefix=".podcast-staging-", dir=AUDIO_DIR) as staging:
         staged = []
-        for key, entry in pending:
-            path = Path(staging) / entry["file"]
-            render_clip(tts, spoken(entry["title"]), path)
-            entry["generated_at"] = now.isoformat()
-            staged.append((path, AUDIO_DIR / entry["file"]))
-            print("Prepared", key, flush=True)
-        # Commit only after every clip is valid.
-        for source, destination in staged:
-            os.replace(source, destination)
-    updated = {"version": 1, "generated_at": now.isoformat() if pending or candidates != old["entries"] else old.get("generated_at", now.isoformat()), "entries": candidates}
-    temp_manifest = AUDIO_DIR / "manifest.json.tmp"
-    temp_manifest.write_text(json.dumps(updated, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    os.replace(temp_manifest, MANIFEST_PATH)
-    # Delete all audio files that are no longer present in the selected source list.
-    keep = {entry["file"] for entry in candidates.values()}
+        for key in selected:
+            article = candidates[key]
+            destination = Path(staging) / article["file"]
+            render_clip(tts, spoken(article["title"]), destination)
+            staged.append((key, destination))
+            print("Prepared", key, article["journal"], flush=True)
+
+        for key, file in staged:
+            article = candidates[key]
+            os.replace(file, AUDIO_DIR / article["file"])
+            entries[key] = {**article, "generated_at": now.isoformat()}
+
+    if entries != previous["entries"]:
+        updated = {
+            "version": 1,
+            "generated_at": now.isoformat(),
+            "entries": entries,
+        }
+        with tempfile.NamedTemporaryFile(
+            mode="w", encoding="utf-8", prefix=".manifest-",
+            suffix=".json", dir=AUDIO_DIR, delete=False
+        ) as file:
+            temporary = file.name
+            json.dump(updated, file, ensure_ascii=False, indent=2)
+            file.write("\n")
+        os.replace(temporary, MANIFEST_PATH)
+
+    # Retired titles and orphan files are removed only after successful
+    # source validation and successful synthesis of *all* selected clips.
+    keep = {entry["file"] for entry in entries.values()}
     for file in AUDIO_DIR.glob("*.mp3"):
-        if file.name not in keep:
+        if MP3_NAME.fullmatch(file.name) and file.name not in keep:
             file.unlink()
-            print("Removed obsolete", file.name)
-    print("Podcast audio manifest refreshed.", flush=True)
+            print("Removed obsolete", file.name, flush=True)
+    print(f"Available ready MP3: {len(entries)} / {len(candidates)}", flush=True)
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    mode = parser.add_mutually_exclusive_group(required=True)
+    mode.add_argument("--plan", action="store_true")
+    mode.add_argument("--execute", action="store_true")
+    parser.add_argument("--plan-file", type=Path, required=True)
+    parser.add_argument("--github-output")
+    args = parser.parse_args()
+
+    if args.plan:
+        now = datetime.now(timezone.utc)
+        # A failed Google Sheets request must NOT change/delete old audio.
+        articles = load_sheet()
+        AUDIO_DIR.mkdir(parents=True, exist_ok=True)
+        plan = plan_updates(articles, load_manifest(), now)
+        args.plan_file.write_text(
+            json.dumps(plan, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        line = (
+            f"Podcast {plan['ready']}/{plan['total']} ready; "
+            f"{len(plan['selected'])} selected for this batch; "
+            f"{plan['missing']} missing, {plan['refresh']} due, "
+            f"{len(plan['removed'])} retired."
+        )
+        print(line, flush=True)
+        if args.github_output:
+            with open(args.github_output, "a", encoding="utf-8") as f:
+                f.write(
+                    f"needs_model={'true' if plan['selected'] else 'false'}\n"
+                    f"has_changes={'true' if plan['has_changes'] else 'false'}\n"
+                )
+        if summary := os.environ.get("GITHUB_STEP_SUMMARY"):
+            with open(summary, "a", encoding="utf-8") as f:
+                f.write("### Ahenk podcast hazır sesler\n\n" + line + "\n\n")
+                f.write("Model yalnızca gerektiğinde kurulur; "
+                        "hazır kayıtlar korunur.\n")
+    else:
+        plan = json.loads(args.plan_file.read_text(encoding="utf-8"))
+        if plan["has_changes"]:
+            execute_plan(plan)
+        else:
+            print("No audio changes; skipping model and deployment.", flush=True)
 
 
 if __name__ == "__main__":

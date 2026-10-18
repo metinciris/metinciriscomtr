@@ -1,39 +1,45 @@
-# Podcast hazır ses pilotu
+# Podcast hazır sesler — düşük yükte aşamalı üretim
 
-Podcast sayfasında önce hazır MP3 denenir. Ses yoksa Ahenk Cep tarayıcıda üretir; o da olmazsa tarayıcı sesi kullanılır.
+Podcast'te **hazır MP3** varsa hemen oynatılır; yoksa **Ahenk Cep** ziyaretçinin
+tarayıcısında ses üretir. Ses motoru seçimi ve tarayıcının alternatif TTS'si yoktur.
+Google Sheets (`A1:F132`, `gid=1109640564`) tek veri kaynağıdır.
 
-Kaynak, sitede kullanılan aynı Google Sheets (A1:F132 / gid=1109640564) tablosudur.
-İlk 5 makale başlığı seçilir. `scripts/render_podcast_audio.py` ve
-`.github/workflows/podcast-audio.yml` her gün 05:21 UTC'de verileri kontrol eder.
-Kaynak değişmezse MP3 dosyaları tekrar üretilmez; 90 gün geçmiş dosyalar
-yenilenir. Artık ilk 5 içinde olmayan veya kaynaktan kalkmış dosyalar,
-yalnızca başarılı kaynak okuması ve ses üretimi tamamlanınca silinir.
-Kaynak erişilemezse mevcut kayıtlar korunur.
+## Kademeli üretim
 
-Üretim: Ahenk Cep (CPU, neutral style, 16 steps, seed 0);
-kaynak lisansları ve veri atıfları için `docs/PODCAST-AHENK-CEP.md`.
-MP3 dosyaları `public/podcast-audio/` altında saklanır ve GitHub Pages tarafından
-statik sunulur. GitHub Actions'ın sonucu main'e aktarması mevcut Pages
-deploy iş akışını tetikler.
+GitHub Actions `.github/workflows/podcast-audio.yml` Pazartesi, Çarşamba
+ve Cuma **05:21 UTC**'de ve manuel `workflow_dispatch` ile çalışabilir.
+Her çalışmada **en fazla 5 başlık** hazırlanır; farklı dergilerin eksik
+kayıtlarına sırayla öncelik verilir. Böylece ilk 5 ile sınırlı kalınmaz:
+güncel listedeki diğer başlıklar da haftalar içinde hazır hâle gelir.
 
-Daha geniş kapsam için önce GitHub Actions CPU süresi, depolama ve günlük
-çalışmanın işleme maliyetini kontrol edin. Bu pilotta kullanıcıya ses dosyası
-sunulmaması halinde mevcut canlı Ahenk okuma aynen devam eder.
+Önce yalnız Python standart kütüphanesiyle Google Sheets ve manifest kontrol
+edilir. Eksik veya 90 günü geçmiş kayıt yoksa **PyTorch/ONNX/model indirilmez**,
+GitHub commit'i ve GitHub Pages dağıtımı yapılmaz. Eksik dosyalar yenileme
+gerektiren seslerden önce işlenir. Eski fakat hâlâ listede bulunan MP3,
+yenisi hazır olana kadar kullanılmaya devam eder.
 
-## Hazır MP3 eşleştirmesi ve otomatik oynatma
+## Saklama ve güvenlik
 
-Ses motoru seçim menüsü bulunmaz. Podcast uygulaması önce
-`/podcast-audio/manifest.json` listesini (5 saniyelik zaman aşımıyla)
-ve Google Sheets makalelerini paralel yükler. Başlık ve normalleştirilmiş
-PubMed numarası aynıysa hazır MP3 çalınır, sonraki dosya önden yüklenir.
-Hazır MP3 yoksa veya dosya çalınamıyorsa yalnızca Ahenk Cep ile
-tarayıcıda ses üretilir; sistem sesine otomatik geçilmez.
+- Başlığı değişmeyen, geçerli MP3 tekrar üretilmez.
+- 90 günü geçen sesler en fazla 5'lik partilerle **yenilenir**.
+- Google Sheets'ten çıkan makalelerin sesleri ve sahipsiz dosyalar, ancak
+  kaynak başarıyla kontrol edildikten ve yeni seçilen sesler üretildikten
+  sonra silinir.
+- Google Sheets okunamaz veya şüpheli biçimde eksik gelirse kayıtlar korunur.
+- Üretim sırasında tek bir hata dahi oluşursa canlı manifest ve eski
+  dosyalar değiştirilmez.
+- Yalnızca değişiklik olduğunda GitHub'a commit ve GitHub Pages yayını yapılır.
 
-**2026-10-18 hatası:** İlk üretilen kayıtların PMID'leri Python tarafında
-`42874744.0` biçiminde, web arayüzünde ise `42874744` olarak
-saklanmıştı. Bu yüzden MP3 mevcut olsa bile bulunamıyordu.
-`src/lib/podcastPreparedAudio.ts` eski manifestleri de okuyabilen
-normalleştirme sağlar. `scripts/render_podcast_audio.py` bundan sonra
-tam sayı biçiminde PMID yazar. Bu düzeltme ses ve makale başlıklarını
-değiştirmez. `src/lib/podcastPreparedAudio.test.ts` ve
-`scripts/test_render_podcast_audio.py` aynı davranışı sınar.
+Ahenk Cep CPU, nötr üslup, 16 adım kullanılır; H&E, Ewing, p53 gibi
+seslendirme düzeltmeleri `scripts/render_podcast_audio.py` içinde
+`src/lib/ahenkPronunciation.ts` ile eş tutulur. Telif ve atıflar:
+`docs/PODCAST-AHENK-CEP.md`.
+
+### Sorun giderme
+GitHub Actions: `Podcast - Ahenk Cep hazir sesler`
+- Başta `ready/total`, seçilen parti ve temizlenecek kayıtların sayısı görünür.
+- Dosya eşleştirme başlık + normalleştirilmiş PMID ile yapılır
+  (`42874744.0` → `42874744`).
+- Yayınlanmış ses sayısı `public/podcast-audio/manifest.json` içindeki
+  `entries` uzunluğudur.
+- İlk 5 dahil bütün mevcut sesler korunarak yenileri eklenir.
