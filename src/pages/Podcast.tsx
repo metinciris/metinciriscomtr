@@ -4,6 +4,7 @@ import { Play, Square, Volume2 } from 'lucide-react';
 import '../styles/Podcast.css';
 import { AhenkCepClient, type AhenkLoadStatus } from '../lib/ahenkCep';
 import { prepareAhenkText } from '../lib/ahenkPronunciation';
+import { getPodcastArticleScrollTop } from '../lib/podcastScroll';
 
 interface PodcastProps {
   onNavigate: (page: string) => void; // App ile uyum için; bu sayfada kullanmıyoruz
@@ -62,6 +63,7 @@ export default function Podcast({ }: PodcastProps) {
   const audioSourceRef = useRef<AudioBufferSourceNode | null>(null);
   const activeRequestRef = useRef<AbortController | null>(null);
   const playbackTokenRef = useRef(0);
+  const playerRef = useRef<HTMLDivElement | null>(null);
 
   // volumeRef'i her zaman güncel tut
   useEffect(() => {
@@ -367,14 +369,32 @@ export default function Podcast({ }: PodcastProps) {
     void startSpeech(index);
   };
 
-  // Seçili kartı merkeze kaydır
+  // Mobilde büyük sabit menü ve oynatıcı varken otomatik kaydırma,
+  // okunmakta olan başlığı menünün altına gizliyordu. Mobilde ekrana dokunmayalım:
+  // başlık, menünün altına konumlandırılan oynatıcıda hep görünür.
+  // Masaüstünde seçilen kartı hem menünün hem oynatıcının ALTINDA göster.
   useEffect(() => {
+    if (window.matchMedia('(max-width: 767px)').matches) return;
+
     const el = document.querySelector<HTMLElement>(
       `[data-article-index="${currentIndex}"]`,
     );
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    if (!el) return;
+
+    const headerHeight =
+      document.querySelector<HTMLElement>('header[role="banner"]')
+        ?.getBoundingClientRect().height ?? 64;
+    const playerHeight = playerRef.current?.getBoundingClientRect().height ?? 0;
+
+    window.scrollTo({
+      top: getPodcastArticleScrollTop({
+        scrollY: window.scrollY,
+        articleViewportTop: el.getBoundingClientRect().top,
+        headerHeight,
+        playerHeight,
+      }),
+      behavior: 'smooth',
+    });
   }, [currentIndex]);
 
   const currentArticle = articles[currentIndex];
@@ -400,7 +420,10 @@ export default function Podcast({ }: PodcastProps) {
           </div>
 
           {/* Üstte sabit player benzeri kutu */}
-          <div className="bg-white rounded-xl shadow-md border border-gray-200 px-6 py-4 mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 sticky top-4 z-10">
+          <div
+            ref={playerRef}
+            className="bg-white rounded-xl shadow-md border border-gray-200 px-4 py-3 sm:px-6 sm:py-4 mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 sticky top-[5.5rem] md:top-[4.5rem] z-10"
+          >
             <div className="flex flex-col gap-2">
               <span className="inline-flex items-center gap-2 text-xs font-semibold text-[#336699] bg-[#eef4ff] px-3 py-1 rounded-full w-fit">
                 📘 {currentJournal}
