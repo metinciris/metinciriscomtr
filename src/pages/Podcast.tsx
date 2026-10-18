@@ -2,6 +2,8 @@ import { useEffect, useState, useRef } from 'react';
 import { PageContainer } from '../components/PageContainer';
 import { Play, Square, Volume2 } from 'lucide-react';
 import '../styles/Podcast.css';
+import { AhenkCepClient, type AhenkLoadStatus } from '../lib/ahenkCep';
+import { prepareAhenkText } from '../lib/ahenkPronunciation';
 
 interface PodcastProps {
   onNavigate: (page: string) => void; // App ile uyum için; bu sayfada kullanmıyoruz
@@ -37,6 +39,12 @@ export default function Podcast({ }: PodcastProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [status, setStatus] = useState('Hazır');
   const [volume, setVolume] = useState(1);
+  const [voiceEngine, setVoiceEngine] = useState<'ahenk' | 'browser'>('ahenk');
+  const [ahenkLoad, setAhenkLoad] = useState<AhenkLoadStatus>({
+    phase: 'idle',
+    percent: 0,
+    detail: '',
+  });
   const [loadingMessage, setLoadingMessage] = useState(
     "Google Sheets'ten veriler yükleniyor...",
   );
@@ -46,6 +54,14 @@ export default function Podcast({ }: PodcastProps) {
   const voicesRef = useRef<SpeechSynthesisVoice[]>([]);
   const selectedVoiceRef = useRef<SpeechSynthesisVoice | null>(null);
   const volumeRef = useRef(volume);
+  const articlesRef = useRef<Article[]>([]);
+  const engineRef = useRef<'ahenk' | 'browser'>('ahenk');
+  const ahenkClientRef = useRef<AhenkCepClient | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const audioGainRef = useRef<GainNode | null>(null);
+  const audioSourceRef = useRef<AudioBufferSourceNode | null>(null);
+  const activeRequestRef = useRef<AbortController | null>(null);
+  const playbackTokenRef = useRef(0);
 
   // volumeRef'i her zaman güncel tut
   useEffect(() => {
@@ -60,20 +76,29 @@ export default function Podcast({ }: PodcastProps) {
   });
 
   useEffect(() => {
-    // Speech Synthesis hazırla
+    // Browser voice remains available as an immediate fallback.
     synthRef.current = window.speechSynthesis;
+    const browserSpeech = synthRef.current;
     loadVoices();
-    if (synthRef.current.onvoiceschanged !== undefined) {
-      synthRef.current.onvoiceschanged = loadVoices;
-    }
-
-    // Makale verisini çek
-    fetchPodcastData();
+    browserSpeech?.addEventListener?.('voiceschanged', loadVoices);
+    void fetchPodcastData();
 
     return () => {
-      if (synthRef.current) {
-        synthRef.current.cancel();
+      playbackTokenRef.current += 1;
+      activeRequestRef.current?.abort();
+      if (utteranceRef.current) {
+        utteranceRef.current.onend = null;
+        utteranceRef.current.onerror = null;
       }
+      browserSpeech?.cancel();
+      const source = audioSourceRef.current;
+      if (source) {
+        source.onended = null;
+        try { source.stop(); } catch { /* already stopped */ }
+      }
+      ahenkClientRef.current?.dispose();
+      void audioContextRef.current?.close();
+      browserSpeech?.removeEventListener?.('voiceschanged', loadVoices);
     };
   }, []);
 
@@ -162,6 +187,7 @@ export default function Podcast({ }: PodcastProps) {
         flatArticles.push(...currentArticles);
       }
 
+      articlesRef.current = flatArticles;
       setJournalGroups(groups);
       setArticles(flatArticles);
       setLoadingMessage('');
@@ -174,73 +200,171 @@ export default function Podcast({ }: PodcastProps) {
     }
   };
 
-  const speak = (index: number) => {
-    const article = articles[index];
-    if (!article || !synthRef.current) return;
-
+  const stopOutputs = () => {
     if (utteranceRef.current) {
-      synthRef.current.cancel();
+      utteranceRef.current.onend = null;
+      utteranceRef.current.onerror = null;
+      utteranceRef.current = null;
     }
+    synthRef.current?.cancel();
+    const source = audioSourceRef.current;
+    if (source) {
+      source.onended = null;
+      audioSourceRef.current = null;
+      try { source.stop(); } catch { /* already stopped */ }
+      source.disconnect();
+    }
+  };
 
+  // Called synchronously inside the click, before the asynchronous model load.
+  // This unlocks Web Audio on browsers that require a user gesture (notably iOS).
+  const primeAudio = () => {
+    try {
+      if (!audioContextRef.current) {
+        const context = new AudioContext();
+        const gain = context.createGain();
+        gain.gain.value = volumeRef.current;
+        gain.connect(context.destination);
+        audioContextRef.current = context;
+        audioGainRef.current = gain;
+      }
+      const context = audioContextRef.current;
+      if (context.state === 'suspended') {
+        void context.resume().catch(() => { /* browser fallback handles this */ });
+      }
+    } catch (error) {
+      console.warn('Web Audio kullanılamıyor:', error);
+    }
+  };
+
+  const finishArticle = (index: number, token: number) => {
+    if (token !== playbackTokenRef.current) return;
+    if (index + 1 < articlesRef.current.length) {
+      void startSpeech(index + 1);
+    } else {
+      setIsPlaying(false);
+      setStatus('Hazır');
+    }
+  };
+
+  const speakWithBrowser = (index: number, token: number) => {
+    const article = articlesRef.current[index];
+    const synth = synthRef.current;
+    if (!article || !synth || token !== playbackTokenRef.current) {
+      setIsPlaying(false);
+      return;
+    }
     const utterance = new SpeechSynthesisUtterance(article.title);
     utteranceRef.current = utterance;
-
     if (selectedVoiceRef.current) {
       utterance.voice = selectedVoiceRef.current;
       utterance.lang = selectedVoiceRef.current.lang || 'tr-TR';
     } else {
       utterance.lang = 'tr-TR';
     }
-
     utterance.rate = 0.9;
-    utterance.pitch = 1.0;
+    utterance.pitch = 1;
     utterance.volume = volumeRef.current;
-
-    utterance.onend = () => {
-      if (index < articles.length - 1) {
-        const nextIndex = index + 1;
-        setCurrentIndex(nextIndex);
-        speak(nextIndex);
-      } else {
-        setIsPlaying(false);
-        setStatus('Hazır');
-      }
-    };
-
+    utterance.onend = () => finishArticle(index, token);
     utterance.onerror = () => {
+      if (token !== playbackTokenRef.current) return;
       setIsPlaying(false);
-      setStatus('Sesli okuma hatası');
+      setStatus('Tarayıcı seslendirme hatası');
     };
+    synth.speak(utterance);
+    setStatus('Tarayıcı sesiyle okunuyor...');
+  };
 
-    synthRef.current.speak(utterance);
+  const startSpeech = async (index: number) => {
+    const article = articlesRef.current[index];
+    if (!article) return;
+
+    activeRequestRef.current?.abort();
+    stopOutputs();
+    const request = new AbortController();
+    activeRequestRef.current = request;
+    const token = ++playbackTokenRef.current;
+
+    setCurrentIndex(index);
     setIsPlaying(true);
-    setStatus('Okunuyor...');
+    if (engineRef.current === 'browser') {
+      speakWithBrowser(index, token);
+      return;
+    }
+
+    setStatus('Ahenk sesi hazırlanıyor...');
+    try {
+      if (!ahenkClientRef.current) {
+        ahenkClientRef.current = new AhenkCepClient(setAhenkLoad);
+      }
+      const { audio, sampleRate } = await ahenkClientRef.current.speak(
+        prepareAhenkText(article.title),
+        request.signal,
+      );
+      if (request.signal.aborted || token !== playbackTokenRef.current) return;
+
+      const context = audioContextRef.current;
+      const gain = audioGainRef.current;
+      if (!context || !gain || !audio.length) {
+        throw new Error('Ses oynatıcısı başlatılamadı.');
+      }
+      if (context.state === 'suspended') await context.resume();
+      if (request.signal.aborted || token !== playbackTokenRef.current) return;
+
+      const buffer = context.createBuffer(1, audio.length, sampleRate);
+      buffer.getChannelData(0).set(audio);
+      const source = context.createBufferSource();
+      source.buffer = buffer;
+      source.connect(gain);
+      source.onended = () => {
+        if (audioSourceRef.current === source) audioSourceRef.current = null;
+        source.disconnect();
+        finishArticle(index, token);
+      };
+      audioSourceRef.current = source;
+      source.start();
+      setStatus('Ahenk ile okunuyor...');
+    } catch (error) {
+      if (request.signal.aborted || token !== playbackTokenRef.current) return;
+      console.warn('Ahenk seslendirme başarısız; tarayıcı sesine geçiliyor:', error);
+      setStatus('Ahenk açılamadı; tarayıcı sesi kullanılacak.');
+      speakWithBrowser(index, token);
+    }
   };
 
   const handlePlay = () => {
-    if (!articles.length) return;
-    speak(currentIndex);
+    if (!articlesRef.current.length) return;
+    primeAudio();
+    void startSpeech(currentIndex);
   };
 
   const handleStop = () => {
-    if (synthRef.current && synthRef.current.speaking) {
-      synthRef.current.cancel();
-      setIsPlaying(false);
-      setStatus('Durduruldu');
-    }
+    activeRequestRef.current?.abort();
+    playbackTokenRef.current += 1;
+    stopOutputs();
+    setIsPlaying(false);
+    setStatus('Durduruldu');
   };
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newVolume = parseFloat(e.target.value);
     setVolume(newVolume);
-    if (utteranceRef.current) {
-      utteranceRef.current.volume = newVolume;
-    }
+    volumeRef.current = newVolume;
+    if (audioGainRef.current) audioGainRef.current.gain.value = newVolume;
+    if (utteranceRef.current) utteranceRef.current.volume = newVolume;
+  };
+
+  const handleVoiceEngineChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    handleStop();
+    const engine = e.target.value === 'browser' ? 'browser' : 'ahenk';
+    engineRef.current = engine;
+    setVoiceEngine(engine);
+    setStatus('Hazır');
   };
 
   const handleCardClick = (index: number) => {
-    setCurrentIndex(index);
-    speak(index);
+    primeAudio();
+    void startSpeech(index);
   };
 
   // Seçili kartı merkeze kaydır
@@ -302,6 +426,18 @@ export default function Podcast({ }: PodcastProps) {
             </div>
 
             <div className="flex flex-col items-start md:items-end gap-3">
+              <label className="flex items-center gap-2 text-xs text-gray-600">
+                Ses motoru
+                <select
+                  value={voiceEngine}
+                  onChange={handleVoiceEngineChange}
+                  aria-label="Ses motoru seçimi"
+                  className="rounded-md border border-gray-300 bg-white px-2 py-1 text-sm text-gray-800"
+                >
+                  <option value="ahenk">Ahenk Cep · Türkçe yapay ses</option>
+                  <option value="browser">Tarayıcı sesi</option>
+                </select>
+              </label>
               <div className="flex gap-2">
                 <button
                   onClick={handlePlay}
@@ -333,6 +469,32 @@ export default function Podcast({ }: PodcastProps) {
                   className="w-24"
                 />
               </div>
+              {voiceEngine === 'ahenk' && isPlaying && ahenkLoad.phase === 'loading' && (
+                <div className="w-full max-w-64" role="status" aria-live="polite">
+                  <div className="mb-1 flex justify-between gap-2 text-[11px] text-gray-600">
+                    <span>{ahenkLoad.detail}</span>
+                    <span>{ahenkLoad.percent}%</span>
+                  </div>
+                  <div
+                    role="progressbar"
+                    aria-label="Ahenk model yükleme"
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-valuenow={ahenkLoad.percent}
+                    className="h-1.5 overflow-hidden rounded-full bg-gray-200"
+                  >
+                    <div
+                      className="h-full rounded-full bg-[#336699] transition-all duration-300"
+                      style={{ width: ahenkLoad.percent + '%' }}
+                    />
+                  </div>
+                </div>
+              )}
+              {voiceEngine === 'ahenk' && ahenkLoad.phase === 'error' && (
+                <p className="max-w-64 text-[11px] text-amber-700">
+                  Ahenk yüklenemedi; tarayıcı sesine geçiliyor. Yeniden Oynat ile tekrar deneyebilirsiniz.
+                </p>
+              )}
               <div className="text-[11px] text-gray-500 italic">{status}</div>
             </div>
           </div>
@@ -409,6 +571,45 @@ export default function Podcast({ }: PodcastProps) {
                 </div>
               );
             })}
+          </div>
+
+          <div className="mt-6 rounded-lg border border-gray-200 bg-white px-4 py-3 text-xs leading-relaxed text-gray-600">
+            <p>
+              Ahenk Cep ile oluşturulan sesler yapay zekâ tarafından üretilir; gerçek bir
+              kişinin ses kaydı değildir. Metin ve ses işlemesi cihazınızda yapılır.
+            </p>
+            <details className="mt-2">
+              <summary className="cursor-pointer font-medium text-[#336699]">
+                Ses modeli, telif ve lisans atıfları
+              </summary>
+              <div className="mt-2 space-y-2">
+                <p>
+                  <a href="https://github.com/ozguradmin/ahenk-turkish-tts"
+                    target="_blank" rel="noopener noreferrer" className="underline">Ahenk Cep / Ahenk</a>
+                  {' '}ses modeli: CC BY 4.0; uygulama kodu ve trnorm: Apache-2.0.
+                  Tasarlanmış sentetik ses f022 kullanılır.
+                </p>
+                <p>
+                  Temel model:{' '}
+                  <a href="https://huggingface.co/canberkkkkkk/ema-lightning"
+                    target="_blank" rel="noopener noreferrer" className="underline">EMA Lightning</a>
+                  {' '}(Apache-2.0). Kaynak veri atıfları:{' '}
+                  <a href="https://huggingface.co/datasets/cloud0day3/alania-synthetic-speech-tr"
+                    target="_blank" rel="noopener noreferrer" className="underline">Alania Turkish Synthetic Speech</a>
+                  {' '}ve{' '}
+                  <a href="https://huggingface.co/datasets/cloud0day3/alania-domain-text-tr"
+                    target="_blank" rel="noopener noreferrer" className="underline">Alania Turkish Domain Text</a>
+                  {' '}by PatientDesk AI (CC BY 4.0).
+                </p>
+                <p>
+                  <a href="https://huggingface.co/ozgurguler/ahenk-cep-tr"
+                    target="_blank" rel="noopener noreferrer" className="underline">Model kartı ve lisans</a>
+                  {' '}·{' '}
+                  <a href="https://github.com/metinciris/metinciriscomtr/blob/main/docs/PODCAST-AHENK-CEP.md"
+                    target="_blank" rel="noopener noreferrer" className="underline">Entegrasyon ve atıflar</a>
+                </p>
+              </div>
+            </details>
           </div>
         </div>
       </PageContainer>
