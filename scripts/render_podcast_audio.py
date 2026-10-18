@@ -24,7 +24,7 @@ RANGE = "A1:F132"
 JOURNAL_ROWS = {0, 11, 22, 33, 44, 55, 66, 77, 88, 99, 110, 121}
 BATCH_SIZE = 5
 MIN_EXPECTED_ARTICLES = 20
-MP3_NAME = re.compile(r'^[a-f0-9]{24}[.]mp3MAX_AGE_DAYS = 90
+MP3_NAME = re.compile(r'^[a-f0-9]{24}[.]mp3$')
 AUDIO_DIR = Path("public/podcast-audio")
 MANIFEST_PATH = AUDIO_DIR / "manifest.json"
 MODEL_REVISION = "ahenk-cep-tr-2026-10-18"
