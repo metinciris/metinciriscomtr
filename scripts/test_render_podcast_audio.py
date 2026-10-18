@@ -76,7 +76,7 @@ class IncrementalCacheTests(unittest.TestCase):
         )
         return manifest
 
-    def fake_render(self, _tts, _text, destination):
+    def fake_render(self, _tts, _text, destination, speed=1.0):
         destination.write_bytes(b"ID3" + b"x" * 2048)
 
     def test_keep_initial_five_and_add_at_most_eight_per_run(self):

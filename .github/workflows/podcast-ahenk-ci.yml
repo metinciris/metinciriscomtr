@@ -11,6 +11,12 @@ on:
       - 'src/lib/podcastScroll.test.ts'
       - 'src/lib/podcastPreparedAudio.ts'
       - 'src/lib/podcastPreparedAudio.test.ts'
+      - 'src/lib/podcastPronunciationOverrides.ts'
+      - 'src/lib/podcastPronunciationOverrides.test.ts'
+      - 'scripts/podcast_audio_pronunciation.py'
+      - 'scripts/test_podcast_audio_pronunciation.py'
+      - 'windows/podcast-ahenk/**'
+      - 'public/podcast-audio/pronunciation.json'
       - 'scripts/render_podcast_audio.py'
       - 'scripts/test_render_podcast_audio.py'
       - '.github/workflows/podcast-audio.yml'
@@ -40,9 +46,11 @@ jobs:
       - name: Check lint
         run: npm run lint
       - name: Check podcast pronunciation and scroll placement
-        run: npm run test -- src/lib/ahenkPronunciation.test.ts src/lib/podcastScroll.test.ts src/lib/podcastPreparedAudio.test.ts
+        run: npm run test -- src/lib/ahenkPronunciation.test.ts src/lib/podcastScroll.test.ts src/lib/podcastPreparedAudio.test.ts src/lib/podcastPronunciationOverrides.test.ts
       - name: Check Python podcast batch generation and sheet parsing
-        run: python3 -m unittest scripts.test_render_podcast_audio
+        run: python3 -m unittest scripts.test_render_podcast_audio scripts.test_podcast_audio_pronunciation
+      - name: Check Windows manager Python syntax
+        run: python3 -m py_compile windows/podcast-ahenk/podcast_ahenk_gui.py scripts/podcast_audio_pronunciation.py
       - name: Ensure bundled open-source runtime has required files
         run: |
           test -f public/ahenk-cep/js/worker.js

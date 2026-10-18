@@ -1,0 +1,3 @@
+# The Tkinter GUI uses the Python standard library only.
+# Install the model dependencies on demand via the in-app button.
+# Dependency lock: ../../scripts/podcast-audio-requirements.txt
