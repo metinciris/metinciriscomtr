@@ -14,6 +14,9 @@ on:
 
 permissions:
   contents: write
+  issues: read
+  pages: write
+  id-token: write
 
 concurrency:
   group: podcast-audio-generation
@@ -22,6 +25,8 @@ concurrency:
 jobs:
   render:
     runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.save.outputs.changed }}
     timeout-minutes: 50
     steps:
       - uses: actions/checkout@v4
@@ -45,11 +50,68 @@ jobs:
           OMP_NUM_THREADS: '2'
           MKL_NUM_THREADS: '2'
       - name: Commit changes only when necessary
+        id: save
         run: |
           git add public/podcast-audio
           if git diff --cached --quiet; then
             echo "No podcast audio changes."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m "chore(podcast): refresh cached Ahenk audio"
           git push origin HEAD:main
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: render
+    if: needs.render.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout updated main branch (including new MP3 files)
+        uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - name: Build pages with the current article data
+        run: npm run build
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SITE_URL: https://metinciris.com.tr
+          BLOG_REPO_OWNER: metinciris
+          BLOG_REPO_NAME: metinciriscomtr
+          BLOG_LABEL: Blog
+          BLOG_POSTS_PER_PAGE: 9
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_ADMIN_UIDS: ${{ secrets.VITE_ADMIN_UIDS }}
+          VITE_VAPID_PUBLIC_KEY: ${{ secrets.VITE_VAPID_PUBLIC_KEY }}
+          VITE_SAVE_SUB_URL: ${{ secrets.VITE_SAVE_SUB_URL }}
+          VITE_PUBMED_API_KEY: ${{ secrets.VITE_PUBMED_API_KEY }}
+      - run: npm run verify:build
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+
+  deploy:
+    needs: build
+    if: needs.build.result == 'success'
+    concurrency:
+      group: github-pages
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publish regenerated podcast audio on GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
