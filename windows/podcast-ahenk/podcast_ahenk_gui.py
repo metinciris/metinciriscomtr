@@ -23,6 +23,7 @@ import traceback
 ROOT = Path(__file__).resolve().parents[2]
 os.chdir(ROOT)
 sys.path.insert(0, str(ROOT))
+sys.dont_write_bytecode = True  # no Python cache files inside the Git working tree
 from scripts import render_podcast_audio as engine
 from scripts import podcast_audio_pronunciation as pron
 
