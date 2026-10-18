@@ -38,6 +38,7 @@ def spoken(text):
 
 def normalize_pmid(value):
     """Google Sheets often gives a numeric PMID as 42874744.0, not 42874744."""
+    raw = str(value if value is not None else "").strip()
     return re.sub(r"\.0+$", "", raw) if re.fullmatch(r"[0-9]+\.0+", raw) else raw
 
 
