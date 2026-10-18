@@ -19,3 +19,21 @@ deploy iş akışını tetikler.
 Daha geniş kapsam için önce GitHub Actions CPU süresi, depolama ve günlük
 çalışmanın işleme maliyetini kontrol edin. Bu pilotta kullanıcıya ses dosyası
 sunulmaması halinde mevcut canlı Ahenk okuma aynen devam eder.
+
+## Hazır MP3 eşleştirmesi ve otomatik oynatma
+
+Ses motoru seçim menüsü bulunmaz. Podcast uygulaması önce
+`/podcast-audio/manifest.json` listesini (5 saniyelik zaman aşımıyla)
+ve Google Sheets makalelerini paralel yükler. Başlık ve normalleştirilmiş
+PubMed numarası aynıysa hazır MP3 çalınır, sonraki dosya önden yüklenir.
+Hazır MP3 yoksa veya dosya çalınamıyorsa yalnızca Ahenk Cep ile
+tarayıcıda ses üretilir; sistem sesine otomatik geçilmez.
+
+**2026-10-18 hatası:** İlk üretilen kayıtların PMID'leri Python tarafında
+`42874744.0` biçiminde, web arayüzünde ise `42874744` olarak
+saklanmıştı. Bu yüzden MP3 mevcut olsa bile bulunamıyordu.
+`src/lib/podcastPreparedAudio.ts` eski manifestleri de okuyabilen
+normalleştirme sağlar. `scripts/render_podcast_audio.py` bundan sonra
+tam sayı biçiminde PMID yazar. Bu düzeltme ses ve makale başlıklarını
+değiştirmez. `src/lib/podcastPreparedAudio.test.ts` ve
+`scripts/test_render_podcast_audio.py` aynı davranışı sınar.
