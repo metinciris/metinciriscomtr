@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-10-18T18:47:09.322454+00:00",
+  "generated_at": "2026-10-18T19:03:21.021916+00:00",
   "entries": {
     "7d9cd522d0f2d5752ca6a105": {
       "title": "MAP2K1 mutasyonlu melanositik tümörler: 114 olgu üzerinden yapılan bir çalışmaya dayanarak histolojik özelliklerin moleküler fonksiyonel sınıflarıyla ilişkisi.",
@@ -41,6 +41,46 @@
       "fingerprint": "213799061a96b2b0c6c0d3f0efde9cd04204438c21836da87554248d01aa8794",
       "file": "195eef19336294eaa7dd6ae2.mp3",
       "generated_at": "2026-10-18T18:47:09.322454+00:00"
+    },
+    "25fd1207d655d8dd9d8c151d": {
+      "title": "Mohs cerrahisinde melanom dışı deri kanserinin gerçek zamanlı sınır değerlendirmesi için ex vivo floresan konfokal mikroskopi: Prospektif girişimsel bir çalışma.",
+      "journal": "Modern Pathology",
+      "pmid": "42855077",
+      "fingerprint": "546a9aa61b0003b32ffff06221a77acd20e0b490a464d107e7913090f1f61966",
+      "file": "25fd1207d655d8dd9d8c151d.mp3",
+      "generated_at": "2026-10-18T19:03:21.021916+00:00"
+    },
+    "6a46052310bdc81f6ff2e1d1": {
+      "title": "PRAME'nin üveal melanomda tedavi sonucunu tahmin etmesi.",
+      "journal": "Histopathology",
+      "pmid": "42872504",
+      "fingerprint": "f2463a3d7f224b4232ca3ff1178a891a0ac77cfc38025e613bc9be7a81b9653d",
+      "file": "6a46052310bdc81f6ff2e1d1.mp3",
+      "generated_at": "2026-10-18T19:03:21.021916+00:00"
+    },
+    "b22a884d0a400da26ced27b8": {
+      "title": "ALK-Negatif Anaplastik Büyük Hücreli Lenfomada RORγt ve T-bet'in Diferansiyel Ekspresyonu: Biyolojik Heterojenite ve Ayırıcı Tanı Açısından Etkileri.",
+      "journal": "American Journal of Surgical Pathology",
+      "pmid": "42687744",
+      "fingerprint": "74bc23957c64cc8993ed5399c95243d4c8a9dcbc33224ae3c66d16219a1a8854",
+      "file": "b22a884d0a400da26ced27b8.mp3",
+      "generated_at": "2026-10-18T19:03:21.021916+00:00"
+    },
+    "359729331f7a6765b732d5ba": {
+      "title": "Deri ve deri altı dokusunu etkileyen GLI1-değişimli mezenkimal neoplazmların klinikopatolojik karakterizasyonu: sekiz vakalık bir seri.",
+      "journal": "Human Pathology",
+      "pmid": "42538637",
+      "fingerprint": "a7cedd2428eb272d2e429270594d1a696f966c40bbfc073bb33ef78e0e03431c",
+      "file": "359729331f7a6765b732d5ba.mp3",
+      "generated_at": "2026-10-18T19:03:21.021916+00:00"
+    },
+    "6d8f83b64b295e7d4ec4b011": {
+      "title": "Pankreatobiliyer Sistemin Mezenkimal Neoplazmaları.",
+      "journal": "Virchows Archiv",
+      "pmid": "42730539",
+      "fingerprint": "c3f339860a417bed8cc1a58eb6def142bae5d90fc9862b9b1fac5d9cfa79a0c8",
+      "file": "6d8f83b64b295e7d4ec4b011.mp3",
+      "generated_at": "2026-10-18T19:03:21.021916+00:00"
     }
   }
 }
