@@ -64,6 +64,9 @@ export default function Podcast({ }: PodcastProps) {
   const activeRequestRef = useRef<AbortController | null>(null);
   const playbackTokenRef = useRef(0);
   const playerRef = useRef<HTMLDivElement | null>(null);
+  const preparedAudioRef = useRef<HTMLAudioElement | null>(null);
+  const nextAudioRef = useRef<HTMLAudioElement | null>(null);
+  const readyClipsRef = useRef<Map<string, string>>(new Map());
 
   // volumeRef'i her zaman güncel tut
   useEffect(() => {
@@ -93,6 +96,8 @@ export default function Podcast({ }: PodcastProps) {
         utteranceRef.current.onerror = null;
       }
       browserSpeech?.cancel();
+      preparedAudioRef.current?.pause();
+      nextAudioRef.current?.pause();
       const source = audioSourceRef.current;
       if (source) {
         source.onended = null;
@@ -190,6 +195,24 @@ export default function Podcast({ }: PodcastProps) {
       }
 
       articlesRef.current = flatArticles;
+      // Published MP3s are optional; a missing or stale manifest never blocks articles.
+      void fetch('/podcast-audio/manifest.json', { cache: 'no-cache' })
+        .then(async (response) => {
+          if (!response.ok) throw new Error('No prepared audio manifest');
+          return response.json();
+        })
+        .then((manifest: { version?: number; entries?: Record<string, { title: string; journal: string; pmid: string; file: string }> }) => {
+          if (manifest.version !== 1 || !manifest.entries) return;
+          const clips = new Map<string, string>();
+          for (const entry of Object.values(manifest.entries)) {
+            if (!/^[a-f0-9]{24}[.]mp3$/.test(entry.file)) continue;
+            clips.set(JSON.stringify([entry.journal, entry.title, entry.pmid]),
+              '/podcast-audio/' + entry.file);
+          }
+          readyClipsRef.current = clips;
+          preloadReadyClip(0);
+        })
+        .catch(() => { /* live Ahenk remains the fallback */ });
       setJournalGroups(groups);
       setArticles(flatArticles);
       setLoadingMessage('');
@@ -202,7 +225,30 @@ export default function Podcast({ }: PodcastProps) {
     }
   };
 
+  const clipUrl = (article: Article | undefined) =>
+    article ? readyClipsRef.current.get(JSON.stringify([
+      article.journal, article.title, article.pmid || '',
+    ])) : undefined;
+
+  const preloadReadyClip = (index: number) => {
+    const url = clipUrl(articlesRef.current[index]);
+    if (!url) return;
+    if (nextAudioRef.current?.src.endsWith(url)) return;
+    nextAudioRef.current?.pause();
+    const next = new Audio(url);
+    next.preload = 'auto';
+    next.load();
+    nextAudioRef.current = next;
+  };
+
   const stopOutputs = () => {
+    const prepared = preparedAudioRef.current;
+    if (prepared) {
+      prepared.onended = null;
+      prepared.onerror = null;
+      prepared.pause();
+      preparedAudioRef.current = null;
+    }
     if (utteranceRef.current) {
       utteranceRef.current.onend = null;
       utteranceRef.current.onerror = null;
@@ -294,6 +340,46 @@ export default function Podcast({ }: PodcastProps) {
       return;
     }
 
+    // Prefer ready MP3: no model download or per-device inference.
+    const url = clipUrl(article);
+    if (url) {
+      const media = nextAudioRef.current?.src.endsWith(url)
+        ? nextAudioRef.current : new Audio(url);
+      nextAudioRef.current = null;
+      media.preload = 'auto';
+      media.volume = volumeRef.current;
+      preparedAudioRef.current = media;
+      media.onended = () => {
+        if (token !== playbackTokenRef.current) return;
+        preparedAudioRef.current = null;
+        finishArticle(index, token);
+      };
+      media.onerror = () => {
+        if (token !== playbackTokenRef.current) return;
+        media.onerror = null;
+        preparedAudioRef.current = null;
+        void startAhenkSpeech(index, token, request.signal);
+      };
+      try {
+        await media.play();
+        if (request.signal.aborted || token !== playbackTokenRef.current) return;
+        setStatus('Hazır Ahenk sesi oynatılıyor...');
+        preloadReadyClip(index + 1);
+        return;
+      } catch (error) {
+        console.warn('Hazır MP3 çalınamadı; canlı Ahenk kullanılacak:', error);
+        media.onerror = null;
+        media.pause();
+        preparedAudioRef.current = null;
+        if (request.signal.aborted || token !== playbackTokenRef.current) return;
+      }
+    }
+    void startAhenkSpeech(index, token, request.signal);
+  };
+
+  const startAhenkSpeech = async (index: number, token: number, signal: AbortSignal) => {
+    const article = articlesRef.current[index];
+    if (!article || signal.aborted || token !== playbackTokenRef.current) return;
     setStatus('Ahenk sesi hazırlanıyor...');
     try {
       if (!ahenkClientRef.current) {
@@ -301,9 +387,9 @@ export default function Podcast({ }: PodcastProps) {
       }
       const { audio, sampleRate } = await ahenkClientRef.current.speak(
         prepareAhenkText(article.title),
-        request.signal,
+        signal,
       );
-      if (request.signal.aborted || token !== playbackTokenRef.current) return;
+      if (signal.aborted || token !== playbackTokenRef.current) return;
 
       const context = audioContextRef.current;
       const gain = audioGainRef.current;
@@ -311,7 +397,7 @@ export default function Podcast({ }: PodcastProps) {
         throw new Error('Ses oynatıcısı başlatılamadı.');
       }
       if (context.state === 'suspended') await context.resume();
-      if (request.signal.aborted || token !== playbackTokenRef.current) return;
+      if (signal.aborted || token !== playbackTokenRef.current) return;
 
       const buffer = context.createBuffer(1, audio.length, sampleRate);
       buffer.getChannelData(0).set(audio);
@@ -327,7 +413,7 @@ export default function Podcast({ }: PodcastProps) {
       source.start();
       setStatus('Ahenk ile okunuyor...');
     } catch (error) {
-      if (request.signal.aborted || token !== playbackTokenRef.current) return;
+      if (signal.aborted || token !== playbackTokenRef.current) return;
       console.warn('Ahenk seslendirme başarısız; tarayıcı sesine geçiliyor:', error);
       setStatus('Ahenk açılamadı; tarayıcı sesi kullanılacak.');
       speakWithBrowser(index, token);
@@ -353,6 +439,7 @@ export default function Podcast({ }: PodcastProps) {
     setVolume(newVolume);
     volumeRef.current = newVolume;
     if (audioGainRef.current) audioGainRef.current.gain.value = newVolume;
+    if (preparedAudioRef.current) preparedAudioRef.current.volume = newVolume;
     if (utteranceRef.current) utteranceRef.current.volume = newVolume;
   };
 

@@ -1,0 +1,48 @@
+name: Podcast - Ahenk Cep hazir sesler
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '21 5 * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: podcast-audio-generation
+  cancel-in-progress: false
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: scripts/podcast-audio-requirements.txt
+      - name: Install CPU Ahenk Cep dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+          python -m pip install --upgrade pip
+          pip install --extra-index-url https://download.pytorch.org/whl/cpu -r scripts/podcast-audio-requirements.txt
+      - name: Create/refresh first five podcast audio clips
+        run: python scripts/render_podcast_audio.py
+        env:
+          HF_HUB_DISABLE_TELEMETRY: '1'
+          OMP_NUM_THREADS: '2'
+          MKL_NUM_THREADS: '2'
+      - name: Commit changes only when necessary
+        run: |
+          git add public/podcast-audio
+          if git diff --cached --quiet; then
+            echo "No podcast audio changes."
+            exit 0
+          fi
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m "chore(podcast): refresh cached Ahenk audio"
+          git push origin HEAD:main
