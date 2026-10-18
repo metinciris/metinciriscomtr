@@ -170,7 +170,7 @@ def main():
         # Commit only after every clip is valid.
         for source, destination in staged:
             os.replace(source, destination)
-    updated = {"version": 1, "generated_at": now.isoformat(), "entries": candidates}
+    updated = {"version": 1, "generated_at": now.isoformat() if pending or candidates != old["entries"] else old.get("generated_at", now.isoformat()), "entries": candidates}
     temp_manifest = AUDIO_DIR / "manifest.json.tmp"
     temp_manifest.write_text(json.dumps(updated, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     os.replace(temp_manifest, MANIFEST_PATH)
