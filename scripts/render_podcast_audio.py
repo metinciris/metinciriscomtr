@@ -15,6 +15,12 @@ import re
 import subprocess
 import sys
 import tempfile
+
+try:
+    from scripts import podcast_audio_pronunciation as pron
+except ImportError:  # direct script invocation in GitHub Actions
+    import podcast_audio_pronunciation as pron
+
 from datetime import datetime, timedelta, timezone
 from urllib.request import urlopen
 
@@ -110,10 +116,10 @@ def create_tts():
                     str(Path(model_dir) / "decoder.pt"))
 
 
-def render_clip(tts, text, destination):
+def render_clip(tts, text, destination, speed=1.0):
     import numpy as np
     import soundfile as sf
-    audio, sample_rate = tts.say(text, style="neutral", steps=16, speed=1.0, seed=0)
+    audio, sample_rate = tts.say(text, style="neutral", steps=16, speed=speed, seed=0)
     if len(audio) < sample_rate // 4 or not np.isfinite(audio).all():
         raise RuntimeError("Model produced invalid audio; cache preserved")
     with tempfile.TemporaryDirectory() as tempdir:
@@ -134,15 +140,17 @@ def render_clip(tts, text, destination):
 def catalog(articles):
     """Every currently listed title is eligible; preserve insertion order."""
     entries = OrderedDict()
+    rules = pron.load()
     for article in articles:
         key = key_for(article["journal"], article["title"], article["pmid"])
         if key in entries:
             continue
+        speaking, speed = pron.speech(article, rules, spoken(article["title"]))
         entries[key] = {
             "title": article["title"],
             "journal": article["journal"],
             "pmid": article["pmid"],
-            "fingerprint": fingerprint(spoken(article["title"])),
+            "fingerprint": fingerprint(pron.signature(speaking, speed)),
             "file": key + ".mp3",
         }
     return entries
@@ -277,7 +285,7 @@ def plan_updates(articles, manifest, now):
     }
 
 
-def execute_plan(plan):
+def execute_plan(plan, tts=None, on_prepared=None):
     """Stage the entire small batch before replacing or deleting live files."""
     if plan.get("version") != 1:
         raise RuntimeError("Unknown generation plan")
@@ -297,14 +305,24 @@ def execute_plan(plan):
         if playable(previous["entries"].get(key), article)
     }
 
-    tts = create_tts() if selected else None
+    rules = pron.load()
+    for key in selected:
+        item = candidates[key]
+        speaking, speed = pron.speech(item, rules, spoken(item["title"]))
+        if fingerprint(pron.signature(speaking, speed)) != item["fingerprint"]:
+            raise RuntimeError("Pronunciation rules changed since planning; regenerate the plan")
+    if selected and tts is None:
+        tts = create_tts()
     with tempfile.TemporaryDirectory(prefix=".podcast-staging-", dir=AUDIO_DIR) as staging:
         staged = []
         for key in selected:
             article = candidates[key]
             destination = Path(staging) / article["file"]
-            render_clip(tts, spoken(article["title"]), destination)
+            speaking, speed = pron.speech(article, rules, spoken(article["title"]))
+            render_clip(tts, speaking, destination, speed=speed)
             staged.append((key, destination))
+            if on_prepared:
+                on_prepared(key, article)
             print("Prepared", key, article["journal"], flush=True)
 
         for key, file in staged:
