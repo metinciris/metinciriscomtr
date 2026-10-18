@@ -236,7 +236,7 @@ class App:
         ttk.Label(article_tab, text="Yeni ses once yerel on dinlemedir. Kabul etmeden eski MP3 degismez.",
                   foreground="#666666").pack(anchor="w", pady=7)
 
-        ttk.Label(global_tab, text="Ornek: Ewing -> Yuing. Genel kurallar tum basliklara uygulanir.").pack(anchor="w")
+        ttk.Label(global_tab, text="Ornek: BRG1 -> be re ge bir. Kurallar yerlesik duzeltmelerden sonra uygulanir.").pack(anchor="w")
         globals_row = ttk.Frame(global_tab)
         globals_row.pack(fill="x", pady=8)
         ttk.Label(globals_row, text="Bul").pack(side="left")
