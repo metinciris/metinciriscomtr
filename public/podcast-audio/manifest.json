@@ -1,4 +1,46 @@
 {
   "version": 1,
-  "entries": {}
+  "generated_at": "2026-10-18T18:30:25.326161+00:00",
+  "entries": {
+    "f9f2808d0c0c3b4646a99767": {
+      "title": "MAP2K1 mutasyonlu melanositik tümörler: 114 olgu üzerinden yapılan bir çalışmaya dayanarak histolojik özelliklerin moleküler fonksiyonel sınıflarıyla ilişkisi.",
+      "journal": "Modern Pathology",
+      "pmid": "42874744.0",
+      "fingerprint": "c54cefed2170c0ef524f0a0a2fe48fe36755a4b650c6168205fcfa4d84b16bd2",
+      "file": "f9f2808d0c0c3b4646a99767.mp3",
+      "generated_at": "2026-10-18T18:30:25.326161+00:00"
+    },
+    "49c335aa32963fac730b301e": {
+      "title": "Adamantinoma benzeri Ewing Sarkomu: Baş ve Boyun Bölgesinde Ewing Sarkomundan Farklı Klinikopatolojik Özelliklere Sahip, Yeterince Tanınmayan Bir Taklitçi.",
+      "journal": "Modern Pathology",
+      "pmid": "42874743.0",
+      "fingerprint": "604144ef61a311eeed60c975f0a64665e734e0fd3b246eb7d806f8e1079f073e",
+      "file": "49c335aa32963fac730b301e.mp3",
+      "generated_at": "2026-10-18T18:30:25.326161+00:00"
+    },
+    "2b2c35e6abbcf3fe8cf797e6": {
+      "title": "Rutin H&E Histolojisi, Rezeke Edilmiş Pankreas Duktal Adenokarsinomunda Ameliyat Sonrası Risk Heterojenliğini Kodlar: TIGERS Çalışmasının Çoklu Kohort Değerlendirmesi.",
+      "journal": "Modern Pathology",
+      "pmid": "42874742.0",
+      "fingerprint": "33c872d7735f52d4d3c742bb0ef294f41bedd0a80fd5cb2f6673169b0a7ab758",
+      "file": "2b2c35e6abbcf3fe8cf797e6.mp3",
+      "generated_at": "2026-10-18T18:30:25.326161+00:00"
+    },
+    "1240cc8334079a17f5d3dc8a": {
+      "title": "Anjiosarkomların Genomik ve Transkriptomik Karakterizasyonu: Kalp Kökenine Odaklanma.",
+      "journal": "Modern Pathology",
+      "pmid": "42874741.0",
+      "fingerprint": "a02298c331886b94ef32933d316714c4db5d78d5fef239ad0dcc2b3a9a9130b2",
+      "file": "1240cc8334079a17f5d3dc8a.mp3",
+      "generated_at": "2026-10-18T18:30:25.326161+00:00"
+    },
+    "004499cfc352859d8add3c4b": {
+      "title": "Dermal sinir kılıfı miksomları, tekrarlayan DPYSL2::CDX1 füzyonlarını barındırır ve CDX1 yeniden düzenlenmiş yumuşak doku tümörlerinin spektrumunu genişletir.",
+      "journal": "Modern Pathology",
+      "pmid": "42874740.0",
+      "fingerprint": "213799061a96b2b0c6c0d3f0efde9cd04204438c21836da87554248d01aa8794",
+      "file": "004499cfc352859d8add3c4b.mp3",
+      "generated_at": "2026-10-18T18:30:25.326161+00:00"
+    }
+  }
 }
