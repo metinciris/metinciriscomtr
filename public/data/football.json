@@ -12,7 +12,7 @@
     "scoreHome": 1,
     "scoreAway": 4,
     "source": "football-data",
-    "lastFetchedAt": "2026-10-18T10:44:05.392Z"
+    "lastFetchedAt": "2026-10-18T20:23:25.502Z"
   },
   {
     "id": "football-CL-575355",
@@ -27,7 +27,7 @@
     "scoreHome": 6,
     "scoreAway": 0,
     "source": "football-data",
-    "lastFetchedAt": "2026-10-18T10:44:05.392Z"
+    "lastFetchedAt": "2026-10-18T20:23:25.502Z"
   },
   {
     "id": "football-CL-575360",
@@ -42,7 +42,7 @@
     "scoreHome": null,
     "scoreAway": null,
     "source": "football-data",
-    "lastFetchedAt": "2026-10-18T10:44:05.392Z"
+    "lastFetchedAt": "2026-10-18T20:23:25.502Z"
   },
   {
     "id": "football-CL-575369",
@@ -57,6 +57,6 @@
     "scoreHome": null,
     "scoreAway": null,
     "source": "football-data",
-    "lastFetchedAt": "2026-10-18T10:44:05.392Z"
+    "lastFetchedAt": "2026-10-18T20:23:25.502Z"
   }
 ]
