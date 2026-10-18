@@ -173,7 +173,7 @@ export class AhenkCepClient {
   // Serialized requests protect the ONNX sessions from concurrent inference.
   // An aborted UI request is skipped before it reaches the worker; if already
   // running, its result is discarded by the caller without interrupting the model.
-  speak(text: string, signal?: AbortSignal): Promise<AhenkAudio> {
+  speak(text: string, signal?: AbortSignal, speed = 1.0): Promise<AhenkAudio> {
     const run = async (): Promise<AhenkAudio> => {
       await this.load();
       if (signal?.aborted) throw new Error('Seslendirme iptal edildi.');
@@ -201,7 +201,7 @@ export class AhenkCepClient {
           text,
           style: 'neutral',
           steps: 16,
-          speed: 1.0,
+          speed: Number.isFinite(speed) && speed >= 0.8 && speed <= 1.2 ? speed : 1.0,
           seed: 0,
         });
       });
