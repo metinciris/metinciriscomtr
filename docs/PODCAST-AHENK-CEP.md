@@ -51,7 +51,13 @@ Credit the model and datasets when using it in third-party distributions.
 - CSP additions in index.html and netlify.toml allow only the model/CDN
   origins required by the runtime; no API key is used.
 - The old SpeechSynthesis is selectable and acts as a per-title fallback.
-- To change a particular medical acronym pronunciation, edit
-  src/lib/ahenkPronunciation.ts only after verifying the model output.
+- Voice-only pronunciation adjustments are kept in
+  `src/lib/ahenkPronunciation.ts`, not in the stored/displayed headlines.
+  Currently supported: `H&E` → `Hematoksilen Eozin`,
+  `p53` → `pe 53`, `Ewing` → `Yuing`, plus
+  `p16`, `p40`, `p63` and `p57` → `pe` + their number.
+  The list is deliberately short to preserve good existing pronunciations;
+  add any further words only when users request them or after listening tests.
+  See `src/lib/ahenkPronunciation.test.ts` for boundary tests.
 - Use the original upstream URLs to check licences and updates. Reassess upstream
   changes, security and licence terms before refreshing vendored files.
