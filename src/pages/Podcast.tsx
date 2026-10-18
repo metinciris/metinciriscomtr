@@ -5,6 +5,7 @@ import '../styles/Podcast.css';
 import { AhenkCepClient, type AhenkLoadStatus } from '../lib/ahenkCep';
 import { prepareAhenkText } from '../lib/ahenkPronunciation';
 import { getPodcastArticleScrollTop } from '../lib/podcastScroll';
+import { indexPreparedPodcastAudio, normalizePodcastPmid, podcastAudioKey } from '../lib/podcastPreparedAudio';
 
 interface PodcastProps {
   onNavigate: (page: string) => void; // App ile uyum için; bu sayfada kullanmıyoruz
@@ -40,7 +41,6 @@ export default function Podcast({ }: PodcastProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [status, setStatus] = useState('Hazır');
   const [volume, setVolume] = useState(1);
-  const [voiceEngine, setVoiceEngine] = useState<'ahenk' | 'browser'>('ahenk');
   const [ahenkLoad, setAhenkLoad] = useState<AhenkLoadStatus>({
     phase: 'idle',
     percent: 0,
@@ -50,13 +50,8 @@ export default function Podcast({ }: PodcastProps) {
     "Google Sheets'ten veriler yükleniyor...",
   );
 
-  const synthRef = useRef<SpeechSynthesis | null>(null);
-  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
-  const voicesRef = useRef<SpeechSynthesisVoice[]>([]);
-  const selectedVoiceRef = useRef<SpeechSynthesisVoice | null>(null);
   const volumeRef = useRef(volume);
   const articlesRef = useRef<Article[]>([]);
-  const engineRef = useRef<'ahenk' | 'browser'>('ahenk');
   const ahenkClientRef = useRef<AhenkCepClient | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const audioGainRef = useRef<GainNode | null>(null);
@@ -81,21 +76,11 @@ export default function Podcast({ }: PodcastProps) {
   });
 
   useEffect(() => {
-    // Browser voice remains available as an immediate fallback.
-    synthRef.current = window.speechSynthesis;
-    const browserSpeech = synthRef.current;
-    loadVoices();
-    browserSpeech?.addEventListener?.('voiceschanged', loadVoices);
     void fetchPodcastData();
 
     return () => {
       playbackTokenRef.current += 1;
       activeRequestRef.current?.abort();
-      if (utteranceRef.current) {
-        utteranceRef.current.onend = null;
-        utteranceRef.current.onerror = null;
-      }
-      browserSpeech?.cancel();
       preparedAudioRef.current?.pause();
       nextAudioRef.current?.pause();
       const source = audioSourceRef.current;
@@ -105,24 +90,31 @@ export default function Podcast({ }: PodcastProps) {
       }
       ahenkClientRef.current?.dispose();
       void audioContextRef.current?.close();
-      browserSpeech?.removeEventListener?.('voiceschanged', loadVoices);
     };
   }, []);
 
-  const loadVoices = () => {
-    if (!synthRef.current) return;
-    voicesRef.current = synthRef.current.getVoices();
-    selectedVoiceRef.current =
-      voicesRef.current.find(
-        (v) =>
-          (v.lang === 'tr-TR' || v.lang.startsWith('tr')) &&
-          (v.name.toLowerCase().includes('turkish') ||
-            v.name.toLowerCase().includes('trk')),
-      ) || voicesRef.current[0] ||
-      null;
+  // Check the prepared audio list while Sheets loads, so a quick tap cannot
+  // accidentally start synthesizing a title that already has a ready MP3.
+  const loadPreparedAudioManifest = async () => {
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 5000);
+    try {
+      const res = await fetch('/podcast-audio/manifest.json', {
+        cache: 'no-cache',
+        signal: controller.signal,
+      });
+      if (!res.ok) throw new Error('MP3 listesi alınamadı');
+      readyClipsRef.current = indexPreparedPodcastAudio(await res.json());
+    } catch (error) {
+      console.warn('Hazır ses listesi okunamadı; gerektiğinde Ahenk kullanılacak:', error);
+      readyClipsRef.current = new Map();
+    } finally {
+      window.clearTimeout(timeout);
+    }
   };
 
   const fetchPodcastData = async () => {
+    const readyManifest = loadPreparedAudioManifest();
     try {
       const url = `https://docs.google.com/spreadsheets/d/${PODCAST_SHEET_ID}/gviz/tq?tqx=out:json&gid=${PODCAST_GID}&range=${PODCAST_RANGE}&headers=0`;
 
@@ -153,7 +145,7 @@ export default function Podcast({ }: PodcastProps) {
         const author = c[1]?.v?.toString().trim() || '';
         const date = c[3]?.v?.toString().trim() || '';
         const detailE = c[4]?.v?.toString().trim() || '';
-        const pmid = c[5]?.v ? c[5].v.toString().trim() : '';
+        const pmid = normalizePodcastPmid(c[5]?.v);
 
         const isJournalRow = JOURNAL_ROWS.includes(idx);
 
@@ -195,28 +187,14 @@ export default function Podcast({ }: PodcastProps) {
       }
 
       articlesRef.current = flatArticles;
-      // Published MP3s are optional; a missing or stale manifest never blocks articles.
-      void fetch('/podcast-audio/manifest.json', { cache: 'no-cache' })
-        .then(async (response) => {
-          if (!response.ok) throw new Error('No prepared audio manifest');
-          return response.json();
-        })
-        .then((manifest: { version?: number; entries?: Record<string, { title: string; journal: string; pmid: string; file: string }> }) => {
-          if (manifest.version !== 1 || !manifest.entries) return;
-          const clips = new Map<string, string>();
-          for (const entry of Object.values(manifest.entries)) {
-            if (!/^[a-f0-9]{24}[.]mp3$/.test(entry.file)) continue;
-            clips.set(JSON.stringify([entry.journal, entry.title, entry.pmid]),
-              '/podcast-audio/' + entry.file);
-          }
-          readyClipsRef.current = clips;
-          preloadReadyClip(0);
-        })
-        .catch(() => { /* live Ahenk remains the fallback */ });
+      await readyManifest;
+      preloadReadyClip(0);
       setJournalGroups(groups);
       setArticles(flatArticles);
       setLoadingMessage('');
-      setStatus('Hazır');
+      setStatus(clipUrl(flatArticles[0])
+        ? 'Hazır MP3 · beklemeden dinlenebilir'
+        : 'Ahenk Cep hazır');
       setCurrentIndex(0);
     } catch (err) {
       console.error(err);
@@ -226,9 +204,7 @@ export default function Podcast({ }: PodcastProps) {
   };
 
   const clipUrl = (article: Article | undefined) =>
-    article ? readyClipsRef.current.get(JSON.stringify([
-      article.journal, article.title, article.pmid || '',
-    ])) : undefined;
+    article ? readyClipsRef.current.get(podcastAudioKey(article)) : undefined;
 
   const preloadReadyClip = (index: number) => {
     const url = clipUrl(articlesRef.current[index]);
@@ -249,12 +225,6 @@ export default function Podcast({ }: PodcastProps) {
       prepared.pause();
       preparedAudioRef.current = null;
     }
-    if (utteranceRef.current) {
-      utteranceRef.current.onend = null;
-      utteranceRef.current.onerror = null;
-      utteranceRef.current = null;
-    }
-    synthRef.current?.cancel();
     const source = audioSourceRef.current;
     if (source) {
       source.onended = null;
@@ -295,34 +265,6 @@ export default function Podcast({ }: PodcastProps) {
     }
   };
 
-  const speakWithBrowser = (index: number, token: number) => {
-    const article = articlesRef.current[index];
-    const synth = synthRef.current;
-    if (!article || !synth || token !== playbackTokenRef.current) {
-      setIsPlaying(false);
-      return;
-    }
-    const utterance = new SpeechSynthesisUtterance(article.title);
-    utteranceRef.current = utterance;
-    if (selectedVoiceRef.current) {
-      utterance.voice = selectedVoiceRef.current;
-      utterance.lang = selectedVoiceRef.current.lang || 'tr-TR';
-    } else {
-      utterance.lang = 'tr-TR';
-    }
-    utterance.rate = 0.9;
-    utterance.pitch = 1;
-    utterance.volume = volumeRef.current;
-    utterance.onend = () => finishArticle(index, token);
-    utterance.onerror = () => {
-      if (token !== playbackTokenRef.current) return;
-      setIsPlaying(false);
-      setStatus('Tarayıcı seslendirme hatası');
-    };
-    synth.speak(utterance);
-    setStatus('Tarayıcı sesiyle okunuyor...');
-  };
-
   const startSpeech = async (index: number) => {
     const article = articlesRef.current[index];
     if (!article) return;
@@ -335,12 +277,7 @@ export default function Podcast({ }: PodcastProps) {
 
     setCurrentIndex(index);
     setIsPlaying(true);
-    if (engineRef.current === 'browser') {
-      speakWithBrowser(index, token);
-      return;
-    }
-
-    // Prefer ready MP3: no model download or per-device inference.
+    // Prepared audio has priority: bypass the TTS model entirely.
     const url = clipUrl(article);
     if (url) {
       const media = nextAudioRef.current?.src.endsWith(url)
@@ -349,29 +286,36 @@ export default function Podcast({ }: PodcastProps) {
       media.preload = 'auto';
       media.volume = volumeRef.current;
       preparedAudioRef.current = media;
+      let fallbackStarted = false;
+      const fallbackToAhenk = () => {
+        if (fallbackStarted || request.signal.aborted || token !== playbackTokenRef.current) return;
+        fallbackStarted = true;
+        media.onerror = null;
+        media.onended = null;
+        media.pause();
+        if (preparedAudioRef.current === media) preparedAudioRef.current = null;
+        void startAhenkSpeech(index, token, request.signal);
+      };
+
       media.onended = () => {
         if (token !== playbackTokenRef.current) return;
         preparedAudioRef.current = null;
         finishArticle(index, token);
       };
-      media.onerror = () => {
-        if (token !== playbackTokenRef.current) return;
-        media.onerror = null;
-        preparedAudioRef.current = null;
-        void startAhenkSpeech(index, token, request.signal);
-      };
+      media.onerror = fallbackToAhenk;
       try {
         await media.play();
-        if (request.signal.aborted || token !== playbackTokenRef.current) return;
-        setStatus('Hazır Ahenk sesi oynatılıyor...');
+        if (request.signal.aborted || token !== playbackTokenRef.current) {
+          media.pause();
+          return;
+        }
+        setStatus('Hazır MP3 çalınıyor...');
         preloadReadyClip(index + 1);
         return;
       } catch (error) {
-        console.warn('Hazır MP3 çalınamadı; canlı Ahenk kullanılacak:', error);
-        media.onerror = null;
-        media.pause();
-        preparedAudioRef.current = null;
-        if (request.signal.aborted || token !== playbackTokenRef.current) return;
+        console.warn('Hazır MP3 çalınamadı; Ahenk ile ses üretilecek:', error);
+        fallbackToAhenk();
+        return;
       }
     }
     void startAhenkSpeech(index, token, request.signal);
@@ -414,9 +358,9 @@ export default function Podcast({ }: PodcastProps) {
       setStatus('Ahenk ile okunuyor...');
     } catch (error) {
       if (signal.aborted || token !== playbackTokenRef.current) return;
-      console.warn('Ahenk seslendirme başarısız; tarayıcı sesine geçiliyor:', error);
-      setStatus('Ahenk açılamadı; tarayıcı sesi kullanılacak.');
-      speakWithBrowser(index, token);
+      console.error('Ahenk seslendirme başarısız:', error);
+      setStatus('Ahenk seslendirme başarısız oldu. Tekrar Oynat ile deneyin.');
+      setIsPlaying(false);
     }
   };
 
@@ -440,15 +384,6 @@ export default function Podcast({ }: PodcastProps) {
     volumeRef.current = newVolume;
     if (audioGainRef.current) audioGainRef.current.gain.value = newVolume;
     if (preparedAudioRef.current) preparedAudioRef.current.volume = newVolume;
-    if (utteranceRef.current) utteranceRef.current.volume = newVolume;
-  };
-
-  const handleVoiceEngineChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    handleStop();
-    const engine = e.target.value === 'browser' ? 'browser' : 'ahenk';
-    engineRef.current = engine;
-    setVoiceEngine(engine);
-    setStatus('Hazır');
   };
 
   const handleCardClick = (index: number) => {
@@ -536,18 +471,6 @@ export default function Podcast({ }: PodcastProps) {
             </div>
 
             <div className="flex flex-col items-start md:items-end gap-3">
-              <label className="flex items-center gap-2 text-xs text-gray-600">
-                Ses motoru
-                <select
-                  value={voiceEngine}
-                  onChange={handleVoiceEngineChange}
-                  aria-label="Ses motoru seçimi"
-                  className="rounded-md border border-gray-300 bg-white px-2 py-1 text-sm text-gray-800"
-                >
-                  <option value="ahenk">Ahenk Cep · Türkçe yapay ses</option>
-                  <option value="browser">Tarayıcı sesi</option>
-                </select>
-              </label>
               <div className="flex gap-2">
                 <button
                   onClick={handlePlay}
@@ -579,7 +502,7 @@ export default function Podcast({ }: PodcastProps) {
                   className="w-24"
                 />
               </div>
-              {voiceEngine === 'ahenk' && isPlaying && ahenkLoad.phase === 'loading' && (
+              {isPlaying && status.startsWith('Ahenk') && ahenkLoad.phase === 'loading' && (
                 <div className="w-full max-w-64" role="status" aria-live="polite">
                   <div className="mb-1 flex justify-between gap-2 text-[11px] text-gray-600">
                     <span>{ahenkLoad.detail}</span>
@@ -600,9 +523,9 @@ export default function Podcast({ }: PodcastProps) {
                   </div>
                 </div>
               )}
-              {voiceEngine === 'ahenk' && ahenkLoad.phase === 'error' && (
+              {isPlaying && ahenkLoad.phase === 'error' && (
                 <p className="max-w-64 text-[11px] text-amber-700">
-                  Ahenk yüklenemedi; tarayıcı sesine geçiliyor. Yeniden Oynat ile tekrar deneyebilirsiniz.
+                  Ahenk yüklenemedi. Durdurup yeniden Oynat ile deneyebilirsiniz.
                 </p>
               )}
               <div className="text-[11px] text-gray-500 italic">{status}</div>

@@ -36,8 +36,14 @@ def spoken(text):
     return re.sub(r"\bEwing\b", "Yuing", out, flags=re.I)
 
 
+def normalize_pmid(value):
+    """Google Sheets often gives a numeric PMID as 42874744.0, not 42874744."""
+    raw = str(value if value is not None else "").strip()
+    return re.sub(r"\.0+$", "", raw) if re.fullmatch(r"[0-9]+\.0+", raw) else raw
+
+
 def key_for(journal, title, pmid):
-    payload = json.dumps([journal, title, pmid], ensure_ascii=False, separators=(",", ":"))
+    payload = json.dumps([journal, title, normalize_pmid(pmid)], ensure_ascii=False, separators=(",", ":"))
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:24]
 
 
@@ -61,7 +67,7 @@ def collect_articles(data):
         if i in JOURNAL_ROWS:
             journal = title
         elif len(title) > 10:
-            articles.append({"title": title, "journal": journal, "pmid": value(5)})
+            articles.append({"title": title, "journal": journal, "pmid": normalize_pmid(value(5))})
     if not articles:
         raise RuntimeError("No podcast articles returned; cache preserved")
     return articles
