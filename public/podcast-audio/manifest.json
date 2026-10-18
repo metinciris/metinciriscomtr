@@ -1,46 +1,46 @@
 {
   "version": 1,
-  "generated_at": "2026-10-18T18:30:25.326161+00:00",
+  "generated_at": "2026-10-18T18:47:09.322454+00:00",
   "entries": {
-    "f9f2808d0c0c3b4646a99767": {
+    "7d9cd522d0f2d5752ca6a105": {
       "title": "MAP2K1 mutasyonlu melanositik tümörler: 114 olgu üzerinden yapılan bir çalışmaya dayanarak histolojik özelliklerin moleküler fonksiyonel sınıflarıyla ilişkisi.",
       "journal": "Modern Pathology",
-      "pmid": "42874744.0",
+      "pmid": "42874744",
       "fingerprint": "c54cefed2170c0ef524f0a0a2fe48fe36755a4b650c6168205fcfa4d84b16bd2",
-      "file": "f9f2808d0c0c3b4646a99767.mp3",
-      "generated_at": "2026-10-18T18:30:25.326161+00:00"
+      "file": "7d9cd522d0f2d5752ca6a105.mp3",
+      "generated_at": "2026-10-18T18:47:09.322454+00:00"
     },
-    "49c335aa32963fac730b301e": {
+    "5e0a6c8a9a33b9460f4be3a3": {
       "title": "Adamantinoma benzeri Ewing Sarkomu: Baş ve Boyun Bölgesinde Ewing Sarkomundan Farklı Klinikopatolojik Özelliklere Sahip, Yeterince Tanınmayan Bir Taklitçi.",
       "journal": "Modern Pathology",
-      "pmid": "42874743.0",
+      "pmid": "42874743",
       "fingerprint": "604144ef61a311eeed60c975f0a64665e734e0fd3b246eb7d806f8e1079f073e",
-      "file": "49c335aa32963fac730b301e.mp3",
-      "generated_at": "2026-10-18T18:30:25.326161+00:00"
+      "file": "5e0a6c8a9a33b9460f4be3a3.mp3",
+      "generated_at": "2026-10-18T18:47:09.322454+00:00"
     },
-    "2b2c35e6abbcf3fe8cf797e6": {
+    "902fe33e7764d5dbb4a36566": {
       "title": "Rutin H&E Histolojisi, Rezeke Edilmiş Pankreas Duktal Adenokarsinomunda Ameliyat Sonrası Risk Heterojenliğini Kodlar: TIGERS Çalışmasının Çoklu Kohort Değerlendirmesi.",
       "journal": "Modern Pathology",
-      "pmid": "42874742.0",
+      "pmid": "42874742",
       "fingerprint": "33c872d7735f52d4d3c742bb0ef294f41bedd0a80fd5cb2f6673169b0a7ab758",
-      "file": "2b2c35e6abbcf3fe8cf797e6.mp3",
-      "generated_at": "2026-10-18T18:30:25.326161+00:00"
+      "file": "902fe33e7764d5dbb4a36566.mp3",
+      "generated_at": "2026-10-18T18:47:09.322454+00:00"
     },
-    "1240cc8334079a17f5d3dc8a": {
+    "ecf3b8fb1dcb031864f5b662": {
       "title": "Anjiosarkomların Genomik ve Transkriptomik Karakterizasyonu: Kalp Kökenine Odaklanma.",
       "journal": "Modern Pathology",
-      "pmid": "42874741.0",
+      "pmid": "42874741",
       "fingerprint": "a02298c331886b94ef32933d316714c4db5d78d5fef239ad0dcc2b3a9a9130b2",
-      "file": "1240cc8334079a17f5d3dc8a.mp3",
-      "generated_at": "2026-10-18T18:30:25.326161+00:00"
+      "file": "ecf3b8fb1dcb031864f5b662.mp3",
+      "generated_at": "2026-10-18T18:47:09.322454+00:00"
     },
-    "004499cfc352859d8add3c4b": {
+    "195eef19336294eaa7dd6ae2": {
       "title": "Dermal sinir kılıfı miksomları, tekrarlayan DPYSL2::CDX1 füzyonlarını barındırır ve CDX1 yeniden düzenlenmiş yumuşak doku tümörlerinin spektrumunu genişletir.",
       "journal": "Modern Pathology",
-      "pmid": "42874740.0",
+      "pmid": "42874740",
       "fingerprint": "213799061a96b2b0c6c0d3f0efde9cd04204438c21836da87554248d01aa8794",
-      "file": "004499cfc352859d8add3c4b.mp3",
-      "generated_at": "2026-10-18T18:30:25.326161+00:00"
+      "file": "195eef19336294eaa7dd6ae2.mp3",
+      "generated_at": "2026-10-18T18:47:09.322454+00:00"
     }
   }
 }
