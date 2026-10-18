@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-10-18T19:03:21.021916+00:00",
+  "generated_at": "2026-10-18T19:14:36.667661+00:00",
   "entries": {
     "7d9cd522d0f2d5752ca6a105": {
       "title": "MAP2K1 mutasyonlu melanositik tümörler: 114 olgu üzerinden yapılan bir çalışmaya dayanarak histolojik özelliklerin moleküler fonksiyonel sınıflarıyla ilişkisi.",
@@ -81,6 +81,70 @@
       "fingerprint": "c3f339860a417bed8cc1a58eb6def142bae5d90fc9862b9b1fac5d9cfa79a0c8",
       "file": "6d8f83b64b295e7d4ec4b011.mp3",
       "generated_at": "2026-10-18T19:03:21.021916+00:00"
+    },
+    "d5b0686ecf47feaa820c8f21": {
+      "title": "Fibroelastozun kantitatif değerlendirmesi, idiyopatik ve sekonder plevroparenkimal fibroelastozda belirgin elastik ve kolajen lifi paternlerini ortaya koymaktadır.",
+      "journal": "Journal of Pathology",
+      "pmid": "42878800",
+      "fingerprint": "7942074b154e57bc3ef12206002bf88ca81907ada9e8010a7fa49a1fd21c7ef7",
+      "file": "d5b0686ecf47feaa820c8f21.mp3",
+      "generated_at": "2026-10-18T19:14:36.667661+00:00"
+    },
+    "f4da7f8173f6d1bc80edd753": {
+      "title": "Tirzepatid kaynaklı pnömatöz intestinalis: nadir görülen ancak klinik açıdan önemli bir gastrointestinal yan etki.",
+      "journal": "Annals of Diagnostic Pathology",
+      "pmid": "42857919",
+      "fingerprint": "b81c93e45d9c8e2c42faa3016878d4a56fd4b051b378c89a6e9764eab9f3f31b",
+      "file": "f4da7f8173f6d1bc80edd753.mp3",
+      "generated_at": "2026-10-18T19:14:36.667661+00:00"
+    },
+    "a1535c53fe5412cc6ea7b6b3": {
+      "title": "Rutin prostat biyopsisi raporları, en yüksek derece grubunun ötesinde, dereceye özgü tümör yükü bilgilerini de içerir.",
+      "journal": "Diagnostic Pathology",
+      "pmid": "42880549",
+      "fingerprint": "169c4f617b390dce5eac8fb6ee1f26e99f72eb424595e7300abfef5c718a50bb",
+      "file": "a1535c53fe5412cc6ea7b6b3.mp3",
+      "generated_at": "2026-10-18T19:14:36.667661+00:00"
+    },
+    "dd4b18e7d9e0ced48f1040d2": {
+      "title": "Ergenlik çağındaki bir hastada primer over küçük hücreli olmayan nöroendokrin karsinomu: Bugüne kadar bildirilen en genç vaka.",
+      "journal": "Pathology International",
+      "pmid": "42659772",
+      "fingerprint": "9ab7125261880e72d6559e14c9cf969621ab36ca769ba1510d80f571ed29a2b4",
+      "file": "dd4b18e7d9e0ced48f1040d2.mp3",
+      "generated_at": "2026-10-18T19:14:36.667661+00:00"
+    },
+    "f3d1a1fe1cd6fbc24e7d8d69": {
+      "title": "Ölü doğumlarda plasenta patolojisi.",
+      "journal": "Pathology Research and Practice",
+      "pmid": "42613294",
+      "fingerprint": "0317d39a9df4ff9e8787ea34bc4f55c53d50229bc63346c67f17dba7982e1f93",
+      "file": "f3d1a1fe1cd6fbc24e7d8d69.mp3",
+      "generated_at": "2026-10-18T19:14:36.667661+00:00"
+    },
+    "6fb9ad6edee4779586798dd6": {
+      "title": "Endometrial karsinomda androjen reseptör ekspresyonunun immünohistokimyasal değerlendirilmesi ve klinikopatolojik önemi.",
+      "journal": "International Journal of Surgical Pathology",
+      "pmid": "42791571",
+      "fingerprint": "e72ca9e5101ffe8ab0778bc538ed45e5f1fcbbf5400489ee4a78e1ddd0734788",
+      "file": "6fb9ad6edee4779586798dd6.mp3",
+      "generated_at": "2026-10-18T19:14:36.667661+00:00"
+    },
+    "3213b2f36a91c4d07b0ef26b": {
+      "title": "Morfoloji bir füzyonu düşündürdüğünde: Histoloji ve immünohistokimyadan RNA dizilemesine kadar patoloji merkezli bir aşamalı yaklaşım çerçevesi.",
+      "journal": "American Journal of Clinical Pathology",
+      "pmid": "42674962",
+      "fingerprint": "28f7f75e03a4b35479c5d696e2e102f85aa199c7f22d86b41bb4f789107f64e2",
+      "file": "3213b2f36a91c4d07b0ef26b.mp3",
+      "generated_at": "2026-10-18T19:14:36.667661+00:00"
+    },
+    "8f258754aac924738578f5a4": {
+      "title": "X-ışını mikro-BT protokolü, arşivlenmiş parafinle gömülmüş prostat kanseri dokusundaki bez yapısının tahribatsız 3 boyutlu görüntülenmesini sağlar.",
+      "journal": "Histopathology",
+      "pmid": "42865157",
+      "fingerprint": "277bbda7f3a533ca1fa315a236682e298e5a588f9019d65e034006f1c393b26a",
+      "file": "8f258754aac924738578f5a4.mp3",
+      "generated_at": "2026-10-18T19:14:36.667661+00:00"
     }
   }
 }
