@@ -16,7 +16,7 @@ Kodun kaynağı yalnızca `https://github.com/metinciris/metinciriscomtr` olarak
 
 - **Makaleleri Güncelle**: Google Sheets'ten 12 derginin makalelerini alır. Hazır/yeni üretilecek/yenilenecek sesler görünür.
 - **Bu Makalenin Okumasını İyileştir**: Bir başlık seçin. Yalnız **seslendirilen metni** düzenleyin; kaynak başlık ve PMID aynı kalır. Noktalama/duraklama ekleyin, 0.80–1.20 hız seçin. **Yeni Okumayı Dinle** ile deneme MP3'ünü işitin; beğenirseniz **Beğendim / Kabul Et**. Eski MP3, onay öncesinde değiştirilmez.
-- **Genel Telaffuz**: Bul → Söyle oku sözlüğü tüm uygun seslerde geçerlidir. İsterseniz genel hız da değiştirilebilir. Kurallar `public/podcast-audio/pronunciation.json` dosyasındadır.
+- **Genel Telaffuz**: Bul → Söyle oku sözlüğü tüm uygun seslerde geçerlidir. Örnek: BRG1 → be re ge bir. Yerleşik p53/Ewing gibi düzeltmeler önce uygulanır. İsterseniz genel hız da değiştirilebilir. Kurallar `public/podcast-audio/pronunciation.json` dosyasındadır.
 - **Eksik / Eski Sesleri Üret**: 1, 8, 24 veya **Tümü** seçin. İşlem 8'erli gruplarla kayıt yapar, Ahenk modelini bir kez yükler. **Durdur** mevcut partinin tamamlanmasından sonra işlemi keser.
 - **GitHub'a Gönder**: MP3 + manifest + telaffuz JSON birlikte, yalnız onayla GitHub'a gönderilir. GitHub main dalı değiştiyse gönderme engellenir; hiçbir zaman `force push` yapılmaz. Push ardından sitedeki standart yayın iş akışı çalışır.
 - **GitHub'dan Güncelle**: Yerelde değişiklik yoksa `pull --ff-only` yapar; yerel değişiklikleri sessizce silmez.
