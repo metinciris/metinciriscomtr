@@ -61,3 +61,12 @@ Credit the model and datasets when using it in third-party distributions.
   See `src/lib/ahenkPronunciation.test.ts` for boundary tests.
 - Use the original upstream URLs to check licences and updates. Reassess upstream
   changes, security and licence terms before refreshing vendored files.
+
+## Mobile player placement (2026-10-18)
+
+The site header is fixed: 80 CSS pixels on mobile and 64 on desktop.
+The podcast player is sticky 8 pixels below it (top 88px mobile, 72px desktop).
+Mobile autoplay **does not** scroll to the next card; that used to push the
+currently read title underneath the fixed navigation bar. Desktop card
+scrolling uses the measured player height and a 16px gap rather than a fixed
+scroll margin. `src/lib/podcastScroll.test.ts` covers the offset calculation.
