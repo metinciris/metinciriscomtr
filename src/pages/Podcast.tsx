@@ -4,6 +4,7 @@ import { Play, Square, Volume2 } from 'lucide-react';
 import '../styles/Podcast.css';
 import { AhenkCepClient, type AhenkLoadStatus } from '../lib/ahenkCep';
 import { prepareAhenkText } from '../lib/ahenkPronunciation';
+import { loadPodcastPronunciationRules, applyPodcastPronunciationRules } from '../lib/podcastPronunciationOverrides';
 import { getPodcastArticleScrollTop } from '../lib/podcastScroll';
 import { indexPreparedPodcastAudio, normalizePodcastPmid, podcastAudioKey } from '../lib/podcastPreparedAudio';
 
@@ -329,9 +330,13 @@ export default function Podcast({ }: PodcastProps) {
       if (!ahenkClientRef.current) {
         ahenkClientRef.current = new AhenkCepClient(setAhenkLoad);
       }
+      const rules = await loadPodcastPronunciationRules();
+      if (signal.aborted || token !== playbackTokenRef.current) return;
+      const spoken = applyPodcastPronunciationRules(prepareAhenkText(article.title), article, rules);
       const { audio, sampleRate } = await ahenkClientRef.current.speak(
-        prepareAhenkText(article.title),
+        spoken.text,
         signal,
+        spoken.speed,
       );
       if (signal.aborted || token !== playbackTokenRef.current) return;
 
