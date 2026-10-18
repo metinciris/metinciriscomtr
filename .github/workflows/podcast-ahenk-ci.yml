@@ -1,0 +1,52 @@
+name: Verify Podcast Ahenk Cep
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/pages/Podcast.tsx'
+      - 'src/lib/ahenkCep.ts'
+      - 'src/lib/ahenkPronunciation.ts'
+      - 'src/lib/ahenkPronunciation.test.ts'
+      - 'public/ahenk-cep/**'
+      - 'docs/PODCAST-AHENK-CEP.md'
+      - 'index.html'
+      - 'netlify.toml'
+      - '.github/workflows/podcast-ahenk-ci.yml'
+
+permissions:
+  contents: read
+  issues: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Check types
+        run: npm run typecheck
+      - name: Check lint
+        run: npm run lint
+      - name: Check pronunciation overrides
+        run: npm run test -- src/lib/ahenkPronunciation.test.ts
+      - name: Ensure bundled open-source runtime has required files
+        run: |
+          test -f public/ahenk-cep/js/worker.js
+          test -f public/ahenk-cep/py/trnorm/normalizer.py
+          test -f public/ahenk-cep/LICENSE
+          test -f public/ahenk-cep/NOTICE
+      - name: Build
+        run: npm run build
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SITE_URL: https://metinciris.com.tr
+          BLOG_REPO_OWNER: metinciris
+          BLOG_REPO_NAME: metinciriscomtr
+          BLOG_LABEL: Blog
+          BLOG_POSTS_PER_PAGE: 9
+      - name: Verify output
+        run: npm run verify:build
