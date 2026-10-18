@@ -52,7 +52,7 @@ jobs:
           sudo apt-get install -y -qq ffmpeg
           python -m pip install --upgrade pip
           pip install --extra-index-url https://download.pytorch.org/whl/cpu -r scripts/podcast-audio-requirements.txt
-      - name: Generate at most five titles and clean retired files
+      - name: Generate at most eight titles and clean retired files
         if: steps.plan.outputs.has_changes == 'true'
         run: |
           python scripts/render_podcast_audio.py --execute \
