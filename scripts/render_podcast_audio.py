@@ -2,7 +2,7 @@
 """Incrementally pre-render Ahenk Cep MP3s for all active podcast titles.
 
 A standard-library-only preflight runs BEFORE installing any TTS dependencies.
-Each scheduled run renders at most five missing/expired titles. Existing clips
+Each scheduled run renders at most eight missing/expired titles. Existing clips
 remain available and retired titles are deleted only after safe planning.
 """
 import argparse
@@ -22,10 +22,10 @@ SHEET_ID = "148p3M41R52gVVjtLSF2Qh8rJvBPEWJ7SV4lgSBQYwLc"
 GID = "1109640564"
 RANGE = "A1:F132"
 JOURNAL_ROWS = {0, 11, 22, 33, 44, 55, 66, 77, 88, 99, 110, 121}
-BATCH_SIZE = 5
+BATCH_SIZE = 8
 MIN_EXPECTED_ARTICLES = 20
 MP3_NAME = re.compile(r'[a-f0-9]{24}[.]mp3')
-MAX_AGE_DAYS = 90
+MAX_AGE_DAYS = 150
 AUDIO_DIR = Path("public/podcast-audio")
 MANIFEST_PATH = AUDIO_DIR / "manifest.json"
 MODEL_REVISION = "ahenk-cep-tr-2026-10-18"
@@ -179,18 +179,34 @@ def fresh(previous, candidate, now):
         return False
 
 
-def round_robin_journals(entries, pending_keys, limit):
-    """Make progress across journals, not only the first source rows."""
+def round_robin_journals(entries, pending_keys, limit, starting_counts=None):
+    """Distribute batches among journals with the lowest ready-audio coverage.
+
+    A fixed first-five-journals scan starved later journals when the available
+    weekly budget was lower than the journal count. Cached counts are carried
+    through each planning run, so the next batch prioritizes the journals
+    still missing the most recordings.
+    """
+    if limit <= 0 or not pending_keys:
+        return []
+
     groups = OrderedDict()
     for key in pending_keys:
         groups.setdefault(entries[key]["journal"], deque()).append(key)
+    counts = dict(starting_counts or {})
+    journal_order = {journal: position for position, journal in enumerate(groups)}
     selected = []
-    while len(selected) < limit and any(groups.values()):
-        for queue in groups.values():
-            if queue and len(selected) < limit:
-                selected.append(queue.popleft())
+    while len(selected) < limit:
+        available = [journal for journal, queue in groups.items() if queue]
+        if not available:
+            break
+        chosen = min(
+            available,
+            key=lambda journal: (counts.get(journal, 0), journal_order[journal]),
+        )
+        selected.append(groups[chosen].popleft())
+        counts[chosen] = counts.get(chosen, 0) + 1
     return selected
-
 
 def plan_updates(articles, manifest, now):
     if len(articles) < MIN_EXPECTED_ARTICLES:
@@ -217,10 +233,24 @@ def plan_updates(articles, manifest, now):
         elif not fresh(previous, article, now):
             due_for_refresh.append(key)
 
-    selection = round_robin_journals(entries, missing, BATCH_SIZE)
+    # Count every still-playable recording, including older ones that will
+    # be refreshed later; this balances the *published* coverage by journal.
+    ready_by_journal = {}
+    for key, article in entries.items():
+        if playable(old.get(key), article):
+            journal = article["journal"]
+            ready_by_journal[journal] = ready_by_journal.get(journal, 0) + 1
+
+    selection = round_robin_journals(
+        entries, missing, BATCH_SIZE, ready_by_journal
+    )
     if len(selection) < BATCH_SIZE:
+        pending_counts = dict(ready_by_journal)
+        for key in selection:
+            journal = entries[key]["journal"]
+            pending_counts[journal] = pending_counts.get(journal, 0) + 1
         selection += round_robin_journals(
-            entries, due_for_refresh, BATCH_SIZE - len(selection)
+            entries, due_for_refresh, BATCH_SIZE - len(selection), pending_counts
         )
     removed = [key for key in old if key not in keys]
 
