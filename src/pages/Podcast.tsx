@@ -287,7 +287,7 @@ export default function Podcast({ }: PodcastProps) {
       media.volume = volumeRef.current;
       preparedAudioRef.current = media;
       let fallbackStarted = false;
-      const useLiveAhenk = () => {
+      const fallbackToAhenk = () => {
         if (fallbackStarted || request.signal.aborted || token !== playbackTokenRef.current) return;
         fallbackStarted = true;
         media.onerror = null;
@@ -302,7 +302,7 @@ export default function Podcast({ }: PodcastProps) {
         preparedAudioRef.current = null;
         finishArticle(index, token);
       };
-      media.onerror = useLiveAhenk;
+      media.onerror = fallbackToAhenk;
       try {
         await media.play();
         if (request.signal.aborted || token !== playbackTokenRef.current) {
@@ -314,7 +314,7 @@ export default function Podcast({ }: PodcastProps) {
         return;
       } catch (error) {
         console.warn('Hazır MP3 çalınamadı; Ahenk ile ses üretilecek:', error);
-        useLiveAhenk();
+        fallbackToAhenk();
         return;
       }
     }
