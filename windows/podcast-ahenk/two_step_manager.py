@@ -724,21 +724,7 @@ class TwoStepManager(base.AhenkManager):
         # The base UI is reused for filter/tree functionality, while this
         # view keeps WEB/GitHub/PC states distinct.
         if hasattr(self, "dictionary_summary"):
-            global_rules = self.rules.get("global", [])
-            examples = [
-                str(rule.get("find", "")) + " → " + str(rule.get("say", ""))
-                for rule in global_rules[:3]
-            ]
-            if examples:
-                more = f"  (+{len(global_rules) - 3} diğer)" if len(global_rules) > 3 else ""
-                self.dictionary_summary.set(
-                    f"{len(global_rules)} genel okuma kuralı: "
-                    + "  •  ".join(examples) + more
-                )
-            else:
-                self.dictionary_summary.set(
-                    "Genel okuma kuralı henüz yok. Terimleri ekleyebilir veya düzenleyebilirsiniz."
-                )
+            self._refresh_relevant_terms()
         if hasattr(self, "pending_notice"):
             waiting = self.totals.get("pc_pending", 0)
             sent = self._sent_but_not_live()
@@ -782,10 +768,13 @@ class TwoStepManager(base.AhenkManager):
         if not hasattr(self, "preview_feedback"):
             return
         if previous != self.current:
+            self._play_seq += 1  # A stale WEB download must not start later.
             self.preview_feedback.set(
-                "Seçilen makale için yeni sesi üretip dinleyebilirsiniz. "
-                "Mevcut WEB ve PC MP3'leri değişmez."
+                "Bu makaledeki PC kayıtlarını listeden dinleyebilir, "
+                "yeni denemeler üretebilirsiniz."
             )
+        self._refresh_recordings()
+        self._refresh_relevant_terms()
         if hasattr(self, "btn_replay"):
             ready = (self.preview and self.preview.get("key") == self.current
                      and Path(self.preview.get("path", "")).is_file())
