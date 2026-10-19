@@ -781,33 +781,23 @@ class TwoStepManager(base.AhenkManager):
             self.btn_replay.configure(state="normal" if ready else "disabled")
 
     def preview_sound(self):
-        """Create an isolated new MP3; playback failure never invalidates it.
+        """Generate a unique audition and put it in the visible article list.
 
-        The legacy preview used one fixed filename per article. On Windows
-        media players often lock that file while playing, blocking subsequent
-        os.replace. Unique names preserve earlier auditions and avoid locks.
+        Playback is a separate thread and does not delay completion of the TTS
+        task. A player failure must never discard the newly generated MP3.
         """
         if self.busy:
             messagebox.showinfo(
                 "Önce işlem tamamlansın",
-                "Web denetimi veya ses yükleme işlemi devam ediyor. "
-                "Tamamlandıktan sonra yeni okumayı üretin."
+                "Web denetimi veya ses üretimi sürüyor. "
+                "Tamamlandığında yeni okuma oluşturabilirsiniz."
             )
             return
         if self.current not in self.rows:
-            if self.rows and self.filter.get() == "web_missing":
-                self.filter.set("all")
-                self._render()
-                messagebox.showinfo(
-                    "Makaleyi seçin",
-                    "WEB'de eksik makale görünmüyor. 'Hepsi' listesine geçildi. "
-                    "Yeni okunmasını istediğiniz makaleyi seçip tekrar deneyin."
-                )
-            else:
-                messagebox.showinfo(
-                    "Makaleyi seçin",
-                    "Önce listeden sesini değiştirmek istediğiniz bir makaleyi seçin."
-                )
+            messagebox.showinfo(
+                "Önce makale seçin",
+                "Sesini değiştireceğiniz makaleyi soldaki listeden seçin."
+            )
             return
         try:
             profile = self._profile()
@@ -815,96 +805,77 @@ class TwoStepManager(base.AhenkManager):
             article = self.article_for(key)
             rules = base.copy.deepcopy(self.rules)
             rules.setdefault("articles", {})[base.pron.identity(article)] = profile
-            speaking, speed = base.pron.speech(
+            speech, speed = base.pron.speech(
                 article, rules, engine.spoken(article["title"])
             )
-            signature = base.pron.signature(speaking, speed)
+            signature = base.pron.signature(speech, speed)
         except (ValueError, RuntimeError) as exc:
             messagebox.showwarning("Okuma metni", str(exc))
             return
 
-        # Each retry goes to a new path, even when the old MP3 is open in
-        # Windows Media Player. Existing WEB / accepted PC audio is untouched.
-        audition = base.PREVIEWS / (key + "_" + uuid.uuid4().hex + "_deneme.mp3")
+        # Unique files allow an older track to stay open while the next
+        # recording is produced and provide an easy per-article history.
+        trial = base.PREVIEWS / (key + "_" + uuid.uuid4().hex + "_deneme.mp3")
+        self.preview_feedback.set(
+            "Ahenk yeni sesi üretiyor. Bittiğinde PC sesleri listesine eklenecek."
+        )
         self.btn_accept.configure(state="disabled")
         self.btn_replay.configure(state="disabled")
-        self.preview_feedback.set(
-            "Ahenk ile yeni ses oluşturuluyor… "
-            "Bitince otomatik açılacak; gerekirse 'Tekrar dinle'yi kullanın."
-        )
+        self._refresh_relevant_terms()
 
         def work():
             if not shutil.which("ffmpeg"):
                 raise RuntimeError(
                     "FFmpeg bulunamadı. PowerShell: winget install -e --id Gyan.FFmpeg"
                 )
-            engine.render_clip(self._tts(), speaking, audition, speed=speed)
-            if not audition.is_file() or audition.stat().st_size <= 1024:
-                raise RuntimeError("Ahenk denemesi geçerli MP3 üretmedi.")
-            player_error = None
-            try:
-                os.startfile(str(audition))
-            except (OSError, AttributeError) as exc:
-                # Decoding/synthesis completed; only the OS player failed.
-                player_error = str(exc)
+            engine.render_clip(self._tts(), speech, trial, speed=speed)
+            preview_library.save_record(
+                base.PREVIEWS, key, trial, profile, signature
+            )
             return {
-                "key": key, "path": audition,
+                "key": key, "path": trial,
                 "profile": profile, "signature": signature,
-                "player_error": player_error,
             }
 
         def done(preview):
-            self.preview = preview
-            selected = self.current == preview["key"]
-            self.btn_accept.configure(state="normal" if selected else "disabled")
-            self.btn_replay.configure(state="normal" if selected else "disabled")
-            if preview["player_error"]:
-                feedback = (
-                    "MP3 başarıyla üretildi; Windows ses oynatıcısı açılamadı. "
-                    "Tekrar dinle veya Log / Hata bölümünü kullanın."
-                )
+            if self.current != preview["key"]:
                 self._note(
-                    "Deneme MP3 hazır, oynatıcı açılmadı: "
-                    + preview["player_error"]
+                    "Yeni ses hazır, fakat başka bir makaledesiniz. "
+                    "O makaleye geri döndüğünüzde deneme listesinde görünecek."
                 )
-            else:
-                feedback = (
-                    "Yeni MP3 hazır. Dinledikten sonra 'Beğendim, PC'ye kaydet' "
-                    "düğmesini kullanabilirsiniz."
-                )
-                self._note("Yeni okuma üretildi ve Windows oynatıcısına gönderildi.")
-            if selected:
-                self.preview_feedback.set(feedback)
-            else:
-                self._note("Yeni deneme farklı bir makale için hazır. Onu tekrar seçin.")
+                return
+            self.preview = preview
+            self._refresh_recordings(select_preview=trial)
+            self.btn_replay.configure(state="normal")
+            self.preview_feedback.set(
+                "Yeni ses PC sesleri listesine eklendi. Dinleyebilir, "
+                "eski denemeleri seçebilir veya beğendiğiniz sürümü PC'ye kaydedebilirsiniz."
+            )
+            self._note("Yeni Ahenk ses denemesi hazır: " + trial.name)
+            # The audio player is deliberately independent of the TTS/GitHub
+            # busy state; do not wait for Windows' default MP3 app to launch.
+            self._audio_play(trial, "Yeni ses denemesi")
 
-        self._managed_task("Yeni okuma MP3'ü hazırlanıyor…", work, done)
+        self._managed_task("Yeni Ahenk ses denemesi hazırlanıyor…", work, done)
 
     def replay_preview(self):
         preview = self.preview
-        if (not preview or preview.get("key") != self.current
-                or not Path(preview.get("path", "")).is_file()):
-            self.btn_replay.configure(state="disabled")
+        if not preview or preview.get("key") != self.current:
+            chosen = self._selected_recording()
+            if chosen and chosen["kind"] == "trial":
+                self._audio_play(chosen["path"], "Seçili deneme")
+                return
             messagebox.showinfo(
-                "Önce üretin", "Seçili makale için yeni bir deneme sesi hazırlayın."
-            )
-            return
-        if self.busy:
-            messagebox.showinfo(
-                "İşlem devam ediyor", "İşlem bittiğinde tekrar dinleyebilirsiniz."
+                "Önce bir ses seçin",
+                "PC sesleri listesindeki bir denemeyi seçin veya yeni deneme üretin."
             )
             return
         path = Path(preview["path"])
-
-        def work():
-            os.startfile(str(path))
-            return str(path)
-
-        def done(_path):
-            self.preview_feedback.set(
-                "Deneme sesi yeniden açıldı. Beğendiyseniz PC sesiniz olarak kabul edin."
-            )
-        self._managed_task("Deneme MP3'ü açılıyor…", work, done)
+        if not path.is_file():
+            self.btn_replay.configure(state="disabled")
+            self.play_feedback.set("Bu denemenin MP3 dosyası bulunamadı.")
+            return
+        self._audio_play(path, "Seçili deneme")
 
     def save_text(self):
         if self.busy:
