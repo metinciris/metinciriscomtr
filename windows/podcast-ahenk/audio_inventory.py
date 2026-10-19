@@ -55,15 +55,25 @@ def inventory(root, catalog, manifest, web_manifest):
             counts["web_missing"] += 1
         if available:
             counts["pc"] += 1
-            counts["publish_ready"] += 1
             if not registered:
                 counts["unregistered"] += 1
         else:
             counts["pc_missing"] += 1
+        # An already published identical version doesn't need a second push.
+        # A recovered/unregistered PC MP3 still requires explicit listening
+        # and user approval before upload.
+        ready_for_web = available and (
+            not on_web or not registered or
+            entry.get("fingerprint") != online.get("fingerprint") or
+            entry.get("generated_at") != online.get("generated_at")
+        )
+        if ready_for_web:
+            counts["publish_ready"] += 1
         rows[key] = {
             "candidate": candidate,
             "web": on_web,
             "pc": available,
+            "publish_ready": ready_for_web,
             "registered": registered,
             "web_entry": online if on_web else None,
             "local_entry": entry if registered else None,
