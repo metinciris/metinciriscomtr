@@ -75,7 +75,9 @@ class TwoStepGuiSmoke(unittest.TestCase):
             tk_root.withdraw()
             try:
                 with patch.object(ui, "ROOT", root_path), \
+                     patch.object(ui.base, "ROOT", root_path), \
                      patch.object(ui, "HOME", home), \
+                     patch.object(ui.base, "HOME", home), \
                      patch.object(ui, "CACHE", home / "makale_onbellek.json"), \
                      patch.object(ui, "ERROR_LOG", home / "ahenk_hata.log"), \
                      patch.object(engine, "AUDIO_DIR", audio), \
