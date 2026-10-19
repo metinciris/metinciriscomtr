@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-10-19T11:30:08.580532+00:00",
+  "generated_at": "2026-10-19T11:30:17.036328+00:00",
   "entries": {
     "7d9cd522d0f2d5752ca6a105": {
       "title": "MAP2K1 mutasyonlu melanositik tümörler: 114 olgu üzerinden yapılan bir çalışmaya dayanarak histolojik özelliklerin moleküler fonksiyonel sınıflarıyla ilişkisi.",
@@ -673,6 +673,70 @@
       "fingerprint": "f6e8e47aac6b835deb6062680cb0581367c797dbd18f0736198dcf296c805475",
       "file": "5bfaf39f625b1928cb993c7b.mp3",
       "generated_at": "2026-10-19T09:54:19.585045+00:00"
+    },
+    "ab21f039f91a564d786d2e5f": {
+      "title": "Sindirim sistemindeki SMARCA4 eksikliği olan farklılaşmamış maligniteler: TCGA kohortundan elde edilen genomik bilgilerle klinikopatolojik özellikler ve prognostik önem.",
+      "journal": "Histopathology",
+      "pmid": "42619565",
+      "fingerprint": "fdae5ff4fe123d805382d6c4688c925758fc25cad7b3a60f9773110a7e990b07",
+      "file": "ab21f039f91a564d786d2e5f.mp3",
+      "generated_at": "2026-10-19T09:54:32.077112+00:00"
+    },
+    "67ef05e92952c67e0c969355": {
+      "title": "CCL5 ve GLUT1, kolorektal kanserin toplu istilasında öncü hücreleri tanımlar.",
+      "journal": "Histopathology",
+      "pmid": "42583704",
+      "fingerprint": "25033b6b7c8020134c9588b506cd53de00a2af1575464f4b5386266a30f379ed",
+      "file": "67ef05e92952c67e0c969355.mp3",
+      "generated_at": "2026-10-19T09:55:04.692791+00:00"
+    },
+    "ced7fc51f336171d90880367": {
+      "title": "İnflamatuvar Bağırsak Hastalığı Olan ve Olmayan Hastalarda Diversiyona Bağlı Rektal Patoloji: Rektuma Özgü, Körleştirilmiş Histolojik Karşılaştırma ve Pratik Raporlama Yaklaşımı.",
+      "journal": "American Journal of Surgical Pathology",
+      "pmid": "42649605",
+      "fingerprint": "291ab1eee5ad72e692868d32747859acb45685df6186e0bdda9f9bffe233c121",
+      "file": "ced7fc51f336171d90880367.mp3",
+      "generated_at": "2026-10-19T09:53:19.157274+00:00"
+    },
+    "5d94e802a9d7f33d6d45ea28": {
+      "title": "138 Uterin Seröz Karsinomun Klinikopatolojik Analizi: Morfolojiye Yeniden Bakış.",
+      "journal": "American Journal of Surgical Pathology",
+      "pmid": "42642865",
+      "fingerprint": "5e823d566c2f5cf1d4775b7cf9afe95659956a4a6af79130cf96d042b5d6fe6f",
+      "file": "5d94e802a9d7f33d6d45ea28.mp3",
+      "generated_at": "2026-10-19T09:53:37.740228+00:00"
+    },
+    "26641fe75f3d64e7bbc2955d": {
+      "title": "Kolon Kanserinde Tümör Mikroçevre Skoru ve Alt Bölgeye Özgü Önemi.",
+      "journal": "American Journal of Surgical Pathology",
+      "pmid": "42640147",
+      "fingerprint": "44891087e5c3d8ad6b171034cd0e36cae05fc77c7061fee902ac2b877f807be1",
+      "file": "26641fe75f3d64e7bbc2955d.mp3",
+      "generated_at": "2026-10-19T09:54:06.251006+00:00"
+    },
+    "bf3717196d1bcc067552ab0b": {
+      "title": "Akciğer Endobronşiyal Polipoid Adenokarsinomunun Yeniden Değerlendirilmesi: 11 Vakanın Klinikopatolojik Analizi.",
+      "journal": "American Journal of Surgical Pathology",
+      "pmid": "42638334",
+      "fingerprint": "71412bb49eb6f6da7dacc912a8d30bdb0d74368c08aed0d7db92fd78106a16db",
+      "file": "bf3717196d1bcc067552ab0b.mp3",
+      "generated_at": "2026-10-19T09:54:19.585045+00:00"
+    },
+    "61ed1e74156ce3e6834a8770": {
+      "title": "Kinaz Füzyonları, BRAF V600E Negatif Metanefrik Adenomların Ayrı Bir Alt Kümesini Tanımlıyor: 7 Vakanın İncelendiği Çok Kurumlu Bir Çalışma.",
+      "journal": "American Journal of Surgical Pathology",
+      "pmid": "42638313",
+      "fingerprint": "eda5a0647d70b8aed2882c0592d62365242a48174e615dc2abc511c838fe4f77",
+      "file": "61ed1e74156ce3e6834a8770.mp3",
+      "generated_at": "2026-10-19T09:54:49.122766+00:00"
+    },
+    "cd495784364edb1fb819a0d0": {
+      "title": "HPV İlişkili ve HPV Bağımsız Servikal Yassı Hücreli Karsinomalarda Yaygın Olmayan p16 Ekspresyonu: Histopatolojik Özellikler ve Moleküler Değişikliklere Vurgu Yapan Tek Kurum Vaka Serisi.",
+      "journal": "American Journal of Surgical Pathology",
+      "pmid": "42619632",
+      "fingerprint": "2c75585f1c4fc11a45c4d94e39b66b0557e9109f15e018025f6252cd327f4aee",
+      "file": "cd495784364edb1fb819a0d0.mp3",
+      "generated_at": "2026-10-19T11:29:33.663121+00:00"
     }
   }
 }
