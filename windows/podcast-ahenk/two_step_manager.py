@@ -15,6 +15,7 @@ import subprocess
 import sys
 import threading
 import time
+import uuid
 import tkinter as tk
 from tkinter import messagebox, ttk
 import traceback
@@ -117,11 +118,29 @@ class TwoStepManager(base.AhenkManager):
         for key, label in [
             ("all", "Toplam"), ("web", "WEB'de var"),
             ("web_missing", "WEB'de eksik"), ("pc", "PC'de hazır"),
-            ("pc_missing", "PC'de yok"), ("publish_ready", "Yayın adayı")
+            ("pc_pending", "PC hazır / WEB'de yok"),
+            ("pc_missing", "PC'de yok")
         ]:
             self.count_labels[key] = tk.StringVar(value=label + ": —")
             ttk.Label(summary, textvariable=self.count_labels[key],
-                      font=("Segoe UI Semibold", 9)).pack(side="left", padx=(0, 17))
+                      font=("Segoe UI Semibold", 9)).pack(side="left", padx=(0, 12))
+        # The shared list renderer still updates publish_ready. Keep its
+        # backing variable, but prioritize the clearer PC/WEB distinction
+        # instead of showing a redundant eighth summary number.
+        self.count_labels["publish_ready"] = tk.StringVar(value="")
+
+        waiting_line = ttk.Frame(self.root, padding=(12, 5))
+        waiting_line.pack(fill="x")
+        self.pending_notice = tk.StringVar(
+            value="PC'de hazırlanmış ancak WEB'de görünmeyen MP3'ler denetleniyor…"
+        )
+        ttk.Label(waiting_line, textvariable=self.pending_notice,
+                  font=("Segoe UI Semibold", 9)).pack(side="left", fill="x", expand=True)
+        self.btn_pending = ttk.Button(
+            waiting_line, text="Hazır, WEB'de olmayan sesleri göster",
+            command=self.show_pc_pending
+        )
+        self.btn_pending.pack(side="right")
 
         toolbar = ttk.Frame(self.root, padding=(12, 6))
         toolbar.pack(fill="x")
@@ -129,6 +148,7 @@ class TwoStepManager(base.AhenkManager):
             ("↻ WEB durumunu kontrol et", self.refresh_web),
             ("📁 Yerel MP3", self.open_audio_folder),
             ("📝 Log / Hata", self.open_log),
+            ("📖 Terim sözlüğü", self.open_dictionary),
             ("⚙ Ses motorunu kur", self.install_engine),
             ("🌐 Web sitesi", lambda: webbrowser.open("https://metinciris.com.tr/podcast")),
         ]:
@@ -140,8 +160,10 @@ class TwoStepManager(base.AhenkManager):
         filter_bar.pack(fill="x")
         ttk.Label(filter_bar, text="GÖSTER:", font=("Segoe UI Semibold", 9)).pack(side="left")
         for title, value in [
-            ("Web'de eksik", "web_missing"), ("Hepsi", "all"),
-            ("PC'de hazır", "pc"), ("PC'de eksik", "pc_missing"),
+            ("WEB'de eksik", "web_missing"),
+            ("Üretildi, WEB'de yok", "pc_pending"),
+            ("Hepsi", "all"), ("PC'de hazır", "pc"),
+            ("PC'de eksik", "pc_missing"),
         ]:
             ttk.Radiobutton(filter_bar, text=title, variable=self.filter,
                             value=value, command=self._render).pack(side="left", padx=(9, 3))
@@ -225,8 +247,22 @@ class TwoStepManager(base.AhenkManager):
         )
         self.btn_listen_pc.pack(fill="x")
 
+        dictionary = ttk.LabelFrame(right, text="TERİM SÖZLÜĞÜ", padding=(9, 5))
+        dictionary.pack(fill="x", pady=(9, 0))
+        self.dictionary_summary = tk.StringVar(
+            value="Telaffuz kuralları listeleniyor…"
+        )
+        ttk.Label(dictionary, textvariable=self.dictionary_summary,
+                  wraplength=375, foreground="#37546c").pack(
+                      side="left", fill="x", expand=True
+                  )
+        self.btn_dictionary = ttk.Button(
+            dictionary, text="Gör / düzenle", command=self.open_dictionary
+        )
+        self.btn_dictionary.pack(side="right", padx=(7, 0))
+
         details = ttk.LabelFrame(right, text="Dilerseniz okuma metnini düzeltin", padding=9)
-        details.pack(fill="both", expand=True, pady=(12, 0))
+        details.pack(fill="both", expand=True, pady=(9, 0))
         self.editor = tk.Text(details, wrap="word", undo=True, height=4,
                               background="#fbfcff", font=("Segoe UI", 9), padx=7, pady=6)
         self.editor.pack(fill="both", expand=True)
@@ -241,13 +277,25 @@ class TwoStepManager(base.AhenkManager):
         ttk.Button(options, text="Metni kaydet", command=self.save_text).pack(side="right")
         actions = ttk.Frame(details)
         actions.pack(fill="x", pady=(8, 0))
-        ttk.Button(actions, text="Yeni okumayı üret ve dinle",
-                   command=self.preview_sound).pack(side="left", padx=(0, 5))
+        self.btn_preview = ttk.Button(
+            actions, text="Yeni okumayı üret ve dinle", command=self.preview_sound
+        )
+        self.btn_preview.pack(side="left", padx=(0, 5))
+        self.btn_replay = ttk.Button(
+            actions, text="▶ Tekrar dinle", command=self.replay_preview,
+            state="disabled"
+        )
+        self.btn_replay.pack(side="left", padx=(0, 5))
         self.btn_accept = ttk.Button(
             actions, text="Beğendim, PC'ye kaydet",
             command=self.accept_sound, state="disabled"
         )
         self.btn_accept.pack(side="left")
+        self.preview_feedback = tk.StringVar(
+            value="Okumayı düzenleyin, ardından yeni denemeyi dinleyin."
+        )
+        ttk.Label(details, textvariable=self.preview_feedback, wraplength=470,
+                  foreground="#476579").pack(anchor="w", pady=(7, 0))
         self.choice_label = tk.StringVar(value="")
         self.btn_publish_one = ttk.Button(
             details, text="Yalnız bu PC sesini yayımla",
@@ -297,6 +345,229 @@ class TwoStepManager(base.AhenkManager):
             self._note(text)
 
         self._managed_task("Ahenk kütüphaneleri kuruluyor...", work, done)
+
+    def show_pc_pending(self):
+        """Show the prepared audio still absent from the real WEB listing."""
+        self.filter.set("pc_pending")
+        self._render()
+
+    def _sent_but_not_live(self):
+        """Identify only GitHub uploads recorded by this application.
+
+        A PC file with no recorded GitHub upload is not assumed unpublished:
+        GitHub Actions or an older version may have sent it already. The
+        category is labelled 'Gönderim kaydı yok', not 'Gönderilmedi'.
+        """
+        progress = flow.read_progress(HOME) or self.publish_progress or {}
+        sent = set(progress.get("github_sent", []))
+        expected = progress.get("expected", {})
+        if not isinstance(expected, dict):
+            return set()
+        return {
+            key for key in sent
+            if key in self.rows
+            and self.rows[key].get("pc_pending")
+            and expected.get(key) is not None
+            and self.rows[key].get("local_entry") == expected[key]
+        }
+
+    def _render(self):
+        super()._render()
+        # The base UI is reused for filter/tree functionality, while this
+        # view keeps WEB/GitHub/PC states distinct.
+        if hasattr(self, "dictionary_summary"):
+            global_rules = self.rules.get("global", [])
+            examples = [
+                str(rule.get("find", "")) + " → " + str(rule.get("say", ""))
+                for rule in global_rules[:3]
+            ]
+            if examples:
+                more = f"  (+{len(global_rules) - 3} diğer)" if len(global_rules) > 3 else ""
+                self.dictionary_summary.set(
+                    f"{len(global_rules)} genel okuma kuralı: "
+                    + "  •  ".join(examples) + more
+                )
+            else:
+                self.dictionary_summary.set(
+                    "Genel okuma kuralı henüz yok. Terimleri ekleyebilir veya düzenleyebilirsiniz."
+                )
+        if hasattr(self, "pending_notice"):
+            waiting = self.totals.get("pc_pending", 0)
+            sent = self._sent_but_not_live()
+            self.count_labels["pc_pending"].set(
+                f"PC hazır / WEB'de yok: {waiting}"
+            )
+            self.pending_notice.set(
+                f"Üretilmiş, WEB'de henüz yok: {waiting}  ·  "
+                f"GitHub'a gönderildi, WEB bekleniyor: {len(sent)}  ·  "
+                f"Gönderim kaydı bulunmayan: {max(0, waiting - len(sent))}"
+            )
+            for key in self.table.get_children():
+                row = self.rows.get(key)
+                if row and row.get("pc_pending"):
+                    self.table.set(
+                        key, "pc",
+                        "GitHub ✓" if key in sent else "PC ✓"
+                    )
+
+    def _rebuild(self):
+        # When ALL website sounds have been published, the default
+        # WEB-missing filter becomes empty. Return to 'Hepsi' so users can
+        # choose a published article for pronunciation corrections.
+        super()._rebuild()
+        if (self.filter.get() == "web_missing"
+                and self.totals.get("all", 0) > 0
+                and self.totals.get("web_missing") == 0):
+            self.filter.set("all")
+            self._render()
+        # A successful acceptance removes self.preview via the inherited code.
+        # Make sure the old one-click replay button cannot use stale data.
+        if hasattr(self, "btn_replay"):
+            valid = (self.preview is not None and self.current is not None
+                     and self.preview.get("key") == self.current
+                     and Path(self.preview.get("path", "")).is_file())
+            self.btn_replay.configure(state="normal" if valid else "disabled")
+
+    def _select_article(self, _event=None):
+        previous = self.current
+        super()._select_article(_event)
+        if not hasattr(self, "preview_feedback"):
+            return
+        if previous != self.current:
+            self.preview_feedback.set(
+                "Seçilen makale için yeni sesi üretip dinleyebilirsiniz. "
+                "Mevcut WEB ve PC MP3'leri değişmez."
+            )
+        if hasattr(self, "btn_replay"):
+            ready = (self.preview and self.preview.get("key") == self.current
+                     and Path(self.preview.get("path", "")).is_file())
+            self.btn_replay.configure(state="normal" if ready else "disabled")
+
+    def preview_sound(self):
+        """Create an isolated new MP3; playback failure never invalidates it.
+
+        The legacy preview used one fixed filename per article. On Windows
+        media players often lock that file while playing, blocking subsequent
+        os.replace. Unique names preserve earlier auditions and avoid locks.
+        """
+        if self.busy:
+            messagebox.showinfo(
+                "Önce işlem tamamlansın",
+                "Web denetimi veya ses yükleme işlemi devam ediyor. "
+                "Tamamlandıktan sonra yeni okumayı üretin."
+            )
+            return
+        if self.current not in self.rows:
+            if self.rows and self.filter.get() == "web_missing":
+                self.filter.set("all")
+                self._render()
+                messagebox.showinfo(
+                    "Makaleyi seçin",
+                    "WEB'de eksik makale görünmüyor. 'Hepsi' listesine geçildi. "
+                    "Yeni okunmasını istediğiniz makaleyi seçip tekrar deneyin."
+                )
+            else:
+                messagebox.showinfo(
+                    "Makaleyi seçin",
+                    "Önce listeden sesini değiştirmek istediğiniz bir makaleyi seçin."
+                )
+            return
+        try:
+            profile = self._profile()
+            key = self.current
+            article = self.article_for(key)
+            rules = base.copy.deepcopy(self.rules)
+            rules.setdefault("articles", {})[base.pron.identity(article)] = profile
+            speaking, speed = base.pron.speech(
+                article, rules, engine.spoken(article["title"])
+            )
+            signature = base.pron.signature(speaking, speed)
+        except (ValueError, RuntimeError) as exc:
+            messagebox.showwarning("Okuma metni", str(exc))
+            return
+
+        # Each retry goes to a new path, even when the old MP3 is open in
+        # Windows Media Player. Existing WEB / accepted PC audio is untouched.
+        audition = base.PREVIEWS / (key + "_" + uuid.uuid4().hex + "_deneme.mp3")
+        self.btn_accept.configure(state="disabled")
+        self.btn_replay.configure(state="disabled")
+        self.preview_feedback.set(
+            "Ahenk ile yeni ses oluşturuluyor… "
+            "Bitince otomatik açılacak; gerekirse 'Tekrar dinle'yi kullanın."
+        )
+
+        def work():
+            if not shutil.which("ffmpeg"):
+                raise RuntimeError(
+                    "FFmpeg bulunamadı. PowerShell: winget install -e --id Gyan.FFmpeg"
+                )
+            engine.render_clip(self._tts(), speaking, audition, speed=speed)
+            if not audition.is_file() or audition.stat().st_size <= 1024:
+                raise RuntimeError("Ahenk denemesi geçerli MP3 üretmedi.")
+            player_error = None
+            try:
+                os.startfile(str(audition))
+            except (OSError, AttributeError) as exc:
+                # Decoding/synthesis completed; only the OS player failed.
+                player_error = str(exc)
+            return {
+                "key": key, "path": audition,
+                "profile": profile, "signature": signature,
+                "player_error": player_error,
+            }
+
+        def done(preview):
+            self.preview = preview
+            selected = self.current == preview["key"]
+            self.btn_accept.configure(state="normal" if selected else "disabled")
+            self.btn_replay.configure(state="normal" if selected else "disabled")
+            if preview["player_error"]:
+                feedback = (
+                    "MP3 başarıyla üretildi; Windows ses oynatıcısı açılamadı. "
+                    "Tekrar dinle veya Log / Hata bölümünü kullanın."
+                )
+                self._note(
+                    "Deneme MP3 hazır, oynatıcı açılmadı: "
+                    + preview["player_error"]
+                )
+            else:
+                feedback = (
+                    "Yeni MP3 hazır. Dinledikten sonra 'Beğendim, PC'ye kaydet' "
+                    "düğmesini kullanabilirsiniz."
+                )
+                self._note("Yeni okuma üretildi ve Windows oynatıcısına gönderildi.")
+            if selected:
+                self.preview_feedback.set(feedback)
+            else:
+                self._note("Yeni deneme farklı bir makale için hazır. Onu tekrar seçin.")
+
+        self._managed_task("Yeni okuma MP3'ü hazırlanıyor…", work, done)
+
+    def replay_preview(self):
+        preview = self.preview
+        if (not preview or preview.get("key") != self.current
+                or not Path(preview.get("path", "")).is_file()):
+            self.btn_replay.configure(state="disabled")
+            messagebox.showinfo(
+                "Önce üretin", "Seçili makale için yeni bir deneme sesi hazırlayın."
+            )
+            return
+        if self.busy:
+            messagebox.showinfo(
+                "İşlem devam ediyor", "İşlem bittiğinde tekrar dinleyebilirsiniz."
+            )
+            return
+        path = Path(preview["path"])
+
+        def work():
+            os.startfile(str(path))
+            return str(path)
+
+        def done(_path):
+            self.preview_feedback.set(
+                "Deneme sesi yeniden açıldı. Beğendiyseniz PC sesiniz olarak kabul edin."
+            )
+        self._managed_task("Deneme MP3'ü açılıyor…", work, done)
 
     def save_text(self):
         if self.busy:

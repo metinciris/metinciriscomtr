@@ -34,7 +34,7 @@ def inventory(root, catalog, manifest, web_manifest):
     counts = {
         "all": len(catalog), "web": 0, "web_missing": 0,
         "pc": 0, "pc_missing": 0, "unregistered": 0,
-        "publish_ready": 0,
+        "publish_ready": 0, "pc_pending": 0,
     }
     audio_dir = Path(root) / "public" / "podcast-audio"
     for key, candidate in catalog.items():
@@ -69,11 +69,17 @@ def inventory(root, catalog, manifest, web_manifest):
         )
         if ready_for_web:
             counts["publish_ready"] += 1
+        # A real MP3 exists locally, but the current website has no entry.
+        # Its separate GitHub-upload status is managed by two_step_audio.
+        pc_pending = available and not on_web
+        if pc_pending:
+            counts["pc_pending"] += 1
         rows[key] = {
             "candidate": candidate,
             "web": on_web,
             "pc": available,
             "publish_ready": ready_for_web,
+            "pc_pending": pc_pending,
             "registered": registered,
             "web_entry": online if on_web else None,
             "local_entry": entry if registered else None,
