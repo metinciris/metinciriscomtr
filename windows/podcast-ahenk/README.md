@@ -122,3 +122,13 @@ Yüklemeden hemen önce gerçek siteye tekrar bakar. WEB'de eksik bütün sesler
 **İsteğe bağlı düzeltmeler:** Alt bölümde makaleyi seçerek WEB / PC MP3'lerini dinleyebilir, tek başlığı farklı telaffuzla yeniden üretebilir ve beğendiğiniz sürümü PC'ye kaydedebilirsiniz. Eski gelişmiş `simple_manager.py` ve `podcast_ahenk_gui.py` dosyaları GitHub'da geri dönüş için korunur.
 
 **Güvenlik:** Bu iki adımlı sürüm, erişilemeyen bir WEB listesini `0 ses` sanıp bütün kayıtları yeniden üretmez veya topluca yayımlamaz. WEB kimlikleri yanlışsa işlem durur. Her bir GitHub gönderim partisi tamamlandıktan sonra sayılar kaydedilir; başarısız yüklemede eski PC MP3 dosyaları silinmez. Tüm sesleri yayımlamadan önce onay penceresi gösterilir.
+
+## Windows v1.4 — yeni okuma ve bekleyen sesler
+
+**Üretilip WEB'de henüz görünmeyenler:** Ana ekranda `PC hazır / WEB'de yok` sayacı ve `Hazır, WEB'de olmayan sesleri göster` düğmesi vardır. Aynı listeye `Üretildi, WEB'de yok` filtresinden de erişilebilir. `PC ✓` yerel MP3'ün hazır olduğunu belirtir. `GitHub ✓` ise bu uygulamanın kaydettiği gönderim başarı durumudur; web yayını henüz doğrulanmamıştır. `Gönderim kaydı bulunmayan` ifadesi GitHub'da dosya yok anlamına gelmez; başka PC veya GitHub Actions sesi göndermiş olabilir. Web sayımları en son başarıyla okunan site manifestine dayanır.
+
+**Terim sözlüğü:** Ana ekranda genel telaffuz düzeltmelerinin ilk üçü ve toplam kural sayısı görünür. `Gör / düzenle` veya üstteki `Terim sözlüğü` düğmesiyle tüm kurallar açılır. Örnek: `SMARCA4 → smark-a4`. Makaleye özel okuma metni ve hız değişiklikleri ayrı tutulur.
+
+**Yeni okumayı üret ve dinle:** Seçili makale WEB'de yayımlanmış olsa da `Hepsi` listesinden açılarak yeni okuma hazırlanabilir. Her denemede farklı geçici MP3 dosyası üretilir; Windows oynatıcısındaki önceki ses açık kalsa bile üzerine yazılmaz. MP3 üretildiği halde oynatıcı açılamazsa dosya korunur, `Tekrar dinle` ve `Beğendim, PC'ye kaydet` kullanılabilir. Yalnız `Beğendim` sonrasında kabul edilmiş yerel MP3 değişir; **WEB sesi otomatik değişmez**. İstenen PC sürümü siteye ayrı bir yayın onayıyla gönderilir. Devam eden yükleme/senkronizasyon sırasında ön dinleme başlatılmıyorsa ekranda nedeni gösterilir.
+
+**Güvenlik:** Ön dinlemeler `%LOCALAPPDATA%\PodcastAhenk\on_dinleme` klasörüne yazılır. Eski yerel MP3'ler ve telaffuz kuralları kullanıcı onayı olmadan silinmez. Ayrıntılı hata `%LOCALAPPDATA%\PodcastAhenk\ahenk_hata.log` dosyasına, olay kaydı `ahenk_islem.log` dosyasına yazılır.
