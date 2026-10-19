@@ -99,13 +99,16 @@ def ref_json(root, ref, path, default=None):
     return result
 
 
-def merge_keyed(base, local, remote, name):
+def merge_keyed(base, local, remote, name, prefer_local=None):
     merged = {}
+    prefer_local = set(prefer_local or [])
     for key in set(base) | set(local) | set(remote):
         b = base.get(key, MISSING)
         l = local.get(key, MISSING)
         r = remote.get(key, MISSING)
-        if l == b:
+        if key in prefer_local:
+            chosen = l
+        elif l == b:
             chosen = r
         elif r == b or l == r:
             chosen = l
@@ -118,14 +121,14 @@ def merge_keyed(base, local, remote, name):
             merged[key] = chosen
     return merged
 
-
-def three_way_json(path, base, local, remote):
+def three_way_json(path, base, local, remote, selected_key=None):
     if path == MANIFEST:
         for data in (base, local, remote):
             if not isinstance(data.get("entries"), dict):
                 raise RuntimeError("Manifest entries alanı geçersiz.")
         entries = merge_keyed(
-            base["entries"], local["entries"], remote["entries"], "MP3 başlığı"
+            base["entries"], local["entries"], remote["entries"], "MP3 başlığı",
+            [selected_key] if selected_key else None
         )
         return {
             **remote, "version": 1,
@@ -133,8 +136,6 @@ def three_way_json(path, base, local, remote):
             "generated_at": datetime.now(timezone.utc).isoformat(),
         }
     if path == RULES:
-        # Whole-word pronunciation rules can conflict, whereas article-specific
-        # edits are safely resolved independently.
         result = dict(remote)
         for scalar in ("global", "global_speed"):
             b = base.get(scalar, MISSING)
@@ -153,13 +154,28 @@ def three_way_json(path, base, local, remote):
                 result[scalar] = chosen
             else:
                 result.pop(scalar, None)
+        # Publication selects only this article; normal sync merges all
+        # disjoint per-article edits, without silently changing general rules.
+        preferred = None
+        if selected_key:
+            identity_key = next((key for key in local.get("articles", {})
+                                 if selected_key in key), None)
+            if identity_key:
+                preferred = [identity_key]
         result["articles"] = merge_keyed(
             base.get("articles", {}), local.get("articles", {}),
-            remote.get("articles", {}), "makale telaffuzu"
+            remote.get("articles", {}), "makale telaffuzu", preferred
         )
         return result
     raise RuntimeError("Bilinmeyen JSON yolu: " + path)
 
+
+def pronunciation_identity(entry):
+    """Same key as podcast_audio_pronunciation.identity."""
+    pmid = str(entry.get("pmid") or "").strip()
+    pmid = re.sub(r"\.0+$", "", pmid) if re.fullmatch(r"[0-9]+\.0+", pmid) else pmid
+    return json.dumps([entry["journal"].strip(), entry["title"].strip(), pmid],
+                      ensure_ascii=False, separators=(",", ":"))
 
 def save_json(path, payload):
     path = Path(path)
@@ -193,8 +209,13 @@ def remote_changed(root):
     return set(git(root, "diff", "--name-only", "HEAD", "refs/remotes/origin/main").splitlines())
 
 
-def sync(root, home):
-    """Fast-forward code and merge local approved audio without losing it."""
+def sync(root, home, selected_key=None):
+    """Fast-forward GitHub code and import voices, retaining local accepted MP3s.
+
+    Same-file collisions are merged per article for JSON. An MP3 collision is
+    resolved in favor of the local file only when the user explicitly chooses
+    to publish that article (selected_key), never in a routine refresh.
+    """
     root = Path(root)
     check_repo(root)
     dirty = changes(root)
@@ -202,63 +223,72 @@ def sync(root, home):
     upstream = "refs/remotes/origin/main"
     if git_result(root, "merge-base", "--is-ancestor", "HEAD", upstream, check=False).returncode:
         raise RuntimeError("Yerel dal GitHub'dan ayrılmış. Zorla güncellenmez.")
+    if git(root, "rev-parse", "HEAD") == git(root, "rev-parse", upstream):
+        return "GitHub güncel. Yerel MP3'ler ve telaffuzlar korundu."
+
     changed = remote_changed(root)
     collision = dirty.keys() & changed
     merged = {}
     for path in collision:
         if path in (MANIFEST, RULES):
-            default = {"version": 1, "entries": {}} if path == MANIFEST else {
-                "version": 1, "global": [], "articles": {}, "global_speed": 1.0
-            }
-            base = ref_json(root, "HEAD", path, default)
-            remote = ref_json(root, upstream, path, default)
-            local = read_json_file(root / path, default)
-            merged[path] = three_way_json(path, base, local, remote)
+            default = ({"version": 1, "entries": {}} if path == MANIFEST else
+                       {"version": 1, "global": [], "articles": {}, "global_speed": 1.0})
+            merged[path] = three_way_json(
+                path, ref_json(root, "HEAD", path, default),
+                read_json_file(root / path, default),
+                ref_json(root, upstream, path, default),
+                selected_key=selected_key,
+            )
+        elif path == AUDIO_PREFIX + str(selected_key) + ".mp3":
+            # Explicitly selected MP3 wins over newly generated online version.
+            continue
         else:
-            # Same filename but two distinct local/remote MP3s: never pick silently.
-            remote_bytes = subprocess.run(
+            remote_audio = subprocess.run(
                 ["git", "-C", str(root), "show", f"{upstream}:{path}"],
                 capture_output=True, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0)
             )
             local_bytes = (root / path).read_bytes() if (root / path).is_file() else None
-            if remote_bytes.returncode or local_bytes != remote_bytes.stdout:
+            if remote_audio.returncode or local_bytes != remote_audio.stdout:
                 raise RuntimeError(
                     "Aynı MP3 hem bilgisayarda hem GitHub'da değişti: " + path +
-                    "\nYerel ses korunuyor. Önce hangi sesin yayınlanacağını seçin."
+                    "\nHer iki ses korunuyor. Önce hangi sesin yayınlanacağını seçin."
                 )
 
-    backup = backup_files(root, home, dirty)
-    originals = {}
-    for path in dirty:
-        file = root / path
-        originals[path] = file.read_bytes() if file.is_file() else None
+    backup = backup_files(root, home, dirty) if dirty else None
     try:
         for path, code in dirty.items():
+            dest = root / path
             if code == "??":
-                (root / path).unlink(missing_ok=True)
+                dest.unlink(missing_ok=True)
             else:
                 git(root, "restore", "--worktree", "--", path)
         git(root, "merge", "--ff-only", upstream)
-    except Exception:
-        for path, contents in originals.items():
-            destination = root / path
-            if contents is None:
-                destination.unlink(missing_ok=True)
-            else:
-                destination.parent.mkdir(parents=True, exist_ok=True)
-                destination.write_bytes(contents)
-        raise RuntimeError("Güncelleme uygulanamadı; yerel dosyalar yedekte ve yeniden yerine kondu.")
-    for path, contents in originals.items():
+    except Exception as exc:
+        for path, code in dirty.items():
+            dest = root / path
+            copy = backup / path
+            if copy.is_file():
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(copy, dest)
+            elif code == "??":
+                dest.unlink(missing_ok=True)
+        raise RuntimeError(
+            "GitHub güncellemesi tamamlanamadı; yerel dosyalar yedekten korundu.\n" +
+            str(exc)
+        ) from exc
+    for path, code in dirty.items():
+        dest = root / path
         if path in merged:
-            save_json(root / path, merged[path])
-        elif contents is None:
-            (root / path).unlink(missing_ok=True)
-        else:
-            destination = root / path
-            destination.parent.mkdir(parents=True, exist_ok=True)
-            destination.write_bytes(contents)
-    return f"GitHub güncellendi. {len(dirty)} yerel ses/ayar dosyası korundu. Yedek: {backup}"
-
+            save_json(dest, merged[path])
+        elif (backup / path).is_file():
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(backup / path, dest)
+        elif code in (" D", "D "):
+            dest.unlink(missing_ok=True)
+    return (
+        f"GitHub sesleri indirildi, {len(dirty)} yerel dosya korundu."
+        + (f" Yedek: {backup}" if backup else "")
+    )
 
 def assert_audio_valid(root, key, entry):
     if not isinstance(entry, dict):
@@ -303,69 +333,98 @@ def _commit_and_push(root, paths):
 
 def publish(root, home, selected_key=None):
     root = Path(root)
-    sync(root, home)
+    sync(root, home, selected_key=selected_key)
     local = read_json_file(root / MANIFEST)
     if local is None:
-        raise RuntimeError("Manifest dosyası yok.")
+        raise RuntimeError("Podcast manifest dosyası bulunamadı.")
+
     if selected_key is not None:
-        if selected_key not in local.get("entries", {}):
-            raise RuntimeError("Seçili başlığın onaylı MP3 kaydı bulunamadı.")
-        entry = local["entries"][selected_key]
+        entry = local.get("entries", {}).get(selected_key)
         assert_audio_valid(root, selected_key, entry)
+        # Only the explicitly chosen title is published. Other unapproved
+        # local entries remain in the user's working copy.
         remote = ref_json(root, "HEAD", MANIFEST, {"version": 1, "entries": {}})
-        published = {
-            **remote, "entries": {**remote.get("entries", {}), selected_key: entry},
+        approved = {
+            **remote,
+            "entries": {**remote.get("entries", {}), selected_key: entry},
             "generated_at": datetime.now(timezone.utc).isoformat(),
         }
+        chosen_rules = None
+        rule_path = root / RULES
+        original_rules = rule_path.read_bytes() if rule_path.is_file() else None
+        local_rules = read_json_file(rule_path, {
+            "version": 1, "global": [], "articles": {}, "global_speed": 1.0
+        })
+        remote_rules = ref_json(root, "HEAD", RULES, {
+            "version": 1, "global": [], "articles": {}, "global_speed": 1.0
+        })
+        # Article pronunciation travels with its approved MP3; general rules
+        # and other article drafts remain unpublished until "Send all".
+        identity = pronunciation_identity(entry)
+        rule_entries = dict(remote_rules.get("articles", {}))
+        if identity in local_rules.get("articles", {}):
+            rule_entries[identity] = local_rules["articles"][identity]
+        else:
+            rule_entries.pop(identity, None)
+        chosen_rules = {**remote_rules, "articles": rule_entries}
+
         manifest_path = root / MANIFEST
-        original = manifest_path.read_bytes()
-        backup_files(root, home, [MANIFEST])
+        original_manifest = manifest_path.read_bytes()
+        backup_files(root, home, [MANIFEST, RULES])
         try:
-            # Stage a manifest containing this article alone from local changes.
-            save_json(manifest_path, published)
-            sent = _commit_and_push(root, [MANIFEST, AUDIO_PREFIX + selected_key + ".mp3"])
+            save_json(manifest_path, approved)
+            save_json(rule_path, chosen_rules)
+            sent = _commit_and_push(
+                root, [MANIFEST, RULES, AUDIO_PREFIX + selected_key + ".mp3"]
+            )
         finally:
-            manifest_path.write_bytes(original)
-        if sent:
-            return "Seçili MP3 GitHub'a gönderildi; web sitesi yayını başlayacak."
-        return "Seçili MP3 zaten GitHub'daki kayıtla aynı."
+            manifest_path.write_bytes(original_manifest)
+            if original_rules is None:
+                rule_path.unlink(missing_ok=True)
+            else:
+                rule_path.write_bytes(original_rules)
+        return (
+            "Seçilen MP3 GitHub'a gönderildi. Site dağıtımı tamamlanınca yayında olacak."
+            if sent else "Seçili ses zaten GitHub'daki sürümle aynı."
+        )
+
     modified = changes(root)
     if not modified:
-        return "GitHub'a gönderilecek yeni ses yok."
-    # Bulk publishing includes all accepted local clips and pronunciation rules.
-    for key, entry in local.get("entries", {}).items():
-        if AUDIO_PREFIX + key + ".mp3" in modified:
-            assert_audio_valid(root, key, entry)
+        return "GitHub'a gönderilecek yeni yerel ses bulunamadı."
+    for path in modified:
+        if AUDIO_NAME.fullmatch(path):
+            key = Path(path).stem
+            assert_audio_valid(root, key, local.get("entries", {}).get(key))
     sent = _commit_and_push(root, list(modified))
-    return ("Onaylı yerel sesler GitHub'a gönderildi; site güncellemesi başlayacak."
-            if sent else "GitHub'da zaten güncel.")
-
+    return (
+        "Tüm yerel onaylı MP3 ve telaffuz değişiklikleri GitHub'a gönderildi."
+        if sent else "GitHub zaten güncel."
+    )
 
 def remote_manifest(root):
     return ref_json(root, "HEAD", MANIFEST, {"version": 1, "entries": {}})
 
 
 def restore_site_voice(root, home, key):
-    """Opt-in rollback of a local MP3 to its currently published Git version."""
+    """Opt-in rollback to the exact GitHub-committed MP3, never automatic."""
+    root = Path(root)
     check_repo(root)
     remote = remote_manifest(root)
     item = remote.get("entries", {}).get(key)
     if not item:
-        raise RuntimeError("Bu makalenin GitHub'da henüz yayımlanmış bir MP3'ü yok.")
+        raise RuntimeError("Bu makalenin GitHub'da yayımlanmış bir MP3'ü yok.")
     path = AUDIO_PREFIX + key + ".mp3"
-    output = git_result(root, "show", "HEAD:" + path, check=False)
-    if output.returncode:
-        # Bytes are fetched via a binary invocation below.
-        raise RuntimeError("GitHub'da bu MP3 dosyası bulunamadı.")
-    cp = subprocess.run(["git", "-C", str(root), "show", "HEAD:" + path],
-                        capture_output=True,
-                        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+    cp = subprocess.run(
+        ["git", "-C", str(root), "show", "HEAD:" + path],
+        capture_output=True, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0)
+    )
     if cp.returncode or len(cp.stdout) <= 1024:
         raise RuntimeError("GitHub MP3 dosyası alınamadı.")
     backup = backup_files(root, home, [MANIFEST, path])
-    (Path(root) / path).parent.mkdir(parents=True, exist_ok=True)
-    (Path(root) / path).write_bytes(cp.stdout)
-    local = read_json_file(Path(root) / MANIFEST)
+    dest = root / path
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_bytes(cp.stdout)
+    local = read_json_file(root / MANIFEST)
     local["entries"][key] = item
-    save_json(Path(root) / MANIFEST, local)
-    return f"Bu makale için GitHub'daki ses geri getirildi. Önceki yerel MP3 yedekte: {backup}"
+    save_json(root / MANIFEST, local)
+    return f"GitHub'daki MP3 yerel klasöre geri alındı. Eski dosyanız yedekte: {backup}"
