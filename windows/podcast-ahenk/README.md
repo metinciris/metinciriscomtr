@@ -55,3 +55,52 @@ Programı kapatın. `Downloads` klasöründe güncel `kurulum.ps1` dosyasını i
 Eski sürüm Git durum satırındaki ilk boşluğu yanlışlıkla sildiği için `public/...` yolu `ublic/...` oluyordu. Yeni `git_sync.py` baştaki iki Git durum karakterini korur. `test_git_sync.py` 79 yerel MP3 ile eşzamanlı GitHub güncellemesini geçici Git depolarında test eder.
 
 **Not:** GitHub gönderimi sonrası site güncellemesi zaman alabilir. Sitede gerçekten yayınlanan sürümü görmek için **Web seslerini yenile** kullanın.
+
+
+## Windows v1.3 — Basit ses merkezi
+
+Önceki ayrıntılı v1.2 arayüzünün kaynak dosyası korunur, ancak masaüstü
+kısayolu artık daha sade ve hızlı `simple_manager.py` programını açar.
+
+**Sol tarafta** doğrudan şu filtreler bulunur: Hepsi, WEB'de olanlar,
+WEB'de olmayanlar, PC'de olanlar, PC'de olmayanlar ve Yüklemeye hazır.
+Dergi seçimi ikincil filtredir. Her makalenin **Seç** kutusuna bir kez
+tıklayarak istediğiniz kadar MP3 işaretleyebilirsiniz; Görünenleri seç
+düğmesi toplu seçim içindir.
+
+**Sağ tarafta** WEB ve PC kayıtları iki kutuda dinlenir. Altındaki metni,
+telaffuzu ve okuma hızını değiştirebilir; yeni denemeyi dinleyip yalnız
+beğendiğiniz MP3'ü yerelde kabul edebilirsiniz. WEB sesini işaretlemek
+yayını korur, PC sesini işaretlemek onay sonrası bu sesi web'e gönderir.
+
+**Tek tıkla eksikleri üret:** PC'de olmayan kayıtları sekizli gruplarla
+Ahenk modeli üzerinden hazırlar. Fiziksel olarak zaten mevcut MP3'leri
+yeniden üretmez, hiçbir sesi otomatik yayımlamaz.
+
+**Seçerek yükle:** Solda işaretlenen PC MP3'leri sekizli gruplarla
+GitHub'a gönderilir. Diğer sesler bilgisayarda korunur. Kullanıcı
+onayı olmadan hiçbir MP3 GitHub'a gönderilmez.
+
+**Manifest kurtarma:** Bir MP3 dosyası mevcut ama manifest kaydı
+kaybolmuşsa, uygulama onu yine PC'de var olarak gösterir. Yedek alıp
+makalenin kimliğini (dergi + başlık + PMID) doğrular, eksik kaydı
+yayınlama öncesinde kurtarır; kimliği doğrulanmayan dosyayı hiçbir
+zaman doğrudan yayımlamaz. Kurtarılmış MP3'ün üretilirken kullanılan
+telaffuzu bilinmeyebileceğinden fingerprint'i `unknown-recovered`
+olarak işaretlenir. Kullanıcı dinleyip onaylamalıdır.
+
+**Donmaları önleme:** Makale seçimi ve filtreler Tk ana iş parçacığında
+Git, internet, web MP3 indirme veya ses motorunu başlatma işlemi yapmaz.
+Bu işlemler ayrı bir iş parçacığında ilerler; işlem çubuğu ve kısa
+durum metni görünür. Hata mesajları `%LOCALAPPDATA%\PodcastAhenk\ahenk_hata.log`
+içindedir. **Loglar** ana ekranda, **MP3 klasörü** ve **WEB sitesi** yanındadır.
+
+**Eski MP3'ler için güvenlik:** Windows'ta yerel ses üretiminde artık
+sahipsiz MP3 dosyaları otomatik silinmez. Bu koruma yerel yönetici
+içindir; GitHub Actions sunucu temizleme politikası aynı kalır.
+
+**Kurulum:** Güncel `kurulum.ps1` dosyasını `Downloads` klasörüne
+indirip doğruladıktan sonra PowerShell ile çalıştırın. Önceden
+üretilmiş 79/92 MP3'ü yeniden sentezlemeniz gerekmez. İlk işlem olarak
+`GitHub seslerini indir / eşitle`, ardından filtrelerle hazır
+sesleri gözden geçirmenizi öneririz.
