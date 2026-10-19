@@ -297,6 +297,9 @@ class TwoStepManager(base.AhenkManager):
         )
         self.btn_load_recording.pack(side="left", padx=(0, 5))
         ttk.Button(
+            clip_buttons, text="■ Durdur", command=self.stop_audio
+        ).pack(side="left", padx=(0, 5))
+        ttk.Button(
             clip_buttons, text="Deneme klasörü",
             command=lambda: self._open_folder(base.PREVIEWS)
         ).pack(side="right")
@@ -472,7 +475,10 @@ class TwoStepManager(base.AhenkManager):
         if key not in self.rows or not self.rows[key]["pc"]:
             self.play_feedback.set("Seçili makalenin PC'de kabul edilmiş MP3'ü yok.")
             return
-        self._audio_play(base.AUDIO / (key + ".mp3"), "PC'de kabul edilen ses")
+        self._audio_play(
+            ROOT / "public" / "podcast-audio" / (key + ".mp3"),
+            "PC'de kabul edilen ses"
+        )
 
     def listen_web(self):
         """Use already cached WEB MP3; only uncached clips download in a thread."""
@@ -521,18 +527,23 @@ class TwoStepManager(base.AhenkManager):
                 return
             approved = self.rows[key].get("pc")
             if approved:
-                audio = base.AUDIO / (key + ".mp3")
-                date = datetime.fromtimestamp(audio.stat().st_mtime).strftime(
-                    "%d.%m %H:%M:%S"
-                )
-                self._clip_rows["accepted"] = {
-                    "kind": "accepted", "path": audio, "record": None,
-                }
-                self.clip_tree.insert(
-                    "", "end", iid="accepted",
-                    values=("✓ PC · kabul edilmiş MP3", date,
-                            f"{audio.stat().st_size / 1024:.0f} KB")
-                )
+                audio = ROOT / "public" / "podcast-audio" / (key + ".mp3")
+                try:
+                    audio_stats = audio.stat()
+                except OSError:
+                    audio_stats = None
+                if audio_stats is not None:
+                    date = datetime.fromtimestamp(audio_stats.st_mtime).strftime(
+                        "%d.%m %H:%M:%S"
+                    )
+                    self._clip_rows["accepted"] = {
+                        "kind": "accepted", "path": audio, "record": None,
+                    }
+                    self.clip_tree.insert(
+                        "", "end", iid="accepted",
+                        values=("✓ PC · kabul edilmiş MP3", date,
+                                f"{audio_stats.st_size / 1024:.0f} KB")
+                    )
             for index, item in enumerate(
                 preview_library.previews_for_article(base.PREVIEWS, key, limit=14)
             ):
