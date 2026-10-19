@@ -68,3 +68,31 @@ jobs:
           BLOG_POSTS_PER_PAGE: 9
       - name: Verify output
         run: npm run verify:build
+
+  installer-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse PowerShell installer with Windows PowerShell
+        shell: powershell
+        run: |
+          $tokens = $null
+          $parseErrors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile(
+            "windows/podcast-ahenk/kurulum.ps1",
+            [ref]$tokens,
+            [ref]$parseErrors
+          ) | Out-Null
+          if ($parseErrors.Count -gt 0) {
+            $parseErrors | Format-List | Out-String | Write-Host
+            throw "Podcast Ahenk kurulum.ps1 parse error"
+          }
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          architecture: 'x64'
+      - name: Check Python 3.13 detection without modifying files
+        shell: powershell
+        run: |
+          & .\windows\podcast-ahenk\kurulum.ps1 -PythonVersion 3.13 -CheckPythonOnly
+          if (-not $?) { throw "Python 3.13 detection failed" }
