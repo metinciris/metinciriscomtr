@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-10-18T19:59:14.510442+00:00",
+  "generated_at": "2026-10-19T07:11:01.665288+00:00",
   "entries": {
     "7d9cd522d0f2d5752ca6a105": {
       "title": "MAP2K1 mutasyonlu melanositik tümörler: 114 olgu üzerinden yapılan bir çalışmaya dayanarak histolojik özelliklerin moleküler fonksiyonel sınıflarıyla ilişkisi.",
@@ -74,6 +74,30 @@
       "file": "b22a884d0a400da26ced27b8.mp3",
       "generated_at": "2026-10-18T19:03:21.021916+00:00"
     },
+    "8a873c4ba1c1a251ae146fff": {
+      "title": "Somatik inaktive edici TSC2 mutasyonları, foliküler ve melanositik farklılaşma ve belirgin morfolojik özellikler gösteren benzersiz tiroid karsinomu.",
+      "journal": "American Journal of Surgical Pathology",
+      "pmid": "42682160",
+      "fingerprint": "ce543bc812aa9b0fdc2b4aa2fca07996259a59d4ab94c2b2aa6d53f189eb4499",
+      "file": "8a873c4ba1c1a251ae146fff.mp3",
+      "generated_at": "2026-10-18T19:59:14.510442+00:00"
+    },
+    "25a7308ec4f43ace2c5dbf7d": {
+      "title": "Deri ve deri altı dokusunu etkileyen GLI1 mutasyonlu mezenkimal neoplazmların klinikopatolojik karakterizasyonu: sekiz vakalık bir seri.",
+      "journal": "Human Pathology",
+      "pmid": "42538637",
+      "fingerprint": "7be9e864d60f3aa1a6e9eea9915236f99bad38961a044843b9be4f38aaf6475a",
+      "file": "25a7308ec4f43ace2c5dbf7d.mp3",
+      "generated_at": "2026-10-18T19:59:14.510442+00:00"
+    },
+    "782771474c0b1513a618b51d": {
+      "title": "Eşlik eden patolojik paternlerle birlikte monoklonal immünoglobulin ilişkili böbrek lezyonları: klinikopatolojik özellikler ve sonuçlar.",
+      "journal": "Human Pathology",
+      "pmid": "42533743",
+      "fingerprint": "31beafd631cbbfee72641779fd6b95c2dae25dd4df811452c0e1a6b36942ae2a",
+      "file": "782771474c0b1513a618b51d.mp3",
+      "generated_at": "2026-10-18T19:59:14.510442+00:00"
+    },
     "6d8f83b64b295e7d4ec4b011": {
       "title": "Pankreatobiliyer Sistemin Mezenkimal Neoplazmaları.",
       "journal": "Virchows Archiv",
@@ -81,6 +105,30 @@
       "fingerprint": "c3f339860a417bed8cc1a58eb6def142bae5d90fc9862b9b1fac5d9cfa79a0c8",
       "file": "6d8f83b64b295e7d4ec4b011.mp3",
       "generated_at": "2026-10-18T19:03:21.021916+00:00"
+    },
+    "fdd071648053df60b05d97c6": {
+      "title": "İltihaplı Yumuşak Doku Tümörleri: Koyun Postuna Bürünen Kurt.",
+      "journal": "Virchows Archiv",
+      "pmid": "42730528",
+      "fingerprint": "ce20e3076c931b74a341728700d80c928d851ab8b025b8c7fb20eadef914497d",
+      "file": "fdd071648053df60b05d97c6.mp3",
+      "generated_at": "2026-10-18T19:59:14.510442+00:00"
+    },
+    "acf4be282f367bae8b9844a4": {
+      "title": "İdiyopatik ve sekonder plevroparenkimal fibroelastozda belirgin elastik ve kolajen lif paternlerinin niceliksel değerlendirmesi ortaya çıkar.",
+      "journal": "Journal of Pathology",
+      "pmid": "42878800",
+      "fingerprint": "f5b1bd8ead4d4f516c8c1e124f5aae190c31deb1103a58a1cd8313a8ac50e91d",
+      "file": "acf4be282f367bae8b9844a4.mp3",
+      "generated_at": "2026-10-18T19:59:14.510442+00:00"
+    },
+    "6e6331af6c69f38b8c11e8a1": {
+      "title": "Miksoid liposarcoma'nın nükleer derecelendirmesi, hasta sonuçlarını güçlü bir şekilde öngörüyor: 280 hasta üzerinde yapılan bir çalışma.",
+      "journal": "Journal of Pathology",
+      "pmid": "42873287",
+      "fingerprint": "b8d1f6b0a215ee62ef2902adb0c4afa61a188419a58c67dd869ef41e5720883f",
+      "file": "6e6331af6c69f38b8c11e8a1.mp3",
+      "generated_at": "2026-10-18T19:59:14.510442+00:00"
     },
     "f4da7f8173f6d1bc80edd753": {
       "title": "Tirzepatid kaynaklı pnömatöz intestinalis: nadir görülen ancak klinik açıdan önemli bir gastrointestinal yan etki.",
@@ -90,13 +138,21 @@
       "file": "f4da7f8173f6d1bc80edd753.mp3",
       "generated_at": "2026-10-18T19:14:36.667661+00:00"
     },
-    "a1535c53fe5412cc6ea7b6b3": {
-      "title": "Rutin prostat biyopsisi raporları, en yüksek derece grubunun ötesinde, dereceye özgü tümör yükü bilgilerini de içerir.",
+    "3e0d6efb6e79c2bfc6c64402": {
+      "title": "Floropirimidin güvenliği için kurum içi DPYD genotipleme programının uygulanması ve ilk sonuçları.",
+      "journal": "Annals of Diagnostic Pathology",
+      "pmid": "42803377",
+      "fingerprint": "7896ffc9d977cd9505b47cb7da967e578ea7569708e8aa49d0e7db428e7002da",
+      "file": "3e0d6efb6e79c2bfc6c64402.mp3",
+      "generated_at": "2026-10-18T19:59:14.510442+00:00"
+    },
+    "016425951b3dd32d134c6fa9": {
+      "title": "Akut lösemi dışında, hastalık evrimi ve ilerlemesinde alışılmadık paternler gösteren miyeloid neoplazmalar: Avrupa Kemik İliği Çalışma Grubu çalıştay raporu.",
       "journal": "Diagnostic Pathology",
-      "pmid": "42880549",
-      "fingerprint": "169c4f617b390dce5eac8fb6ee1f26e99f72eb424595e7300abfef5c718a50bb",
-      "file": "a1535c53fe5412cc6ea7b6b3.mp3",
-      "generated_at": "2026-10-18T19:14:36.667661+00:00"
+      "pmid": "42874880",
+      "fingerprint": "7baf91e8edf28c5463a6353f34595eb9866eb427b170af5fc458b116ec938a42",
+      "file": "016425951b3dd32d134c6fa9.mp3",
+      "generated_at": "2026-10-18T19:59:14.510442+00:00"
     },
     "dd4b18e7d9e0ced48f1040d2": {
       "title": "Ergenlik çağındaki bir hastada primer over küçük hücreli olmayan nöroendokrin karsinomu: Bugüne kadar bildirilen en genç vaka.",
@@ -130,69 +186,69 @@
       "file": "3213b2f36a91c4d07b0ef26b.mp3",
       "generated_at": "2026-10-18T19:14:36.667661+00:00"
     },
-    "25a7308ec4f43ace2c5dbf7d": {
-      "title": "Deri ve deri altı dokusunu etkileyen GLI1 mutasyonlu mezenkimal neoplazmların klinikopatolojik karakterizasyonu: sekiz vakalık bir seri.",
-      "journal": "Human Pathology",
-      "pmid": "42538637",
-      "fingerprint": "7be9e864d60f3aa1a6e9eea9915236f99bad38961a044843b9be4f38aaf6475a",
-      "file": "25a7308ec4f43ace2c5dbf7d.mp3",
-      "generated_at": "2026-10-18T19:59:14.510442+00:00"
-    },
-    "acf4be282f367bae8b9844a4": {
-      "title": "İdiyopatik ve sekonder plevroparenkimal fibroelastozda belirgin elastik ve kolajen lif paternlerinin niceliksel değerlendirmesi ortaya çıkar.",
-      "journal": "Journal of Pathology",
-      "pmid": "42878800",
-      "fingerprint": "f5b1bd8ead4d4f516c8c1e124f5aae190c31deb1103a58a1cd8313a8ac50e91d",
-      "file": "acf4be282f367bae8b9844a4.mp3",
-      "generated_at": "2026-10-18T19:59:14.510442+00:00"
-    },
-    "8a873c4ba1c1a251ae146fff": {
-      "title": "Somatik inaktive edici TSC2 mutasyonları, foliküler ve melanositik farklılaşma ve belirgin morfolojik özellikler gösteren benzersiz tiroid karsinomu.",
-      "journal": "American Journal of Surgical Pathology",
-      "pmid": "42682160",
-      "fingerprint": "ce543bc812aa9b0fdc2b4aa2fca07996259a59d4ab94c2b2aa6d53f189eb4499",
-      "file": "8a873c4ba1c1a251ae146fff.mp3",
-      "generated_at": "2026-10-18T19:59:14.510442+00:00"
-    },
-    "782771474c0b1513a618b51d": {
-      "title": "Eşlik eden patolojik paternlerle birlikte monoklonal immünoglobulin ilişkili böbrek lezyonları: klinikopatolojik özellikler ve sonuçlar.",
-      "journal": "Human Pathology",
-      "pmid": "42533743",
-      "fingerprint": "31beafd631cbbfee72641779fd6b95c2dae25dd4df811452c0e1a6b36942ae2a",
-      "file": "782771474c0b1513a618b51d.mp3",
-      "generated_at": "2026-10-18T19:59:14.510442+00:00"
-    },
-    "fdd071648053df60b05d97c6": {
-      "title": "İltihaplı Yumuşak Doku Tümörleri: Koyun Postuna Bürünen Kurt.",
-      "journal": "Virchows Archiv",
-      "pmid": "42730528",
-      "fingerprint": "ce20e3076c931b74a341728700d80c928d851ab8b025b8c7fb20eadef914497d",
-      "file": "fdd071648053df60b05d97c6.mp3",
-      "generated_at": "2026-10-18T19:59:14.510442+00:00"
-    },
-    "6e6331af6c69f38b8c11e8a1": {
-      "title": "Miksoid liposarcoma'nın nükleer derecelendirmesi, hasta sonuçlarını güçlü bir şekilde öngörüyor: 280 hasta üzerinde yapılan bir çalışma.",
-      "journal": "Journal of Pathology",
-      "pmid": "42873287",
-      "fingerprint": "b8d1f6b0a215ee62ef2902adb0c4afa61a188419a58c67dd869ef41e5720883f",
-      "file": "6e6331af6c69f38b8c11e8a1.mp3",
-      "generated_at": "2026-10-18T19:59:14.510442+00:00"
-    },
-    "3e0d6efb6e79c2bfc6c64402": {
-      "title": "Floropirimidin güvenliği için kurum içi DPYD genotipleme programının uygulanması ve ilk sonuçları.",
-      "journal": "Annals of Diagnostic Pathology",
-      "pmid": "42803377",
-      "fingerprint": "7896ffc9d977cd9505b47cb7da967e578ea7569708e8aa49d0e7db428e7002da",
-      "file": "3e0d6efb6e79c2bfc6c64402.mp3",
-      "generated_at": "2026-10-18T19:59:14.510442+00:00"
-    },
-    "016425951b3dd32d134c6fa9": {
-      "title": "Akut lösemi dışında, hastalık evrimi ve ilerlemesinde alışılmadık paternler gösteren miyeloid neoplazmalar: Avrupa Kemik İliği Çalışma Grubu çalıştay raporu.",
+    "bfae5f30fb067983565391e4": {
+      "title": "Rutin prostat biyopsisi raporları, en yüksek derece grubunun ötesinde, dereceye özgü tümör yükü bilgilerini de içermektedir.",
       "journal": "Diagnostic Pathology",
-      "pmid": "42874880",
-      "fingerprint": "7baf91e8edf28c5463a6353f34595eb9866eb427b170af5fc458b116ec938a42",
-      "file": "016425951b3dd32d134c6fa9.mp3",
-      "generated_at": "2026-10-18T19:59:14.510442+00:00"
+      "pmid": "42880549",
+      "fingerprint": "74b10df073159ba00540f4bfaa8dc830d48cd95ccfd1baece6df3036dd7ac47c",
+      "file": "bfae5f30fb067983565391e4.mp3",
+      "generated_at": "2026-10-19T07:11:01.665288+00:00"
+    },
+    "249f510c2faf6600cc19ccdf": {
+      "title": "Golvatinib (E7050), ABCG2 taşıyıcısını inhibe ederek çoklu ilaç direncine sahip kanser hücrelerinde kemoterapiye duyarlılığı geri kazandırır.",
+      "journal": "Pathology International",
+      "pmid": "42641327",
+      "fingerprint": "2ec031ae27c71a1ab97e7624502e2f0c96198cac3f8c70904f8f29e01bd10452",
+      "file": "249f510c2faf6600cc19ccdf.mp3",
+      "generated_at": "2026-10-19T07:11:01.665288+00:00"
+    },
+    "b0162f39317796a7aaa4f7fd": {
+      "title": "Tek hücreli RNA dizilemesinin, viral enfeksiyonun klinik tespiti için monosit doğrudan lökosit alt popülasyonu transkript bolluğu tayin oranına dayalı biyobelirteçlere (IFI27/PSAP veya IFI27/CTSS) dönüştürülmesi.",
+      "journal": "Pathology Research and Practice",
+      "pmid": "42595652",
+      "fingerprint": "0c69c8310b14bee53f9495f608882a2d68d2193b35ed0c65e9281408431ac167",
+      "file": "b0162f39317796a7aaa4f7fd.mp3",
+      "generated_at": "2026-10-19T07:11:01.665288+00:00"
+    },
+    "2fc66c862bfc37c74609adaf": {
+      "title": "Uzaktan WSI tabanlı tiroid sitolojisinin geleneksel sitolojik tanıya kıyasla tanısal uyumluluğu: bir pilot çalışma.",
+      "journal": "International Journal of Surgical Pathology",
+      "pmid": "42773449",
+      "fingerprint": "a6e7119379511d40c132424903fa30e9cbd38d75669c8ea446cfcc2241ec6a8a",
+      "file": "2fc66c862bfc37c74609adaf.mp3",
+      "generated_at": "2026-10-19T07:11:01.665288+00:00"
+    },
+    "27b524fecf4336e84d21ce9c": {
+      "title": "SMARCA4 eksikliği olan 110 adet geleneksel küçük hücreli olmayan akciğer kanseri vakasının klinikopatolojik analizi.",
+      "journal": "American Journal of Clinical Pathology",
+      "pmid": "42664756",
+      "fingerprint": "ed3b9b1d4b4925a127e3411838b742910e7d2590a4e14a6e473e33f1a0f56f7c",
+      "file": "27b524fecf4336e84d21ce9c.mp3",
+      "generated_at": "2026-10-19T07:11:01.665288+00:00"
+    },
+    "d5c109a8fe0ba0940b9122bd": {
+      "title": "Nodüler fasiitin moleküler yapısı: yeni USP6 füzyonları, genomik stabilite ve keşif niteliğinde bir klinikopatolojik model - 20 yıllık retrospektif bir çalışma.",
+      "journal": "Histopathology",
+      "pmid": "42851252",
+      "fingerprint": "ef859b74ad5206446a91dfb9e9769edb43aa6cb07e9815867f8a454790297bc0",
+      "file": "d5c109a8fe0ba0940b9122bd.mp3",
+      "generated_at": "2026-10-19T07:11:01.665288+00:00"
+    },
+    "370d76ef093bead0d448f71b": {
+      "title": "Skuamöz Diferansiyasyon Gösteren Metaplastik Meme Karsinomunu Deri Skuamöz Hücreli Karsinomundan Ayıran İmmünohistokimyasal ve Moleküler Özellikler.",
+      "journal": "American Journal of Surgical Pathology",
+      "pmid": "42682150",
+      "fingerprint": "c8021b8251e936bfb3d8de9040da2e70a3386145a32b7cd91045c6719e53ff49",
+      "file": "370d76ef093bead0d448f71b.mp3",
+      "generated_at": "2026-10-19T07:11:01.665288+00:00"
+    },
+    "1dbaea61946966859d8023a3": {
+      "title": "Anogenital papiller skuamöz intraepitelyal lezyonda Hippo sinyal yolunun bozulması ve YAP1 aktivasyonu.",
+      "journal": "Human Pathology",
+      "pmid": "42460855",
+      "fingerprint": "337767b243efeb20bc65345a2ff8ecefa477d8005af265fd3da73e5312d7cbb9",
+      "file": "1dbaea61946966859d8023a3.mp3",
+      "generated_at": "2026-10-19T07:11:01.665288+00:00"
     }
   }
 }
