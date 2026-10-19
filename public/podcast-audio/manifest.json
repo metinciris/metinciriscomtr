@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-10-19T10:53:14.159003+00:00",
+  "generated_at": "2026-10-19T10:57:46.834874+00:00",
   "entries": {
     "7d9cd522d0f2d5752ca6a105": {
       "title": "MAP2K1 mutasyonlu melanositik tümörler: 114 olgu üzerinden yapılan bir çalışmaya dayanarak histolojik özelliklerin moleküler fonksiyonel sınıflarıyla ilişkisi.",
@@ -138,6 +138,22 @@
       "file": "fdd071648053df60b05d97c6.mp3",
       "generated_at": "2026-10-18T19:59:14.510442+00:00"
     },
+    "ee366d12879b0a8a113895f3": {
+      "title": "Üst Gastrointestinal ve Pankreatikobiliyer Kanserlerde Uyumsuzluk Onarım Eksikliği: Klinik Uygulamada Çok Modlu Moleküler Verilerin Entegrasyonu.",
+      "journal": "Virchows Archiv",
+      "pmid": "42730524",
+      "fingerprint": "60209e76785c3bdbce860e9f352fd9c1da5a6a652a3314e9de8afb6a83e6cfd4",
+      "file": "ee366d12879b0a8a113895f3.mp3",
+      "generated_at": "2026-10-19T10:53:14.159003+00:00"
+    },
+    "d5b0686ecf47feaa820c8f21": {
+      "title": "Fibroelastozun kantitatif değerlendirmesi, idiyopatik ve sekonder plevroparenkimal fibroelastozda belirgin elastik ve kolajen lifi paternlerini ortaya koymaktadır.",
+      "journal": "Journal of Pathology",
+      "pmid": "42878800",
+      "fingerprint": "7942074b154e57bc3ef12206002bf88ca81907ada9e8010a7fa49a1fd21c7ef7",
+      "file": "d5b0686ecf47feaa820c8f21.mp3",
+      "generated_at": "2026-10-19T10:53:14.159003+00:00"
+    },
     "6e6331af6c69f38b8c11e8a1": {
       "title": "Miksoid liposarcoma'nın nükleer derecelendirmesi, hasta sonuçlarını güçlü bir şekilde öngörüyor: 280 hasta üzerinde yapılan bir çalışma.",
       "journal": "Journal of Pathology",
@@ -145,6 +161,14 @@
       "fingerprint": "b8d1f6b0a215ee62ef2902adb0c4afa61a188419a58c67dd869ef41e5720883f",
       "file": "6e6331af6c69f38b8c11e8a1.mp3",
       "generated_at": "2026-10-18T19:59:14.510442+00:00"
+    },
+    "ee44d25a126e1f7118fb4df2": {
+      "title": "Seromuköz hamartomanın genetik yapısının genişletilmesi: yeni HMGA2::PHF14 gen füzyonu - bir vaka raporu.",
+      "journal": "Journal of Pathology",
+      "pmid": "42870126",
+      "fingerprint": "d5cd4ea270f9c2e68c6208b2920f8445aebb389ae71939725103843bc200a015",
+      "file": "ee44d25a126e1f7118fb4df2.mp3",
+      "generated_at": "2026-10-19T10:53:14.159003+00:00"
     },
     "f4da7f8173f6d1bc80edd753": {
       "title": "Tirzepatid kaynaklı pnömatöz intestinalis: nadir görülen ancak klinik açıdan önemli bir gastrointestinal yan etki.",
@@ -162,6 +186,22 @@
       "file": "3e0d6efb6e79c2bfc6c64402.mp3",
       "generated_at": "2026-10-18T19:59:14.510442+00:00"
     },
+    "636afb90b9274c4f189e5afb": {
+      "title": "MGA::NUTM1 füzyon sarkomu: kapsamlı literatür incelemesiyle NUT yeniden düzenlenmiş sarkomların yelpazesini genişletmek.",
+      "journal": "Annals of Diagnostic Pathology",
+      "pmid": "42771852",
+      "fingerprint": "f7710941219e1dd2871b4d123ebd60fd41c225324c1ce7cfe35668db2914fc5c",
+      "file": "636afb90b9274c4f189e5afb.mp3",
+      "generated_at": "2026-10-19T10:53:14.159003+00:00"
+    },
+    "a1535c53fe5412cc6ea7b6b3": {
+      "title": "Rutin prostat biyopsisi raporları, en yüksek derece grubunun ötesinde, dereceye özgü tümör yükü bilgilerini de içerir.",
+      "journal": "Diagnostic Pathology",
+      "pmid": "42880549",
+      "fingerprint": "169c4f617b390dce5eac8fb6ee1f26e99f72eb424595e7300abfef5c718a50bb",
+      "file": "a1535c53fe5412cc6ea7b6b3.mp3",
+      "generated_at": "2026-10-19T10:53:14.159003+00:00"
+    },
     "016425951b3dd32d134c6fa9": {
       "title": "Akut lösemi dışında, hastalık evrimi ve ilerlemesinde alışılmadık paternler gösteren miyeloid neoplazmalar: Avrupa Kemik İliği Çalışma Grubu çalıştay raporu.",
       "journal": "Diagnostic Pathology",
@@ -169,6 +209,14 @@
       "fingerprint": "7baf91e8edf28c5463a6353f34595eb9866eb427b170af5fc458b116ec938a42",
       "file": "016425951b3dd32d134c6fa9.mp3",
       "generated_at": "2026-10-18T19:59:14.510442+00:00"
+    },
+    "80f2b705216cba2059984d38": {
+      "title": "Anormal HER2 Ekspresyonu, Fumarat Hidrataz Eksikliği Olan Böbrek Hücreli Karsinomu İçin Spesifik ve Uygulanabilir Bir Tanısal Belirteç Olarak.",
+      "journal": "Diagnostic Pathology",
+      "pmid": "42874879",
+      "fingerprint": "4df3465e916a2dc5b8950e3690bb7368327555c3959fee1999f87340902bdbb2",
+      "file": "80f2b705216cba2059984d38.mp3",
+      "generated_at": "2026-10-19T10:53:14.159003+00:00"
     },
     "dd4b18e7d9e0ced48f1040d2": {
       "title": "Ergenlik çağındaki bir hastada primer over küçük hücreli olmayan nöroendokrin karsinomu: Bugüne kadar bildirilen en genç vaka.",
@@ -185,6 +233,14 @@
       "fingerprint": "2ec031ae27c71a1ab97e7624502e2f0c96198cac3f8c70904f8f29e01bd10452",
       "file": "249f510c2faf6600cc19ccdf.mp3",
       "generated_at": "2026-10-19T07:11:01.665288+00:00"
+    },
+    "0fc581c5c891090bea884112": {
+      "title": "Hepatocellüler karsinomda R-loop skoru ile tanımlanan konsensus alt tipleri ve genelleştirilebilir bir prognostik imza: Çoklu omik analizler, KIF2A pozitif proliferatif tümör hücrelerini belirliyor.",
+      "journal": "Pathology International",
+      "pmid": "42636674",
+      "fingerprint": "942526ff40c76fab965a343c5ddefd31bf72742e49d9c1d27ede8a26af9fc21c",
+      "file": "0fc581c5c891090bea884112.mp3",
+      "generated_at": "2026-10-19T10:53:14.159003+00:00"
     },
     "f3d1a1fe1cd6fbc24e7d8d69": {
       "title": "Ölü doğumlarda plasenta patolojisi.",
@@ -226,22 +282,6 @@
       "file": "3213b2f36a91c4d07b0ef26b.mp3",
       "generated_at": "2026-10-18T19:14:36.667661+00:00"
     },
-    "d5b0686ecf47feaa820c8f21": {
-      "title": "Fibroelastozun kantitatif değerlendirmesi, idiyopatik ve sekonder plevroparenkimal fibroelastozda belirgin elastik ve kolajen lifi paternlerini ortaya koymaktadır.",
-      "journal": "Journal of Pathology",
-      "pmid": "42878800",
-      "fingerprint": "7942074b154e57bc3ef12206002bf88ca81907ada9e8010a7fa49a1fd21c7ef7",
-      "file": "d5b0686ecf47feaa820c8f21.mp3",
-      "generated_at": "2026-10-19T10:53:14.159003+00:00"
-    },
-    "a1535c53fe5412cc6ea7b6b3": {
-      "title": "Rutin prostat biyopsisi raporları, en yüksek derece grubunun ötesinde, dereceye özgü tümör yükü bilgilerini de içerir.",
-      "journal": "Diagnostic Pathology",
-      "pmid": "42880549",
-      "fingerprint": "169c4f617b390dce5eac8fb6ee1f26e99f72eb424595e7300abfef5c718a50bb",
-      "file": "a1535c53fe5412cc6ea7b6b3.mp3",
-      "generated_at": "2026-10-19T10:53:14.159003+00:00"
-    },
     "c8295aaf219702d54f5f8c07": {
       "title": "SMARCA4 eksikliği olan 110 adet konvansiyonel küçük hücreli olmayan akciğer kanseri vakasının klinikopatolojik analizi.",
       "journal": "American Journal of Clinical Pathology",
@@ -250,45 +290,69 @@
       "file": "c8295aaf219702d54f5f8c07.mp3",
       "generated_at": "2026-10-19T10:53:14.159003+00:00"
     },
-    "ee366d12879b0a8a113895f3": {
-      "title": "Üst Gastrointestinal ve Pankreatikobiliyer Kanserlerde Uyumsuzluk Onarım Eksikliği: Klinik Uygulamada Çok Modlu Moleküler Verilerin Entegrasyonu.",
+    "53e9b51a077f2ee2cb1fa8ab": {
+      "title": "Tekil gebeliklerde immün olmayan fetal hidropsun araştırılması: perinatal patologlar için pratik bir kılavuz.",
+      "journal": "Pathology Research and Practice",
+      "pmid": "42586875",
+      "fingerprint": "4019ce11dabe7b6a1d697d588851ecf76dc73e322fd913fb23bcc1f55c508e88",
+      "file": "53e9b51a077f2ee2cb1fa8ab.mp3",
+      "generated_at": "2026-10-19T10:57:46.834874+00:00"
+    },
+    "f62f7e9dacd5f07196ec6741": {
+      "title": "Paratiroid adenomlarında ince iğne bazlı lokalizasyon teknikleri: histopatolojik güvenlik ve fibrozis paternlerine ilişkin retrospektif kohort çalışması.",
+      "journal": "International Journal of Surgical Pathology",
+      "pmid": "42855687",
+      "fingerprint": "fd6653a2d76c6f7d501e7602c8c6a6024e393ab28e6da6071d16d6c5a827bebe",
+      "file": "f62f7e9dacd5f07196ec6741.mp3",
+      "generated_at": "2026-10-19T10:57:46.834874+00:00"
+    },
+    "c5bcbb61d8fe18aea1c8e292": {
+      "title": "Akut megakaryoblastik lösemi ve miyeloid sarkomda ERG ve CD31 ekspresyonu: Tanısal bir tuzak.",
+      "journal": "American Journal of Clinical Pathology",
+      "pmid": "42664755",
+      "fingerprint": "62f5a4d458034261eaa3c499fee48f7d466f4edee384a553b3dbf9a04a76f782",
+      "file": "c5bcbb61d8fe18aea1c8e292.mp3",
+      "generated_at": "2026-10-19T10:57:46.834874+00:00"
+    },
+    "ff5966dfc5b255f92ee0bff0": {
+      "title": "Kolorektal kanserde yeni nesil ikili ilaç konjugat stratejilerine rehberlik etmek amacıyla EGFR, c-MET ve B7H3 birlikte ekspresyonunun profillenmesi.",
+      "journal": "Histopathology",
+      "pmid": "42811483",
+      "fingerprint": "25b7f15190e0144b98bc02260a95c5aff1e81cca08b886be8dc0c9c92b9c3da2",
+      "file": "ff5966dfc5b255f92ee0bff0.mp3",
+      "generated_at": "2026-10-19T10:57:46.834874+00:00"
+    },
+    "79beb7076da83c9ef563a2d2": {
+      "title": "Meme adenomiyoepitelyomasından elde edilen 26 ders.",
+      "journal": "American Journal of Surgical Pathology",
+      "pmid": "42676113",
+      "fingerprint": "d9d8728dfcffc66e9fa4e7a55cd2b8e1064b0a2e5d397d57e4e8dc58a5e6bd0f",
+      "file": "79beb7076da83c9ef563a2d2.mp3",
+      "generated_at": "2026-10-19T10:57:46.834874+00:00"
+    },
+    "45b6ddb036b3200bf0a00140": {
+      "title": "Doğrudan tümör-yağ hücresi teması / Stroma AReaktif İnvazyon Ön Alanı (TAC/SARIFA), kolorektal kanserde olumsuz sonucu öngörüyor: odaklanmış kanıt sentezi ve meta-analiz.",
+      "journal": "Human Pathology",
+      "pmid": "42460779",
+      "fingerprint": "8287379bb1d708794ed0d6f372ed533ea4c6af3acf7504d850ae9a3c2216e122",
+      "file": "45b6ddb036b3200bf0a00140.mp3",
+      "generated_at": "2026-10-19T10:57:46.834874+00:00"
+    },
+    "77347b2f125399908b9fa30d": {
+      "title": "Meme Kanseri Tanısı Kapasitesinin Geliştirilmesi: Nijerya'da Toplum Sağlığı Sonuçları için Radyoloji-Patoloji Projesi Genişletmesinin (ECHO) Değerlendirilmesi.",
       "journal": "Virchows Archiv",
-      "pmid": "42730524",
-      "fingerprint": "60209e76785c3bdbce860e9f352fd9c1da5a6a652a3314e9de8afb6a83e6cfd4",
-      "file": "ee366d12879b0a8a113895f3.mp3",
-      "generated_at": "2026-10-19T10:53:14.159003+00:00"
+      "pmid": "42730522",
+      "fingerprint": "a51ed4ec1723cb461eed3094c8e21ceea73c0b7985c76d1248410d741729a24a",
+      "file": "77347b2f125399908b9fa30d.mp3",
+      "generated_at": "2026-10-19T10:57:46.834874+00:00"
     },
-    "ee44d25a126e1f7118fb4df2": {
-      "title": "Seromuköz hamartomanın genetik yapısının genişletilmesi: yeni HMGA2::PHF14 gen füzyonu - bir vaka raporu.",
+    "e09b5632c1f2f54c06a43bb3": {
+      "title": "Epitel farklılaşması ve EWSR1 füzyonları içeren kutanöz bazaloid neoplazmlar: dört vakalık bir seri.",
       "journal": "Journal of Pathology",
-      "pmid": "42870126",
-      "fingerprint": "d5cd4ea270f9c2e68c6208b2920f8445aebb389ae71939725103843bc200a015",
-      "file": "ee44d25a126e1f7118fb4df2.mp3",
-      "generated_at": "2026-10-19T10:53:14.159003+00:00"
-    },
-    "636afb90b9274c4f189e5afb": {
-      "title": "MGA::NUTM1 füzyon sarkomu: kapsamlı literatür incelemesiyle NUT yeniden düzenlenmiş sarkomların yelpazesini genişletmek.",
-      "journal": "Annals of Diagnostic Pathology",
-      "pmid": "42771852",
-      "fingerprint": "f7710941219e1dd2871b4d123ebd60fd41c225324c1ce7cfe35668db2914fc5c",
-      "file": "636afb90b9274c4f189e5afb.mp3",
-      "generated_at": "2026-10-19T10:53:14.159003+00:00"
-    },
-    "80f2b705216cba2059984d38": {
-      "title": "Anormal HER2 Ekspresyonu, Fumarat Hidrataz Eksikliği Olan Böbrek Hücreli Karsinomu İçin Spesifik ve Uygulanabilir Bir Tanısal Belirteç Olarak.",
-      "journal": "Diagnostic Pathology",
-      "pmid": "42874879",
-      "fingerprint": "4df3465e916a2dc5b8950e3690bb7368327555c3959fee1999f87340902bdbb2",
-      "file": "80f2b705216cba2059984d38.mp3",
-      "generated_at": "2026-10-19T10:53:14.159003+00:00"
-    },
-    "0fc581c5c891090bea884112": {
-      "title": "Hepatocellüler karsinomda R-loop skoru ile tanımlanan konsensus alt tipleri ve genelleştirilebilir bir prognostik imza: Çoklu omik analizler, KIF2A pozitif proliferatif tümör hücrelerini belirliyor.",
-      "journal": "Pathology International",
-      "pmid": "42636674",
-      "fingerprint": "942526ff40c76fab965a343c5ddefd31bf72742e49d9c1d27ede8a26af9fc21c",
-      "file": "0fc581c5c891090bea884112.mp3",
-      "generated_at": "2026-10-19T10:53:14.159003+00:00"
+      "pmid": "42862344",
+      "fingerprint": "73295b7fbb86c513d5b80bf856629637172d5d8e2325591993e680420596bf82",
+      "file": "e09b5632c1f2f54c06a43bb3.mp3",
+      "generated_at": "2026-10-19T10:57:46.834874+00:00"
     }
   }
 }
