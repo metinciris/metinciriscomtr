@@ -96,3 +96,13 @@ jobs:
         run: |
           & .\windows\podcast-ahenk\kurulum.ps1 -PythonVersion 3.13 -CheckPythonOnly
           if (-not $?) { throw "Python 3.13 detection failed" }
+      - name: Regression - pythonw streams and safe logging
+        shell: powershell
+        run: |
+          & python.exe .\windows\podcast-ahenk\test_stdio_guard.py
+          if ($LASTEXITCODE -ne 0) { throw "pythonw stream guard regression" }
+      - name: Windows Tkinter interface smoke test
+        shell: powershell
+        run: |
+          & python.exe -c "import sys; sys.path.insert(0, 'windows/podcast-ahenk'); import tkinter as tk; import podcast_ahenk_gui as ui; root=tk.Tk(); root.withdraw(); app=ui.App(root); root.update_idletasks(); assert hasattr(app, 'btn_preview') and hasattr(app, 'model_status'); root.destroy(); print('Ahenk Tkinter UI OK')"
+          if ($LASTEXITCODE -ne 0) { throw "Tkinter user interface smoke test failed" }

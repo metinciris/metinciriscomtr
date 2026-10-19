@@ -126,12 +126,16 @@ def render_clip(tts, text, destination, speed=1.0):
         wav = Path(tempdir) / "audio.wav"
         mp3 = Path(tempdir) / "audio.mp3"
         sf.write(wav, audio, sample_rate)
-        subprocess.run(
+        result = subprocess.run(
             ["ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
              "-i", str(wav), "-vn", "-codec:a", "libmp3lame",
              "-qscale:a", "4", str(mp3)],
-            check=True,
+            check=False, capture_output=True, text=True,
+            encoding="utf-8", errors="replace",
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
         )
+        if result.returncode:
+            raise RuntimeError("FFmpeg MP3 hatası: " + (result.stderr or result.stdout)[-1300:])
         if mp3.stat().st_size < 1024:
             raise RuntimeError("Unexpectedly short MP3")
         os.replace(mp3, destination)
