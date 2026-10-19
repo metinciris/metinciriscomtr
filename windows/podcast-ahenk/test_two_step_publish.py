@@ -99,6 +99,8 @@ class TwoStepPublishTest(unittest.TestCase):
                     self.assertEqual(progress["phase"], "site_yayini_bekleniyor")
                     self.assertIn("GitHub: 12/12", app.stage_counters.get())
                     self.assertIn("WEB'de yayına girdi: 0/12", app.stage_counters.get())
+                    self.assertEqual(float(app.stage_bar["value"]), 100.0)
+                    self.assertEqual(float(app.web_progress_bar["value"]), 0.0)
                     # GitHub push alone is NOT yet a live website release.
                     published = {"version": 1, "entries": dict(remote["entries"])}
                     app._watch_result((published, ""))
@@ -106,6 +108,7 @@ class TwoStepPublishTest(unittest.TestCase):
                     self.assertEqual(len(published_state["website_confirmed"]), 12)
                     self.assertEqual(published_state["phase"], "tamamlandi")
                     self.assertIn("WEB'de yayına girdi: 12/12", app.stage_counters.get())
+                    self.assertEqual(float(app.web_progress_bar["value"]), 100.0)
             finally:
                 window.destroy()
 
