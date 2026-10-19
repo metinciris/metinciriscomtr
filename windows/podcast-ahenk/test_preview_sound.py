@@ -13,6 +13,7 @@ import unittest
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+import audio_playback
 import simple_manager as base
 import two_step_manager as ui
 from scripts import render_podcast_audio as engine
@@ -77,8 +78,8 @@ class PreviewRegressions(unittest.TestCase):
                      patch.object(ui.TwoStepManager, "_tts", return_value=object()), \
                      patch.object(ui.shutil, "which", return_value="ffmpeg.exe"), \
                      patch.object(engine, "render_clip", side_effect=render), \
-                     patch.object(ui.os, "startfile",
-                                  side_effect=[OSError("No audio player association"), None]):
+                     patch.object(audio_playback.FastMP3Player, "play",
+                                  return_value="hızlı test"):
                     app = ui.TwoStepManager(root)
                     app.articles = [item]
                     app._rebuild()
@@ -100,7 +101,9 @@ class PreviewRegressions(unittest.TestCase):
                     first = app.preview
                     self.assertIsNotNone(first)
                     self.assertTrue(first["path"].is_file())
-                    self.assertIn("oynatıcısı açılamadı", app.preview_feedback.get())
+                    self.assertIn("Yeni ses PC sesleri listesine eklendi",
+                                  app.preview_feedback.get())
+                    self.assertEqual(len(app.clip_tree.get_children()), 1)
                     self.assertEqual(str(app.btn_accept["state"]), "normal")
                     self.assertEqual(str(app.btn_replay["state"]), "normal")
                     self.assertEqual(rendered[0][2], 0.95)
@@ -114,12 +117,15 @@ class PreviewRegressions(unittest.TestCase):
                     self.assertNotEqual(first["path"], second["path"])
                     self.assertTrue(first["path"].is_file())
                     self.assertTrue(second["path"].is_file())
-                    self.assertIn("Yeni MP3 hazır", app.preview_feedback.get())
+                    self.assertIn("Yeni ses PC sesleri listesine eklendi",
+                                  app.preview_feedback.get())
+                    self.assertEqual(len(app.clip_tree.get_children()), 2)
                     self.assertEqual(len(rendered), 2)
                     self.assertEqual(str(app.btn_accept["state"]), "normal")
                     self.assertFalse((audio / (key + ".mp3")).exists(),
                                      "Preview must not replace the accepted PC MP3")
                     self.assertEqual(len(list(preview_dir.glob("*_deneme.mp3"))), 2)
+                    self.assertEqual(len(list(preview_dir.glob("*_deneme.json"))), 2)
             finally:
                 root.destroy()
 
