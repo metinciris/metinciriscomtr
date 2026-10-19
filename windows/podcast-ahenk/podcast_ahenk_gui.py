@@ -221,6 +221,7 @@ class App:
             ("Makaleleri yenile", self.scan),
             ("GitHub'dan güncelle", self.pull),
             ("Ses motorunu kur", self.install),
+            ("Test sesi: Ses hazır", self.test_sound),
             ("GitHub'a gönder", self.push),
         ]:
             ttk.Button(top_actions, text=title, command=command).pack(side="left", padx=(0, 8))
@@ -695,6 +696,24 @@ class App:
                  str(ROOT / "scripts" / "podcast-audio-requirements.txt")], timeout=2700)
             return "Ahenk kutuphaneleri hazir. Model ilk okumada indirilir."
         self.task("Ses motoru kuruluyor...", work)
+
+    def test_sound(self):
+        """Render a short audible probe without touching any published MP3."""
+        def work():
+            if not shutil.which("ffmpeg"):
+                raise RuntimeError("FFmpeg bulunamadı. Kurun: winget install -e --id Gyan.FFmpeg")
+            audio = PREVIEWS / "ahenk_test_ses_hazir.mp3"
+            self.events.put(("log", "Kısa test sesi üretiliyor: Ses hazır", None))
+            engine.render_clip(self.get_tts(), "Ses hazır", audio, speed=1.0)
+            return audio
+
+        def on_done(path):
+            self.note("Ahenk çalışıyor: test MP3 başarıyla üretildi.")
+            try:
+                os.startfile(str(path))
+            except OSError as exc:
+                self.note("Test MP3 oluşturuldu, oynatıcı açılmadı: " + str(exc))
+        self.task("Ahenk kısa test sesi hazırlanıyor...", work, on_done)
 
     def get_tts(self):
         if self.tts is None:
