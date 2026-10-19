@@ -29,6 +29,8 @@ from scripts import podcast_audio_pronunciation as pron
 
 APP_HOME = Path(os.environ.get("LOCALAPPDATA") or Path.home()) / "PodcastAhenk"
 APP_HOME.mkdir(parents=True, exist_ok=True)
+from stdio_guard import ensure_stdio
+ENGINE_LOG = ensure_stdio(APP_HOME)
 PREVIEWS = APP_HOME / "on_dinleme"
 PREVIEWS.mkdir(parents=True, exist_ok=True)
 CACHE = APP_HOME / "makale_onbellek.json"
