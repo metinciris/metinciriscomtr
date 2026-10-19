@@ -118,11 +118,25 @@ class TwoStepManager(base.AhenkManager):
         for key, label in [
             ("all", "Toplam"), ("web", "WEB'de var"),
             ("web_missing", "WEB'de eksik"), ("pc", "PC'de hazır"),
-            ("pc_missing", "PC'de yok"), ("publish_ready", "Yayın adayı")
+            ("pc_pending", "PC hazır / WEB'de yok"),
+            ("pc_missing", "PC'de yok")
         ]:
             self.count_labels[key] = tk.StringVar(value=label + ": —")
             ttk.Label(summary, textvariable=self.count_labels[key],
-                      font=("Segoe UI Semibold", 9)).pack(side="left", padx=(0, 17))
+                      font=("Segoe UI Semibold", 9)).pack(side="left", padx=(0, 12))
+
+        waiting_line = ttk.Frame(self.root, padding=(12, 5))
+        waiting_line.pack(fill="x")
+        self.pending_notice = tk.StringVar(
+            value="PC'de hazırlanmış ancak WEB'de görünmeyen MP3'ler denetleniyor…"
+        )
+        ttk.Label(waiting_line, textvariable=self.pending_notice,
+                  font=("Segoe UI Semibold", 9)).pack(side="left", fill="x", expand=True)
+        self.btn_pending = ttk.Button(
+            waiting_line, text="Hazır, WEB'de olmayan sesleri göster",
+            command=self.show_pc_pending
+        )
+        self.btn_pending.pack(side="right")
 
         toolbar = ttk.Frame(self.root, padding=(12, 6))
         toolbar.pack(fill="x")
@@ -130,6 +144,7 @@ class TwoStepManager(base.AhenkManager):
             ("↻ WEB durumunu kontrol et", self.refresh_web),
             ("📁 Yerel MP3", self.open_audio_folder),
             ("📝 Log / Hata", self.open_log),
+            ("📖 Terim sözlüğü", self.open_dictionary),
             ("⚙ Ses motorunu kur", self.install_engine),
             ("🌐 Web sitesi", lambda: webbrowser.open("https://metinciris.com.tr/podcast")),
         ]:
@@ -141,8 +156,10 @@ class TwoStepManager(base.AhenkManager):
         filter_bar.pack(fill="x")
         ttk.Label(filter_bar, text="GÖSTER:", font=("Segoe UI Semibold", 9)).pack(side="left")
         for title, value in [
-            ("Web'de eksik", "web_missing"), ("Hepsi", "all"),
-            ("PC'de hazır", "pc"), ("PC'de eksik", "pc_missing"),
+            ("WEB'de eksik", "web_missing"),
+            ("Üretildi, WEB'de yok", "pc_pending"),
+            ("Hepsi", "all"), ("PC'de hazır", "pc"),
+            ("PC'de eksik", "pc_missing"),
         ]:
             ttk.Radiobutton(filter_bar, text=title, variable=self.filter,
                             value=value, command=self._render).pack(side="left", padx=(9, 3))
@@ -226,8 +243,20 @@ class TwoStepManager(base.AhenkManager):
         )
         self.btn_listen_pc.pack(fill="x")
 
+        dictionary = ttk.LabelFrame(right, text="TERİM SÖZLÜĞÜ", padding=(9, 5))
+        dictionary.pack(fill="x", pady=(9, 0))
+        self.dictionary_summary = tk.StringVar(
+            value="Telaffuz kuralları listeleniyor…"
+        )
+        ttk.Label(dictionary, textvariable=self.dictionary_summary,
+                  wraplength=375, foreground="#37546c").pack(
+                      side="left", fill="x", expand=True
+                  )
+        ttk.Button(dictionary, text="Gör / düzenle",
+                   command=self.open_dictionary).pack(side="right", padx=(7, 0))
+
         details = ttk.LabelFrame(right, text="Dilerseniz okuma metnini düzeltin", padding=9)
-        details.pack(fill="both", expand=True, pady=(12, 0))
+        details.pack(fill="both", expand=True, pady=(9, 0))
         self.editor = tk.Text(details, wrap="word", undo=True, height=4,
                               background="#fbfcff", font=("Segoe UI", 9), padx=7, pady=6)
         self.editor.pack(fill="both", expand=True)
