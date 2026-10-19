@@ -115,9 +115,13 @@ class SingleClipUIRegression(unittest.TestCase):
                     # so they remain visible on a short Windows display.
                     self.assertIsNotNone(app.btn_preview)
                     self.assertIsNotNone(app.btn_publish_one)
+                    # Withdrawn Windows Tk roots report identical rooty
+                    # coordinates for children. Check actual widget order.
+                    right = app.btn_publish_one.master.master
+                    clips_box = app.clip_tree.master.master
                     self.assertLess(
-                        app.btn_publish_one.winfo_rooty(),
-                        app.clip_tree.winfo_rooty()
+                        right.winfo_children().index(app.btn_publish_one.master),
+                        right.winfo_children().index(clips_box),
                     )
                     self.assertEqual(app.current, key)
                     self.assertIn("WEB", app.btn_publish_one.cget("text"))
