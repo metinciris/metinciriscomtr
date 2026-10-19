@@ -338,6 +338,7 @@ class AhenkManager:
                 (self.filter.get() == "web" and row["web"])
                 or (self.filter.get() == "web_missing" and not row["web"])
                 or (self.filter.get() == "pc" and row["pc"])
+                or (self.filter.get() == "pc_pending" and row["pc_pending"])
                 or (self.filter.get() == "pc_missing" and not row["pc"])
                 or (self.filter.get() == "publish_ready" and row["publish_ready"])
             ):
