@@ -792,7 +792,7 @@ async function main() {
         affiliation: { '@id': 'https://metinciris.com.tr/#kurum' },
         sameAs: [
           'https://orcid.org/0000-0002-5619-4989',
-          'https://scholar.google.com.tr/citations?user=QZkewskAAAAJ&hl=tr',
+          'https://scholar.google.com/citations?user=zEF_KLsAAAAJ&hl=tr',
         ],
       },
       {
