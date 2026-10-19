@@ -91,7 +91,18 @@ class DictionaryAndPendingTests(unittest.TestCase):
                                   app.pending_notice.get())
                     self.assertIn("GitHub'a gönderildi, WEB bekleniyor: 1",
                                   app.pending_notice.get())
+                    # Only a term present in the SELECTED article should
+                    # be shown; the full glossary remains one click away.
+                    app.filter.set("all")
+                    app._render()
+                    app.table.selection_set(keys[0])
+                    app._select_article()
                     self.assertIn("SMARCA4 → smark-a4",
+                                  app.dictionary_summary.get())
+                    self.assertNotIn("NUTM1", app.dictionary_summary.get())
+                    app.editor.insert("end", " NUTM1")
+                    app._refresh_relevant_terms()
+                    self.assertIn("NUTM1 → nat-em-bir",
                                   app.dictionary_summary.get())
 
                     # List only the two PC MP3s not yet seen at the website.
@@ -100,6 +111,8 @@ class DictionaryAndPendingTests(unittest.TestCase):
                     self.assertEqual(visible, {keys[1], keys[2]})
                     self.assertEqual(app.table.set(keys[1], "pc"), "PC ✓")
                     self.assertEqual(app.table.set(keys[2], "pc"), "GitHub ✓")
+                    self.assertNotIn("SMARCA4 → smark-a4",
+                                     app.dictionary_summary.get())
 
                     # The actual glossary editor opens in one click, with
                     # the previously saved general pronunciation entries.
