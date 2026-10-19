@@ -92,6 +92,8 @@ class App:
         )
         self.filter = tk.StringVar()
         self.state_filter = tk.StringVar(value="Tümü")
+        self.publish_choice = tk.StringVar(value="")
+        self.choice_key = None
         self.journal = tk.StringVar(value="Tum dergiler")
         self.batch = tk.StringVar(value="8")
         self.speed = tk.StringVar(value="1.00")
@@ -220,81 +222,130 @@ class App:
 
         notebook = ttk.Notebook(right)
         notebook.pack(fill="both", expand=True)
-        article_tab = ttk.Frame(notebook, style="Panel.TFrame", padding=(10, 13))
-        global_tab = ttk.Frame(notebook, style="Panel.TFrame", padding=(10, 13))
-        batch_tab = ttk.Frame(notebook, style="Panel.TFrame", padding=(10, 13))
-        log_tab = ttk.Frame(notebook, style="Panel.TFrame", padding=(10, 13))
-        notebook.add(article_tab, text="Seçili okuma")
-        notebook.add(global_tab, text="Genel düzeltmeler")
+        audio_tab = ttk.Frame(notebook, style="Panel.TFrame", padding=(12, 12))
+        edit_tab = ttk.Frame(notebook, style="Panel.TFrame", padding=(12, 12))
+        batch_tab = ttk.Frame(notebook, style="Panel.TFrame", padding=(12, 12))
+        global_tab = ttk.Frame(notebook, style="Panel.TFrame", padding=(12, 12))
+        log_tab = ttk.Frame(notebook, style="Panel.TFrame", padding=(12, 12))
+        notebook.add(audio_tab, text="Sesler ve WEB yayını")
+        notebook.add(edit_tab, text="Okumayı iyileştir")
         notebook.add(batch_tab, text="Toplu üretim")
-        notebook.add(log_tab, text="İşlem kayıtları")
+        notebook.add(global_tab, text="Terim sözlüğü")
+        notebook.add(log_tab, text="Kayıtlar")
 
-        ttk.Label(article_tab, text="1  /  OKUMA METNİ",
-                  style="Panel.TLabel", font=("Segoe UI Semibold", 11)).pack(anchor="w")
-        self.selected_label = ttk.Label(article_tab, text="Soldan bir makale seçin.",
+        ttk.Label(audio_tab, text="BU MAKALENİN SESLERİ",
+                  style="Panel.TLabel", font=("Segoe UI Semibold", 12)).pack(anchor="w")
+        self.selected_label = ttk.Label(audio_tab, text="Soldan bir makale seçin.",
                                         style="Panel.TLabel", wraplength=530)
-        self.selected_label.pack(anchor="w", pady=(6, 7))
-        ttk.Label(article_tab, text="Yalnız seslendirilecek metni değiştirirsiniz. Sitedeki başlık değişmez.",
-                  style="Muted.TLabel", wraplength=525).pack(anchor="w", pady=(0, 7))
-        self.text = tk.Text(article_tab, height=6, wrap="word", undo=True,
+        self.selected_label.pack(anchor="w", pady=(7, 6))
+        ttk.Label(audio_tab,
+                  text="Her iki sesi dinleyin, yayına gidecek olanı kutusundan işaretleyin.",
+                  style="Muted.TLabel", wraplength=520).pack(anchor="w", pady=(0, 12))
+
+        voices = ttk.Frame(audio_tab, style="Panel.TFrame")
+        voices.pack(fill="x", pady=(0, 8))
+        voices.columnconfigure(0, weight=1)
+        voices.columnconfigure(1, weight=1)
+        left_voice = tk.Frame(voices, bg="#ebf5fc", highlightbackground="#accfe5",
+                              highlightthickness=1, padx=11, pady=12)
+        left_voice.grid(row=0, column=0, sticky="nsew", padx=(0, 7))
+        right_voice = tk.Frame(voices, bg="#e9f5f0", highlightbackground="#aad5c1",
+                               highlightthickness=1, padx=11, pady=12)
+        right_voice.grid(row=0, column=1, sticky="nsew", padx=(7, 0))
+
+        self.radio_web = tk.Radiobutton(
+            left_voice, text="WEB / Şu an yayında",
+            variable=self.publish_choice, value="web", command=self.choice_changed,
+            bg="#ebf5fc", activebackground="#ebf5fc", fg="#214b6a",
+            font=("Segoe UI Semibold", 10), anchor="w", state="disabled",
+        )
+        self.radio_web.pack(fill="x", anchor="w")
+        self.web_card_status = tk.StringVar(value="Web sesleri kontrol ediliyor...")
+        tk.Label(left_voice, textvariable=self.web_card_status,
+                 bg="#ebf5fc", fg="#47627c", wraplength=210, justify="left",
+                 font=("Segoe UI", 9), height=3).pack(fill="x", anchor="w", pady=(7, 9))
+        self.btn_web = ttk.Button(left_voice, text="▶ WEB sesini dinle",
+                                  command=self.listen_web, state="disabled")
+        self.btn_web.pack(fill="x")
+
+        self.radio_local = tk.Radiobutton(
+            right_voice, text="BİLGİSAYAR / Yeni ses",
+            variable=self.publish_choice, value="local", command=self.choice_changed,
+            bg="#e9f5f0", activebackground="#e9f5f0", fg="#215843",
+            font=("Segoe UI Semibold", 10), anchor="w", state="disabled",
+        )
+        self.radio_local.pack(fill="x", anchor="w")
+        self.local_card_status = tk.StringVar(value="Bilgisayardaki MP3 kontrol ediliyor...")
+        tk.Label(right_voice, textvariable=self.local_card_status,
+                 bg="#e9f5f0", fg="#3d6754", wraplength=210, justify="left",
+                 font=("Segoe UI", 9), height=3).pack(fill="x", anchor="w", pady=(7, 9))
+        self.btn_old = ttk.Button(right_voice, text="▶ YEREL sesimi dinle",
+                                  command=self.listen_old, state="disabled")
+        self.btn_old.pack(fill="x")
+
+        self.publish_choice_status = tk.StringVar(value="Yayına gidecek sesi seçmediniz.")
+        ttk.Label(audio_tab, textvariable=self.publish_choice_status,
+                  style="Panel.TLabel", wraplength=530,
+                  font=("Segoe UI Semibold", 9)).pack(anchor="w", pady=(10, 6))
+        self.btn_publish = ttk.Button(
+            audio_tab, text="Seçtiğim sesi WEB'de yayımla / koru",
+            command=self.publish_chosen_voice, style="Accent.TButton", state="disabled"
+        )
+        self.btn_publish.pack(fill="x", pady=(0, 9))
+        ttk.Label(audio_tab,
+                  text="GitHub'a gönderimden sonra site dağıtımı tamamlanınca dinlenen ses güncellenir. "
+                       "Yukarıdaki WEB kutusu, sitenin mevcut durumunu gösterir.",
+                  style="Muted.TLabel", wraplength=530).pack(anchor="w", pady=(0, 9))
+        self.online_details = tk.StringVar(value="Web, yerel ve GitHub bilgileri burada görünecek.")
+        ttk.Label(audio_tab, textvariable=self.online_details,
+                  style="Muted.TLabel", wraplength=530).pack(anchor="w", pady=(6, 10))
+        self.btn_restore = ttk.Button(
+            audio_tab, text="GitHub'daki MP3'ü bilgisayara geri getir (yedekli)",
+            command=self.restore_online, state="disabled"
+        )
+        self.btn_restore.pack(anchor="w")
+        ttk.Button(audio_tab, text="↓ WEB'deki MP3'ü indirip klasörü aç",
+                   command=self.save_web_voice).pack(anchor="w", pady=(9, 0))
+        ttk.Label(audio_tab,
+                  text="Yeni okuma üretmek için üstteki 'Okumayı iyileştir' sekmesini açın.",
+                  style="Muted.TLabel", wraplength=520).pack(anchor="w", pady=(15, 0))
+        self.selection_status = tk.StringVar(value="Soldan bir makale seçin.")
+        ttk.Label(audio_tab, textvariable=self.selection_status,
+                  style="Muted.TLabel", wraplength=530).pack(anchor="w", pady=(6, 0))
+
+        ttk.Label(edit_tab, text="MAKALEYE ÖZEL OKUMA DÜZELTMESİ",
+                  style="Panel.TLabel", font=("Segoe UI Semibold", 11)).pack(anchor="w")
+        ttk.Label(edit_tab, text="Yalnız seslendirilen metni değiştirirsiniz; makale başlığı aynı kalır.",
+                  style="Muted.TLabel", wraplength=520).pack(anchor="w", pady=(8, 9))
+        self.text = tk.Text(edit_tab, height=8, wrap="word", undo=True,
                             font=("Segoe UI", 10), background="#fbfcff",
                             foreground="#19334b", relief="solid", borderwidth=1,
                             padx=9, pady=8, highlightthickness=0)
         self.text.pack(fill="both", expand=True)
-        speed_row = ttk.Frame(article_tab, style="Panel.TFrame")
-        speed_row.pack(fill="x", pady=8)
+        speed_row = ttk.Frame(edit_tab, style="Panel.TFrame")
+        speed_row.pack(fill="x", pady=(11, 8))
         ttk.Label(speed_row, text="Okuma hızı", style="Panel.TLabel").pack(side="left")
-        self.speed_values = ["0.80", "0.85", "0.90", "0.95", "1.00", "1.05", "1.10", "1.15", "1.20"]
-        ttk.Combobox(speed_row, width=6, state="readonly", textvariable=self.speed,
-                     values=self.speed_values).pack(side="left", padx=7)
-        ttk.Label(speed_row, text="0.80 yavaş    1.00 normal    1.20 hızlı",
+        self.speed_values = ["0.80", "0.85", "0.90", "0.95", "1.00",
+                             "1.05", "1.10", "1.15", "1.20"]
+        ttk.Combobox(speed_row, width=6, state="readonly",
+                     textvariable=self.speed, values=self.speed_values).pack(side="left", padx=7)
+        ttk.Label(speed_row, text="0.80 yavaş  ·  1.00 normal  ·  1.20 hızlı",
                   style="Muted.TLabel").pack(side="left")
-        ttk.Label(article_tab, text="2  /  WEB'DEKİ VE YEREL SESİ KARŞILAŞTIR",
-                  style="Panel.TLabel", font=("Segoe UI Semibold", 11)).pack(anchor="w", pady=(9, 5))
-        self.online_details = tk.StringVar(value="Web'deki ve yerel MP3 durumu seçildikten sonra gösterilir.")
-        ttk.Label(article_tab, textvariable=self.online_details, style="Muted.TLabel",
-                  wraplength=530).pack(anchor="w", pady=(0, 7))
-        play_row = ttk.Frame(article_tab, style="Panel.TFrame")
-        play_row.pack(fill="x")
-        self.btn_web = ttk.Button(play_row, text="▶ WEB'deki sesi dinle",
-                                  command=self.listen_web, state="disabled")
-        self.btn_web.pack(side="left", padx=(0, 7))
-        self.btn_old = ttk.Button(play_row, text="▶ Yerel MP3'ü dinle",
-                                  command=self.listen_old, state="disabled")
-        self.btn_old.pack(side="left")
         self.btn_preview = ttk.Button(
-            article_tab, text="Yeni okumayı Ahenk ile üret ve dinle",
+            edit_tab, text="Yeni okumayı üret ve dinle",
             command=self.preview_audio, style="Accent.TButton"
         )
-        self.btn_preview.pack(anchor="w", pady=(11, 5))
-        accept_row = ttk.Frame(article_tab, style="Panel.TFrame")
-        accept_row.pack(fill="x", pady=(3, 4))
+        self.btn_preview.pack(anchor="w", pady=(9, 7))
         self.btn_accept = ttk.Button(
-            accept_row, text="Beğendim: yerel MP3'ü bu sesle değiştir",
+            edit_tab, text="Beğendim · Yerel MP3'ü bu sesle değiştir",
             command=self.accept, state="disabled"
         )
-        self.btn_accept.pack(side="left")
-        ttk.Button(article_tab, text="Okuma metni ve hız ayarını kaydet",
-                   command=self.save_override).pack(anchor="w", pady=(4, 4))
-        ttk.Separator(article_tab, orient="horizontal").pack(fill="x", pady=8)
-        ttk.Label(article_tab, text="3  /  WEB SİTESİNDE HANGİ SES OYNASIN?",
-                  style="Panel.TLabel", font=("Segoe UI Semibold", 11)).pack(anchor="w")
-        ttk.Label(article_tab, text="Yalnız beğendiğiniz yerel MP3'ü seçerek GitHub'a gönderin. "
-                                   "Sitede yayımlanması dağıtım tamamlanınca gerçekleşir.",
-                  style="Muted.TLabel", wraplength=525).pack(anchor="w", pady=5)
-        self.btn_publish = ttk.Button(
-            article_tab, text="Seçili MP3'ü WEB'de yayımla",
-            command=self.publish_selected, style="Accent.TButton", state="disabled"
-        )
-        self.btn_publish.pack(anchor="w", pady=(5, 5))
-        self.btn_restore = ttk.Button(
-            article_tab, text="GitHub'daki sesi yerel arşive geri al",
-            command=self.restore_online, state="disabled"
-        )
-        self.btn_restore.pack(anchor="w", pady=(3, 4))
-        self.selection_status = tk.StringVar(value="Önce soldan bir makale seçin.")
-        ttk.Label(article_tab, textvariable=self.selection_status, wraplength=530,
-                  style="Muted.TLabel").pack(anchor="w", pady=(4, 0))
+        self.btn_accept.pack(anchor="w", pady=(6, 5))
+        ttk.Button(edit_tab, text="Okuma metnini ve hızı kaydet",
+                   command=self.save_override).pack(anchor="w", pady=(6, 5))
+        ttk.Label(edit_tab,
+                  text="Onaylamadan önce deneme MP3'ü mevcut yerel veya web sesini değiştirmez.",
+                  style="Muted.TLabel", wraplength=520).pack(anchor="w", pady=(10, 0))
 
         ttk.Label(global_tab, text="GENEL TELAFFUZ SÖZLÜĞÜ",
                   font=("Segoe UI Semibold", 11), style="Panel.TLabel").pack(anchor="w")
