@@ -10,6 +10,9 @@ from datetime import datetime, timezone
 import json
 import os
 from pathlib import Path
+import shutil
+import subprocess
+import sys
 import threading
 import time
 import tkinter as tk
@@ -126,6 +129,7 @@ class TwoStepManager(base.AhenkManager):
             ("↻ WEB durumunu kontrol et", self.refresh_web),
             ("📁 Yerel MP3", self.open_audio_folder),
             ("📝 Log / Hata", self.open_log),
+            ("⚙ Ses motorunu kur", self.install_engine),
             ("🌐 Web sitesi", lambda: webbrowser.open("https://metinciris.com.tr/podcast")),
         ]:
             ttk.Button(toolbar, text=label, command=method).pack(side="left", padx=(0, 6))
@@ -257,6 +261,42 @@ class TwoStepManager(base.AhenkManager):
         self.progress = ttk.Progressbar(bottom, mode="indeterminate", length=135)
         self.progress.pack(side="left", padx=(0, 10))
         ttk.Label(bottom, textvariable=self.status).pack(side="left", fill="x", expand=True)
+
+    def install_engine(self):
+        """Optional one-time dependency installer for a new Windows computer."""
+        if self.busy:
+            self._note("Önce devam eden işlemin tamamlanmasını bekleyin.")
+            return
+        if not messagebox.askyesno(
+            "Ahenk ses motorunu kur",
+            "Python sanal ortamına Ahenk ses motoru kütüphaneleri kurulacak.\n"
+            "Bu işlem hazır MP3 dosyalarını değiştirmez. Devam?"
+        ):
+            return
+
+        def work():
+            if not shutil.which("ffmpeg"):
+                raise RuntimeError(
+                    "FFmpeg bulunamadı. PowerShell: winget install -e --id Gyan.FFmpeg"
+                )
+            requirements = ROOT / "scripts" / "podcast-audio-requirements.txt"
+            run = subprocess.run(
+                [sys.executable, "-m", "pip", "install", "-r", str(requirements)],
+                cwd=ROOT, capture_output=True, text=True,
+                encoding="utf-8", errors="replace", timeout=2700,
+                creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+            )
+            if run.returncode:
+                raise RuntimeError(
+                    "Ahenk kurulamadı: " + (run.stderr or run.stdout)[-1200:]
+                )
+            return "Ahenk ses motoru hazır. Birinci adıma basabilirsiniz."
+
+        def done(text):
+            self._stage(text, 100)
+            self._note(text)
+
+        self._managed_task("Ahenk kütüphaneleri kuruluyor...", work, done)
 
     def _stage(self, label, percent=None, counter=None):
         """Main-thread only: update the prominent progress strip."""
