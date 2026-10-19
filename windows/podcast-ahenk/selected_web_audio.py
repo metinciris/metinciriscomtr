@@ -101,13 +101,34 @@ def publish_trial(root, home, key, preview_path, candidate):
     remote_rules = git_sync.ref_json(
         root, "HEAD", git_sync.RULES, pron.empty_rules()
     )
-    # A local-only global rule must not be silently published for EVERY title.
-    # Until the glossary is intentionally synchronized, refuse the upload.
-    if remote_rules.get("global", []) != local_rules.get("global", []):
-        raise RuntimeError(
-            "PC ve GitHub genel terim sözlükleri farklı. "
-            "Önce sözlüğü eşitleyin; mevcut MP3'ler korunuyor."
+    # Never silently publish PC-only general rules for every other article.
+    # If the WEB glossary differs, save the resolved spoken text as this
+    # article's profile, then verify remote speech STILL matches the actual
+    # synthesized MP3. The other 119 titles and global glossary stay intact.
+    remote_profile = dict(record["profile"])
+    remote_article_rules = {
+        **remote_rules.get("articles", {}), identity: remote_profile
+    }
+    remote_check_rules = {
+        **remote_rules, "articles": remote_article_rules
+    }
+    remote_spoken, remote_speed = pron.speech(
+        candidate, remote_check_rules, engine.spoken(candidate["title"])
+    )
+    if pron.signature(remote_spoken, remote_speed) != record["signature"]:
+        remote_profile = {
+            **remote_profile, "text": spoken, "speed": speed
+        }
+        remote_article_rules[identity] = remote_profile
+        remote_check_rules["articles"] = remote_article_rules
+        remote_spoken, remote_speed = pron.speech(
+            candidate, remote_check_rules, engine.spoken(candidate["title"])
         )
+        if pron.signature(remote_spoken, remote_speed) != record["signature"]:
+            raise RuntimeError(
+                "GitHub terim sözlüğü bu MP3'ü farklı telaffuzla üretecek. "
+                "Mevcut sesleri değiştirmeden işlem durduruldu."
+            )
     previous_web = remote_manifest.get("entries", {}).get(key)
     if previous_web and any(
         previous_web.get(field) != candidate.get(field)
@@ -130,10 +151,7 @@ def publish_trial(root, home, key, preview_path, candidate):
     }
     new_remote_rules = {
         **remote_rules,
-        "articles": {
-            **remote_rules.get("articles", {}),
-            identity: dict(record["profile"]),
-        },
+        "articles": remote_article_rules,
     }
 
     mp3_relative = git_sync.AUDIO_PREFIX + key + ".mp3"
