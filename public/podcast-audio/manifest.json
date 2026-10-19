@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-10-19T11:30:54.411084+00:00",
+  "generated_at": "2026-10-19T11:31:02.530332+00:00",
   "entries": {
     "7d9cd522d0f2d5752ca6a105": {
       "title": "MAP2K1 mutasyonlu melanositik tümörler: 114 olgu üzerinden yapılan bir çalışmaya dayanarak histolojik özelliklerin moleküler fonksiyonel sınıflarıyla ilişkisi.",
@@ -993,6 +993,22 @@
       "fingerprint": "247ef1ba5f510238333e6cb353a814cb80097c6609220d28ea6449de9ebb96d5",
       "file": "4007b24f2dc8278ff296c9fc.mp3",
       "generated_at": "2026-10-19T09:53:51.086255+00:00"
+    },
+    "6e0006fa13a019e5f23b821b": {
+      "title": "Biyopsi verileriyle eğitilmiş yapay zeka algoritmasının, tesadüfen saptanan prostat adenokarsinomunun tespiti için TURP ve HoLEP örneklerine genelleştirilebilirliği.",
+      "journal": "International Journal of Surgical Pathology",
+      "pmid": "42816888",
+      "fingerprint": "015a6c53617c0072559551483bc0f471c1ed073d38914d894f3a63807694478d",
+      "file": "6e0006fa13a019e5f23b821b.mp3",
+      "generated_at": "2026-10-19T11:29:33.663121+00:00"
+    },
+    "27b524fecf4336e84d21ce9c": {
+      "title": "SMARCA4 eksikliği olan 110 adet geleneksel küçük hücreli olmayan akciğer kanseri vakasının klinikopatolojik analizi.",
+      "journal": "American Journal of Clinical Pathology",
+      "pmid": "42664756",
+      "fingerprint": "9a9d519669cb8ecbf39a6712eaa2b755194ff5e6d3412daec787cb321d98036c",
+      "file": "27b524fecf4336e84d21ce9c.mp3",
+      "generated_at": "2026-10-19T09:55:25.978051+00:00"
     }
   }
 }
