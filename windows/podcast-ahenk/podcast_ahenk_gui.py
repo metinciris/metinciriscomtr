@@ -733,9 +733,155 @@ class App:
         self.reload()
         self.note(f"{len(articles)} makale guncellendi.")
 
+    def open_site(self):
+        webbrowser.open("https://metinciris.com.tr/podcast/")
+
+    def open_github(self):
+        webbrowser.open("https://github.com/metinciris/metinciriscomtr/tree/main/windows/podcast-ahenk")
+
+    def open_guide(self):
+        webbrowser.open("https://github.com/metinciris/metinciriscomtr/blob/main/windows/podcast-ahenk/README.md")
+
+    def open_audio_folder(self):
+        AUDIO.mkdir(parents=True, exist_ok=True)
+        try:
+            os.startfile(str(AUDIO))
+        except OSError as error:
+            messagebox.showerror("MP3 klasörü açılamadı", str(error))
+
+    def open_web_audio_folder(self):
+        folder = APP_HOME / "web_mp3"
+        folder.mkdir(parents=True, exist_ok=True)
+        try:
+            os.startfile(str(folder))
+        except OSError as error:
+            messagebox.showerror("Web ses klasörü açılamadı", str(error))
+
+    def copy_logs(self):
+        pieces = []
+        for filename in ("ahenk_hata.log", "ahenk_motor.log", "startup-error.log"):
+            path = APP_HOME / filename
+            if path.is_file():
+                try:
+                    pieces.append(filename + "\n" + path.read_text(
+                        encoding="utf-8", errors="replace"
+                    )[-4500:])
+                except OSError:
+                    pass
+        if not pieces:
+            pieces.append(self.log.get("1.0", "end-1c")[-5000:])
+        self.root.clipboard_clear()
+        self.root.clipboard_append("\n\n".join(pieces))
+        self.note("Hata raporu panoya kopyalandı. Sohbete Ctrl+V ile yapıştırabilirsiniz.")
+
+    def refresh_web(self):
+        """Actual live site, not just GitHub's future deployment manifest."""
+        def work():
+            manifest = online_audio.fetch_manifest()
+            online_audio.cache_manifest(APP_HOME, manifest)
+            return manifest
+
+        def done(manifest):
+            self.web_manifest = manifest
+            self.web_checked = "Şimdi / web sitesi"
+            self.draw()
+            self.note(f"Web sitesindeki {len(manifest['entries'])} yayımlanmış MP3 görüldü.")
+        self.task("Web sitesindeki hazır MP3 listesi okunuyor...", work, done)
+
     def pull(self):
-        self.task("GitHub guvenli guncelleniyor...", pull_clean,
-                  lambda msg: (self.reload(), self.note(msg)))
+        """Update app code + download GitHub MP3s without overwriting local edits."""
+        def work():
+            message = git_sync.sync(ROOT, APP_HOME)
+            github = git_sync.remote_manifest(ROOT)
+            try:
+                web = online_audio.fetch_manifest()
+                online_audio.cache_manifest(APP_HOME, web)
+                online_error = None
+            except (OSError, RuntimeError, ValueError) as error:
+                web = None
+                online_error = str(error)
+            return message, github, web, online_error
+
+        def done(result):
+            message, github, web, online_error = result
+            self.github_manifest = github
+            if web is not None:
+                self.web_manifest = web
+                self.web_checked = "Şimdi / web sitesi"
+            self.reload()
+            self.note(message)
+            if online_error:
+                self.note("GitHub güncellendi, fakat web sitesi geçici olarak okunamadı: " + online_error)
+        self.task("GitHub'dan hazır MP3'ler ve güncel kod indiriliyor...", work, done)
+
+    def listen_web(self):
+        try:
+            key = self.current
+            self.selected()
+            manifest = copy.deepcopy(self.web_manifest)
+            if key not in manifest.get("entries", {}):
+                raise RuntimeError("Web sitesinde bu makalenin hazır MP3 kaydı yok.")
+        except (ValueError, RuntimeError) as error:
+            messagebox.showinfo("Web'de MP3 yok", str(error))
+            return
+
+        def work():
+            return online_audio.download_clip(APP_HOME, key, manifest)
+
+        def done(path):
+            self.note("Web'de yayımlanan MP3 indirildi; bilgisayardaki yeni sesiniz değişmedi.")
+            try:
+                os.startfile(str(path))
+            except OSError as error:
+                self.note("İndirilen MP3 açılamadı: " + str(error))
+        self.task("Web sitesindeki yayımlanmış ses indiriliyor...", work, done)
+
+    def restore_online(self):
+        try:
+            key = self.current
+            self.selected()
+            if not messagebox.askyesno(
+                "GitHub sesine geri dön",
+                "Seçili makalenin yerel MP3'ü GitHub'daki yayıma hazırlanmış "
+                "sürümle değişecek. Yerel ses yedeklenir. Devam?"
+            ):
+                return
+        except ValueError as error:
+            messagebox.showerror("Başlık seçin", str(error))
+            return
+        self.task(
+            "GitHub sesinin yerel arşive yedeği alınıp geri getiriliyor...",
+            lambda: git_sync.restore_site_voice(ROOT, APP_HOME, key),
+            lambda message: (self.reload(), self.note(message)),
+        )
+
+    def publish_selected(self):
+        try:
+            article = self.selected()
+            key = self.current
+            local = self.manifest.get("entries", {}).get(key)
+            git_sync.assert_audio_valid(ROOT, key, local)
+            if not messagebox.askyesno(
+                "Seçili sesi web sitesinde yayımla",
+                article["title"][:180] +
+                "\n\nBu yerel MP3 GitHub'a gönderilecek. Web sitesi dağıtımı "
+                "tamamlanınca bu ses oynatılacak. Diğer yerel yeni MP3'ler gönderilmeyecek.\n\nDevam?"
+            ):
+                return
+        except (RuntimeError, ValueError) as error:
+            messagebox.showerror("Yayımlanacak ses yok", str(error))
+            return
+
+        def work():
+            msg = git_sync.publish(ROOT, APP_HOME, selected_key=key)
+            return msg, git_sync.remote_manifest(ROOT)
+
+        def done(data):
+            msg, github = data
+            self.github_manifest = github
+            self.reload()
+            self.note(msg + " Sitedeki yeni sürüm biraz sonra Web yenile ile görünür.")
+        self.task("Seçili MP3 GitHub'a gönderiliyor...", work, done)
 
     def install(self):
         def work():
@@ -897,10 +1043,33 @@ class App:
                   lambda msg: (self.reload(), self.note(msg)))
 
     def push(self):
-        if not messagebox.askyesno("GitHub'a gonder",
-                                   "Yalniz hazir MP3, manifest ve pronunciation.json gonderilecek. Onayliyor musunuz?"):
+        try:
+            dirty = git_sync.changes(ROOT)
+        except (RuntimeError, OSError) as error:
+            messagebox.showerror("GitHub denetimi", str(error))
             return
-        self.task("GitHub'a gonderiliyor...", publish, self.note)
+        if not dirty:
+            messagebox.showinfo("GitHub güncel", "Gönderilecek yerel MP3 veya telaffuz değişikliği yok.")
+            return
+        if not messagebox.askyesno(
+            "Tüm yerel değişiklikleri yayımla",
+            f"{len(dirty)} yerel MP3/ayar dosyası GitHub'a gönderilecek.\n\n"
+            "Bu işlem çevrimiçi sitede mevcut sesleri değiştirebilir. "
+            "Yalnız tek makaleyi yayımlamak için 'Seçili MP3'ü WEB'de yayımla' "
+            "düğmesini kullanabilirsiniz.\n\nDevam edilsin mi?"
+        ):
+            return
+
+        def work():
+            msg = git_sync.publish(ROOT, APP_HOME)
+            return msg, git_sync.remote_manifest(ROOT)
+
+        def done(data):
+            msg, github = data
+            self.github_manifest = github
+            self.reload()
+            self.note(msg + " Web sayfasında görünmesi dağıtımın tamamlanmasına bağlı.")
+        self.task("Onaylı yerel MP3'ler GitHub'a gönderiliyor...", work, done)
 
 
 def main():
