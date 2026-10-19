@@ -771,10 +771,13 @@ class TwoStepManager(base.AhenkManager):
         if getattr(self, "preview", None) is not None and hasattr(
             self, "clip_tree"
         ):
-            self.btn_accept.configure(
-                state="normal" if self._profile_matches_preview(self.preview)
-                else "disabled"
-            )
+            same = self._profile_matches_preview(self.preview)
+            self.btn_accept.configure(state="normal" if same else "disabled")
+            chosen = self._selected_recording()
+            if chosen and chosen["kind"] == "trial" and chosen.get("record"):
+                self.btn_load_recording.configure(
+                    state="disabled" if same else "normal"
+                )
 
     def show_pc_pending(self):
         """Show the prepared audio still absent from the real WEB listing."""
