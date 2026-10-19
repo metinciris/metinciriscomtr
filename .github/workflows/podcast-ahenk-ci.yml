@@ -50,7 +50,7 @@ jobs:
       - name: Check Python podcast batch generation and sheet parsing
         run: python3 -m unittest scripts.test_render_podcast_audio scripts.test_podcast_audio_pronunciation
       - name: Check Windows manager Python syntax
-        run: python3 -m py_compile windows/podcast-ahenk/podcast_ahenk_gui.py windows/podcast-ahenk/simple_manager.py windows/podcast-ahenk/audio_inventory.py scripts/podcast_audio_pronunciation.py
+        run: python3 -m py_compile windows/podcast-ahenk/podcast_ahenk_gui.py windows/podcast-ahenk/simple_manager.py windows/podcast-ahenk/audio_inventory.py windows/podcast-ahenk/two_step_manager.py windows/podcast-ahenk/two_step_audio.py scripts/podcast_audio_pronunciation.py
       - name: Ensure bundled open-source runtime has required files
         run: |
           test -f public/ahenk-cep/js/worker.js
@@ -112,6 +112,13 @@ jobs:
         run: |
           & python.exe .\windows\podcast-ahenk\test_git_sync.py
           if ($LASTEXITCODE -ne 0) { throw "Podcast Ahenk GitHub audio sync regression failed" }
+      - name: Regression - two-step web-missing plan and persistent publication status
+        shell: powershell
+        run: |
+          & python.exe .\windows\podcast-ahenk\test_two_step_audio.py
+          if ($LASTEXITCODE -ne 0) { throw "Ahenk two-step audio planning failed" }
+          & python.exe .\windows\podcast-ahenk\test_two_step_gui.py
+          if ($LASTEXITCODE -ne 0) { throw "Ahenk stage 1 GUI / no-upload regression failed" }
       - name: Regression - simple Windows GUI and local MP3 recovery
         shell: powershell
         run: |
