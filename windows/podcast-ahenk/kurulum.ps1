@@ -131,9 +131,22 @@ with tempfile.TemporaryDirectory(prefix="ahenk-updater-", dir=str(home)) as fold
     spec.loader.exec_module(module)
     print(module.sync(root, home), flush=True)
 '@
-        & $PythonExe @PythonArgs -c $SyncPython $Repo $Target
-        if ($LASTEXITCODE -ne 0) {
-            throw "Yerel sesler ile GitHub guncellemesi tamamlanamadi. Yedekler korundu."
+        # Windows PowerShell 5.1 can mangle multiline Python passed via -c.
+        # Persist the exact source in a temporary UTF-8 .py file and run that
+        # file as the script (not a quoted command string).
+        $SyncRunner = Join-Path $Target ("ahenk_senkron_" + [guid]::NewGuid().ToString("N") + ".py")
+        try {
+            [System.IO.File]::WriteAllText(
+                $SyncRunner, $SyncPython, [System.Text.UTF8Encoding]::new($false)
+            )
+            & $PythonExe @PythonArgs $SyncRunner $Repo $Target
+            $SyncExitCode = $LASTEXITCODE
+            if ($SyncExitCode -ne 0) {
+                throw "Yerel seslerle GitHub guncellemesi tamamlanamadi. Yedekler korundu."
+            }
+        }
+        finally {
+            Remove-Item -LiteralPath $SyncRunner -Force -ErrorAction SilentlyContinue
         }
     } else {
         & git.exe -C $Repo pull --ff-only origin main
