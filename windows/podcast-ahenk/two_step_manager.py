@@ -229,7 +229,32 @@ class TwoStepManager(base.AhenkManager):
                   font=("Segoe UI Semibold", 10)).pack(anchor="w")
         self.article_name = tk.StringVar(value="Bir başlık seçin.")
         ttk.Label(right, textvariable=self.article_name,
-                  wraplength=475).pack(anchor="w", pady=(6, 10))
+                  wraplength=475).pack(anchor="w", pady=(6, 6))
+
+        # These are the two per-article actions users need immediately. In
+        # v1.5 they were BELOW the editor and disappeared on 900px displays.
+        selected_actions = ttk.Frame(right)
+        selected_actions.pack(fill="x", pady=(2, 6))
+        selected_actions.columnconfigure(0, weight=1)
+        selected_actions.columnconfigure(1, weight=1)
+        self.btn_preview = ttk.Button(
+            selected_actions, text="🎙 YENİ SES ÜRET",
+            command=self.preview_sound, style="Primary.TButton"
+        )
+        self.btn_preview.grid(row=0, column=0, sticky="ew", padx=(0, 5))
+        self.btn_publish_one = ttk.Button(
+            selected_actions, text="⬆ SEÇİLİ SESİ WEB'E GÖNDER",
+            command=self.publish_current, state="disabled",
+            style="Secondary.TButton"
+        )
+        self.btn_publish_one.grid(row=0, column=1, sticky="ew", padx=(5, 0))
+        self.web_choice_label = tk.StringVar(
+            value="WEB'e göndermek için aşağıdaki PC ses listesinden bir kayıt seçin."
+        )
+        ttk.Label(
+            right, textvariable=self.web_choice_label,
+            foreground="#49677e", wraplength=490
+        ).pack(anchor="w", pady=(0, 6))
         clips = ttk.Frame(right)
         clips.pack(fill="x")
         clips.columnconfigure(0, weight=1)
@@ -314,6 +339,18 @@ class TwoStepManager(base.AhenkManager):
             command=lambda: self._open_folder(base.PREVIEWS)
         ).pack(side="right")
 
+        accepted_actions = ttk.Frame(clips_list_box)
+        accepted_actions.pack(fill="x", pady=(6, 0))
+        self.btn_accept = ttk.Button(
+            accepted_actions, text="✓ Seçili denemeyi PC'ye kabul et",
+            command=self.accept_sound, state="disabled"
+        )
+        self.btn_accept.pack(side="left", padx=(0, 7))
+        self.btn_replay = ttk.Button(
+            accepted_actions, text="▶ Denemeyi tekrar dinle",
+            command=self.replay_preview, state="disabled"
+        )
+        self.btn_replay.pack(side="left")
         self.play_feedback = tk.StringVar(value="Dinlemek istediğiniz sesi seçin.")
         ttk.Label(
             clips_list_box, textvariable=self.play_feedback,
@@ -353,34 +390,13 @@ class TwoStepManager(base.AhenkManager):
                              "1.05", "1.10", "1.15", "1.20"]).pack(side="left", padx=6)
         ttk.Button(options, text="Terim sözlüğü", command=self.open_dictionary).pack(side="left")
         ttk.Button(options, text="Metni kaydet", command=self.save_text).pack(side="right")
-        actions = ttk.Frame(details)
-        actions.pack(fill="x", pady=(8, 0))
-        self.btn_preview = ttk.Button(
-            actions, text="Yeni okumayı üret ve dinle", command=self.preview_sound
-        )
-        self.btn_preview.pack(side="left", padx=(0, 5))
-        self.btn_replay = ttk.Button(
-            actions, text="▶ Tekrar dinle", command=self.replay_preview,
-            state="disabled"
-        )
-        self.btn_replay.pack(side="left", padx=(0, 5))
-        self.btn_accept = ttk.Button(
-            actions, text="Beğendim, PC'ye kaydet",
-            command=self.accept_sound, state="disabled"
-        )
-        self.btn_accept.pack(side="left")
         self.preview_feedback = tk.StringVar(
-            value="Okumayı düzenleyin, ardından yeni denemeyi dinleyin."
+            value="Yeni ses üretme düğmesi seçili makalenin hemen üstünde. "
+                  "Üretilen MP3 aşağıdaki PC sesleri listesine eklenir."
         )
-        ttk.Label(details, textvariable=self.preview_feedback, wraplength=470,
-                  foreground="#476579").pack(anchor="w", pady=(7, 0))
+        ttk.Label(details, textvariable=self.preview_feedback,
+                  wraplength=480, foreground="#476579").pack(anchor="w", pady=(7, 0))
         self.choice_label = tk.StringVar(value="")
-        self.btn_publish_one = ttk.Button(
-            details, text="Yalnız bu PC sesini yayımla",
-            command=self.publish_current, state="disabled"
-        )
-        # Keep single-clip action accessible but visually subordinate.
-        self.btn_publish_one.pack(anchor="e", pady=(8, 0))
 
         bottom = ttk.Frame(self.root, padding=(12, 3))
         bottom.pack(fill="x")
