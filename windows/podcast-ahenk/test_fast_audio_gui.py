@@ -158,8 +158,10 @@ class FastPCListTest(unittest.TestCase):
                     app.editor.insert("1.0", "Başka bir metin")
                     app._refresh_relevant_terms()
                     self.assertEqual(str(app.btn_accept["state"]), "disabled")
-                    app.load_recording_profile()
+                    self.assertEqual(str(app.btn_load_recording["state"]), "normal")
+                    app.btn_load_recording.invoke()
                     self.assertEqual(str(app.btn_accept["state"]), "normal")
+                    self.assertEqual(str(app.btn_load_recording["state"]), "disabled")
                     self.assertIn("SMARCA4", app.editor.get("1.0", "end-1c"))
 
                     # History survives an article refresh without overwriting.
