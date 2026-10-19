@@ -289,7 +289,7 @@ def plan_updates(articles, manifest, now):
     }
 
 
-def execute_plan(plan, tts=None, on_prepared=None):
+def execute_plan(plan, tts=None, on_prepared=None, preserve_local=False):
     """Stage the entire small batch before replacing or deleting live files."""
     if plan.get("version") != 1:
         raise RuntimeError("Unknown generation plan")
@@ -303,11 +303,16 @@ def execute_plan(plan, tts=None, on_prepared=None):
     AUDIO_DIR.mkdir(parents=True, exist_ok=True)
     now = datetime.now(timezone.utc)
     # Do not lose previously cached clips while the backlog is being filled.
-    entries = {
-        key: dict(previous["entries"][key])
-        for key, article in candidates.items()
-        if playable(previous["entries"].get(key), article)
-    }
+    if preserve_local:
+        # Windows: keep every previously recorded clip, including titles
+        # retired from Sheets; a local draft must never disappear on refresh.
+        entries = {key: dict(value) for key, value in previous["entries"].items()}
+    else:
+        entries = {
+            key: dict(previous["entries"][key])
+            for key, article in candidates.items()
+            if playable(previous["entries"].get(key), article)
+        }
 
     rules = pron.load()
     for key in selected:
@@ -351,11 +356,12 @@ def execute_plan(plan, tts=None, on_prepared=None):
 
     # Retired titles and orphan files are removed only after successful
     # source validation and successful synthesis of *all* selected clips.
-    keep = {entry["file"] for entry in entries.values()}
-    for file in AUDIO_DIR.glob("*.mp3"):
-        if MP3_NAME.fullmatch(file.name) and file.name not in keep:
-            file.unlink()
-            print("Removed obsolete", file.name, flush=True)
+    if not preserve_local:
+        keep = {entry["file"] for entry in entries.values()}
+        for file in AUDIO_DIR.glob("*.mp3"):
+            if MP3_NAME.fullmatch(file.name) and file.name not in keep:
+                file.unlink()
+                print("Removed obsolete", file.name, flush=True)
     print(f"Available ready MP3: {len(entries)} / {len(candidates)}", flush=True)
 
 

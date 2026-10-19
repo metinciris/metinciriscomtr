@@ -5,4 +5,4 @@ if not exist "%AHENK_PY%" (
   pause
   exit /b 1
 )
-start "" "%AHENK_PY%" "%~dp0podcast_ahenk_gui.py"
+start "" "%AHENK_PY%" "%~dp0simple_manager.py"
