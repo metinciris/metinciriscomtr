@@ -157,115 +157,224 @@ class App:
         root.after(100, self.process_events)
 
     def make_ui(self):
-        outer = ttk.Frame(self.root, padding=10)
+        """Compact two-pane workflow: select title -> improve -> listen -> accept."""
+        self.root.configure(bg="#f3f6fa")
+        self.root.title("Podcast Ahenk | Ses Yöneticisi 1.1")
+        self.root.geometry("1220x800")
+        self.root.minsize(980, 650)
+
+        style = ttk.Style(self.root)
+        if "clam" in style.theme_names():
+            style.theme_use("clam")
+        style.configure("Root.TFrame", background="#f3f6fa")
+        style.configure("Panel.TFrame", background="#ffffff")
+        style.configure("Panel.TLabel", background="#ffffff", foreground="#18324d")
+        style.configure("Muted.TLabel", background="#ffffff", foreground="#617285")
+        style.configure("Root.TLabel", background="#f3f6fa", foreground="#314c64")
+        style.configure("TButton", font=("Segoe UI", 9), padding=(10, 7))
+        style.configure("Accent.TButton", foreground="#ffffff", background="#137c82",
+                        font=("Segoe UI Semibold", 9), padding=(12, 9))
+        style.map("Accent.TButton", background=[("active", "#0f666b")])
+        style.configure("TNotebook", background="#ffffff", borderwidth=0)
+        style.configure("TNotebook.Tab", font=("Segoe UI", 9), padding=(12, 8))
+        style.configure("Treeview", rowheight=30, font=("Segoe UI", 9),
+                        borderwidth=0, background="#ffffff", fieldbackground="#ffffff",
+                        foreground="#18324d")
+        style.configure("Treeview.Heading", font=("Segoe UI Semibold", 9),
+                        padding=(5, 9), background="#e9eff5", foreground="#18324d")
+
+        outer = ttk.Frame(self.root, padding=12, style="Root.TFrame")
         outer.pack(fill="both", expand=True)
-        ttk.Label(outer, text="PODCAST  ·  AHENK SES YONETICISI",
-                  font=("Segoe UI", 16, "bold")).pack(anchor="w")
-        ttk.Label(outer, textvariable=self.status, wraplength=1070).pack(anchor="w", pady=6)
+        header = tk.Frame(outer, bg="#18324d", padx=18, pady=12)
+        header.pack(fill="x")
+        tk.Label(header, text="PODCAST   /   AHENK SES YÖNETİCİSİ",
+                 bg="#18324d", fg="#ffffff", font=("Segoe UI Semibold", 17)).pack(anchor="w")
+        tk.Label(header, text="Makaleyi seçin  →  okumasını düzenleyin  →  dinleyin  →  beğenirseniz yayınlayın",
+                 bg="#18324d", fg="#cbd9e4", font=("Segoe UI", 10)).pack(anchor="w", pady=(3, 0))
 
-        bar = ttk.Frame(outer)
-        bar.pack(fill="x", pady=6)
-        for text, callback in [
-            ("Makaleleri Guncelle", self.scan),
-            ("GitHub'dan Guncelle", self.pull),
-            ("Ses Motorunu Kur", self.install),
-            ("GitHub'a Gonder", self.push)
+        top_actions = ttk.Frame(outer, style="Root.TFrame")
+        top_actions.pack(fill="x", pady=(10, 6))
+        for title, command in [
+            ("Makaleleri yenile", self.scan),
+            ("GitHub'dan güncelle", self.pull),
+            ("Ses motorunu kur", self.install),
+            ("GitHub'a gönder", self.push),
         ]:
-            ttk.Button(bar, text=text, command=callback).pack(side="left", padx=(0, 8))
-        ttk.Label(bar, text="Uretim:").pack(side="left", padx=(8, 2))
-        ttk.Combobox(bar, width=6, state="readonly", values=["1", "8", "24", "Tumu"],
-                     textvariable=self.batch).pack(side="left")
-        ttk.Button(bar, text="Eksik / Eski Sesleri Uret", command=self.batch_generate).pack(side="left", padx=7)
-        ttk.Button(bar, text="Durdur", command=self.stop_event.set).pack(side="left", padx=3)
+            ttk.Button(top_actions, text=title, command=command).pack(side="left", padx=(0, 8))
 
-        searchbar = ttk.Frame(outer)
-        searchbar.pack(fill="x", pady=(10, 4))
-        ttk.Label(searchbar, text="Dergi").pack(side="left")
-        self.journal_list = ttk.Combobox(searchbar, state="readonly", width=28,
-                                        textvariable=self.journal)
-        self.journal_list.pack(side="left", padx=7)
-        self.journal_list.bind("<<ComboboxSelected>>", lambda _event: self.draw())
-        ttk.Label(searchbar, text="Ara").pack(side="left", padx=(8, 4))
-        ttk.Entry(searchbar, textvariable=self.filter).pack(side="left", fill="x", expand=True)
+        summary_frame = ttk.Frame(outer, style="Panel.TFrame", padding=(12, 8))
+        summary_frame.pack(fill="x", pady=(0, 9))
+        self.summary = tk.StringVar(value="Makale listesi yükleniyor…")
+        self.model_status = tk.StringVar(value="Ahenk modeli: Henüz yüklenmedi")
+        ttk.Label(summary_frame, textvariable=self.summary, style="Panel.TLabel",
+                  font=("Segoe UI Semibold", 10)).pack(side="left")
+        ttk.Label(summary_frame, textvariable=self.model_status,
+                  style="Muted.TLabel").pack(side="right")
+
+        body = ttk.Panedwindow(outer, orient="horizontal")
+        body.pack(fill="both", expand=True)
+        left = ttk.Frame(body, style="Panel.TFrame", padding=10)
+        right = ttk.Frame(body, style="Panel.TFrame", padding=10)
+        body.add(left, weight=5)
+        body.add(right, weight=6)
+
+        ttk.Label(left, text="MAKALELER", style="Panel.TLabel",
+                  font=("Segoe UI Semibold", 11)).pack(anchor="w")
+        ttk.Label(left, text="Hazır, eksik veya yenilenecek başlıkları seçin.",
+                  style="Muted.TLabel").pack(anchor="w", pady=(0, 10))
+        filters = ttk.Frame(left, style="Panel.TFrame")
+        filters.pack(fill="x", pady=(0, 7))
+        self.journal_list = ttk.Combobox(filters, state="readonly", width=22, textvariable=self.journal)
+        self.journal_list.pack(side="left", padx=(0, 5))
+        self.journal_list.bind("<<ComboboxSelected>>", lambda _e: self.draw())
+        search = ttk.Entry(filters, textvariable=self.filter)
+        search.pack(side="left", fill="x", expand=True)
         self.filter.trace_add("write", lambda *_: self.draw())
+        ttk.Label(left, text="Arama: dergi, makale veya PMID · Durumlar: ✓ Hazır / • Eksik / ↻ Yenilenecek",
+                  style="Muted.TLabel", wraplength=460).pack(anchor="w", pady=(0, 8))
 
-        grid = ttk.Frame(outer)
-        grid.pack(fill="both", expand=True)
-        self.table = ttk.Treeview(grid, columns=("status", "journal", "title", "pmid"),
-                                  show="headings", height=10)
-        for name, label, size, stretchy in [
-            ("status", "Durum", 98, False), ("journal", "Dergi", 190, False),
-            ("title", "Makale basligi", 630, True), ("pmid", "PMID", 100, False)
+        table_frame = ttk.Frame(left, style="Panel.TFrame")
+        table_frame.pack(fill="both", expand=True)
+        self.table = ttk.Treeview(table_frame, columns=("status", "journal", "title", "pmid"),
+                                  show="headings", selectmode="browse")
+        for name, label, size, stretch in [
+            ("status", "Durum", 92, False),
+            ("journal", "Dergi", 130, False),
+            ("title", "Makale başlığı", 290, True),
+            ("pmid", "PMID", 0, False)
         ]:
             self.table.heading(name, text=label)
-            self.table.column(name, width=size, stretch=stretchy)
-        self.table.tag_configure("ready", foreground="#14804a")
-        self.table.tag_configure("stale", foreground="#ad6e00")
-        scrollbar = ttk.Scrollbar(grid, command=self.table.yview, orient="vertical")
+            self.table.column(name, width=size, minwidth=size, stretch=stretch)
+        self.table["displaycolumns"] = ("status", "journal", "title")
+        self.table.tag_configure("ready", foreground="#147b54")
+        self.table.tag_configure("stale", foreground="#a66313")
+        self.table.tag_configure("missing", foreground="#56677b")
+        scrollbar = ttk.Scrollbar(table_frame, command=self.table.yview, orient="vertical")
         self.table.configure(yscrollcommand=scrollbar.set)
         self.table.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
         self.table.bind("<<TreeviewSelect>>", self.choose_article)
 
-        tabs = ttk.Notebook(outer)
-        tabs.pack(fill="both", expand=True, pady=(8, 0))
-        article_tab = ttk.Frame(tabs, padding=8)
-        global_tab = ttk.Frame(tabs, padding=8)
-        log_tab = ttk.Frame(tabs, padding=8)
-        tabs.add(article_tab, text="Bu Makalenin Okumasini Iyilestir")
-        tabs.add(global_tab, text="Genel Telaffuz")
-        tabs.add(log_tab, text="Kayitlar")
+        notebook = ttk.Notebook(right)
+        notebook.pack(fill="both", expand=True)
+        article_tab = ttk.Frame(notebook, style="Panel.TFrame", padding=(10, 13))
+        global_tab = ttk.Frame(notebook, style="Panel.TFrame", padding=(10, 13))
+        batch_tab = ttk.Frame(notebook, style="Panel.TFrame", padding=(10, 13))
+        log_tab = ttk.Frame(notebook, style="Panel.TFrame", padding=(10, 13))
+        notebook.add(article_tab, text="Seçili okuma")
+        notebook.add(global_tab, text="Genel düzeltmeler")
+        notebook.add(batch_tab, text="Toplu üretim")
+        notebook.add(log_tab, text="İşlem kayıtları")
 
-        self.selected_label = ttk.Label(article_tab, text="Bir makale secin.", wraplength=1000)
-        self.selected_label.pack(anchor="w")
-        ttk.Label(article_tab, text="Sadece seslendirilecek metni duzenleyin; yayin basligi ayni kalir.").pack(anchor="w", pady=(6, 0))
-        self.text = tk.Text(article_tab, height=4, wrap="word", font=("Segoe UI", 10))
-        self.text.pack(fill="both", expand=True, pady=4)
-        row = ttk.Frame(article_tab)
-        row.pack(fill="x")
-        ttk.Label(row, text="Hiz").pack(side="left")
+        ttk.Label(article_tab, text="1  /  OKUMA METNİ",
+                  style="Panel.TLabel", font=("Segoe UI Semibold", 11)).pack(anchor="w")
+        self.selected_label = ttk.Label(article_tab, text="Soldan bir makale seçin.",
+                                        style="Panel.TLabel", wraplength=530)
+        self.selected_label.pack(anchor="w", pady=(6, 7))
+        ttk.Label(article_tab, text="Yalnız seslendirilecek metni değiştirirsiniz. Sitedeki başlık değişmez.",
+                  style="Muted.TLabel", wraplength=525).pack(anchor="w", pady=(0, 7))
+        self.text = tk.Text(article_tab, height=6, wrap="word", undo=True,
+                            font=("Segoe UI", 10), background="#fbfcff",
+                            foreground="#19334b", relief="solid", borderwidth=1,
+                            padx=9, pady=8, highlightthickness=0)
+        self.text.pack(fill="both", expand=True)
+        speed_row = ttk.Frame(article_tab, style="Panel.TFrame")
+        speed_row.pack(fill="x", pady=8)
+        ttk.Label(speed_row, text="Okuma hızı", style="Panel.TLabel").pack(side="left")
         self.speed_values = ["0.80", "0.85", "0.90", "0.95", "1.00", "1.05", "1.10", "1.15", "1.20"]
-        ttk.Combobox(row, width=6, state="readonly", textvariable=self.speed,
-                     values=self.speed_values).pack(side="left", padx=5)
-        for name, callback in [
-            ("Duzeltmeyi Kaydet", self.save_override),
-            ("Varsayilana Don", self.reset_override),
-            ("Eski MP3 Dinle", self.listen_old),
-            ("Yeni Okumayi Dinle", self.preview_audio),
-            ("Begendim / Kabul Et", self.accept)
-        ]:
-            ttk.Button(row, text=name, command=callback).pack(side="left", padx=4)
-        ttk.Label(article_tab, text="Yeni ses once yerel on dinlemedir. Kabul etmeden eski MP3 degismez.",
-                  foreground="#666666").pack(anchor="w", pady=7)
+        ttk.Combobox(speed_row, width=6, state="readonly", textvariable=self.speed,
+                     values=self.speed_values).pack(side="left", padx=7)
+        ttk.Label(speed_row, text="0.80 yavaş    1.00 normal    1.20 hızlı",
+                  style="Muted.TLabel").pack(side="left")
+        ttk.Label(article_tab, text="2  /  ÖNCE DİNLEYİN, SONRA KABUL EDİN",
+                  style="Panel.TLabel", font=("Segoe UI Semibold", 11)).pack(anchor="w", pady=(9, 6))
+        play_row = ttk.Frame(article_tab, style="Panel.TFrame")
+        play_row.pack(fill="x")
+        self.btn_old = ttk.Button(play_row, text="Önceki MP3'ü dinle", command=self.listen_old)
+        self.btn_old.pack(side="left", padx=(0, 7))
+        self.btn_preview = ttk.Button(play_row, text="Yeni okumayı üret ve dinle",
+                                      command=self.preview_audio, style="Accent.TButton")
+        self.btn_preview.pack(side="left")
+        accept_row = ttk.Frame(article_tab, style="Panel.TFrame")
+        accept_row.pack(fill="x", pady=(10, 4))
+        self.btn_accept = ttk.Button(accept_row, text="Beğendim, yerel MP3'ü değiştir",
+                                     command=self.accept, state="disabled")
+        self.btn_accept.pack(side="left", padx=(0, 7))
+        ttk.Button(accept_row, text="Metin ayarını kaydet", command=self.save_override).pack(side="left")
+        ttk.Button(article_tab, text="Bu makaleyi varsayılana döndür",
+                   command=self.reset_override).pack(anchor="w", pady=5)
+        self.selection_status = tk.StringVar(value="Yeni ses için önce bir makale seçin.")
+        ttk.Label(article_tab, textvariable=self.selection_status, wraplength=530,
+                  style="Muted.TLabel").pack(anchor="w", pady=(4, 0))
 
-        ttk.Label(global_tab, text="Ornek: BRG1 -> be re ge bir. Kurallar yerlesik duzeltmelerden sonra uygulanir.").pack(anchor="w")
-        globals_row = ttk.Frame(global_tab)
-        globals_row.pack(fill="x", pady=8)
-        ttk.Label(globals_row, text="Bul").pack(side="left")
-        self.find = ttk.Entry(globals_row, width=24)
-        self.find.pack(side="left", padx=4)
-        ttk.Label(globals_row, text="Soyle oku").pack(side="left")
-        self.say = ttk.Entry(globals_row, width=30)
-        self.say.pack(side="left", padx=4)
-        ttk.Checkbutton(globals_row, text="Tam terim", variable=self.whole_word).pack(side="left", padx=3)
-        ttk.Button(globals_row, text="Ekle", command=self.add_rule).pack(side="left", padx=3)
-        ttk.Button(globals_row, text="Secili Sil", command=self.remove_rule).pack(side="left", padx=3)
-        speed_row = ttk.Frame(global_tab)
-        speed_row.pack(fill="x")
-        ttk.Label(speed_row, text="Varsayilan hiz:").pack(side="left")
-        ttk.Combobox(speed_row, values=self.speed_values, state="readonly", width=6,
-                     textvariable=self.global_speed).pack(side="left", padx=5)
-        ttk.Button(speed_row, text="Genel Hizi Kaydet", command=self.save_global_speed).pack(side="left")
+        ttk.Label(global_tab, text="GENEL TELAFFUZ SÖZLÜĞÜ",
+                  font=("Segoe UI Semibold", 11), style="Panel.TLabel").pack(anchor="w")
+        ttk.Label(global_tab, text="Bir terimi tüm başlıklarda aynı şekilde okutun. Örnek: SMARCA4  →  smark-a4",
+                  style="Muted.TLabel", wraplength=510).pack(anchor="w", pady=7)
+        ttk.Label(global_tab, text="Yazılı terim", style="Panel.TLabel").pack(anchor="w")
+        self.find = ttk.Entry(global_tab)
+        self.find.pack(fill="x", pady=(2, 8))
+        ttk.Label(global_tab, text="Sesli okunacak karşılığı", style="Panel.TLabel").pack(anchor="w")
+        self.say = ttk.Entry(global_tab)
+        self.say.pack(fill="x", pady=(2, 8))
+        tools_row = ttk.Frame(global_tab, style="Panel.TFrame")
+        tools_row.pack(fill="x", pady=5)
+        ttk.Checkbutton(tools_row, text="Yalnız tam terimde uygula", variable=self.whole_word).pack(side="left")
+        ttk.Button(tools_row, text="Kural ekle", command=self.add_rule,
+                   style="Accent.TButton").pack(side="left", padx=5)
+        ttk.Button(tools_row, text="Seçili kuralı sil", command=self.remove_rule).pack(side="left")
         self.rule_table = ttk.Treeview(global_tab, columns=("find", "say", "whole"),
-                                       show="headings", height=5)
-        for key, label, size in [("find", "Bul", 250), ("say", "Soyle oku", 460),
-                                 ("whole", "Tam terim", 100)]:
-            self.rule_table.heading(key, text=label)
-            self.rule_table.column(key, width=size)
-        self.rule_table.pack(fill="both", expand=True, pady=6)
+                                       show="headings", height=6, selectmode="browse")
+        for name, label, size in [
+            ("find", "Bul", 120), ("say", "Böyle oku", 240), ("whole", "Tam terim", 85)
+        ]:
+            self.rule_table.heading(name, text=label)
+            self.rule_table.column(name, width=size, stretch=(name == "say"))
+        self.rule_table.pack(fill="both", expand=True, pady=7)
+        global_speed_row = ttk.Frame(global_tab, style="Panel.TFrame")
+        global_speed_row.pack(fill="x", pady=(7, 0))
+        ttk.Label(global_speed_row, text="Genel hız", style="Panel.TLabel").pack(side="left")
+        ttk.Combobox(global_speed_row, values=self.speed_values, state="readonly", width=6,
+                     textvariable=self.global_speed).pack(side="left", padx=7)
+        ttk.Button(global_speed_row, text="Hızı kaydet", command=self.save_global_speed).pack(side="left")
+        ttk.Label(global_tab, text="Not: Düzeltmeler kaydedilir. Mevcut MP3'ler ayrıca yeniden üretilince değişir.",
+                  wraplength=510, style="Muted.TLabel").pack(anchor="w", pady=8)
 
-        self.log = scrolledtext.ScrolledText(log_tab, state="disabled", font=("Consolas", 9))
+        ttk.Label(batch_tab, text="TOPLU SES ÜRETİMİ",
+                  font=("Segoe UI Semibold", 11), style="Panel.TLabel").pack(anchor="w")
+        ttk.Label(batch_tab,
+                  text="Önce eksik sesler hazırlanır. 150 günü geçen veya telaffuzu değişen kayıtlar sonra yenilenir. "
+                       "Hazır MP3'ler gerekmedikçe yeniden üretilmez.",
+                  style="Muted.TLabel", wraplength=520).pack(anchor="w", pady=(8, 20))
+        run_row = ttk.Frame(batch_tab, style="Panel.TFrame")
+        run_row.pack(fill="x")
+        ttk.Label(run_row, text="Bir çalışmada", style="Panel.TLabel").pack(side="left")
+        ttk.Combobox(run_row, width=9, state="readonly", values=["1", "8", "24", "Tumu"],
+                     textvariable=self.batch).pack(side="left", padx=8)
+        ttk.Label(run_row, text="kayıt hazırla", style="Panel.TLabel").pack(side="left")
+        ttk.Button(batch_tab, text="Eksik veya eski MP3'leri üret",
+                   command=self.batch_generate, style="Accent.TButton").pack(anchor="w", pady=(17, 7))
+        ttk.Button(batch_tab, text="Mevcut partiden sonra durdur",
+                   command=self.stop_event.set).pack(anchor="w", pady=6)
+        ttk.Label(batch_tab, text="Her 8 kayıtta güvenli kayıt yapılır. GitHub'a göndermek ayrı onay gerektirir.",
+                  style="Muted.TLabel", wraplength=510).pack(anchor="w", pady=12)
+
+        ttk.Label(log_tab, text="İŞLEM / HATA KAYITLARI",
+                  font=("Segoe UI Semibold", 11), style="Panel.TLabel").pack(anchor="w")
+        ttk.Label(log_tab, text="Bir hata olursa ayrıntılı hata kaydı bilgisayarda tutulur.",
+                  style="Muted.TLabel").pack(anchor="w", pady=6)
+        self.log = scrolledtext.ScrolledText(log_tab, state="disabled", font=("Consolas", 9),
+                                             wrap="word", borderwidth=0,
+                                             background="#f6f8fb", foreground="#23405b")
         self.log.pack(fill="both", expand=True)
+        ttk.Button(log_tab, text="Hata kayıt klasörünü aç", command=self.open_logs).pack(anchor="w", pady=8)
+
+        footer = ttk.Frame(outer, style="Root.TFrame")
+        footer.pack(fill="x", pady=(8, 0))
+        self.progress = ttk.Progressbar(footer, orient="horizontal", length=140, mode="indeterminate")
+        self.progress.pack(side="left", padx=(0, 10))
+        ttk.Label(footer, textvariable=self.status, style="Root.TLabel",
+                  font=("Segoe UI", 9)).pack(side="left", fill="x", expand=True)
         self.redraw_rules()
 
     def note(self, msg):
