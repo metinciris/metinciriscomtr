@@ -3,6 +3,7 @@
 Mock the speaker, WEB request and neural model. Use isolated temp MP3 files.
 """
 import json
+from contextlib import ExitStack
 from pathlib import Path
 import sys
 import tempfile
@@ -80,27 +81,39 @@ class FastPCListTest(unittest.TestCase):
             tk_root = tk.Tk()
             tk_root.withdraw()
             try:
-                with patch.object(app_module, "ROOT", root_path), \
-                     patch.object(base, "ROOT", root_path), \
-                     patch.object(app_module, "HOME", home), \
-                     patch.object(base, "HOME", home), \
-                     patch.object(app_module, "CACHE", home / "cache.json"), \
-                     patch.object(base, "CACHE", home / "cache.json"), \
-                     patch.object(app_module, "ERROR_LOG", home / "errors.log"), \
-                     patch.object(base, "EVENT_LOG", home / "events.log"), \
-                     patch.object(base, "AUDIO", audio_dir), \
-                     patch.object(base, "RULES", rules_path), \
-                     patch.object(base, "PREVIEWS", previews), \
-                     patch.object(engine, "AUDIO_DIR", audio_dir), \
-                     patch.object(engine, "MANIFEST_PATH", audio_dir / "manifest.json"), \
-                     patch.object(app_module.TwoStepManager, "_startup", lambda _self: None), \
-                     patch.object(app_module.TwoStepManager, "_resume_watch", lambda _self: None), \
-                     patch.object(app_module.TwoStepManager, "_tts", return_value=object()), \
-                     patch.object(app_module.shutil, "which", return_value="ffmpeg.exe"), \
-                     patch.object(engine, "render_clip", side_effect=fake_render), \
-                     patch.object(audio_playback.FastMP3Player, "play", new=fake_play), \
-                     patch.object(app_module.online_audio, "_read_https",
-                                  side_effect=AssertionError("Unexpected WEB request")):
+                # ExitStack avoids Python's compile-time 20-nested-with limit.
+                with ExitStack() as stack:
+                    simple_patches = [
+                        (app_module, "ROOT", root_path),
+                        (base, "ROOT", root_path),
+                        (app_module, "HOME", home),
+                        (base, "HOME", home),
+                        (app_module, "CACHE", home / "cache.json"),
+                        (base, "CACHE", home / "cache.json"),
+                        (app_module, "ERROR_LOG", home / "errors.log"),
+                        (base, "EVENT_LOG", home / "events.log"),
+                        (base, "AUDIO", audio_dir),
+                        (base, "RULES", rules_path),
+                        (base, "PREVIEWS", previews),
+                        (engine, "AUDIO_DIR", audio_dir),
+                        (engine, "MANIFEST_PATH", audio_dir / "manifest.json"),
+                        (app_module.TwoStepManager, "_startup", lambda _self: None),
+                        (app_module.TwoStepManager, "_resume_watch", lambda _self: None),
+                        (app_module.TwoStepManager, "_tts", lambda _self: object()),
+                        (app_module.shutil, "which", lambda _name: "ffmpeg.exe"),
+                        (audio_playback.FastMP3Player, "play", fake_play),
+                    ]
+                    for target, attr, value in simple_patches:
+                        stack.enter_context(patch.object(target, attr, value))
+                    stack.enter_context(
+                        patch.object(engine, "render_clip", side_effect=fake_render)
+                    )
+                    stack.enter_context(
+                        patch.object(
+                            app_module.online_audio, "_read_https",
+                            side_effect=AssertionError("Unexpected WEB request")
+                        )
+                    )
                     app = app_module.TwoStepManager(tk_root)
                     app.articles = [article]
                     app.web_manifest = {"version": 1, "entries": {key: entry}}
