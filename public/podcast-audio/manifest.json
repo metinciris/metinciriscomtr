@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-10-19T11:04:48.707518+00:00",
+  "generated_at": "2026-10-19T11:04:55.874289+00:00",
   "entries": {
     "7d9cd522d0f2d5752ca6a105": {
       "title": "MAP2K1 mutasyonlu melanositik tümörler: 114 olgu üzerinden yapılan bir çalışmaya dayanarak histolojik özelliklerin moleküler fonksiyonel sınıflarıyla ilişkisi.",
@@ -481,6 +481,70 @@
       "fingerprint": "3b3078adb5808a942b0062257f3156029fd209dc4847bf300e79c292fb498e6b",
       "file": "e02f6a2666cec36b0d1e254a.mp3",
       "generated_at": "2026-10-19T09:54:32.077112+00:00"
+    },
+    "2287c05395e3fb746b168e80": {
+      "title": "Perinatal otopsi hizmetinin kurulumu, yapısı ve en iyi uygulama standartları: Avustralya deneyimi.",
+      "journal": "Pathology Research and Practice",
+      "pmid": "42547375",
+      "fingerprint": "fa7ce772a517a4c7c212c643db9c4e21d174f1594a4cfd2dfc2e50c2a4800bb2",
+      "file": "2287c05395e3fb746b168e80.mp3",
+      "generated_at": "2026-10-19T09:54:49.122766+00:00"
+    },
+    "136afba684956a15c6a01b4e": {
+      "title": "Bir çocuk hastanesinde hipergammaglobulineminin tanısal ilişkileri: retrospektif bir çalışma.",
+      "journal": "Pathology Research and Practice",
+      "pmid": "42538215",
+      "fingerprint": "dad0fee872b659f7bb556af3b00cfda79ecb4c83aab1dcae554e5bd8a22d97f9",
+      "file": "136afba684956a15c6a01b4e.mp3",
+      "generated_at": "2026-10-19T09:55:25.978051+00:00"
+    },
+    "1d89750c15f8f05f4626c379": {
+      "title": "Biyopsi ile eğitilmiş yapay zeka algoritmasının, tesadüfen saptanan prostat adenokarsinomunun tespiti için TURP ve HoLEP örneklerine genelleştirilebilirliği.",
+      "journal": "International Journal of Surgical Pathology",
+      "pmid": "42816888",
+      "fingerprint": "49d532a02d450901378b0a3b73cc749e0810ce0891ce86b14644154d91b336bc",
+      "file": "1d89750c15f8f05f4626c379.mp3",
+      "generated_at": "2026-10-19T09:53:19.157274+00:00"
+    },
+    "48de546c4ab9bf7d105af69d": {
+      "title": "LDHA ekspresyonu, Pan-Kla düzeyi ve H3K18la'nın ekspresyonu, laringeal skuamöz hücreli karsinomun klinik ilerlemesiyle ilişkilidir.",
+      "journal": "International Journal of Surgical Pathology",
+      "pmid": "42665803",
+      "fingerprint": "7839d7669b42b419653d0cc42f38e9c65eb7d69c2b1593c67ff5253d10a2c005",
+      "file": "48de546c4ab9bf7d105af69d.mp3",
+      "generated_at": "2026-10-19T09:53:37.740228+00:00"
+    },
+    "6d51b935842ad72f784f83a0": {
+      "title": "Obezitenin Helicobacter pylori'nin kokoid form dönüşümüne etkisi ve bunun mide iltihabı paterniyle ilişkisi: retrospektif karşılaştırmalı bir çalışma.",
+      "journal": "International Journal of Surgical Pathology",
+      "pmid": "42698084",
+      "fingerprint": "64e64879bfd918ec974f40e652ba98c67df0c22b9ac8b55dfcd74800119811ff",
+      "file": "6d51b935842ad72f784f83a0.mp3",
+      "generated_at": "2026-10-19T09:53:51.086255+00:00"
+    },
+    "a5e48776cdba2f3b53e91061": {
+      "title": "Mesane kanserinde lenf düğümü metastazlarının derin öğrenme destekli tespiti.",
+      "journal": "International Journal of Surgical Pathology",
+      "pmid": "42581380",
+      "fingerprint": "e4a644ad146131bab94cea8ff96ea53c13033d8759234121e237613ad1820fc5",
+      "file": "a5e48776cdba2f3b53e91061.mp3",
+      "generated_at": "2026-10-19T09:54:19.585045+00:00"
+    },
+    "d1f55ef5ab2f5ca46e8a0e83": {
+      "title": "Meme bezinin primer asiner hücreli karsinomu: Dokuz vakalık bir seriden ve kapsamlı bir literatür incelemesinden elde edilen bilgiler.",
+      "journal": "International Journal of Surgical Pathology",
+      "pmid": "42768374",
+      "fingerprint": "b3cd375dc2e0060f5b2f2214b74b24600d7ccb18aa7ac4f4693902e52a32ead2",
+      "file": "d1f55ef5ab2f5ca46e8a0e83.mp3",
+      "generated_at": "2026-10-19T09:54:32.077112+00:00"
+    },
+    "88ae244fe1b6de164ca70d56": {
+      "title": "Prostat kanseri tanısının iyileştirilmesi: Gleason skorları ve immünohistokimyasal belirteçlerin korelatif analizi.",
+      "journal": "International Journal of Surgical Pathology",
+      "pmid": "42823706",
+      "fingerprint": "d3217a0a03894a52d9d8faefd2444205c4459779d509c17a6cb1ec2edfd0dda2",
+      "file": "88ae244fe1b6de164ca70d56.mp3",
+      "generated_at": "2026-10-19T09:55:04.692791+00:00"
     }
   }
 }
