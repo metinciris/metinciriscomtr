@@ -93,9 +93,20 @@ class TwoStepManager(base.AhenkManager):
                   font=("Segoe UI Semibold", 10)).pack(anchor="w")
         ttk.Label(status_box, textvariable=self.stage_counters,
                   font=("Segoe UI", 9)).pack(anchor="w", pady=(4, 5))
-        self.stage_bar = ttk.Progressbar(status_box, maximum=100, mode="determinate")
-        self.stage_bar.pack(fill="x", pady=(0, 8))
+        bars = ttk.Frame(status_box)
+        bars.pack(fill="x", pady=(0, 8))
+        bars.columnconfigure(0, weight=1)
+        bars.columnconfigure(1, weight=1)
+        ttk.Label(bars, text="Hazırlama / GitHub gönderimi",
+                  foreground="#506c82").grid(row=0, column=0, sticky="w")
+        ttk.Label(bars, text="WEB'de doğrulanan yayın",
+                  foreground="#506c82").grid(row=0, column=1, sticky="w", padx=(13, 0))
+        self.stage_bar = ttk.Progressbar(bars, maximum=100, mode="determinate")
+        self.stage_bar.grid(row=1, column=0, sticky="ew", pady=(4, 0))
+        self.web_progress_bar = ttk.Progressbar(bars, maximum=100, mode="determinate")
+        self.web_progress_bar.grid(row=1, column=1, sticky="ew", padx=(13, 0), pady=(4, 0))
         self.stage_bar["value"] = 0
+        self.web_progress_bar["value"] = 0
 
         summary = ttk.Frame(self.root, padding=(12, 2))
         summary.pack(fill="x")
@@ -522,6 +533,7 @@ class TwoStepManager(base.AhenkManager):
         sent = len(progress.get("github_sent", []))
         total = len(progress.get("target_keys", []))
         verified = len(progress.get("website_confirmed", []))
+        self.web_progress_bar["value"] = 100 * verified / max(1, total)
         phase = progress.get("phase")
         self.stage_counters.set(
             f"GitHub: {sent}/{total} gönderildi  |  "
