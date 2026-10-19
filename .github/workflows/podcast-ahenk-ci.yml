@@ -101,6 +101,11 @@ jobs:
         run: |
           & python.exe .\windows\podcast-ahenk\test_stdio_guard.py
           if ($LASTEXITCODE -ne 0) { throw "pythonw stream guard regression" }
+      - name: Regression - 79 local MP3s, Git porcelain, selected publishing
+        shell: powershell
+        run: |
+          & python.exe .\windows\podcast-ahenk\test_git_sync.py
+          if ($LASTEXITCODE -ne 0) { throw "Podcast Ahenk GitHub audio sync regression failed" }
       - name: Windows Tkinter interface smoke test
         shell: powershell
         run: |
