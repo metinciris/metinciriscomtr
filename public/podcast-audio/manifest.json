@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-10-19T11:04:55.874289+00:00",
+  "generated_at": "2026-10-19T11:05:03.280246+00:00",
   "entries": {
     "7d9cd522d0f2d5752ca6a105": {
       "title": "MAP2K1 mutasyonlu melanositik tümörler: 114 olgu üzerinden yapılan bir çalışmaya dayanarak histolojik özelliklerin moleküler fonksiyonel sınıflarıyla ilişkisi.",
@@ -545,6 +545,70 @@
       "fingerprint": "d3217a0a03894a52d9d8faefd2444205c4459779d509c17a6cb1ec2edfd0dda2",
       "file": "88ae244fe1b6de164ca70d56.mp3",
       "generated_at": "2026-10-19T09:55:04.692791+00:00"
+    },
+    "5ac3bcdd99226625913f6124": {
+      "title": "Ultrason eşliğinde yapılan iğne biyopsilerinde karsinomun kökeninin teşhisi: Bölgeye özgü immünohistokimyasal belirteçlere dayalı, bağlam odaklı bir yaklaşım.",
+      "journal": "International Journal of Surgical Pathology",
+      "pmid": "42464336",
+      "fingerprint": "bbeb1ce98bd08eebc311e88e47bd105a577f907f9ec751cf8402b60af6bd792e",
+      "file": "5ac3bcdd99226625913f6124.mp3",
+      "generated_at": "2026-10-19T09:55:25.978051+00:00"
+    },
+    "55331e00d9d87912f2eb1d60": {
+      "title": "Şeffaf hücreli papiller böbrek hücreli tümörde GPNMB ekspresyonu: Sınırlı özgüllük ve şeffaf hücreli böbrek neoplazmlarında potansiyel bir tanısal tuzak.",
+      "journal": "American Journal of Clinical Pathology",
+      "pmid": "42641476",
+      "fingerprint": "6215f7850baa77a64296434708c7a93dcf73b948597ae2ddebb743a09d8004da",
+      "file": "55331e00d9d87912f2eb1d60.mp3",
+      "generated_at": "2026-10-19T09:53:19.157274+00:00"
+    },
+    "5ca31c39641964722c73d389": {
+      "title": "Transbronşiyal akciğer kriyobiyopsi örneklerinde fibroblastik odakların mekansal dağılımı.",
+      "journal": "American Journal of Clinical Pathology",
+      "pmid": "42636713",
+      "fingerprint": "0089515762e06d2f0817b0d4a2fd8ac656a15b0151859d4c84f19a09cf50f5fc",
+      "file": "5ca31c39641964722c73d389.mp3",
+      "generated_at": "2026-10-19T09:53:37.740228+00:00"
+    },
+    "e6a6aa649ed081475a4865ee": {
+      "title": "Kolorektal gastrik heterotopinin klinikopatolojik özellikleri.",
+      "journal": "American Journal of Clinical Pathology",
+      "pmid": "42617375",
+      "fingerprint": "7747a09fe5c1f98819f786eea3b7df7f6de6c82efac25477e8f5f0f112da051b",
+      "file": "e6a6aa649ed081475a4865ee.mp3",
+      "generated_at": "2026-10-19T09:54:06.251006+00:00"
+    },
+    "79bd01178939eaec3d28c51a": {
+      "title": "Stroma AReaktif İnvazyon Ön Alanları (SARIFA), Clark seviye V kutanöz melanomda yayılımla ilgili histopatolojik özelliklerle ilişkilidir.",
+      "journal": "American Journal of Clinical Pathology",
+      "pmid": "42580288",
+      "fingerprint": "8bf7f06bf7e35fda945e4908114f71d58867895595f9a6290834e31d0e28a427",
+      "file": "79bd01178939eaec3d28c51a.mp3",
+      "generated_at": "2026-10-19T09:54:19.585045+00:00"
+    },
+    "9cf5a5165a1eb8ed7b535854": {
+      "title": "Meme implantı ilişkili skuamöz hücreli karsinom (BIA-SCC): Radyolojik-patolojik korelasyonlu iki vakanın klinikopatolojik analizi ve literatür taraması.",
+      "journal": "American Journal of Clinical Pathology",
+      "pmid": "42580287",
+      "fingerprint": "dc95c6bbf4cd0ec0c1748133a8f8a4b2ad77d3245c92312376da6e7c1012079d",
+      "file": "9cf5a5165a1eb8ed7b535854.mp3",
+      "generated_at": "2026-10-19T09:54:32.077112+00:00"
+    },
+    "38dbd98cf12a286c25ad8e21": {
+      "title": "Soliter fibröz tümörde nükleer STAT6 immünohistokimyasının tanısal doğruluğu: sistematik inceleme ve meta-analiz.",
+      "journal": "American Journal of Clinical Pathology",
+      "pmid": "42566929",
+      "fingerprint": "8f460ba6d48c034c8cf9523097f6fc2a5f0b269ae9cab725b1cfc47cdaad7e9a",
+      "file": "38dbd98cf12a286c25ad8e21.mp3",
+      "generated_at": "2026-10-19T09:55:04.692791+00:00"
+    },
+    "a85ffdbe7639b27d32cf7b63": {
+      "title": "Yeni TRPS1 belirtecinin, metastatik meme karsinomunu adrenal neoplazmlardan ayırt etmede geleneksel meme spesifik belirteçleriyle karşılaştırıldığında tanısal özgüllüğü.",
+      "journal": "American Journal of Clinical Pathology",
+      "pmid": "42561593",
+      "fingerprint": "5da27c0dd2c5127982652734a8459e62c2c179f8214f7bca98e79aa5cedca4be",
+      "file": "a85ffdbe7639b27d32cf7b63.mp3",
+      "generated_at": "2026-10-19T09:55:25.978051+00:00"
     }
   }
 }
