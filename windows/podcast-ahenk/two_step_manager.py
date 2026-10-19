@@ -156,6 +156,7 @@ class TwoStepManager(base.AhenkManager):
             ("↻ WEB durumunu kontrol et", self.refresh_web),
             ("📁 Yerel MP3", self.open_audio_folder),
             ("📝 Log / Hata", self.open_log),
+            ("♫ Son üretilenler", self.open_recent_recordings),
             ("📖 Terim sözlüğü", self.open_dictionary),
             ("⚙ Ses motorunu kur", self.install_engine),
             ("🌐 Web sitesi", lambda: webbrowser.open("https://metinciris.com.tr/podcast")),
@@ -413,6 +414,76 @@ class TwoStepManager(base.AhenkManager):
             self._note(text)
 
         self._managed_task("Ahenk kütüphaneleri kuruluyor...", work, done)
+
+    def open_recent_recordings(self):
+        """All recent draft MP3s; double-click jumps to the chosen article."""
+        recordings = [
+            (stamp, key, file)
+            for stamp, key, file in preview_library.recent_previews(
+                base.PREVIEWS, limit=45
+            ) if key in self.catalog
+        ]
+        popup = tk.Toplevel(self.root)
+        popup.title("Ahenk · Son üretilen ses denemeleri")
+        popup.geometry("850x480")
+        pane = ttk.Frame(popup, padding=12)
+        pane.pack(fill="both", expand=True)
+        ttk.Label(
+            pane, text=f"Son üretilen {len(recordings)} MP3 denemesi",
+            font=("Segoe UI Semibold", 11)
+        ).pack(anchor="w", pady=(0, 7))
+        ttk.Label(
+            pane, text="Bu kayıtlar denemedir. Onay verilmedikçe PC'nin kabul "
+                       "edilmiş sesi veya WEB yayını değişmez."
+        ).pack(anchor="w", pady=(0, 8))
+        table = ttk.Treeview(
+            pane, columns=("when", "title", "journal"),
+            show="headings", height=12, selectmode="browse"
+        )
+        for name, label, width in [
+            ("when", "Oluşturulma", 143),
+            ("title", "Makale", 480),
+            ("journal", "Dergi", 160),
+        ]:
+            table.heading(name, text=label)
+            table.column(name, width=width, minwidth=85,
+                         stretch=(name == "title"))
+        table.pack(fill="both", expand=True)
+        mapping = {}
+        for idx, (stamp, key, file) in enumerate(recordings):
+            candidate = self.catalog[key]
+            iid = str(idx)
+            mapping[iid] = (key, file)
+            table.insert(
+                "", "end", iid=iid,
+                values=(
+                    datetime.fromtimestamp(stamp).strftime("%d.%m %H:%M:%S"),
+                    candidate["title"], candidate["journal"]
+                )
+            )
+        if recordings:
+            table.selection_set("0")
+
+        def choose(_event=None):
+            selected = table.selection()
+            if not selected:
+                return
+            key, file = mapping[selected[0]]
+            self.filter.set("all")
+            self.journal_filter.set("Tüm dergiler")
+            self._render()
+            if key in self.table.get_children():
+                self.table.selection_set(key)
+                self.table.focus(key)
+                self.table.see(key)
+                self._select_article()
+                self._refresh_recordings(select_preview=file)
+            popup.destroy()
+
+        table.bind("<Double-1>", choose)
+        ttk.Button(
+            pane, text="Seçili makaleyi ve ses listesini aç", command=choose
+        ).pack(anchor="e", pady=(8, 0))
 
     def _close_window(self):
         self._play_seq += 1
