@@ -75,12 +75,33 @@ def allowed_path(path):
 
 
 def pull_clean():
+    """Fast-forward app code while keeping unpublished local audio corrections.
+
+    No stash, reset, deletion or overwrite. If GitHub changed the same dirty
+    file, fail before pulling so the user can resolve it explicitly.
+    """
     verify_git()
-    if git("status", "--porcelain", "--untracked-files=all"):
-        raise RuntimeError("Yerel degisiklikler var. Guvenli guncelleme icin once GitHub'a gonderin. "
-                           "Dosyalariniz korunuyor; otomatik sifirlama/stash uygulanmadi.")
+    status = git("status", "--porcelain", "--untracked-files=all")
+    dirty = set()
+    for line in status.splitlines():
+        path = line[3:].replace("\\", "/")
+        if " -> " in path or not allowed_path(path):
+            raise RuntimeError("Beklenmeyen yerel dosya değişikliği: " + path +
+                               "\nDosyaya dokunulmadı.")
+        dirty.add(path)
+    git("fetch", "origin", "main", timeout=240)
+    upstream = "refs/remotes/origin/main"
+    # HEAD may not contain the latest published audio, but this is still safe
+    # as long as local and remote edits are disjoint.
+    changed = set(git("diff", "--name-only", "HEAD", upstream).splitlines())
+    collision = sorted(dirty & changed)
+    if collision:
+        raise RuntimeError(
+            "GitHub'da aynı dosyalarda yeni değişiklik var: " + ", ".join(collision) +
+            "\nYerel MP3/telaffuz düzeltmeleriniz korunuyor. Önce çakışmayı inceleyin."
+        )
     git("pull", "--ff-only", "origin", "main", timeout=240)
-    return "GitHub kaynaklari guncellendi."
+    return "Program güncellendi. Yayınlanmamış MP3 ve telaffuz ayarları korundu."
 
 
 def publish():
@@ -577,8 +598,11 @@ class App:
     def save_override(self):
         try:
             self.save_profile(self.current_profile())
+            self.editor_drafts.pop(self.current, None)
             self.preview = None
-            self.note("Makale duzeltmesi kaydedildi. Ses degisimi icin uretim gerekli.")
+            self.btn_accept.configure(state="disabled")
+            self.selection_status.set("Metin kaydedildi. Değişikliği duymak için yeni MP3 üretin.")
+            self.note("Makale düzeltmesi kaydedildi. Ses üretimi henüz yapılmadı.")
         except (ValueError, OSError) as e:
             messagebox.showerror("Kaydedilemedi", str(e))
 
@@ -587,9 +611,11 @@ class App:
             a = self.selected()
             self.rules.get("articles", {}).pop(pron.identity(a), None)
             pron.save(RULES, self.rules)
-            self.choose_article()
+            self.editor_drafts.pop(self.current, None)
+            self.editor_key = None
+            self.preview = None
             self.draw()
-            self.note("Makale duzeltmesi kaldirildi. Mevcut ses korunuyor.")
+            self.note("Bu makale için özel okuma kaldırıldı. Mevcut ses korunuyor.")
         except (ValueError, OSError) as e:
             messagebox.showerror("Hata", str(e))
 
@@ -672,8 +698,18 @@ class App:
 
     def get_tts(self):
         if self.tts is None:
-            self.events.put(("log", "Ahenk modeli yukleniyor...", None))
-            self.tts = engine.create_tts()
+            self.events.put(("model", "Ahenk: model yükleniyor / indiriliyor…", None))
+            self.events.put(("log", "Ahenk modeli hazırlanıyor. İlk indirme birkaç dakika sürebilir.", None))
+            try:
+                # pythonw.exe starts without stdout/stderr. stdio_guard restores
+                # writable file-backed handles for Hugging Face/EMA/PyTorch.
+                ensure_stdio(APP_HOME)
+                self.tts = engine.create_tts()
+            except Exception:
+                self.events.put(("model", "Ahenk: yükleme hatası · İşlem kayıtlarına bakın", None))
+                raise
+            self.events.put(("model", "Ahenk modeli: Hazır ✓", None))
+            self.events.put(("log", "Ahenk model dosyaları yüklendi. Ses hazırlanabilir.", None))
         return self.tts
 
     def listen_old(self):
@@ -701,7 +737,7 @@ class App:
             return
         def work():
             if not shutil.which("ffmpeg"):
-                raise RuntimeError("FFmpeg bulunamadi.")
+                raise RuntimeError("FFmpeg bulunamadı. Kurun: winget install -e --id Gyan.FFmpeg")
             pending = path.with_suffix(".pending")
             try:
                 engine.render_clip(self.get_tts(), spoken, pending, speed=speed)
@@ -713,9 +749,14 @@ class App:
 
     def preview_done(self, data):
         self.preview = data
-        self.note("Yeni ses hazir; begenirseniz Kabul Et'e basin.")
+        self.note("Deneme MP3'ü üretildi. Dinleyin, beğenirseniz kabul edin.")
         if data[0] == self.current:
-            os.startfile(data[1])
+            self.btn_accept.configure(state="normal")
+            self.selection_status.set("Ön dinleme hazır. 'Beğendim' düğmesiyle yerel arşive alabilirsiniz.")
+            try:
+                os.startfile(data[1])
+            except OSError as exc:
+                self.note("MP3 üretildi fakat varsayılan ses oynatıcı açılmadı: " + str(exc))
 
     def accept(self):
         try:
@@ -749,8 +790,10 @@ class App:
             manifest["generated_at"] = now
             write_manifest(manifest)
             self.preview = None
+            self.editor_drafts.pop(self.current, None)
             self.reload()
-            self.note("Beğenilen MP3 yerel arsive alindi. GitHub'a Gonder'i kullanin.")
+            self.selection_status.set("Beğendiğiniz MP3 yerel arşive alındı. GitHub'a gönderebilirsiniz.")
+            self.note("Yeni MP3 kabul edildi. Yayımlamak için GitHub'a gönderin.")
         except (ValueError, RuntimeError, OSError) as e:
             messagebox.showerror("Kabul edilemedi", str(e))
 
@@ -772,9 +815,10 @@ class App:
                     if plan["selected"] and tts is None:
                         tts = self.get_tts()
                     def notify(key, article):
-                        self.events.put(("log", "Ses hazir: " + article["title"][:85], None))
+                        self.events.put(("log", "Üretiliyor: " + article["title"][:70], None))
                     engine.execute_plan(plan, tts=tts, on_prepared=notify)
                     total += len(plan["selected"])
+                    self.events.put(("log", f"{total} MP3 başarıyla arşive kaydedildi.", None))
                     if not plan["selected"]:
                         break
             finally:
