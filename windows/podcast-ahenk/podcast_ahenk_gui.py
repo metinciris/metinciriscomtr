@@ -345,8 +345,13 @@ class App:
                    command=self.batch_generate, style="Accent.TButton").pack(anchor="w", pady=(17, 7))
         ttk.Button(batch_tab, text="Mevcut partiden sonra durdur",
                    command=self.stop_event.set).pack(anchor="w", pady=6)
-        ttk.Label(batch_tab, text="Her 8 kayıtta güvenli kayıt yapılır. GitHub'a göndermek ayrı onay gerektirir.",
+        ttk.Label(batch_tab, text="Her 8 kayıt yerel arşive kaydedilir; otomatik yayımlanmaz. "
+                                  "Yeni sesleri soldaki 'Yerel yeni' filtresinden inceleyebilirsiniz.",
                   style="Muted.TLabel", wraplength=510).pack(anchor="w", pady=12)
+        ttk.Button(batch_tab, text="Tüm yerel hazır MP3'leri GitHub'a gönder",
+                   command=self.push, style="Accent.TButton").pack(anchor="w", pady=(6, 5))
+        ttk.Button(batch_tab, text="Web'de hangi MP3'lerin bulunduğunu yenile",
+                   command=self.refresh_web).pack(anchor="w", pady=5)
 
         ttk.Label(log_tab, text="İŞLEM / HATA KAYITLARI",
                   font=("Segoe UI Semibold", 11), style="Panel.TLabel").pack(anchor="w")
@@ -356,7 +361,11 @@ class App:
                                              wrap="word", borderwidth=0,
                                              background="#f6f8fb", foreground="#23405b")
         self.log.pack(fill="both", expand=True)
-        ttk.Button(log_tab, text="Hata kayıt klasörünü aç", command=self.open_logs).pack(anchor="w", pady=8)
+        log_actions = ttk.Frame(log_tab, style="Panel.TFrame")
+        log_actions.pack(fill="x", pady=8)
+        ttk.Button(log_actions, text="Log klasörünü aç", command=self.open_logs).pack(side="left", padx=(0, 5))
+        ttk.Button(log_actions, text="Hata raporunu kopyala", command=self.copy_logs).pack(side="left", padx=(0, 5))
+        ttk.Button(log_actions, text="Kaydedilen MP3'leri aç", command=self.open_audio_folder).pack(side="left")
 
         footer = ttk.Frame(outer, style="Root.TFrame")
         footer.pack(fill="x", pady=(8, 0))
@@ -364,6 +373,18 @@ class App:
         self.progress.pack(side="left", padx=(0, 10))
         ttk.Label(footer, textvariable=self.status, style="Root.TLabel",
                   font=("Segoe UI", 9)).pack(side="left", fill="x", expand=True)
+        shortcut_bar = ttk.Frame(outer, style="Root.TFrame")
+        shortcut_bar.pack(fill="x", pady=(7, 0))
+        ttk.Label(shortcut_bar, text="HIZLI ERİŞİM:", style="Root.TLabel").pack(side="left", padx=(0, 7))
+        for label, callback in [
+            ("Logları aç", self.open_logs),
+            ("MP3 klasörü", self.open_audio_folder),
+            ("Web sesleri", self.open_web_audio_folder),
+            ("Web sitesi", self.open_site),
+            ("GitHub kodları", self.open_github),
+            ("Kullanım rehberi", self.open_guide),
+        ]:
+            ttk.Button(shortcut_bar, text=label, command=callback).pack(side="left", padx=(0, 5))
         self.redraw_rules()
 
     def note(self, msg):
