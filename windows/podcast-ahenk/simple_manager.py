@@ -321,6 +321,8 @@ class AhenkManager:
         self._render()
 
     def _render(self):
+        # A filter change must never silently discard an unsaved correction.
+        self._save_draft()
         old = self.current
         self.table.delete(*self.table.get_children())
         self.picked.intersection_update(self.rows.keys())
