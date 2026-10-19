@@ -28,6 +28,8 @@ import audio_inventory
 import git_sync
 import audio_playback
 import preview_library
+import audio_runtime
+import selected_web_audio
 from scripts import render_podcast_audio as engine
 
 
@@ -50,14 +52,19 @@ class TwoStepManager(base.AhenkManager):
         self._clip_rows = {}
         self._clips_building = False
         self._term_after = None
+        self._engine_lock = threading.Lock()
+        self._tts_lock = threading.Lock()
+        self._engine_ready = False
+        self._engine_error = None
         super().__init__(root)
         root.protocol("WM_DELETE_WINDOW", self._close_window)
+        root.after(450, self._start_engine_automatically)
         if self.publish_progress:
             self._set_progress(self.publish_progress)
         root.after(900, self._resume_watch)
 
     def _build(self):
-        self.root.title("Podcast Ahenk | WEB / PC Sesler + Yeni Denemeler 1.5")
+        self.root.title("Podcast Ahenk | Seçilen Sesi WEB'e Gönder + Yeni Okuma 1.6")
         self.root.geometry("1320x885")
         self.root.minsize(1010, 715)
         style = ttk.Style(self.root)
@@ -158,12 +165,14 @@ class TwoStepManager(base.AhenkManager):
             ("📝 Log / Hata", self.open_log),
             ("♫ Son üretilenler", self.open_recent_recordings),
             ("📖 Terim sözlüğü", self.open_dictionary),
-            ("⚙ Ses motorunu kur", self.install_engine),
             ("🌐 Web sitesi", lambda: webbrowser.open("https://metinciris.com.tr/podcast")),
         ]:
             ttk.Button(toolbar, text=label, command=method).pack(side="left", padx=(0, 6))
         ttk.Button(toolbar, text="Durdur (parti sonrası)",
                    command=self.stopping.set).pack(side="right")
+        self.engine_display = tk.StringVar(value="Ses motoru: açılışta kontrol ediliyor…")
+        ttk.Label(toolbar, textvariable=self.engine_display,
+                  foreground="#3b6477").pack(side="right", padx=(0, 12))
 
         filter_bar = ttk.Frame(self.root, padding=(12, 4))
         filter_bar.pack(fill="x")
