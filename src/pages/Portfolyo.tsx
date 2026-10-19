@@ -122,7 +122,7 @@ export function Portfolyo() {
             </div>
             <div className="text-lg font-bold text-blue-600 mb-4 tracking-tight">H-Index</div>
             <a
-              href="https://scholar.google.com.tr/citations?user=QZkewskAAAAJ&hl=tr"
+              href="https://scholar.google.com/citations?user=zEF_KLsAAAAJ&hl=tr"
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs font-semibold px-4 py-2 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all duration-300 flex items-center gap-2"
@@ -148,7 +148,7 @@ export function Portfolyo() {
             </div>
             <div className="text-lg font-bold text-emerald-600 mb-4 tracking-tight">Toplam Atıf</div>
             <a
-              href="https://scholar.google.com.tr/citations?user=QZkewskAAAAJ&hl=tr"
+              href="https://scholar.google.com/citations?user=zEF_KLsAAAAJ&hl=tr"
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs font-semibold px-4 py-2 rounded-full bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all duration-300 flex items-center gap-2"
