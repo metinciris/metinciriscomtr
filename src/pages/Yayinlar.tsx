@@ -412,7 +412,7 @@ export function Yayinlar() {
           <div className="space-y-4">
             {[
               { label: 'ORCID ID: 0000-0002-5619-4989', url: 'https://orcid.org/0000-0002-5619-4989' },
-              { label: 'Google Scholar', url: 'https://scholar.google.com.tr/citations?user=QZkewskAAAAJ&hl=tr' },
+              { label: 'Google Scholar', url: 'https://scholar.google.com/citations?user=zEF_KLsAAAAJ&hl=tr' },
               { label: 'LinkedIn', url: 'https://www.linkedin.com/in/patoloji/' },
               { label: 'YÖKSİS Profil Sayfası', url: 'https://akademik.yok.gov.tr/AkademikArama/AkademisyenGorevOgrenimBilgileri?islem=0&authorId=123735' },
               { label: 'ResearchGate', url: 'https://www.researchgate.net/profile/Metin-Ciris-2' },
@@ -473,7 +473,7 @@ export function Yayinlar() {
               </a>
               {' '}ve{' '}
               <a
-                href="https://scholar.google.com.tr/citations?user=QZkewskAAAAJ&hl=tr"
+                href="https://scholar.google.com/citations?user=zEF_KLsAAAAJ&hl=tr"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-600 hover:underline font-medium"
