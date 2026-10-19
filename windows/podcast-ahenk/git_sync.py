@@ -391,6 +391,72 @@ def publish(root, home, selected_key=None):
         if sent else "GitHub zaten güncel."
     )
 
+def publish_live_web_voice(root, home, key, live_entry, downloaded_mp3):
+    """Re-publish the ACTUAL site audio selected by the user.
+
+    The file is deliberately read from the isolated web download cache. Existing
+    local generated MP3 and manifest are restored after the commit, even on
+    push failure, so unapproved local alternatives are never lost.
+    """
+    root = Path(root)
+    if not re.fullmatch(r"[a-f0-9]{24}", key):
+        raise RuntimeError("Geçersiz makale ses anahtarı.")
+    if not isinstance(live_entry, dict) or live_entry.get("file") != key + ".mp3":
+        raise RuntimeError("Sitedeki seçili sesin manifest kaydı doğrulanamadı.")
+    for field in ("title", "journal"):
+        if not isinstance(live_entry.get(field), str) or not live_entry[field]:
+            raise RuntimeError("Sitedeki sesin makale bilgisi eksik: " + field)
+    source = Path(downloaded_mp3)
+    if not source.is_file() or source.stat().st_size <= 1024:
+        raise RuntimeError("Web MP3'ü bilgisayara geçerli biçimde indirilemedi.")
+    if source.stat().st_size > 24 * 1024 * 1024:
+        raise RuntimeError("Web MP3'ü beklenenden büyük.")
+    with source.open("rb") as audio_file:
+        header = audio_file.read(3)
+    if not (header == b"ID3" or (header[:1] == b"\xff" and
+                                  len(header) >= 2 and header[1] & 0xe0 == 0xe0)):
+        raise RuntimeError("Web dosyası MP3 formatında değil.")
+
+    sync(root, home, selected_key=key)
+    # Record the original local alternative before modifying either file.
+    mp3_name = AUDIO_PREFIX + key + ".mp3"
+    mp3_target = root / mp3_name
+    manifest_target = root / MANIFEST
+    current = read_json_file(manifest_target, {"version": 1, "entries": {}})
+    local_entry = current.get("entries", {}).get(key)
+    if local_entry and (local_entry.get("title") != live_entry["title"] or
+                        local_entry.get("journal") != live_entry["journal"]):
+        raise RuntimeError("Web ile yerel makale eşleşmiyor. Ses değiştirilmedi.")
+    before = {}
+    for path in (mp3_name, MANIFEST):
+        file = root / path
+        before[path] = file.read_bytes() if file.is_file() else None
+    backup_files(root, home, (mp3_name, MANIFEST))
+    remote = ref_json(root, "HEAD", MANIFEST, {"version": 1, "entries": {}})
+    chosen = {
+        **remote,
+        "entries": {**remote.get("entries", {}), key: live_entry},
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+    }
+    try:
+        # All modifications are limited to the user's chosen MP3 and manifest.
+        # No unapproved pronunciation rules or other local MP3s are staged.
+        mp3_target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, mp3_target)
+        save_json(manifest_target, chosen)
+        sent = _commit_and_push(root, (mp3_name, MANIFEST))
+    finally:
+        for path, original in before.items():
+            destination = root / path
+            if original is None:
+                destination.unlink(missing_ok=True)
+            else:
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                destination.write_bytes(original)
+    return ("Web'de dinlediğiniz orijinal MP3 GitHub'a yeniden seçildi. Dağıtım başlayacak."
+            if sent else "Web'deki ses zaten GitHub'da seçili; değiştirilmedi.")
+
+
 def remote_manifest(root):
     return ref_json(root, "HEAD", MANIFEST, {"version": 1, "entries": {}})
 
