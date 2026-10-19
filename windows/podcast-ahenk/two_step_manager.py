@@ -26,6 +26,8 @@ import two_step_audio as flow
 import online_audio
 import audio_inventory
 import git_sync
+import audio_playback
+import preview_library
 from scripts import render_podcast_audio as engine
 
 
@@ -43,15 +45,21 @@ class TwoStepManager(base.AhenkManager):
         self.web_watch_checks = 0
         self.web_watch_started = 0.0
         self.web_watch_busy = False
+        self.fast_player = audio_playback.FastMP3Player()
+        self._play_seq = 0
+        self._clip_rows = {}
+        self._clips_building = False
+        self._term_after = None
         super().__init__(root)
+        root.protocol("WM_DELETE_WINDOW", self._close_window)
         if self.publish_progress:
             self._set_progress(self.publish_progress)
         root.after(900, self._resume_watch)
 
     def _build(self):
-        self.root.title("Podcast Ahenk | İki Adımda Web Sesleri 1.4")
-        self.root.geometry("1250x790")
-        self.root.minsize(980, 680)
+        self.root.title("Podcast Ahenk | WEB / PC Sesler + Yeni Denemeler 1.5")
+        self.root.geometry("1320x885")
+        self.root.minsize(1010, 715)
         style = ttk.Style(self.root)
         if "clam" in style.theme_names():
             style.theme_use("clam")
@@ -148,6 +156,7 @@ class TwoStepManager(base.AhenkManager):
             ("↻ WEB durumunu kontrol et", self.refresh_web),
             ("📁 Yerel MP3", self.open_audio_folder),
             ("📝 Log / Hata", self.open_log),
+            ("♫ Son üretilenler", self.open_recent_recordings),
             ("📖 Terim sözlüğü", self.open_dictionary),
             ("⚙ Ses motorunu kur", self.install_engine),
             ("🌐 Web sitesi", lambda: webbrowser.open("https://metinciris.com.tr/podcast")),
@@ -247,7 +256,64 @@ class TwoStepManager(base.AhenkManager):
         )
         self.btn_listen_pc.pack(fill="x")
 
-        dictionary = ttk.LabelFrame(right, text="TERİM SÖZLÜĞÜ", padding=(9, 5))
+        clips_list_box = ttk.LabelFrame(
+            right, text="BU MAKALENİN PC SESLERİ · Kabul edilen + yeni denemeler",
+            padding=(8, 6)
+        )
+        clips_list_box.pack(fill="x", pady=(9, 0))
+        list_row = ttk.Frame(clips_list_box)
+        list_row.pack(fill="x")
+        self.clip_tree = ttk.Treeview(
+            list_row, columns=("kind", "time", "size"),
+            show="headings", selectmode="browse", height=3
+        )
+        for column, heading, width in [
+            ("kind", "Ses kaydı", 190),
+            ("time", "Oluşturulma", 130),
+            ("size", "Boyut", 65),
+        ]:
+            self.clip_tree.heading(column, text=heading)
+            self.clip_tree.column(
+                column, width=width, minwidth=45,
+                stretch=(column == "kind")
+            )
+        self.clip_tree.pack(side="left", fill="x", expand=True)
+        clips_scroll = ttk.Scrollbar(
+            list_row, orient="vertical", command=self.clip_tree.yview
+        )
+        clips_scroll.pack(side="right", fill="y")
+        self.clip_tree.configure(yscrollcommand=clips_scroll.set)
+        self.clip_tree.bind("<<TreeviewSelect>>", self._choose_pc_recording)
+        self.clip_tree.bind("<Double-1>", self.listen_selected_recording)
+        clip_buttons = ttk.Frame(clips_list_box)
+        clip_buttons.pack(fill="x", pady=(5, 0))
+        self.btn_listen_recording = ttk.Button(
+            clip_buttons, text="▶ Seçili sesi dinle",
+            command=self.listen_selected_recording, state="disabled"
+        )
+        self.btn_listen_recording.pack(side="left", padx=(0, 5))
+        self.btn_load_recording = ttk.Button(
+            clip_buttons, text="Denemenin metnini aç",
+            command=self.load_recording_profile, state="disabled"
+        )
+        self.btn_load_recording.pack(side="left", padx=(0, 5))
+        ttk.Button(
+            clip_buttons, text="■ Durdur", command=self.stop_audio
+        ).pack(side="left", padx=(0, 5))
+        ttk.Button(
+            clip_buttons, text="Deneme klasörü",
+            command=lambda: self._open_folder(base.PREVIEWS)
+        ).pack(side="right")
+
+        self.play_feedback = tk.StringVar(value="Dinlemek istediğiniz sesi seçin.")
+        ttk.Label(
+            clips_list_box, textvariable=self.play_feedback,
+            foreground="#52718c", wraplength=480
+        ).pack(anchor="w", pady=(5, 0))
+
+        dictionary = ttk.LabelFrame(
+            right, text="BU OKUMADA GEÇEN TERİMLER", padding=(9, 5)
+        )
         dictionary.pack(fill="x", pady=(9, 0))
         self.dictionary_summary = tk.StringVar(
             value="Telaffuz kuralları listeleniyor…"
@@ -266,6 +332,9 @@ class TwoStepManager(base.AhenkManager):
         self.editor = tk.Text(details, wrap="word", undo=True, height=4,
                               background="#fbfcff", font=("Segoe UI", 9), padx=7, pady=6)
         self.editor.pack(fill="both", expand=True)
+        self.editor.bind("<KeyRelease>", self._on_editor_change, add=True)
+        self.editor.bind("<<Paste>>", self._on_editor_change, add=True)
+        self.editor.bind("<<Cut>>", self._on_editor_change, add=True)
         options = ttk.Frame(details)
         options.pack(fill="x", pady=(6, 0))
         ttk.Label(options, text="Hız").pack(side="left")
@@ -346,6 +415,370 @@ class TwoStepManager(base.AhenkManager):
 
         self._managed_task("Ahenk kütüphaneleri kuruluyor...", work, done)
 
+    def open_recent_recordings(self):
+        """All recent draft MP3s; double-click jumps to the chosen article."""
+        recordings = [
+            (stamp, key, file)
+            for stamp, key, file in preview_library.recent_previews(
+                base.PREVIEWS, limit=45
+            ) if key in self.catalog
+        ]
+        popup = tk.Toplevel(self.root)
+        popup.title("Ahenk · Son üretilen ses denemeleri")
+        popup.geometry("850x480")
+        pane = ttk.Frame(popup, padding=12)
+        pane.pack(fill="both", expand=True)
+        ttk.Label(
+            pane, text=f"Son üretilen {len(recordings)} MP3 denemesi",
+            font=("Segoe UI Semibold", 11)
+        ).pack(anchor="w", pady=(0, 7))
+        ttk.Label(
+            pane, text="Bu kayıtlar denemedir. Onay verilmedikçe PC'nin kabul "
+                       "edilmiş sesi veya WEB yayını değişmez."
+        ).pack(anchor="w", pady=(0, 8))
+        table = ttk.Treeview(
+            pane, columns=("when", "title", "journal"),
+            show="headings", height=12, selectmode="browse"
+        )
+        for name, label, width in [
+            ("when", "Oluşturulma", 143),
+            ("title", "Makale", 480),
+            ("journal", "Dergi", 160),
+        ]:
+            table.heading(name, text=label)
+            table.column(name, width=width, minwidth=85,
+                         stretch=(name == "title"))
+        table.pack(fill="both", expand=True)
+        mapping = {}
+        for idx, (stamp, key, file) in enumerate(recordings):
+            candidate = self.catalog[key]
+            iid = str(idx)
+            mapping[iid] = (key, file)
+            table.insert(
+                "", "end", iid=iid,
+                values=(
+                    datetime.fromtimestamp(stamp).strftime("%d.%m %H:%M:%S"),
+                    candidate["title"], candidate["journal"]
+                )
+            )
+        if recordings:
+            table.selection_set("0")
+
+        def choose(_event=None):
+            selected = table.selection()
+            if not selected:
+                return
+            key, file = mapping[selected[0]]
+            self.filter.set("all")
+            self.journal_filter.set("Tüm dergiler")
+            self._render()
+            if key in self.table.get_children():
+                self.table.selection_set(key)
+                self.table.focus(key)
+                self.table.see(key)
+                self._select_article()
+                self._refresh_recordings(select_preview=file)
+            popup.destroy()
+
+        table.bind("<Double-1>", choose)
+        ttk.Button(
+            pane, text="Seçili makaleyi ve ses listesini aç", command=choose
+        ).pack(anchor="e", pady=(8, 0))
+
+    def _close_window(self):
+        self._play_seq += 1
+        try:
+            self.fast_player.stop()
+        finally:
+            self.root.destroy()
+
+    def _audio_play(self, path_or_loader, label):
+        """Start play immediately from Tk; slow codecs/downloads work off-thread.
+
+        A new click cancels a previous pending WEB download's audio *playback*
+        even though the downloaded cache can still finish in the background.
+        This is entirely independent of the GitHub/TTS busy flag.
+        """
+        self._play_seq += 1
+        request = self._play_seq
+        self.play_feedback.set(label + ": açılıyor…")
+
+        def work():
+            try:
+                source = (
+                    path_or_loader() if callable(path_or_loader)
+                    else path_or_loader
+                )
+                if request != self._play_seq:
+                    return
+                mode = self.fast_player.play(source)
+                self.events.put((
+                    "done", (request, label + " çalıyor · " + mode),
+                    self._audio_result,
+                ))
+            except Exception as exc:
+                self.events.put((
+                    "done", (request, label + " açılamadı: " + str(exc)),
+                    self._audio_result,
+                ))
+        threading.Thread(target=work, daemon=True).start()
+
+    def _audio_result(self, result):
+        request, status = result
+        if request != self._play_seq:
+            return
+        self.play_feedback.set(status)
+        if "açılamadı:" in status:
+            self._note(status)
+
+    def stop_audio(self):
+        self._play_seq += 1
+        self.play_feedback.set("Ses durduruluyor…")
+
+        def work():
+            self.fast_player.stop()
+            self.events.put(("done", "Ses durduruldu.", self.play_feedback.set))
+        threading.Thread(target=work, daemon=True).start()
+
+    def listen_pc(self):
+        """Play approved PC MP3 without Windows Media Player startup blocking."""
+        key = self.current
+        if key not in self.rows or not self.rows[key]["pc"]:
+            self.play_feedback.set("Seçili makalenin PC'de kabul edilmiş MP3'ü yok.")
+            return
+        self._audio_play(
+            ROOT / "public" / "podcast-audio" / (key + ".mp3"),
+            "PC'de kabul edilen ses"
+        )
+
+    def listen_web(self):
+        """Use already cached WEB MP3; only uncached clips download in a thread."""
+        key = self.current
+        row = self.rows.get(key)
+        if not row or not row.get("web"):
+            self.play_feedback.set("Bu makale henüz WEB'de yayımlanmamış.")
+            return
+        entry = row.get("web_entry")
+        if not isinstance(entry, dict):
+            self.play_feedback.set("WEB'deki ses bilgisi bulunamadı.")
+            return
+        manifest = {"version": 1, "entries": {key: entry}}
+
+        def load():
+            # Check stamp only, never fetch the entire WEB manifest for each
+            # audio click. The upper 'WEB durumunu kontrol et' is authoritative.
+            return online_audio.download_clip(HOME, key, manifest)
+
+        cached = online_audio.web_clip_path(HOME, key)
+        stamp = cached.with_suffix(".entry.json")
+        if cached.is_file() and cached.stat().st_size > 1024:
+            try:
+                if json.loads(stamp.read_text(encoding="utf-8")) == entry:
+                    self._audio_play(cached, "WEB sesi (önbellek)")
+                    return
+            except (OSError, ValueError):
+                pass
+        self.play_feedback.set("WEB MP3 indiriliyor; makale seçmeye devam edebilirsiniz…")
+        self._audio_play(load, "WEB sesi")
+
+    def _refresh_recordings(self, select_preview=None):
+        """Show accepted audio plus newly generated trials for this article."""
+        if not hasattr(self, "clip_tree") or self._clips_building:
+            return
+        key = self.current
+        prior = self.clip_tree.selection()
+        prior = prior[0] if prior else None
+        self._clips_building = True
+        try:
+            self.clip_tree.delete(*self.clip_tree.get_children())
+            self._clip_rows = {}
+            if key not in self.rows:
+                self.btn_listen_recording.configure(state="disabled")
+                self.btn_load_recording.configure(state="disabled")
+                return
+            approved = self.rows[key].get("pc")
+            if approved:
+                audio = ROOT / "public" / "podcast-audio" / (key + ".mp3")
+                try:
+                    audio_stats = audio.stat()
+                except OSError:
+                    audio_stats = None
+                if audio_stats is not None:
+                    date = datetime.fromtimestamp(audio_stats.st_mtime).strftime(
+                        "%d.%m %H:%M:%S"
+                    )
+                    self._clip_rows["accepted"] = {
+                        "kind": "accepted", "path": audio, "record": None,
+                    }
+                    self.clip_tree.insert(
+                        "", "end", iid="accepted",
+                        values=("✓ PC · kabul edilmiş MP3", date,
+                                f"{audio_stats.st_size / 1024:.0f} KB")
+                    )
+            for index, item in enumerate(
+                preview_library.previews_for_article(base.PREVIEWS, key, limit=14)
+            ):
+                entry_id = "trial:" + str(index)
+                self._clip_rows[entry_id] = {
+                    "kind": "trial", "path": item["path"],
+                    "record": item["record"],
+                }
+                label = ("★ Yeni deneme" if index == 0 else f"Deneme #{index + 1}")
+                if not item["record"]:
+                    label += " (eski)"
+                self.clip_tree.insert(
+                    "", "end", iid=entry_id,
+                    values=(label, item["created"],
+                            f"{item['bytes'] / 1024:.0f} KB")
+                )
+            chosen = None
+            if select_preview:
+                chosen = next(
+                    (iid for iid, data in self._clip_rows.items()
+                     if data["path"] == Path(select_preview)), None
+                )
+            if chosen is None and self.preview is not None:
+                chosen = next(
+                    (iid for iid, data in self._clip_rows.items()
+                     if data["path"] == Path(self.preview.get("path", ""))), None
+                )
+            if chosen is None and self.preview is not None and prior in self._clip_rows:
+                chosen = prior
+            if chosen is None:
+                chosen = "accepted" if "accepted" in self._clip_rows else (
+                    next(iter(self._clip_rows), None)
+                )
+            if chosen:
+                self.clip_tree.selection_set(chosen)
+                self.clip_tree.focus(chosen)
+                self.clip_tree.see(chosen)
+            self.btn_listen_recording.configure(
+                state="normal" if chosen else "disabled"
+            )
+        finally:
+            self._clips_building = False
+        self._choose_pc_recording()
+
+    def _selected_recording(self):
+        selection = self.clip_tree.selection()
+        return self._clip_rows.get(selection[0]) if selection else None
+
+    def _profile_matches_preview(self, clip):
+        try:
+            profile = self._profile()
+            if profile != clip.get("profile") or clip.get("key") != self.current:
+                return False
+            article = self.article_for(self.current)
+            rules = base.copy.deepcopy(self.rules)
+            rules.setdefault("articles", {})[base.pron.identity(article)] = profile
+            speech, speed = base.pron.speech(
+                article, rules, engine.spoken(article["title"])
+            )
+            return clip.get("signature") == base.pron.signature(speech, speed)
+        except (ValueError, RuntimeError, KeyError, TypeError):
+            return False
+
+    def _choose_pc_recording(self, _event=None):
+        if self._clips_building:
+            return
+        row = self._selected_recording()
+        if not row:
+            self.btn_listen_recording.configure(state="disabled")
+            self.btn_load_recording.configure(state="disabled")
+            self.btn_accept.configure(state="disabled")
+            return
+        self.btn_listen_recording.configure(state="normal")
+        if row["kind"] == "trial" and row.get("record"):
+            meta = row["record"]
+            self.preview = {
+                "key": self.current, "path": row["path"],
+                "profile": meta["profile"], "signature": meta["signature"],
+            }
+            same = self._profile_matches_preview(self.preview)
+            self.btn_accept.configure(state="normal" if same else "disabled")
+            self.btn_load_recording.configure(
+                state="disabled" if same else "normal"
+            )
+            if not same:
+                self.preview_feedback.set(
+                    "Bu denemenin metni/hızı farklı. "
+                    "'Denemenin metnini aç' ile eski ayarları getirebilirsiniz."
+                )
+        else:
+            self.preview = None
+            self.btn_accept.configure(state="disabled")
+            self.btn_load_recording.configure(state="disabled")
+
+    def listen_selected_recording(self, _event=None):
+        row = self._selected_recording()
+        if not row:
+            self.play_feedback.set("Önce listeden bir MP3 seçin.")
+            return
+        self._audio_play(
+            row["path"],
+            "Yeni deneme" if row["kind"] == "trial" else "PC'deki ses"
+        )
+
+    def load_recording_profile(self):
+        row = self._selected_recording()
+        if not row or row["kind"] != "trial" or not row["record"]:
+            self.play_feedback.set(
+                "Bu sesin kaydedilmiş metni yok. Yeni bir deneme oluşturabilirsiniz."
+            )
+            return
+        profile = row["record"]["profile"]
+        self.editor.delete("1.0", "end")
+        self.editor.insert("1.0", profile["text"])
+        self.speed.set(f"{profile['speed']:.2f}")
+        self.drafts[self.current] = (profile["text"], self.speed.get())
+        self._choose_pc_recording()
+        self._refresh_relevant_terms()
+        self.preview_feedback.set(
+            "Bu denemenin eski metni/hızı açıldı. Sesinizi dinledikten "
+            "sonra beğenirseniz PC'ye kaydedebilirsiniz."
+        )
+
+    def _on_editor_change(self, _event=None):
+        """Immediately reflect only words relevant to the current reading."""
+        if self._term_after:
+            self.root.after_cancel(self._term_after)
+        self._term_after = self.root.after(120, self._refresh_relevant_terms)
+
+    def _refresh_relevant_terms(self):
+        self._term_after = None
+        if not hasattr(self, "dictionary_summary"):
+            return
+        key = self.current
+        if key not in self.rows:
+            self.dictionary_summary.set("Makale seçildiğinde uygulanacak kurallar gösterilir.")
+            return
+        text = self.editor.get("1.0", "end-1c")
+        matched = preview_library.applicable_rules(text, self.rules)
+        if matched:
+            shown = [
+                str(rule["find"]) + " → " + str(rule["say"])
+                for rule in matched[:4]
+            ]
+            more = (f" · +{len(matched) - 4} kural" if len(matched) > 4 else "")
+            self.dictionary_summary.set(
+                "Bu okumada " + str(len(matched)) + " kural: "
+                + "  •  ".join(shown) + more
+            )
+        else:
+            self.dictionary_summary.set(
+                "Bu makalenin okuma metninde eşleşen genel telaffuz kuralı yok."
+            )
+        if getattr(self, "preview", None) is not None and hasattr(
+            self, "clip_tree"
+        ):
+            same = self._profile_matches_preview(self.preview)
+            self.btn_accept.configure(state="normal" if same else "disabled")
+            chosen = self._selected_recording()
+            if chosen and chosen["kind"] == "trial" and chosen.get("record"):
+                self.btn_load_recording.configure(
+                    state="disabled" if same else "normal"
+                )
+
     def show_pc_pending(self):
         """Show the prepared audio still absent from the real WEB listing."""
         self.filter.set("pc_pending")
@@ -376,21 +809,7 @@ class TwoStepManager(base.AhenkManager):
         # The base UI is reused for filter/tree functionality, while this
         # view keeps WEB/GitHub/PC states distinct.
         if hasattr(self, "dictionary_summary"):
-            global_rules = self.rules.get("global", [])
-            examples = [
-                str(rule.get("find", "")) + " → " + str(rule.get("say", ""))
-                for rule in global_rules[:3]
-            ]
-            if examples:
-                more = f"  (+{len(global_rules) - 3} diğer)" if len(global_rules) > 3 else ""
-                self.dictionary_summary.set(
-                    f"{len(global_rules)} genel okuma kuralı: "
-                    + "  •  ".join(examples) + more
-                )
-            else:
-                self.dictionary_summary.set(
-                    "Genel okuma kuralı henüz yok. Terimleri ekleyebilir veya düzenleyebilirsiniz."
-                )
+            self._refresh_relevant_terms()
         if hasattr(self, "pending_notice"):
             waiting = self.totals.get("pc_pending", 0)
             sent = self._sent_but_not_live()
@@ -434,43 +853,36 @@ class TwoStepManager(base.AhenkManager):
         if not hasattr(self, "preview_feedback"):
             return
         if previous != self.current:
+            self._play_seq += 1  # A stale WEB download must not start later.
             self.preview_feedback.set(
-                "Seçilen makale için yeni sesi üretip dinleyebilirsiniz. "
-                "Mevcut WEB ve PC MP3'leri değişmez."
+                "Bu makaledeki PC kayıtlarını listeden dinleyebilir, "
+                "yeni denemeler üretebilirsiniz."
             )
+        self._refresh_recordings()
+        self._refresh_relevant_terms()
         if hasattr(self, "btn_replay"):
             ready = (self.preview and self.preview.get("key") == self.current
                      and Path(self.preview.get("path", "")).is_file())
             self.btn_replay.configure(state="normal" if ready else "disabled")
 
     def preview_sound(self):
-        """Create an isolated new MP3; playback failure never invalidates it.
+        """Generate a unique audition and put it in the visible article list.
 
-        The legacy preview used one fixed filename per article. On Windows
-        media players often lock that file while playing, blocking subsequent
-        os.replace. Unique names preserve earlier auditions and avoid locks.
+        Playback is a separate thread and does not delay completion of the TTS
+        task. A player failure must never discard the newly generated MP3.
         """
         if self.busy:
             messagebox.showinfo(
                 "Önce işlem tamamlansın",
-                "Web denetimi veya ses yükleme işlemi devam ediyor. "
-                "Tamamlandıktan sonra yeni okumayı üretin."
+                "Web denetimi veya ses üretimi sürüyor. "
+                "Tamamlandığında yeni okuma oluşturabilirsiniz."
             )
             return
         if self.current not in self.rows:
-            if self.rows and self.filter.get() == "web_missing":
-                self.filter.set("all")
-                self._render()
-                messagebox.showinfo(
-                    "Makaleyi seçin",
-                    "WEB'de eksik makale görünmüyor. 'Hepsi' listesine geçildi. "
-                    "Yeni okunmasını istediğiniz makaleyi seçip tekrar deneyin."
-                )
-            else:
-                messagebox.showinfo(
-                    "Makaleyi seçin",
-                    "Önce listeden sesini değiştirmek istediğiniz bir makaleyi seçin."
-                )
+            messagebox.showinfo(
+                "Önce makale seçin",
+                "Sesini değiştireceğiniz makaleyi soldaki listeden seçin."
+            )
             return
         try:
             profile = self._profile()
@@ -478,96 +890,77 @@ class TwoStepManager(base.AhenkManager):
             article = self.article_for(key)
             rules = base.copy.deepcopy(self.rules)
             rules.setdefault("articles", {})[base.pron.identity(article)] = profile
-            speaking, speed = base.pron.speech(
+            speech, speed = base.pron.speech(
                 article, rules, engine.spoken(article["title"])
             )
-            signature = base.pron.signature(speaking, speed)
+            signature = base.pron.signature(speech, speed)
         except (ValueError, RuntimeError) as exc:
             messagebox.showwarning("Okuma metni", str(exc))
             return
 
-        # Each retry goes to a new path, even when the old MP3 is open in
-        # Windows Media Player. Existing WEB / accepted PC audio is untouched.
-        audition = base.PREVIEWS / (key + "_" + uuid.uuid4().hex + "_deneme.mp3")
+        # Unique files allow an older track to stay open while the next
+        # recording is produced and provide an easy per-article history.
+        trial = base.PREVIEWS / (key + "_" + uuid.uuid4().hex + "_deneme.mp3")
+        self.preview_feedback.set(
+            "Ahenk yeni sesi üretiyor. Bittiğinde PC sesleri listesine eklenecek."
+        )
         self.btn_accept.configure(state="disabled")
         self.btn_replay.configure(state="disabled")
-        self.preview_feedback.set(
-            "Ahenk ile yeni ses oluşturuluyor… "
-            "Bitince otomatik açılacak; gerekirse 'Tekrar dinle'yi kullanın."
-        )
+        self._refresh_relevant_terms()
 
         def work():
             if not shutil.which("ffmpeg"):
                 raise RuntimeError(
                     "FFmpeg bulunamadı. PowerShell: winget install -e --id Gyan.FFmpeg"
                 )
-            engine.render_clip(self._tts(), speaking, audition, speed=speed)
-            if not audition.is_file() or audition.stat().st_size <= 1024:
-                raise RuntimeError("Ahenk denemesi geçerli MP3 üretmedi.")
-            player_error = None
-            try:
-                os.startfile(str(audition))
-            except (OSError, AttributeError) as exc:
-                # Decoding/synthesis completed; only the OS player failed.
-                player_error = str(exc)
+            engine.render_clip(self._tts(), speech, trial, speed=speed)
+            preview_library.save_record(
+                base.PREVIEWS, key, trial, profile, signature
+            )
             return {
-                "key": key, "path": audition,
+                "key": key, "path": trial,
                 "profile": profile, "signature": signature,
-                "player_error": player_error,
             }
 
         def done(preview):
-            self.preview = preview
-            selected = self.current == preview["key"]
-            self.btn_accept.configure(state="normal" if selected else "disabled")
-            self.btn_replay.configure(state="normal" if selected else "disabled")
-            if preview["player_error"]:
-                feedback = (
-                    "MP3 başarıyla üretildi; Windows ses oynatıcısı açılamadı. "
-                    "Tekrar dinle veya Log / Hata bölümünü kullanın."
-                )
+            if self.current != preview["key"]:
                 self._note(
-                    "Deneme MP3 hazır, oynatıcı açılmadı: "
-                    + preview["player_error"]
+                    "Yeni ses hazır, fakat başka bir makaledesiniz. "
+                    "O makaleye geri döndüğünüzde deneme listesinde görünecek."
                 )
-            else:
-                feedback = (
-                    "Yeni MP3 hazır. Dinledikten sonra 'Beğendim, PC'ye kaydet' "
-                    "düğmesini kullanabilirsiniz."
-                )
-                self._note("Yeni okuma üretildi ve Windows oynatıcısına gönderildi.")
-            if selected:
-                self.preview_feedback.set(feedback)
-            else:
-                self._note("Yeni deneme farklı bir makale için hazır. Onu tekrar seçin.")
+                return
+            self.preview = preview
+            self._refresh_recordings(select_preview=trial)
+            self.btn_replay.configure(state="normal")
+            self.preview_feedback.set(
+                "Yeni ses PC sesleri listesine eklendi. Dinleyebilir, "
+                "eski denemeleri seçebilir veya beğendiğiniz sürümü PC'ye kaydedebilirsiniz."
+            )
+            self._note("Yeni Ahenk ses denemesi hazır: " + trial.name)
+            # The audio player is deliberately independent of the TTS/GitHub
+            # busy state; do not wait for Windows' default MP3 app to launch.
+            self._audio_play(trial, "Yeni ses denemesi")
 
-        self._managed_task("Yeni okuma MP3'ü hazırlanıyor…", work, done)
+        self._managed_task("Yeni Ahenk ses denemesi hazırlanıyor…", work, done)
 
     def replay_preview(self):
         preview = self.preview
-        if (not preview or preview.get("key") != self.current
-                or not Path(preview.get("path", "")).is_file()):
-            self.btn_replay.configure(state="disabled")
+        if not preview or preview.get("key") != self.current:
+            chosen = self._selected_recording()
+            if chosen and chosen["kind"] == "trial":
+                self._audio_play(chosen["path"], "Seçili deneme")
+                return
             messagebox.showinfo(
-                "Önce üretin", "Seçili makale için yeni bir deneme sesi hazırlayın."
-            )
-            return
-        if self.busy:
-            messagebox.showinfo(
-                "İşlem devam ediyor", "İşlem bittiğinde tekrar dinleyebilirsiniz."
+                "Önce bir ses seçin",
+                "PC sesleri listesindeki bir denemeyi seçin veya yeni deneme üretin."
             )
             return
         path = Path(preview["path"])
-
-        def work():
-            os.startfile(str(path))
-            return str(path)
-
-        def done(_path):
-            self.preview_feedback.set(
-                "Deneme sesi yeniden açıldı. Beğendiyseniz PC sesiniz olarak kabul edin."
-            )
-        self._managed_task("Deneme MP3'ü açılıyor…", work, done)
+        if not path.is_file():
+            self.btn_replay.configure(state="disabled")
+            self.play_feedback.set("Bu denemenin MP3 dosyası bulunamadı.")
+            return
+        self._audio_play(path, "Seçili deneme")
 
     def save_text(self):
         if self.busy:
