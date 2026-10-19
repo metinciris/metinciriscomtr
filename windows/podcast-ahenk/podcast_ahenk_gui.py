@@ -140,6 +140,8 @@ class App:
         self.articles = []
         self.by_key = {}
         self.current = None
+        self.editor_key = None
+        self.editor_drafts = {}
         self.preview = None
         self.tts = None
         self.rules = pron.load(RULES)
@@ -379,44 +381,68 @@ class App:
 
     def note(self, msg):
         self.log.configure(state="normal")
-        self.log.insert("end", datetime.now().strftime("%H:%M:%S") + "  " + msg + "\n")
+        self.log.insert("end", datetime.now().strftime("%H:%M:%S") + "  " + str(msg) + "\n")
         self.log.see("end")
         self.log.configure(state="disabled")
-        self.status.set(msg)
+        self.status.set(str(msg))
+
+    def open_logs(self):
+        try:
+            os.startfile(str(APP_HOME))
+        except OSError as exc:
+            messagebox.showerror("Klasör açılamadı", str(exc))
 
     def task(self, label, work, on_done=None):
         if self.running:
-            messagebox.showinfo("Islem suruyor", "Mevcut islemin tamamlanmasini bekleyin.")
+            messagebox.showinfo("İşlem devam ediyor", "Önce mevcut işlemin bitmesini bekleyin.")
             return
         self.running = True
         self.stop_event.clear()
         self.status.set(label)
+        self.progress.start(12)
+
         def run_worker():
             try:
                 result = work()
                 self.events.put(("done", result, on_done))
             except Exception as error:
-                self.events.put(("error", str(error), None))
+                self.events.put(("error", (str(error), traceback.format_exc()), None))
             finally:
                 self.events.put(("free", None, None))
         threading.Thread(target=run_worker, daemon=True).start()
+
+    def show_task_error(self, error, detail):
+        path = APP_HOME / "ahenk_hata.log"
+        with path.open("a", encoding="utf-8") as file:
+            file.write("\n" + datetime.now().isoformat() + "\n" + detail + "\n")
+        self.note("HATA: " + error)
+        messagebox.showerror(
+            "Ahenk işlemi tamamlanamadı",
+            error[:750] + "\n\nAyrıntılı kayıt:\n" + str(path) +
+            "\n\nKayıtlar sekmesinden hata klasörünü açabilirsiniz.",
+        )
 
     def process_events(self):
         try:
             while True:
                 kind, data, callback = self.events.get_nowait()
-                if kind == "log":
-                    self.note(data)
-                elif kind == "done":
-                    if callback:
-                        callback(data)
-                    else:
-                        self.note(str(data))
-                elif kind == "error":
-                    self.note("HATA: " + data)
-                    messagebox.showerror("Islem basarisiz", data[:1200])
-                elif kind == "free":
-                    self.running = False
+                try:
+                    if kind == "log":
+                        self.note(data)
+                    elif kind == "model":
+                        self.model_status.set(data)
+                    elif kind == "done":
+                        if callback:
+                            callback(data)
+                        else:
+                            self.note(str(data))
+                    elif kind == "error":
+                        self.show_task_error(data[0], data[1])
+                    elif kind == "free":
+                        self.running = False
+                        self.progress.stop()
+                except Exception as callback_error:
+                    self.show_task_error(str(callback_error), traceback.format_exc())
         except queue.Empty:
             pass
         self.root.after(100, self.process_events)
@@ -440,53 +466,93 @@ class App:
         return engine.catalog([article])[key]
 
     def draw(self):
+        previously_selected = self.current
         self.by_key = {}
         self.table.delete(*self.table.get_children())
         vals = ["Tum dergiler"] + sorted({a["journal"] for a in self.articles})
         self.journal_list["values"] = vals
         if self.journal.get() not in vals:
             self.journal.set(vals[0])
+        catalog = engine.catalog(self.articles) if self.articles else {}
         ready = missing = due = 0
+        current_time = datetime.now(timezone.utc)
         for article in self.articles:
             key = engine.key_for(article["journal"], article["title"], article["pmid"])
-            candidate = self.candidate(article)
+            candidate = catalog[key]
             prev = self.manifest["entries"].get(key)
-            if engine.fresh(prev, candidate, datetime.now(timezone.utc)):
-                state, tag = "Hazir", "ready"
+            if engine.fresh(prev, candidate, current_time):
+                state, tag = "✓ Hazır", "ready"
                 ready += 1
             elif engine.playable(prev, candidate):
-                state, tag = "Yenilenecek", "stale"
+                state, tag = "↻ Yenilenecek", "stale"
                 due += 1
             else:
-                state, tag = "Eksik", "missing"
+                state, tag = "• Eksik", "missing"
                 missing += 1
             if self.journal.get() != "Tum dergiler" and article["journal"] != self.journal.get():
                 continue
-            if self.filter.get().casefold() not in (article["journal"] + article["title"] + article["pmid"]).casefold():
+            if self.filter.get().casefold() not in (
+                article["journal"] + article["title"] + article["pmid"]
+            ).casefold():
                 continue
             self.by_key[key] = article
             self.table.insert("", "end", iid=key,
                               values=(state, article["journal"], article["title"], article["pmid"]),
                               tags=(tag,))
-        if self.articles and not self.running:
-            self.status.set(f"{len(self.articles)} baslik: {ready} hazir / {missing} eksik / {due} yenilenecek.")
+        self.summary.set(f"{len(self.articles)} başlık     ✓ {ready} hazır     • {missing} eksik     ↻ {due} yenilenecek")
+        if previously_selected in self.by_key:
+            self.table.selection_set(previously_selected)
+        elif self.by_key:
+            self.table.selection_set(next(iter(self.by_key)))
+        else:
+            self.current = None
+            self.editor_key = None
+            self.selected_label.configure(text="Aramanıza uygun makale bulunamadı.")
+            self.selection_status.set("Bir makale seçmek için filtreyi değiştirin.")
+            self.btn_accept.configure(state="disabled")
+            self.btn_old.configure(state="disabled")
+        if self.table.selection():
+            self.choose_article()
 
     def choose_article(self, _event=None):
         selection = self.table.selection()
         if not selection:
             return
-        self.current = selection[0]
-        article = self.by_key[self.current]
+        key = selection[0]
+        article = self.by_key.get(key)
+        if article is None:
+            return
+        if self.editor_key and self.editor_key != key:
+            self.editor_drafts[self.editor_key] = (
+                self.text.get("1.0", "end-1c"), self.speed.get()
+            )
+        self.current = key
         self.selected_label.configure(text=article["journal"] + "  ·  " + article["title"])
-        override = self.rules.get("articles", {}).get(pron.identity(article), {})
-        self.text.delete("1.0", "end")
-        self.text.insert("1.0", override.get("text", engine.spoken(article["title"])))
-        self.speed.set(f"{override.get('speed', self.rules.get('global_speed', 1.0)):.2f}")
-        self.preview = None
+        if self.editor_key != key:
+            override = self.rules.get("articles", {}).get(pron.identity(article), {})
+            draft = self.editor_drafts.get(key)
+            initial_text = draft[0] if draft else override.get(
+                "text", engine.spoken(article["title"])
+            )
+            initial_speed = draft[1] if draft else f"{override.get('speed', self.rules.get('global_speed', 1.0)):.2f}"
+            self.text.delete("1.0", "end")
+            self.text.insert("1.0", initial_text)
+            self.speed.set(initial_speed)
+            self.editor_key = key
+            self.preview = None
+        entry = self.manifest["entries"].get(key)
+        is_old = engine.playable(entry, self.candidate(article))
+        self.btn_old.configure(state="normal" if is_old else "disabled")
+        can_accept = self.preview is not None and self.preview[0] == key
+        self.btn_accept.configure(state="normal" if can_accept else "disabled")
+        if can_accept:
+            self.selection_status.set("Deneme MP3'ü hazır. Beğendiyseniz kabul edebilirsiniz.")
+        else:
+            self.selection_status.set("Metni düzenleyip 'Yeni okumayı üret ve dinle' düğmesine basın.")
 
     def selected(self):
         if self.current not in self.by_key:
-            raise ValueError("Once makale secin.")
+            raise ValueError("Önce soldan bir makale seçin.")
         return self.by_key[self.current]
 
     def current_profile(self):
