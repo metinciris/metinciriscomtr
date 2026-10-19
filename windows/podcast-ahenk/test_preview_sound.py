@@ -74,7 +74,7 @@ class PreviewRegressions(unittest.TestCase):
                      patch.object(engine, "AUDIO_DIR", audio), \
                      patch.object(engine, "MANIFEST_PATH", manifest), \
                      patch.object(ui.TwoStepManager, "_startup", lambda _self: None), \
-                     patch.object(ui.TwoStepManager, "_resume_watch", lambda _self: None), \
+                     patch.multiple(ui.TwoStepManager, _resume_watch=lambda _self: None, _start_engine_automatically=lambda _self: None), \
                      patch.object(ui.TwoStepManager, "_tts", return_value=object()), \
                      patch.object(ui.shutil, "which", return_value="ffmpeg.exe"), \
                      patch.object(engine, "render_clip", side_effect=render), \
@@ -149,7 +149,7 @@ class PreviewRegressions(unittest.TestCase):
                      patch.object(base, "AUDIO", repo / "public" / "podcast-audio"), \
                      patch.object(base, "RULES", repo / "public" / "podcast-audio" / "pronunciation.json"), \
                      patch.object(ui.TwoStepManager, "_startup", lambda _self: None), \
-                     patch.object(ui.TwoStepManager, "_resume_watch", lambda _self: None), \
+                     patch.multiple(ui.TwoStepManager, _resume_watch=lambda _self: None, _start_engine_automatically=lambda _self: None), \
                      patch.object(ui.messagebox, "showinfo",
                                   side_effect=lambda title, msg: messages.append((title, msg))):
                     app = ui.TwoStepManager(window)
