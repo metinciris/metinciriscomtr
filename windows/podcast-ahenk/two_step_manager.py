@@ -124,6 +124,10 @@ class TwoStepManager(base.AhenkManager):
             self.count_labels[key] = tk.StringVar(value=label + ": —")
             ttk.Label(summary, textvariable=self.count_labels[key],
                       font=("Segoe UI Semibold", 9)).pack(side="left", padx=(0, 12))
+        # The shared list renderer still updates publish_ready. Keep its
+        # backing variable, but prioritize the clearer PC/WEB distinction
+        # instead of showing a redundant eighth summary number.
+        self.count_labels["publish_ready"] = tk.StringVar(value="")
 
         waiting_line = ttk.Frame(self.root, padding=(12, 5))
         waiting_line.pack(fill="x")
