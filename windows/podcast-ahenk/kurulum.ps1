@@ -98,59 +98,7 @@ if (Test-Path -LiteralPath (Join-Path $Repo ".git")) {
         $relative = $line.Substring(3).Replace("\", "/")
         $allowed = ($relative -eq "public/podcast-audio/manifest.json" -or
                     $relative -eq "public/podcast-audio/pronunciation.json" -or
-                    $relative -match '^public/podcast-audio/[a-f0-9]{24}\.mp3
-} elseif (Test-Path -LiteralPath $Repo) {
-    throw "Hedef klasor dolu, fakat Git deposu degil: $Repo"
-} else {
-    Write-Host "Resmi GitHub deposu indiriliyor..." -ForegroundColor Cyan
-    & git.exe clone --filter=blob:none --sparse --branch main $Expected $Repo
-    if ($LASTEXITCODE -ne 0) { throw "GitHub indirme hatasi." }
-}
-
-& git.exe -C $Repo sparse-checkout set scripts public/podcast-audio windows/podcast-ahenk
-if ($LASTEXITCODE -ne 0) { throw "Gerekli uygulama dosyalari alinamadi." }
-
-$venvPython = Join-Path $Venv "Scripts\python.exe"
-$venvPythonw = Join-Path $Venv "Scripts\pythonw.exe"
-if (Test-Path -LiteralPath $Venv) {
-    if (-not (Test-Path -LiteralPath $venvPython) -or
-        -not (Test-Path -LiteralPath $venvPythonw)) {
-        throw "Mevcut Python sanal ortami eksik. Guvenlik icin otomatik silinmedi: $Venv"
-    }
-    $venvInfo = & $venvPython -c $Probe
-    if ($LASTEXITCODE -ne 0) { throw "Mevcut Python ortami baslatilamadi: $Venv" }
-    $venvText = "$venvInfo".Trim()
-    if ($venvText -notmatch '^3\.(11|12|13)\|64$') {
-        throw "Mevcut Python sanal ortami desteklenmiyor: $venvText"
-    }
-    $venvVersion = ($venvText -split '\|')[0]
-    if ($PythonVersion -ne "Auto" -and $venvVersion -ne $PythonVersion) {
-        throw "Mevcut Python ortami $venvVersion. Istenen surum $PythonVersion; ortam korunuyor."
-    }
-    Write-Host "Mevcut Python $venvVersion sanal ortami korundu." -ForegroundColor Green
-} else {
-    & $PythonExe @PythonArgs -m venv $Venv
-    if ($LASTEXITCODE -ne 0) { throw "Python sanal ortami olusturulamadi." }
-}
-
-$Launcher = Join-Path $Repo "windows\podcast-ahenk\baslat.cmd"
-if (-not (Test-Path -LiteralPath $Launcher)) {
-    throw "Podcast Ahenk baslatma dosyasi bulunamadi: $Launcher"
-}
-$Desktop = [Environment]::GetFolderPath("DesktopDirectory")
-if ($Desktop -and (Test-Path -LiteralPath $Desktop)) {
-    $shell = New-Object -ComObject WScript.Shell
-    $shortcut = $shell.CreateShortcut((Join-Path $Desktop "Podcast Ahenk Ses Yoneticisi.lnk"))
-    $shortcut.TargetPath = $Launcher
-    $shortcut.WorkingDirectory = $Repo
-    $shortcut.Description = "Patoloji Podcast Ahenk ses arsivi"
-    $shortcut.Save()
-}
-Write-Host "Kurulum tamam. Uygulama klasoru: $Repo" -ForegroundColor Green
-Write-Host "FFmpeg eksikse: winget install -e --id Gyan.FFmpeg"
-Write-Host "Uygulamada 'Ses Motorunu Kur' secenegini kullanin."
-Start-Process -FilePath $Launcher
-)
+                    $relative -match '^public/podcast-audio/[a-f0-9]{24}\.mp3$')
         if (-not $allowed) {
             throw "Beklenmeyen yerel degisiklik: $relative. Otomatik guncelleme durduruldu."
         }
