@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-10-19T11:30:17.036328+00:00",
+  "generated_at": "2026-10-19T11:30:28.735270+00:00",
   "entries": {
     "7d9cd522d0f2d5752ca6a105": {
       "title": "MAP2K1 mutasyonlu melanositik tümörler: 114 olgu üzerinden yapılan bir çalışmaya dayanarak histolojik özelliklerin moleküler fonksiyonel sınıflarıyla ilişkisi.",
@@ -737,6 +737,70 @@
       "fingerprint": "2c75585f1c4fc11a45c4d94e39b66b0557e9109f15e018025f6252cd327f4aee",
       "file": "cd495784364edb1fb819a0d0.mp3",
       "generated_at": "2026-10-19T11:29:33.663121+00:00"
+    },
+    "00abe01b75fe6105ba8fc7f9": {
+      "title": "Sonic hedgehog hepatosellüler adenomlarının klinikopatolojik özellikleri, özellikle küçük lezyonlara odaklanılarak.",
+      "journal": "Human Pathology",
+      "pmid": "42427309",
+      "fingerprint": "9601aeb764023a5498de09743e7fe9770409a92850805282ea658869fb6d2a53",
+      "file": "00abe01b75fe6105ba8fc7f9.mp3",
+      "generated_at": "2026-10-19T09:53:19.157274+00:00"
+    },
+    "a8291ed09fcae03654254e98": {
+      "title": "MAP3K kinaz füzyonu içeren miksoid neoplazmlar: 39 olgu üzerinde yapılan bir çalışma.",
+      "journal": "Human Pathology",
+      "pmid": "42402939",
+      "fingerprint": "0374c2d417445b6ce8d11dac1d6db4bf9f918baa75c7d3bb33d1beaa558f5888",
+      "file": "a8291ed09fcae03654254e98.mp3",
+      "generated_at": "2026-10-19T09:53:51.086255+00:00"
+    },
+    "3586ee84aecb309d1d254d4c": {
+      "title": "Akciğer büyük hücreli nöroendokrin karsinomunda TROP2 immünoreaktivitesi.",
+      "journal": "Human Pathology",
+      "pmid": "42390022",
+      "fingerprint": "399805214853159254cb3cb918442a78042180e37c29d28824ec6504b8f3b03b",
+      "file": "3586ee84aecb309d1d254d4c.mp3",
+      "generated_at": "2026-10-19T09:54:06.251006+00:00"
+    },
+    "96c851782998e0bd43b94da0": {
+      "title": "Meme bezinin malign adenomiyoepitelyoması: Morfolojik çeşitliliği ve tanısal zorlukları gösteren yedi vaka.",
+      "journal": "Human Pathology",
+      "pmid": "42365981",
+      "fingerprint": "41e1b5dfb58b4d304b46d2ed490fcbad463455f57e21669955e66d6833011782",
+      "file": "96c851782998e0bd43b94da0.mp3",
+      "generated_at": "2026-10-19T09:54:19.585045+00:00"
+    },
+    "4a02804450ed21e7667422eb": {
+      "title": "Meme bezinin düşük dereceli iğne hücreli lezyonlarında tanısal zorlukların üstesinden gelme: retrospektif bir inceleme.",
+      "journal": "Human Pathology",
+      "pmid": "42363645",
+      "fingerprint": "75a809b482ce185f02b24f66a0cb53f549ed6a852914bb20757a53cd7d3073b9",
+      "file": "4a02804450ed21e7667422eb.mp3",
+      "generated_at": "2026-10-19T09:54:49.122766+00:00"
+    },
+    "28a82c668cf30e0f84f25d42": {
+      "title": "Meme iğne biyopsisi tanısı ve kişiselleştirilmiş tedavi: Zorlu lezyonlar ve tuzaklarla başa çıkma.",
+      "journal": "Human Pathology",
+      "pmid": "42233872",
+      "fingerprint": "c167cc940ed8d2553fe0e4db4c6b1896d9e90c19a5eea010a1aca708b7c4052a",
+      "file": "28a82c668cf30e0f84f25d42.mp3",
+      "generated_at": "2026-10-19T09:55:04.692791+00:00"
+    },
+    "895972b55624128db177c5c2": {
+      "title": "Büyük Bir Çocuk Hastanesi Sisteminde İdrar Yolu Enfeksiyonu Değerlendirmesinin Kolaylaştırılması: Mikroskopi Eşliğinde İdrar Analizi Sonrasında Refleks İdrar Kültürünün Uygulanabilirliği.",
+      "journal": "Virchows Archiv",
+      "pmid": "42603714",
+      "fingerprint": "5384c424c9af0ca931d126c0bcbcd1b982a0370b07f8aa425d569a635cece673",
+      "file": "895972b55624128db177c5c2.mp3",
+      "generated_at": "2026-10-19T09:53:19.157274+00:00"
+    },
+    "b2209428e16c522b8077627c": {
+      "title": "Amerika Birleşik Devletleri-Kanada Mezotelyoma Referans Paneli'nin 1985-2026 Yılları Arasındaki Deneyimi: Mezotelyal Patolojide Tarihsel İnceleme ve Yeni Gelişmeler.",
+      "journal": "Virchows Archiv",
+      "pmid": "42603711",
+      "fingerprint": "d4d0489ca538dedd25821b6cec0d90113ad9ccd2eacf49e8bfccb27f3bb0548e",
+      "file": "b2209428e16c522b8077627c.mp3",
+      "generated_at": "2026-10-19T09:53:51.086255+00:00"
     }
   }
 }
