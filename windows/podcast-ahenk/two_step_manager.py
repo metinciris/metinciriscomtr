@@ -388,41 +388,49 @@ class TwoStepManager(base.AhenkManager):
         self.progress.pack(side="left", padx=(0, 10))
         ttk.Label(bottom, textvariable=self.status).pack(side="left", fill="x", expand=True)
 
-    def install_engine(self):
-        """Optional one-time dependency installer for a new Windows computer."""
-        if self.busy:
-            self._note("Önce devam eden işlemin tamamlanmasını bekleyin.")
-            return
-        if not messagebox.askyesno(
-            "Ahenk ses motorunu kur",
-            "Python sanal ortamına Ahenk ses motoru kütüphaneleri kurulacak.\n"
-            "Bu işlem hazır MP3 dosyalarını değiştirmez. Devam?"
-        ):
-            return
+    def _ensure_engine_dependencies(self):
+        """Run exactly one setup job even if first TTS click overlaps startup."""
+        with self._engine_lock:
+            if self._engine_ready:
+                return
+            audio_runtime.ensure_runtime(ROOT, report=self._worker_log)
+            self._engine_ready = True
+            self._engine_error = None
+
+    def _tts(self):
+        """Initialize the Ahenk model once, using the auto-installed runtime."""
+        with self._tts_lock:
+            self._ensure_engine_dependencies()
+            return super()._tts()
+
+    def _start_engine_automatically(self):
+        """Install missing packages on startup without confirmation or Tk stalls.
+
+        Playing existing MP3s and publishing ready audio still work during
+        first-time setup. No system-wide pip or administrator rights needed.
+        """
+        self.engine_display.set("Ses motoru: eksikler otomatik denetleniyor…")
 
         def work():
-            if not shutil.which("ffmpeg"):
-                raise RuntimeError(
-                    "FFmpeg bulunamadı. PowerShell: winget install -e --id Gyan.FFmpeg"
-                )
-            requirements = ROOT / "scripts" / "podcast-audio-requirements.txt"
-            run = subprocess.run(
-                [sys.executable, "-m", "pip", "install", "-r", str(requirements)],
-                cwd=ROOT, capture_output=True, text=True,
-                encoding="utf-8", errors="replace", timeout=2700,
-                creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
-            )
-            if run.returncode:
-                raise RuntimeError(
-                    "Ahenk kurulamadı: " + (run.stderr or run.stdout)[-1200:]
-                )
-            return "Ahenk ses motoru hazır. Birinci adıma basabilirsiniz."
+            try:
+                self._ensure_engine_dependencies()
+                result = ("ready", "Ses motoru hazır ✓")
+            except Exception as exc:
+                self._engine_error = str(exc)
+                result = ("error", "Ses motoru kurulamadı · Log / Hata'ya bakın")
+                self._worker_log("Ahenk otomatik kurulum hatası: " + str(exc))
+                with ERROR_LOG.open("a", encoding="utf-8") as handle:
+                    handle.write(datetime.now().isoformat() + "\n" +
+                                 traceback.format_exc() + "\n")
+            self.events.put(("done", result, self._engine_setup_finished))
 
-        def done(text):
-            self._stage(text, 100)
-            self._note(text)
+        threading.Thread(target=work, daemon=True).start()
 
-        self._managed_task("Ahenk kütüphaneleri kuruluyor...", work, done)
+    def _engine_setup_finished(self, result):
+        _state, label = result
+        self.engine_display.set(label)
+        if _state == "ready":
+            self._note("Ahenk ses motoru otomatik kontrol edildi ve hazır.")
 
     def open_recent_recordings(self):
         """All recent draft MP3s; double-click jumps to the chosen article."""
