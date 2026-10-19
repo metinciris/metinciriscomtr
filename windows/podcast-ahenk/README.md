@@ -104,3 +104,21 @@ indirip doğruladıktan sonra PowerShell ile çalıştırın. Önceden
 üretilmiş 79/92 MP3'ü yeniden sentezlemeniz gerekmez. İlk işlem olarak
 `GitHub seslerini indir / eşitle`, ardından filtrelerle hazır
 sesleri gözden geçirmenizi öneririz.
+
+## Windows v1.4 — yalnızca iki ana adım
+
+**1. WEB'DE EKSİK TÜM SESLERİ HAZIRLA**
+
+Gerçek sitedeki `https://metinciris.com.tr/podcast-audio/manifest.json` listesini ve güncel Google Sheets makalelerini okur. WEB'de zaten mevcut sesleri yeniden üretmez. WEB'de eksik olup PC'de mevcut MP3 dosyalarını aynen kullanır. Yalnız iki tarafta da eksik olanları Ahenk modeliyle sekizli partiler hâlinde üretir. Manifest kaydı eksikse yedekli olarak kurtarır. Bu adım **GitHub'a MP3 göndermez** ve sitede hiçbir sesi değiştirmez.
+
+**2. HAZIR SESLERİ WEB'E YÜKLE**
+
+Yüklemeden hemen önce gerçek siteye tekrar bakar. WEB'de eksik bütün sesler PC'de hazır değilse gönderme başlamaz; önce birinci adımı tamamlamanız istenir. Eksiklerin hepsi hazırsa açık bir onay penceresi çıkar. Ardından yalnız WEB'de eksik makalelerin MP3'leri GitHub'a sekizli gruplarla gönderilir; WEB'de hâlihazırda çalınan sesler değiştirilmez. Eski, hazırlanmamış veya seçilmemiş PC kayıtları korunur.
+
+**Yükleme durumu:** Program üstündeki ayrı alanlarda `Hazırlanan MP3`, `GitHub'a gönderilen` ve `WEB'de doğrulanan` sayıları gösterilir. GitHub'a gönderilmek, web sitesinde yayımlanmakla aynı şey değildir: GitHub Pages dağıtımı zaman alabilir. Uygulama sitenin gerçek manifestini yaklaşık 15 saniyede bir tekrar kontrol ederek yalnız **tam olarak eşleşen ses kayıtlarını** `WEB'de doğrulandı` olarak sayar. Yaklaşık 10 dakika sonunda hâlâ bekleyen olursa manuel `WEB durumunu kontrol et` ile tekrar bakılabilir.
+
+**Durumun korunması:** Gönderim durumu `%LOCALAPPDATA%\PodcastAhenk\web_yayin_durumu.json` dosyasında saklanır. Program yeniden açıldığında son durumu gösterir; bitmemiş WEB dağıtımını yeniden kontrol etmeyi dener. Sonraki denemelerde web sitesinde hâlihazırda görünür olmuş sesler yeniden hedeflenmez.
+
+**İsteğe bağlı düzeltmeler:** Alt bölümde makaleyi seçerek WEB / PC MP3'lerini dinleyebilir, tek başlığı farklı telaffuzla yeniden üretebilir ve beğendiğiniz sürümü PC'ye kaydedebilirsiniz. Eski gelişmiş `simple_manager.py` ve `podcast_ahenk_gui.py` dosyaları GitHub'da geri dönüş için korunur.
+
+**Güvenlik:** Bu iki adımlı sürüm, erişilemeyen bir WEB listesini `0 ses` sanıp bütün kayıtları yeniden üretmez veya topluca yayımlamaz. WEB kimlikleri yanlışsa işlem durur. Her bir GitHub gönderim partisi tamamlandıktan sonra sayılar kaydedilir; başarısız yüklemede eski PC MP3 dosyaları silinmez. Tüm sesleri yayımlamadan önce onay penceresi gösterilir.
