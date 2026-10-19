@@ -252,8 +252,10 @@ class TwoStepManager(base.AhenkManager):
                   wraplength=375, foreground="#37546c").pack(
                       side="left", fill="x", expand=True
                   )
-        ttk.Button(dictionary, text="Gör / düzenle",
-                   command=self.open_dictionary).pack(side="right", padx=(7, 0))
+        self.btn_dictionary = ttk.Button(
+            dictionary, text="Gör / düzenle", command=self.open_dictionary
+        )
+        self.btn_dictionary.pack(side="right", padx=(7, 0))
 
         details = ttk.LabelFrame(right, text="Dilerseniz okuma metnini düzeltin", padding=9)
         details.pack(fill="both", expand=True, pady=(9, 0))
