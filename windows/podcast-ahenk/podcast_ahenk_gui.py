@@ -474,29 +474,63 @@ class App:
         return engine.catalog([article])[key]
 
     def draw(self):
+        """Compare what is live on the site with generated local audio."""
         previously_selected = self.current
         self.by_key = {}
         self.table.delete(*self.table.get_children())
-        vals = ["Tum dergiler"] + sorted({a["journal"] for a in self.articles})
-        self.journal_list["values"] = vals
-        if self.journal.get() not in vals:
-            self.journal.set(vals[0])
+        journals = ["Tum dergiler"] + sorted({a["journal"] for a in self.articles})
+        self.journal_list["values"] = journals
+        if self.journal.get() not in journals:
+            self.journal.set(journals[0])
+
         catalog = engine.catalog(self.articles) if self.articles else {}
-        ready = missing = due = 0
-        current_time = datetime.now(timezone.utc)
+        on_web = self.web_manifest.get("entries", {})
+        on_github = self.github_manifest.get("entries", {})
+        try:
+            dirty = git_sync.changes(ROOT)
+        except (RuntimeError, OSError):
+            dirty = {}
+        totals = {"web": 0, "new": 0, "ready": 0, "due": 0, "missing": 0}
+        now = datetime.now(timezone.utc)
         for article in self.articles:
             key = engine.key_for(article["journal"], article["title"], article["pmid"])
             candidate = catalog[key]
-            prev = self.manifest["entries"].get(key)
-            if engine.fresh(prev, candidate, current_time):
-                state, tag = "✓ Hazır", "ready"
-                ready += 1
-            elif engine.playable(prev, candidate):
-                state, tag = "↻ Yenilenecek", "stale"
-                due += 1
+            local = self.manifest["entries"].get(key)
+            web = on_web.get(key)
+            hosted = on_github.get(key)
+            web_exists = isinstance(web, dict) and web.get("file") == key + ".mp3"
+            local_exists = engine.playable(local, candidate)
+            local_new = local_exists and (
+                git_sync.AUDIO_PREFIX + key + ".mp3" in dirty or local != hosted
+            )
+            if web_exists:
+                totals["web"] += 1
+            if local_new:
+                local_label, tag = "Yeni / bekliyor", "new"
+                totals["new"] += 1
+            elif engine.fresh(local, candidate, now):
+                local_label, tag = "Hazır", "ready"
+                totals["ready"] += 1
+            elif local_exists:
+                local_label, tag = "Yenilenecek", "stale"
+                totals["due"] += 1
             else:
-                state, tag = "• Eksik", "missing"
-                missing += 1
+                local_label, tag = "Eksik", "missing"
+                totals["missing"] += 1
+
+            wanted = self.state_filter.get()
+            if wanted == "Web'de var" and not web_exists:
+                continue
+            if wanted == "Web'de yok" and web_exists:
+                continue
+            if wanted == "Yerel yeni" and not local_new:
+                continue
+            if wanted == "Yerel hazır" and not local_exists:
+                continue
+            if wanted == "Yerel eksik" and local_exists:
+                continue
+            if wanted == "Yenilenecek" and tag != "stale":
+                continue
             if self.journal.get() != "Tum dergiler" and article["journal"] != self.journal.get():
                 continue
             if self.filter.get().casefold() not in (
@@ -505,9 +539,20 @@ class App:
                 continue
             self.by_key[key] = article
             self.table.insert("", "end", iid=key,
-                              values=(state, article["journal"], article["title"], article["pmid"]),
+                              values=("✓ Yayında" if web_exists else "— Yok",
+                                      local_label, article["journal"],
+                                      article["title"], article["pmid"]),
                               tags=(tag,))
-        self.summary.set(f"{len(self.articles)} başlık     ✓ {ready} hazır     • {missing} eksik     ↻ {due} yenilenecek")
+
+        self.summary.set(
+            f"{len(self.articles)} makale  ·  Web {totals['web']}  ·  "
+            f"Yerel yeni {totals['new']}  ·  "
+            f"Hazır {totals['ready']}  ·  "
+            f"Yenilenecek {totals['due']}  ·  Eksik {totals['missing']}"
+        )
+        self.web_summary.set(
+            f"Web kaynağı: {self.web_checked} ({len(on_web)} MP3)"
+        )
         if previously_selected in self.by_key:
             self.table.selection_set(previously_selected)
         elif self.by_key:
@@ -515,10 +560,12 @@ class App:
         else:
             self.current = None
             self.editor_key = None
-            self.selected_label.configure(text="Aramanıza uygun makale bulunamadı.")
-            self.selection_status.set("Bir makale seçmek için filtreyi değiştirin.")
-            self.btn_accept.configure(state="disabled")
-            self.btn_old.configure(state="disabled")
+            self.selected_label.configure(text="Bu filtreye uygun makale bulunamadı.")
+            self.selection_status.set("Sol taraftaki filtreyi değiştirin.")
+            self.online_details.set("Web ve yerel ses seçimi için bir başlık seçin.")
+            for btn in (self.btn_accept, self.btn_old,
+                        self.btn_web, self.btn_publish, self.btn_restore):
+                btn.configure(state="disabled")
         if self.table.selection():
             self.choose_article()
 
@@ -535,28 +582,45 @@ class App:
                 self.text.get("1.0", "end-1c"), self.speed.get()
             )
         self.current = key
-        self.selected_label.configure(text=article["journal"] + "  ·  " + article["title"])
+        self.selected_label.configure(text=article["journal"] + " · " + article["title"])
         if self.editor_key != key:
             override = self.rules.get("articles", {}).get(pron.identity(article), {})
             draft = self.editor_drafts.get(key)
-            initial_text = draft[0] if draft else override.get(
-                "text", engine.spoken(article["title"])
-            )
-            initial_speed = draft[1] if draft else f"{override.get('speed', self.rules.get('global_speed', 1.0)):.2f}"
+            default_text = engine.spoken(article["title"])
+            initial_text = draft[0] if draft else override.get("text", default_text)
+            initial_speed = (draft[1] if draft else
+                             f"{override.get('speed', self.rules.get('global_speed', 1.0)):.2f}")
             self.text.delete("1.0", "end")
             self.text.insert("1.0", initial_text)
             self.speed.set(initial_speed)
             self.editor_key = key
             self.preview = None
         entry = self.manifest["entries"].get(key)
-        is_old = engine.playable(entry, self.candidate(article))
-        self.btn_old.configure(state="normal" if is_old else "disabled")
+        old_available = engine.playable(entry, self.candidate(article))
+        web_entry = self.web_manifest.get("entries", {}).get(key)
+        site_available = isinstance(web_entry, dict) and web_entry.get("file") == key + ".mp3"
+        github_available = key in self.github_manifest.get("entries", {})
+        self.btn_old.configure(state="normal" if old_available else "disabled")
+        self.btn_web.configure(state="normal" if site_available else "disabled")
+        self.btn_publish.configure(state="normal" if old_available else "disabled")
+        self.btn_restore.configure(state="normal" if github_available else "disabled")
         can_accept = self.preview is not None and self.preview[0] == key
         self.btn_accept.configure(state="normal" if can_accept else "disabled")
+        web_stamp = str(web_entry.get("generated_at", ""))[:16].replace("T", " ") if site_available else "—"
+        local_stamp = str(entry.get("generated_at", ""))[:16].replace("T", " ") if entry else "—"
+        self.online_details.set(
+            f"WEB: {'✓ Sitede yayında' if site_available else 'MP3 henüz yok'} "
+            f"({web_stamp})   |   "
+            f"YEREL: {'✓ MP3 var' if old_available else 'MP3 yok'} ({local_stamp})\n"
+            f"GITHUB: {'✓ Kayıtlı' if github_available else 'henüz gönderilmemiş'}   "
+            f"·   PMID: {article['pmid']}"
+        )
         if can_accept:
-            self.selection_status.set("Deneme MP3'ü hazır. Beğendiyseniz kabul edebilirsiniz.")
+            self.selection_status.set("Yeni MP3 hazır. Beğendiyseniz kabul edip web'e gönderebilirsiniz.")
+        elif old_available:
+            self.selection_status.set("Yerel MP3'ü web'dekiyle dinleyerek karşılaştırın veya yayımlayın.")
         else:
-            self.selection_status.set("Metni düzenleyip 'Yeni okumayı üret ve dinle' düğmesine basın.")
+            self.selection_status.set("Yerel ses yok. Ahenk ile üretip beğenirseniz yayımlayın.")
 
     def selected(self):
         if self.current not in self.by_key:
