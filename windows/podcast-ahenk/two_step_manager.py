@@ -340,6 +340,70 @@ class TwoStepManager(base.AhenkManager):
 
         self._managed_task("Ahenk kütüphaneleri kuruluyor...", work, done)
 
+    def show_pc_pending(self):
+        """Show the prepared audio still absent from the real WEB listing."""
+        self.filter.set("pc_pending")
+        self._render()
+
+    def _sent_but_not_live(self):
+        """Identify only GitHub uploads recorded by this application.
+
+        A PC file with no recorded GitHub upload is not assumed unpublished:
+        GitHub Actions or an older version may have sent it already. The
+        category is labelled 'Gönderim kaydı yok', not 'Gönderilmedi'.
+        """
+        progress = flow.read_progress(HOME) or self.publish_progress or {}
+        sent = set(progress.get("github_sent", []))
+        expected = progress.get("expected", {})
+        if not isinstance(expected, dict):
+            return set()
+        return {
+            key for key in sent
+            if key in self.rows
+            and self.rows[key].get("pc_pending")
+            and expected.get(key) is not None
+            and self.rows[key].get("local_entry") == expected[key]
+        }
+
+    def _render(self):
+        super()._render()
+        # The base UI is reused for filter/tree functionality, while this
+        # view keeps WEB/GitHub/PC states distinct.
+        if hasattr(self, "dictionary_summary"):
+            global_rules = self.rules.get("global", [])
+            examples = [
+                str(rule.get("find", "")) + " → " + str(rule.get("say", ""))
+                for rule in global_rules[:3]
+            ]
+            if examples:
+                more = f"  (+{len(global_rules) - 3} diğer)" if len(global_rules) > 3 else ""
+                self.dictionary_summary.set(
+                    f"{len(global_rules)} genel okuma kuralı: "
+                    + "  •  ".join(examples) + more
+                )
+            else:
+                self.dictionary_summary.set(
+                    "Genel okuma kuralı henüz yok. Terimleri ekleyebilir veya düzenleyebilirsiniz."
+                )
+        if hasattr(self, "pending_notice"):
+            waiting = self.totals.get("pc_pending", 0)
+            sent = self._sent_but_not_live()
+            self.count_labels["pc_pending"].set(
+                f"PC hazır / WEB'de yok: {waiting}"
+            )
+            self.pending_notice.set(
+                f"Üretilmiş, WEB'de henüz yok: {waiting}  ·  "
+                f"GitHub'a gönderildi, WEB bekleniyor: {len(sent)}  ·  "
+                f"Gönderim kaydı bulunmayan: {max(0, waiting - len(sent))}"
+            )
+            for key in self.table.get_children():
+                row = self.rows.get(key)
+                if row and row.get("pc_pending"):
+                    self.table.set(
+                        key, "pc",
+                        "GitHub ✓" if key in sent else "PC ✓"
+                    )
+
     def _rebuild(self):
         # When ALL website sounds have been published, the default
         # WEB-missing filter becomes empty. Return to 'Hepsi' so users can
