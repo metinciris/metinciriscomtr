@@ -936,6 +936,98 @@ class App:
             lambda message: (self.reload(), self.note(message)),
         )
 
+    def choice_changed(self):
+        """Enable publishing only after a deliberate WEB or PC voice choice."""
+        choice = self.publish_choice.get()
+        self.btn_publish.configure(state="disabled")
+        if self.current not in self.by_key:
+            self.publish_choice_status.set("Önce bir makale seçin.")
+            return
+        article = self.by_key[self.current]
+        local = self.manifest.get("entries", {}).get(self.current)
+        can_local = engine.playable(local, self.candidate(article))
+        web = self.web_manifest.get("entries", {}).get(self.current)
+        can_web = isinstance(web, dict) and web.get("file") == self.current + ".mp3"
+        if choice == "web" and can_web:
+            self.publish_choice_status.set("Seçiminiz: WEB'de şu anda dinlenen ses (korunacak)")
+            self.btn_publish.configure(state="normal")
+        elif choice == "local" and can_local:
+            self.publish_choice_status.set("Seçiminiz: BİLGİSAYARDA üretilen MP3 (yayına gönderilecek)")
+            self.btn_publish.configure(state="normal")
+        else:
+            self.publish_choice_status.set("İki kutudan WEB veya YEREL sesi işaretleyin.")
+
+    def publish_chosen_voice(self):
+        choice = self.publish_choice.get()
+        if choice == "local":
+            return self.publish_selected()
+        if choice != "web":
+            messagebox.showinfo("Ses seçin", "Önce WEB veya BİLGİSAYAR kutusunu işaretleyin.")
+            return
+        try:
+            article = self.selected()
+            key = self.current
+            if key not in self.web_manifest.get("entries", {}):
+                raise RuntimeError("Bu makalenin WEB'de yayımlanmış MP3'ü yok.")
+            confirmed = messagebox.askyesno(
+                "WEB'deki sesi yayın olarak koru",
+                article["title"][:180] +
+                "\n\nŞu anda web sitesinde dinlenen MP3 GitHub'a yeniden seçilecek. "
+                "Bilgisayarınızda oluşturduğunuz alternatif MP3 korunacak, "
+                "silinmeyecek. Devam?"
+            )
+            if not confirmed:
+                return
+        except (ValueError, RuntimeError) as error:
+            messagebox.showerror("Web MP3 bulunamadı", str(error))
+            return
+
+        def work():
+            # Fetch LIVE content at time of approval; never publish stale cache.
+            manifest = online_audio.fetch_manifest()
+            if key not in manifest["entries"]:
+                raise RuntimeError("Web sitesinde seçili makale artık yok; yeniden yenileyin.")
+            live = manifest["entries"][key]
+            if (live.get("title") != article["title"] or
+                    live.get("journal") != article["journal"]):
+                raise RuntimeError("Web ve yerel makale eşleşmiyor. Yanlış MP3 gönderilmedi.")
+            clip = online_audio.download_clip(APP_HOME, key, manifest, force=True)
+            result = git_sync.publish_live_web_voice(ROOT, APP_HOME, key, live, clip)
+            return result, manifest, git_sync.remote_manifest(ROOT)
+
+        def done(result):
+            message, manifest, github = result
+            self.web_manifest = manifest
+            self.web_checked = "Şimdi / web sitesi"
+            self.github_manifest = github
+            self.reload()
+            self.note(message)
+        self.task("Web'deki gerçek MP3 doğrulanıp GitHub'da korunuyor...", work, done)
+
+    def save_web_voice(self):
+        """Download website MP3 into the separate web_MP3 folder and open it."""
+        try:
+            self.selected()
+            key = self.current
+            current = copy.deepcopy(self.web_manifest)
+            if key not in current.get("entries", {}):
+                raise RuntimeError("Bu makalenin web sitesinde MP3'ü yok.")
+        except (RuntimeError, ValueError) as error:
+            messagebox.showinfo("Web MP3 yok", str(error))
+            return
+
+        def done(path):
+            self.note("Web sitesindeki ses indirildi: " + str(path))
+            try:
+                os.startfile(str(path.parent))
+            except OSError as error:
+                self.note("Web MP3 klasörü açılamadı: " + str(error))
+        self.task(
+            "Web'de yayınlanan MP3 indiriliyor...",
+            lambda: online_audio.download_clip(APP_HOME, key, current),
+            done,
+        )
+
     def publish_selected(self):
         try:
             article = self.selected()
