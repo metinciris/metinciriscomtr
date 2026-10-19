@@ -396,6 +396,8 @@ class App:
                    command=self.batch_generate, style="Accent.TButton").pack(anchor="w", pady=(17, 7))
         ttk.Button(batch_tab, text="Soldaki listeden seçtiğim makaleleri üret",
                    command=self.generate_checked).pack(anchor="w", pady=(5, 7))
+        ttk.Button(batch_tab, text="✓ Seçtiğim YEREL MP3'leri WEB'e gönder",
+                   command=self.publish_checked, style="Accent.TButton").pack(anchor="w", pady=(5, 7))
         ttk.Label(batch_tab, text="Birden çok başlık: solda Ctrl veya Shift ile seçin. "
                                   "Yalnız eksik veya yeniden üretilecekleri işler.",
                   style="Muted.TLabel", wraplength=510).pack(anchor="w", pady=(0, 7))
@@ -1269,6 +1271,48 @@ class App:
                     "gözden geçirip web'de yayımlayabilirsiniz.")
         self.task("Eksik ve eski MP3'ler topluca hazırlanıyor...", work,
                   lambda msg: (self.reload(), self.note(msg)))
+
+    def publish_checked(self):
+        """Publish only the locally prepared MP3s selected in the article list."""
+        keys = tuple(self.table.selection())
+        if not keys:
+            messagebox.showinfo("Önce seçin", "Soldaki listeden bir veya birkaç makale seçin.")
+            return
+        unavailable = [
+            key for key in keys
+            if key not in self.manifest.get("entries", {}) or
+            not (AUDIO / (key + ".mp3")).is_file()
+        ]
+        if unavailable:
+            messagebox.showwarning(
+                "Önce üretin",
+                f"Seçilen {len(unavailable)} makalenin yerel MP3'ü eksik. "
+                "Önce üretip dinleyin; eksik sesler gönderilmeyecek."
+            )
+            return
+        names = [self.by_key.get(key, {}).get("title", key)[:75] for key in keys[:5]]
+        summary = "\n".join("• " + title for title in names)
+        if len(keys) > 5:
+            summary += f"\n... ve {len(keys) - 5} makale daha"
+        if not messagebox.askyesno(
+            "Yalnız seçili yerel sesleri WEB'e gönder",
+            f"Seçtiğiniz {len(keys)} makalenin BİLGİSAYARDAKİ MP3'ü GitHub'a gidecek."
+            "\nWeb sitesi dağıtılınca bu sesler oynatılacak."
+            "\nDiğer yerel MP3'ler korunacak.\n\n"
+            + summary + "\n\nGöndermek istiyor musunuz?"
+        ):
+            return
+
+        def work():
+            result = git_sync.publish_selected_local_voices(ROOT, APP_HOME, keys)
+            return result, git_sync.remote_manifest(ROOT)
+
+        def done(result):
+            message, github = result
+            self.github_manifest = github
+            self.reload()
+            self.note(message + " Web durumunu görmek için 'Web seslerini yenile' düğmesine basın.")
+        self.task(f"Seçilen {len(keys)} yerel MP3 GitHub'a gönderiliyor...", work, done)
 
     def push(self):
         try:
