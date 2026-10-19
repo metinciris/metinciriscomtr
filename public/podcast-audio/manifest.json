@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-10-19T10:57:46.834874+00:00",
+  "generated_at": "2026-10-19T11:04:39.983000+00:00",
   "entries": {
     "7d9cd522d0f2d5752ca6a105": {
       "title": "MAP2K1 mutasyonlu melanositik tümörler: 114 olgu üzerinden yapılan bir çalışmaya dayanarak histolojik özelliklerin moleküler fonksiyonel sınıflarıyla ilişkisi.",
@@ -353,6 +353,70 @@
       "fingerprint": "73295b7fbb86c513d5b80bf856629637172d5d8e2325591993e680420596bf82",
       "file": "e09b5632c1f2f54c06a43bb3.mp3",
       "generated_at": "2026-10-19T10:57:46.834874+00:00"
+    },
+    "f50be3a1672c255c0d6cdb51": {
+      "title": "Primer ve metastatik mide ve gastroözofageal kavşak adenokarsinomlarında FGFR2b ekspresyonunun mekansal ve lezyonlar arası heterojenliği.",
+      "journal": "Diagnostic Pathology",
+      "pmid": "42822735",
+      "fingerprint": "4b5e0fc672a2169f2fcf3c90e8a703869c40f49f4a0fc43a5e8732713c719a6f",
+      "file": "f50be3a1672c255c0d6cdb51.mp3",
+      "generated_at": "2026-10-19T09:54:06.251006+00:00"
+    },
+    "945733f89d37d5ccb309f828": {
+      "title": "BAP1 mutasyonlu ccRCC'nin klinikopatolojik spektrumunun genişletilmesi: Çok merkezli kohortta 84 vakanın incelenmesi.",
+      "journal": "Diagnostic Pathology",
+      "pmid": "42822734",
+      "fingerprint": "cbd627893c81123b3e4a712e3a1797aa7fb66175674e340caa7985b8b004b3ed",
+      "file": "945733f89d37d5ccb309f828.mp3",
+      "generated_at": "2026-10-19T09:54:32.077112+00:00"
+    },
+    "cef1462d6fec0e720a1f3a05": {
+      "title": "Gastroözofageal adenokarsinomalarda Claudin 18.2 immünohistokimyası: Gastrointestinal patologlar arasında gözlemciler arası değişkenliğin incelenmesi.",
+      "journal": "Diagnostic Pathology",
+      "pmid": "42822733",
+      "fingerprint": "fc6aac3945145b8b3c725b1afd25ad16fafcaabbf4bc53f383bf601c27d1e3a4",
+      "file": "cef1462d6fec0e720a1f3a05.mp3",
+      "generated_at": "2026-10-19T09:54:49.122766+00:00"
+    },
+    "bc13965cba6c3f55e110e0d6": {
+      "title": "İntrasinüzoidal büyüme gösteren nodüler büyük B hücreli lenfoma: İntravasküler büyük B hücreli lenfoma ile tanısal örtüşme gösteren ayırt edici bir paternin klinikopatolojik incelemesi.",
+      "journal": "Diagnostic Pathology",
+      "pmid": "42822732",
+      "fingerprint": "ddd9a0402ec6e4e2410a02c00f9d49d0248c799c21d3e925632fc7d313905b7f",
+      "file": "bc13965cba6c3f55e110e0d6.mp3",
+      "generated_at": "2026-10-19T09:55:25.978051+00:00"
+    },
+    "febe2005fc0abec929e9dbb7": {
+      "title": "Meme bezinin solid papiller karsinomu: Alışılmadık immünohistokimyasal ve genetik özelliklere vurgu yapan klinikopatolojik bir çalışma.",
+      "journal": "Pathology International",
+      "pmid": "42636673",
+      "fingerprint": "d346bc7c4a54847f514f672c23f3e21db8afd64e10ec02ed61107d71cd388fe4",
+      "file": "febe2005fc0abec929e9dbb7.mp3",
+      "generated_at": "2026-10-19T09:53:19.157274+00:00"
+    },
+    "1cbede0b8af1b0b5df546e5f": {
+      "title": "Akkermansia muciniphila, kolorektal kanserde anti-PD-1 tedavisini destekler: Bütiratla ilişkili metabolik değişiklikler ve CD8⁺ T hücre yanıtları.",
+      "journal": "Pathology International",
+      "pmid": "42632257",
+      "fingerprint": "97921ee6ab82780bc804b16313eb6f66a1149363db7b2d472a2552310d3552b8",
+      "file": "1cbede0b8af1b0b5df546e5f.mp3",
+      "generated_at": "2026-10-19T09:53:37.740228+00:00"
+    },
+    "e104e76ae9aedb4b41bd5d12": {
+      "title": "Laktik asit-Chac1 ekseni, ferroptozla ilişkili hücre ölümünü ve tümör ilerlemesini düzenler.",
+      "journal": "Pathology International",
+      "pmid": "42632256",
+      "fingerprint": "aa7aca7053b5a4384d4a2543dacaaa241bb9a215d1cc7a99266922a4bda64309",
+      "file": "e104e76ae9aedb4b41bd5d12.mp3",
+      "generated_at": "2026-10-19T09:53:51.086255+00:00"
+    },
+    "a26521c86c13d9f736abcb7e": {
+      "title": "Mikropartiküller ve kolorektal kanser.",
+      "journal": "Pathology International",
+      "pmid": "42617478",
+      "fingerprint": "a1e7f223c49edf5bf085bd4e8a1a1ba34d37a97e518752539e73f5b0d1f5ab0f",
+      "file": "a26521c86c13d9f736abcb7e.mp3",
+      "generated_at": "2026-10-19T09:54:19.585045+00:00"
     }
   }
 }
