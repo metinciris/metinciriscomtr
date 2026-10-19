@@ -309,6 +309,7 @@ class TwoStepManager(base.AhenkManager):
         if self.busy:
             self._note("Önce devam eden işlem tamamlansın.")
             return
+        self.web_progress_bar["value"] = 0
         self._stage("1/2 · Web ve makale listeleri denetleniyor...", 0,
                     "Hazırlama başladı · Web'de olan sesler korunacak.")
 
@@ -443,6 +444,7 @@ class TwoStepManager(base.AhenkManager):
 
     def _upload_approved(self, articles, catalog):
         """Run the approved upload in a background worker, with batch progress."""
+        self.web_progress_bar["value"] = 0
         self._stage("2/2 · GitHub'a güvenli ses gönderimi başlıyor...", 0)
 
         def work():
