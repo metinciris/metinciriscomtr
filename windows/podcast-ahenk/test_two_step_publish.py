@@ -72,7 +72,7 @@ class TwoStepPublishTest(unittest.TestCase):
                      patch.object(engine, "load_sheet", return_value=articles), \
                      patch.object(ui.online_audio, "fetch_manifest", return_value=web), \
                      patch.object(ui.TwoStepManager, "_startup", lambda _self: None), \
-                     patch.object(ui.TwoStepManager, "_resume_watch", lambda _self: None), \
+                     patch.multiple(ui.TwoStepManager, _resume_watch=lambda _self: None, _start_engine_automatically=lambda _self: None), \
                      patch.object(ui.TwoStepManager, "_start_watch", lambda _self: None), \
                      patch.object(ui.messagebox, "askyesno", return_value=True), \
                      patch.object(ui.git_sync, "publish_selected_local_voices",
