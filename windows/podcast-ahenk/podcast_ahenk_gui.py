@@ -107,7 +107,7 @@ class App:
     def make_ui(self):
         """Compact two-pane workflow: select title -> improve -> listen -> accept."""
         self.root.configure(bg="#f3f6fa")
-        self.root.title("Podcast Ahenk | Ses Yöneticisi 1.1")
+        self.root.title("Podcast Ahenk | Web ve Yerel Ses Yöneticisi 1.2")
         self.root.geometry("1220x800")
         self.root.minsize(980, 650)
 
@@ -137,19 +137,20 @@ class App:
         header.pack(fill="x")
         tk.Label(header, text="PODCAST   /   AHENK SES YÖNETİCİSİ",
                  bg="#18324d", fg="#ffffff", font=("Segoe UI Semibold", 17)).pack(anchor="w")
-        tk.Label(header, text="Makaleyi seçin  →  okumasını düzenleyin  →  dinleyin  →  beğenirseniz yayınlayın",
+        tk.Label(header, text="Web'deki sesi gör  →  istersen yenisini üret  →  karşılaştır  →  istediğin sesi yayınla",
                  bg="#18324d", fg="#cbd9e4", font=("Segoe UI", 10)).pack(anchor="w", pady=(3, 0))
 
         top_actions = ttk.Frame(outer, style="Root.TFrame")
         top_actions.pack(fill="x", pady=(10, 6))
         for title, command in [
+            ("↻ Web seslerini yenile", self.refresh_web),
+            ("↓ GitHub seslerini indir", self.pull),
             ("Makaleleri yenile", self.scan),
-            ("GitHub'dan güncelle", self.pull),
-            ("Ses motorunu kur", self.install),
-            ("Test sesi: Ses hazır", self.test_sound),
-            ("GitHub'a gönder", self.push),
+            ("Test sesi", self.test_sound),
+            ("Log ve klasörler", self.open_logs),
+            ("Web sitesi", self.open_site),
         ]:
-            ttk.Button(top_actions, text=title, command=command).pack(side="left", padx=(0, 8))
+            ttk.Button(top_actions, text=title, command=command).pack(side="left", padx=(0, 6))
 
         summary_frame = ttk.Frame(outer, style="Panel.TFrame", padding=(12, 8))
         summary_frame.pack(fill="x", pady=(0, 9))
@@ -157,6 +158,9 @@ class App:
         self.model_status = tk.StringVar(value="Ahenk modeli: Henüz yüklenmedi")
         ttk.Label(summary_frame, textvariable=self.summary, style="Panel.TLabel",
                   font=("Segoe UI Semibold", 10)).pack(side="left")
+        self.web_summary = tk.StringVar(value="Web: kontrol ediliyor…")
+        ttk.Label(summary_frame, textvariable=self.web_summary,
+                  style="Panel.TLabel").pack(side="left", padx=(22, 0))
         ttk.Label(summary_frame, textvariable=self.model_status,
                   style="Muted.TLabel").pack(side="right")
 
@@ -169,33 +173,43 @@ class App:
 
         ttk.Label(left, text="MAKALELER", style="Panel.TLabel",
                   font=("Segoe UI Semibold", 11)).pack(anchor="w")
-        ttk.Label(left, text="Hazır, eksik veya yenilenecek başlıkları seçin.",
-                  style="Muted.TLabel").pack(anchor="w", pady=(0, 10))
+        ttk.Label(left, text="Web (yayındaki) ve yerel MP3'leri aynı listede karşılaştırın.",
+                  style="Muted.TLabel", wraplength=470).pack(anchor="w", pady=(0, 10))
         filters = ttk.Frame(left, style="Panel.TFrame")
         filters.pack(fill="x", pady=(0, 7))
-        self.journal_list = ttk.Combobox(filters, state="readonly", width=22, textvariable=self.journal)
+        self.journal_list = ttk.Combobox(filters, state="readonly", width=17, textvariable=self.journal)
         self.journal_list.pack(side="left", padx=(0, 5))
         self.journal_list.bind("<<ComboboxSelected>>", lambda _e: self.draw())
-        search = ttk.Entry(filters, textvariable=self.filter)
+        self.state_list = ttk.Combobox(
+            filters, state="readonly", width=15, textvariable=self.state_filter,
+            values=["Tümü", "Web'de var", "Web'de yok", "Yerel yeni", "Yerel hazır",
+                    "Yerel eksik", "Yenilenecek"]
+        )
+        self.state_list.pack(side="left", padx=(0, 5))
+        self.state_list.bind("<<ComboboxSelected>>", lambda _e: self.draw())
+        search = ttk.Entry(filters, textvariable=self.filter, width=10)
         search.pack(side="left", fill="x", expand=True)
         self.filter.trace_add("write", lambda *_: self.draw())
-        ttk.Label(left, text="Arama: dergi, makale veya PMID · Durumlar: ✓ Hazır / • Eksik / ↻ Yenilenecek",
+        ttk.Label(left, text="Web = şu anda sitede oynayan MP3 · Yerel yeni = henüz yayınlanmayan ses",
                   style="Muted.TLabel", wraplength=460).pack(anchor="w", pady=(0, 8))
 
         table_frame = ttk.Frame(left, style="Panel.TFrame")
         table_frame.pack(fill="both", expand=True)
-        self.table = ttk.Treeview(table_frame, columns=("status", "journal", "title", "pmid"),
+        self.table = ttk.Treeview(table_frame,
+                                  columns=("web", "local", "journal", "title", "pmid"),
                                   show="headings", selectmode="browse")
         for name, label, size, stretch in [
-            ("status", "Durum", 92, False),
-            ("journal", "Dergi", 130, False),
-            ("title", "Makale başlığı", 290, True),
+            ("web", "Web", 70, False),
+            ("local", "Yerel", 105, False),
+            ("journal", "Dergi", 112, False),
+            ("title", "Makale başlığı", 295, True),
             ("pmid", "PMID", 0, False)
         ]:
             self.table.heading(name, text=label)
             self.table.column(name, width=size, minwidth=size, stretch=stretch)
-        self.table["displaycolumns"] = ("status", "journal", "title")
-        self.table.tag_configure("ready", foreground="#147b54")
+        self.table["displaycolumns"] = ("web", "local", "journal", "title")
+        self.table.tag_configure("ready", foreground="#117854")
+        self.table.tag_configure("new", foreground="#1a6596")
         self.table.tag_configure("stale", foreground="#a66313")
         self.table.tag_configure("missing", foreground="#56677b")
         scrollbar = ttk.Scrollbar(table_frame, command=self.table.yview, orient="vertical")
