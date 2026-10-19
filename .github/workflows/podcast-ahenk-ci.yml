@@ -96,6 +96,12 @@ jobs:
         run: |
           & .\windows\podcast-ahenk\kurulum.ps1 -PythonVersion 3.13 -CheckPythonOnly
           if (-not $?) { throw "Python 3.13 detection failed" }
+      - name: Validate installer runner on Windows
+        shell: powershell
+        run: |
+          & python.exe -m py_compile .\windows\podcast-ahenk\git_sync.py
+          & .\windows\podcast-ahenk\test_install_runner.ps1
+          if (-not $?) { throw 'Ahenk installer runner regression' }
       - name: Regression - pythonw streams and safe logging
         shell: powershell
         run: |
