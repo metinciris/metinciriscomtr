@@ -77,7 +77,7 @@ class DictionaryAndPendingTests(unittest.TestCase):
                      patch.object(engine, "AUDIO_DIR", audio), \
                      patch.object(engine, "MANIFEST_PATH", audio / "manifest.json"), \
                      patch.object(ui.TwoStepManager, "_startup", lambda _self: None), \
-                     patch.object(ui.TwoStepManager, "_resume_watch", lambda _self: None):
+                     patch.multiple(ui.TwoStepManager, _resume_watch=lambda _self: None, _start_engine_automatically=lambda _self: None):
                     app = ui.TwoStepManager(window)
                     app.articles = articles
                     app.web_manifest = site

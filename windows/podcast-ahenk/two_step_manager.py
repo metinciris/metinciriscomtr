@@ -28,6 +28,8 @@ import audio_inventory
 import git_sync
 import audio_playback
 import preview_library
+import audio_runtime
+import selected_web_audio
 from scripts import render_podcast_audio as engine
 
 
@@ -50,14 +52,19 @@ class TwoStepManager(base.AhenkManager):
         self._clip_rows = {}
         self._clips_building = False
         self._term_after = None
+        self._engine_lock = threading.Lock()
+        self._tts_lock = threading.Lock()
+        self._engine_ready = False
+        self._engine_error = None
         super().__init__(root)
         root.protocol("WM_DELETE_WINDOW", self._close_window)
+        root.after(450, self._start_engine_automatically)
         if self.publish_progress:
             self._set_progress(self.publish_progress)
         root.after(900, self._resume_watch)
 
     def _build(self):
-        self.root.title("Podcast Ahenk | WEB / PC Sesler + Yeni Denemeler 1.5")
+        self.root.title("Podcast Ahenk | Seçilen Sesi WEB'e Gönder + Yeni Okuma 1.6")
         self.root.geometry("1320x885")
         self.root.minsize(1010, 715)
         style = ttk.Style(self.root)
@@ -158,12 +165,14 @@ class TwoStepManager(base.AhenkManager):
             ("📝 Log / Hata", self.open_log),
             ("♫ Son üretilenler", self.open_recent_recordings),
             ("📖 Terim sözlüğü", self.open_dictionary),
-            ("⚙ Ses motorunu kur", self.install_engine),
             ("🌐 Web sitesi", lambda: webbrowser.open("https://metinciris.com.tr/podcast")),
         ]:
             ttk.Button(toolbar, text=label, command=method).pack(side="left", padx=(0, 6))
         ttk.Button(toolbar, text="Durdur (parti sonrası)",
                    command=self.stopping.set).pack(side="right")
+        self.engine_display = tk.StringVar(value="Ses motoru: açılışta kontrol ediliyor…")
+        ttk.Label(toolbar, textvariable=self.engine_display,
+                  foreground="#3b6477").pack(side="right", padx=(0, 12))
 
         filter_bar = ttk.Frame(self.root, padding=(12, 4))
         filter_bar.pack(fill="x")
@@ -220,7 +229,32 @@ class TwoStepManager(base.AhenkManager):
                   font=("Segoe UI Semibold", 10)).pack(anchor="w")
         self.article_name = tk.StringVar(value="Bir başlık seçin.")
         ttk.Label(right, textvariable=self.article_name,
-                  wraplength=475).pack(anchor="w", pady=(6, 10))
+                  wraplength=475).pack(anchor="w", pady=(6, 6))
+
+        # These are the two per-article actions users need immediately. In
+        # v1.5 they were BELOW the editor and disappeared on 900px displays.
+        selected_actions = ttk.Frame(right)
+        selected_actions.pack(fill="x", pady=(2, 6))
+        selected_actions.columnconfigure(0, weight=1)
+        selected_actions.columnconfigure(1, weight=1)
+        self.btn_preview = ttk.Button(
+            selected_actions, text="🎙 YENİ SES ÜRET",
+            command=self.preview_sound, style="Primary.TButton"
+        )
+        self.btn_preview.grid(row=0, column=0, sticky="ew", padx=(0, 5))
+        self.btn_publish_one = ttk.Button(
+            selected_actions, text="⬆ SEÇİLİ SESİ WEB'E GÖNDER",
+            command=self.publish_current, state="disabled",
+            style="Secondary.TButton"
+        )
+        self.btn_publish_one.grid(row=0, column=1, sticky="ew", padx=(5, 0))
+        self.web_choice_label = tk.StringVar(
+            value="WEB'e göndermek için aşağıdaki PC ses listesinden bir kayıt seçin."
+        )
+        ttk.Label(
+            right, textvariable=self.web_choice_label,
+            foreground="#49677e", wraplength=490
+        ).pack(anchor="w", pady=(0, 6))
         clips = ttk.Frame(right)
         clips.pack(fill="x")
         clips.columnconfigure(0, weight=1)
@@ -305,6 +339,18 @@ class TwoStepManager(base.AhenkManager):
             command=lambda: self._open_folder(base.PREVIEWS)
         ).pack(side="right")
 
+        accepted_actions = ttk.Frame(clips_list_box)
+        accepted_actions.pack(fill="x", pady=(6, 0))
+        self.btn_accept = ttk.Button(
+            accepted_actions, text="✓ Seçili denemeyi PC'ye kabul et",
+            command=self.accept_sound, state="disabled"
+        )
+        self.btn_accept.pack(side="left", padx=(0, 7))
+        self.btn_replay = ttk.Button(
+            accepted_actions, text="▶ Denemeyi tekrar dinle",
+            command=self.replay_preview, state="disabled"
+        )
+        self.btn_replay.pack(side="left")
         self.play_feedback = tk.StringVar(value="Dinlemek istediğiniz sesi seçin.")
         ttk.Label(
             clips_list_box, textvariable=self.play_feedback,
@@ -344,34 +390,13 @@ class TwoStepManager(base.AhenkManager):
                              "1.05", "1.10", "1.15", "1.20"]).pack(side="left", padx=6)
         ttk.Button(options, text="Terim sözlüğü", command=self.open_dictionary).pack(side="left")
         ttk.Button(options, text="Metni kaydet", command=self.save_text).pack(side="right")
-        actions = ttk.Frame(details)
-        actions.pack(fill="x", pady=(8, 0))
-        self.btn_preview = ttk.Button(
-            actions, text="Yeni okumayı üret ve dinle", command=self.preview_sound
-        )
-        self.btn_preview.pack(side="left", padx=(0, 5))
-        self.btn_replay = ttk.Button(
-            actions, text="▶ Tekrar dinle", command=self.replay_preview,
-            state="disabled"
-        )
-        self.btn_replay.pack(side="left", padx=(0, 5))
-        self.btn_accept = ttk.Button(
-            actions, text="Beğendim, PC'ye kaydet",
-            command=self.accept_sound, state="disabled"
-        )
-        self.btn_accept.pack(side="left")
         self.preview_feedback = tk.StringVar(
-            value="Okumayı düzenleyin, ardından yeni denemeyi dinleyin."
+            value="Yeni ses üretme düğmesi seçili makalenin hemen üstünde. "
+                  "Üretilen MP3 aşağıdaki PC sesleri listesine eklenir."
         )
-        ttk.Label(details, textvariable=self.preview_feedback, wraplength=470,
-                  foreground="#476579").pack(anchor="w", pady=(7, 0))
+        ttk.Label(details, textvariable=self.preview_feedback,
+                  wraplength=480, foreground="#476579").pack(anchor="w", pady=(7, 0))
         self.choice_label = tk.StringVar(value="")
-        self.btn_publish_one = ttk.Button(
-            details, text="Yalnız bu PC sesini yayımla",
-            command=self.publish_current, state="disabled"
-        )
-        # Keep single-clip action accessible but visually subordinate.
-        self.btn_publish_one.pack(anchor="e", pady=(8, 0))
 
         bottom = ttk.Frame(self.root, padding=(12, 3))
         bottom.pack(fill="x")
@@ -379,41 +404,49 @@ class TwoStepManager(base.AhenkManager):
         self.progress.pack(side="left", padx=(0, 10))
         ttk.Label(bottom, textvariable=self.status).pack(side="left", fill="x", expand=True)
 
-    def install_engine(self):
-        """Optional one-time dependency installer for a new Windows computer."""
-        if self.busy:
-            self._note("Önce devam eden işlemin tamamlanmasını bekleyin.")
-            return
-        if not messagebox.askyesno(
-            "Ahenk ses motorunu kur",
-            "Python sanal ortamına Ahenk ses motoru kütüphaneleri kurulacak.\n"
-            "Bu işlem hazır MP3 dosyalarını değiştirmez. Devam?"
-        ):
-            return
+    def _ensure_engine_dependencies(self):
+        """Run exactly one setup job even if first TTS click overlaps startup."""
+        with self._engine_lock:
+            if self._engine_ready:
+                return
+            audio_runtime.ensure_runtime(ROOT, report=self._worker_log)
+            self._engine_ready = True
+            self._engine_error = None
+
+    def _tts(self):
+        """Initialize the Ahenk model once, using the auto-installed runtime."""
+        with self._tts_lock:
+            self._ensure_engine_dependencies()
+            return super()._tts()
+
+    def _start_engine_automatically(self):
+        """Install missing packages on startup without confirmation or Tk stalls.
+
+        Playing existing MP3s and publishing ready audio still work during
+        first-time setup. No system-wide pip or administrator rights needed.
+        """
+        self.engine_display.set("Ses motoru: eksikler otomatik denetleniyor…")
 
         def work():
-            if not shutil.which("ffmpeg"):
-                raise RuntimeError(
-                    "FFmpeg bulunamadı. PowerShell: winget install -e --id Gyan.FFmpeg"
-                )
-            requirements = ROOT / "scripts" / "podcast-audio-requirements.txt"
-            run = subprocess.run(
-                [sys.executable, "-m", "pip", "install", "-r", str(requirements)],
-                cwd=ROOT, capture_output=True, text=True,
-                encoding="utf-8", errors="replace", timeout=2700,
-                creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
-            )
-            if run.returncode:
-                raise RuntimeError(
-                    "Ahenk kurulamadı: " + (run.stderr or run.stdout)[-1200:]
-                )
-            return "Ahenk ses motoru hazır. Birinci adıma basabilirsiniz."
+            try:
+                self._ensure_engine_dependencies()
+                result = ("ready", "Ses motoru hazır ✓")
+            except Exception as exc:
+                self._engine_error = str(exc)
+                result = ("error", "Ses motoru kurulamadı · Log / Hata'ya bakın")
+                self._worker_log("Ahenk otomatik kurulum hatası: " + str(exc))
+                with ERROR_LOG.open("a", encoding="utf-8") as handle:
+                    handle.write(datetime.now().isoformat() + "\n" +
+                                 traceback.format_exc() + "\n")
+            self.events.put(("done", result, self._engine_setup_finished))
 
-        def done(text):
-            self._stage(text, 100)
-            self._note(text)
+        threading.Thread(target=work, daemon=True).start()
 
-        self._managed_task("Ahenk kütüphaneleri kuruluyor...", work, done)
+    def _engine_setup_finished(self, result):
+        _state, label = result
+        self.engine_display.set(label)
+        if _state == "ready":
+            self._note("Ahenk ses motoru otomatik kontrol edildi ve hazır.")
 
     def open_recent_recordings(self):
         """All recent draft MP3s; double-click jumps to the chosen article."""
@@ -660,8 +693,48 @@ class TwoStepManager(base.AhenkManager):
         self._choose_pc_recording()
 
     def _selected_recording(self):
+        if not hasattr(self, "clip_tree"):
+            return None
         selection = self.clip_tree.selection()
         return self._clip_rows.get(selection[0]) if selection else None
+
+    def _choice_changed(self):
+        """Mini PC-audio list is the explicit source of a WEB upload."""
+        if not hasattr(self, "btn_publish_one"):
+            return
+        row = self._selected_recording()
+        if self.choice.get() == "web":
+            self.btn_publish_one.configure(state="disabled")
+            self.web_choice_label.set(
+                "WEB'deki ses seçildi; mevcut WEB yayını korunacak. "
+                "Başka sürüm yüklemek için aşağıdaki PC listesinden seçim yapın."
+            )
+            return
+        if self.current not in self.rows or row is None:
+            self.btn_publish_one.configure(state="disabled")
+            self.web_choice_label.set(
+                "WEB'e göndermek için aşağıdaki PC ses listesinden bir kayıt seçin."
+            )
+            return
+        kind = row["kind"]
+        if kind == "accepted" and self.rows[self.current]["pc"]:
+            self.web_choice_label.set(
+                "WEB için seçili: ✓ PC'de kabul edilmiş MP3. "
+                "Gerekirse WEB'deki mevcut ses değiştirilecek."
+            )
+            self.btn_publish_one.configure(state="normal")
+        elif kind == "trial" and row.get("record"):
+            self.web_choice_label.set(
+                "WEB için seçili: ★ Yeni deneme. Bu ses doğrudan WEB'e gider; "
+                "PC'de kabul edilmiş MP3 korunur."
+            )
+            self.btn_publish_one.configure(state="normal")
+        else:
+            self.web_choice_label.set(
+                "Bu eski denemenin okuma bilgileri yok. "
+                "WEB'e göndermek için yeni deneme üretin."
+            )
+            self.btn_publish_one.configure(state="disabled")
 
     def _profile_matches_preview(self, clip):
         try:
@@ -686,7 +759,10 @@ class TwoStepManager(base.AhenkManager):
             self.btn_listen_recording.configure(state="disabled")
             self.btn_load_recording.configure(state="disabled")
             self.btn_accept.configure(state="disabled")
+            self.choice.set("")
+            self._choice_changed()
             return
+        self.choice.set("pc")
         self.btn_listen_recording.configure(state="normal")
         if row["kind"] == "trial" and row.get("record"):
             meta = row["record"]
@@ -708,6 +784,7 @@ class TwoStepManager(base.AhenkManager):
             self.preview = None
             self.btn_accept.configure(state="disabled")
             self.btn_load_recording.configure(state="disabled")
+        self._choice_changed()
 
     def listen_selected_recording(self, _event=None):
         row = self._selected_recording()
@@ -961,6 +1038,141 @@ class TwoStepManager(base.AhenkManager):
             self.play_feedback.set("Bu denemenin MP3 dosyası bulunamadı.")
             return
         self._audio_play(path, "Seçili deneme")
+
+    def publish_current(self):
+        """Upload the EXACT highlighted PC recording, even if WEB already has one.
+
+        No accepted local audio is changed for a trial selection. On the WEB
+        side an explicit confirmation always precedes replacing a live clip.
+        """
+        if self.busy:
+            messagebox.showinfo(
+                "Gönderim devam ediyor",
+                "Devam eden GitHub/MP3 işlemi bitince seçili sesi WEB'e gönderebilirsiniz."
+            )
+            return
+        key = self.current
+        row = self._selected_recording()
+        if (key not in self.rows or row is None or self.choice.get() == "web"):
+            messagebox.showinfo(
+                "Gönderilecek ses seçin",
+                "Önce bu makalenin PC sesleri listesinden kabul edilmiş "
+                "MP3'ü veya bir denemeyi işaretleyin."
+            )
+            return
+        if row["kind"] == "trial" and not row.get("record"):
+            messagebox.showwarning(
+                "Eski deneme",
+                "Bu eski denemenin telaffuz/metin kaydı bulunamadı. "
+                "Önce yeni bir deneme üretip seçin."
+            )
+            return
+        if not Path(row["path"]).is_file():
+            messagebox.showwarning(
+                "MP3 bulunamadı", "Seçilen MP3 kaybolmuş. Dosyaları yenileyin."
+            )
+            return
+        candidate = dict(self.catalog[key])
+        source = dict(row)
+        is_trial = source["kind"] == "trial"
+        description = "★ Yeni deneme" if is_trial else "✓ PC'de kabul edilmiş MP3"
+        existing_web = bool(self.rows[key].get("web"))
+        status = (
+            "WEB'deki mevcut ses BU MP3 ile DEĞİŞTİRİLECEK."
+            if existing_web else
+            "WEB'de henüz olmayan ses ilk kez yayımlanacak."
+        )
+        if not messagebox.askyesno(
+            "SEÇİLİ SESİ WEB'E GÖNDER — ONAY",
+            f"Makale:\n{candidate['title'][:150]}\n\n"
+            f"Seçilen ses: {description}\n"
+            f"{status}\n\n"
+            "Diğer makalelere ve PC'deki kabul edilmiş ses arşivine dokunulmaz.\n"
+            "GitHub gönderimi ve site yayını durumunu ekranda görebilirsiniz.\n\n"
+            "Bu MP3'ü WEB için yayımlamak istiyor musunuz?"
+        ):
+            return
+        self._stage(
+            f"Seçili {description} GitHub'a hazırlanıyor…", 0,
+            "Gönderilecek makale: 1  |  WEB dağıtımı: bekleniyor"
+        )
+        self.web_progress_bar["value"] = 0
+
+        def work():
+            if is_trial:
+                result = selected_web_audio.publish_trial(
+                    ROOT, HOME, key, source["path"], candidate
+                )
+                message = result["message"]
+            else:
+                message = git_sync.publish_selected_local_voices(
+                    ROOT, HOME, [key]
+                )
+            remote = git_sync.remote_manifest(ROOT)
+            remote_entry = remote.get("entries", {}).get(key)
+            if (not isinstance(remote_entry, dict) or
+                    remote_entry.get("file") != key + ".mp3" or
+                    any(remote_entry.get(field) != candidate.get(field)
+                        for field in ("title", "journal", "pmid"))):
+                raise RuntimeError(
+                    "Gönderilen MP3'ün GitHub makale kaydı doğrulanamadı."
+                )
+
+            previous = flow.read_progress(HOME)
+            if (previous and previous.get("phase") == "site_yayini_bekleniyor"
+                    and previous.get("github_sent")):
+                progress = previous
+                if key not in progress["target_keys"]:
+                    progress["target_keys"].append(key)
+            else:
+                progress = flow.new_progress([key])
+            progress["expected"][key] = remote_entry
+            if key not in progress["github_sent"]:
+                progress["github_sent"].append(key)
+            progress["phase"] = "site_yayini_bekleniyor"
+            try:
+                live = online_audio.fetch_manifest()
+            except (OSError, RuntimeError, ValueError) as exc:
+                live = None
+                self._worker_log(
+                    "GitHub gönderimi doğrulandı, ancak WEB henüz okunamadı: "
+                    + str(exc)[:160]
+                )
+            if live is not None:
+                progress["website_confirmed"] = flow.verified_on_web(
+                    progress, live
+                )
+                if len(progress["website_confirmed"]) == len(progress["target_keys"]):
+                    progress["phase"] = "tamamlandi"
+            flow.save_progress(HOME, progress)
+            return {"key": key, "progress": progress,
+                    "web_manifest": live, "message": message}
+
+        def done(result):
+            progress = result["progress"]
+            self.publish_progress = progress
+            live = result["web_manifest"]
+            if live is not None:
+                self.web_manifest = live
+                self.web_confirmed = True
+                online_audio.cache_manifest(HOME, live)
+            self._rebuild()
+            self._set_progress(progress)
+            self._note(result["message"])
+            if progress["phase"] == "tamamlandi":
+                self.play_feedback.set(
+                    "Seçili ses WEB'de doğrulandı. Dinlemek için WEB dinle'ye basın."
+                )
+            else:
+                self.play_feedback.set(
+                    "Seçili ses GitHub'a gönderildi. WEB yayını kontrol ediliyor…"
+                )
+                self._start_watch()
+
+        self._managed_task(
+            "Seçili kayıt GitHub'a gönderiliyor; PC sesleriniz korunuyor…",
+            work, done
+        )
 
     def save_text(self):
         if self.busy:

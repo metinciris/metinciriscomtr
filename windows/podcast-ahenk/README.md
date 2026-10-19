@@ -146,3 +146,20 @@ Yüklemeden hemen önce gerçek siteye tekrar bakar. WEB'de eksik bütün sesler
 **Yalnız ilgili terim sözlüğü:** Genel sözlük panelinde artık bütün telaffuz kurallarının listesi gösterilmez. Seçili makalenin gerçekten okunacak metninde bulunan kelimeler ve değiştirilecek okunuşlar görünür. Yazdıkça veya metni değiştirdikçe eşleşmeler yeniden hesaplanır. Örneğin SMARCA4 geçiyorsa `SMARCA4 → smark-a4` görünür; NUTM1 yoksa bu başlık altında görünmez. Bütün genel kuralları incelemek/değiştirmek için `Gör / düzenle` düğmesi kullanılır.
 
 **Yayımlama değişmedi:** İlk adım WEB'de eksikleri hazırlamaya, ikinci adım yalnız hazır ve eksik MP3'leri GitHub'a göndermeye devam eder. Yeni denemeler, kullanıcı beğenip PC'ye kabul edene ve ayrıca yayın onayı verene kadar WEB sitesindeki sese dokunmaz. Eski mevcut PC MP3'ler korunur.
+
+## Windows v1.6 — seçtiğiniz sesi tek başına WEB'e gönderin
+
+**Artık görünür:** Sağda, seçili makale başlığının hemen altında iki büyük düğme yer alır:
+`🎙 YENİ SES ÜRET` ve `⬆ SEÇİLİ SESİ WEB'E GÖNDER`. Bunlar ekranın altında, kaydırma gerektiren bölümde değildir.
+
+**WEB için ses seçimi:** Sağdaki `BU MAKALENİN PC SESLERİ` listesinden kabul edilmiş MP3 veya istediğiniz yeni deneme kaydını tek tıklamayla işaretleyin. Üstte `WEB için seçili: ...` satırında hangi MP3'ün yayımlanacağı yazılır. `SEÇİLİ SESİ WEB'E GÖNDER` düğmesinden sonra, mevcut WEB sesinin değişeceği veya eksikse ekleneceği açıkça sorulur. WEB'deki ses mevcut olsa bile bu yöntemle değiştirebilirsiniz; soldaki iki düğmeli toplu çalışma yalnız WEB'de **eksik** olanları yayımlamaya devam eder.
+
+**Yeni deneme doğrudan WEB'e gidebilir:** Bir denemeyi seçip yayımlamak için önce `PC'ye kabul et` zorunlu değildir. WEB'e gönderim, denemenin MP3 verisini ve yalnız o makalenin okuma profilini GitHub'a kaydeder. Kabul edilmiş yerel MP3, diğer denemeler, diğer makaleler ve genel terim sözlüğü korunur. GitHub ile yerel terim sözlükleri farklıysa program seçili makalenin okunmuş fonetik metnini kullanmayı dener; sesin gelecekte de aynı okunacağını doğrulayamazsa gönderimi durdurur. Hata halinde mevcut yerel dosyalar yedeklenmiş olarak korunur.
+
+**WEB durumu:** Seçili MP3 GitHub'a gönderildikten sonra, WEB'e gerçekten yansıyıp yansımadığı ikinci ilerleme çubuğunda ayrıca görünür. Siteye henüz yansımış gibi gösterilmez. `WEB durumunu kontrol et` ile istediğiniz zaman güncelleyebilirsiniz.
+
+**Ses motoru otomatik kurulur:** `Ses motorunu kur` düğmesi kaldırılmıştır. Uygulama başladığında Python sanal ortamındaki TTS paketleri arka planda denetlenir ve eksikler varsa kullanıcıdan ikinci bir onay istemeden mevcut `scripts/podcast-audio-requirements.txt` içindeki kaynaklardan kurulur. Sistem FFmpeg'i bulunamazsa ayrıca `imageio-ffmpeg` Python tekerleği kullanıcı sanal ortamına kurulur; yönetici yetkisi veya sistem çapında `winget` değişikliği gerekmez. Önceki hazır MP3'leri dinlemeye ve WEB'e yüklemeye devam edebilirsiniz. Açılış ekranında `Ses motoru: hazır` veya kurulum/hata durumu görünür. Modelin Hugging Face dosyaları ilk ihtiyaçta indirilebilir.
+
+**Önceden üretilmiş sesler:** Yükleme denemesi kabul edilmiş yerel MP3'ü veya başka bir makalenin MP3'ünü silmez. `Yeni ses üret` düğmesi her defasında ayrı deneme dosyası oluşturur; `PC'ye kabul et` yalnız seçili deneme için geçerlidir.
+
+**Not:** TTS paketlerinin ilk kurulumu internet bağlantısı ve disk alanı gerektirebilir. Başarısız olursa uygulama WEB/PC hazır sesler için çalışmayı sürdürür; kurulum hatası Log/Hata bölümüne yazılır ve bir sonraki açılışta yeniden denenir.

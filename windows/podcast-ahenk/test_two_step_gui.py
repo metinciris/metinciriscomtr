@@ -85,7 +85,7 @@ class TwoStepGuiSmoke(unittest.TestCase):
                      patch.object(engine, "load_sheet", return_value=articles), \
                      patch.object(ui.online_audio, "fetch_manifest", return_value=site), \
                      patch.object(ui.TwoStepManager, "_startup", lambda _self: None), \
-                     patch.object(ui.TwoStepManager, "_resume_watch", lambda _self: None), \
+                     patch.multiple(ui.TwoStepManager, _resume_watch=lambda _self: None, _start_engine_automatically=lambda _self: None), \
                      patch.object(ui.TwoStepManager, "_tts", return_value=object()), \
                      patch.object(engine, "render_clip", side_effect=fake_render) as render_mock, \
                      patch.object(ui.git_sync, "publish_selected_local_voices",

@@ -127,7 +127,7 @@ def render_clip(tts, text, destination, speed=1.0):
         mp3 = Path(tempdir) / "audio.mp3"
         sf.write(wav, audio, sample_rate)
         result = subprocess.run(
-            ["ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+            [os.environ.get("AHENK_FFMPEG_EXE", "ffmpeg"), "-hide_banner", "-loglevel", "error", "-y",
              "-i", str(wav), "-vn", "-codec:a", "libmp3lame",
              "-qscale:a", "4", str(mp3)],
             check=False, capture_output=True, text=True,
