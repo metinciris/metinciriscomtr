@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-10-19T11:30:45.790181+00:00",
+  "generated_at": "2026-10-19T11:30:54.411084+00:00",
   "entries": {
     "7d9cd522d0f2d5752ca6a105": {
       "title": "MAP2K1 mutasyonlu melanositik tümörler: 114 olgu üzerinden yapılan bir çalışmaya dayanarak histolojik özelliklerin moleküler fonksiyonel sınıflarıyla ilişkisi.",
@@ -928,6 +928,70 @@
       "pmid": "42722359",
       "fingerprint": "5ae49a8f2b05d67f94cc1734c8639c54b3694bd3ab3a2c4266eb607400233a5d",
       "file": "51dc16e1631c2bf5108edf07.mp3",
+      "generated_at": "2026-10-19T09:53:51.086255+00:00"
+    },
+    "362f8dfaf2693fc23aadbeef": {
+      "title": "BRAF V600E mutasyonlu marjinal zon lenfoma, kıllı hücreli lösemi ile kısmen örtüşen özellikler gösterebilir.",
+      "journal": "Annals of Diagnostic Pathology",
+      "pmid": "42692535",
+      "fingerprint": "84329f9be620a18bf70eca5deac96305ed59b636dc30dc0ff85dfe80262051ae",
+      "file": "362f8dfaf2693fc23aadbeef.mp3",
+      "generated_at": "2026-10-19T09:54:06.251006+00:00"
+    },
+    "63594fc16964e29a2f617c3a": {
+      "title": "Çoklu UBA1 varyantlarına sahip VEXAS'ın klinik ve moleküler spektrumu: vaka çalışması ve literatür incelemesi.",
+      "journal": "Annals of Diagnostic Pathology",
+      "pmid": "42692534",
+      "fingerprint": "4d4b5156c0c38238dc2e4b9268cb543996fa8b3694a315b88b20be388fa503c0",
+      "file": "63594fc16964e29a2f617c3a.mp3",
+      "generated_at": "2026-10-19T09:54:32.077112+00:00"
+    },
+    "d36e376c24e70d68bd0d30bd": {
+      "title": "Cerrahi patolojide preanalitik değişkenler: Mikroskopik yorumlama öncesinde tanısal hatanın pratik kaynakları.",
+      "journal": "Annals of Diagnostic Pathology",
+      "pmid": "42692533",
+      "fingerprint": "f4ee0690824a95ebdbaed01030cb6ed2995d314af1f1e7f9bc9e2693338ba65f",
+      "file": "d36e376c24e70d68bd0d30bd.mp3",
+      "generated_at": "2026-10-19T09:54:49.122766+00:00"
+    },
+    "26c89369eb80373753eaade3": {
+      "title": "Erdheim-Chester hastalığını nasıl teşhis ediyorum.",
+      "journal": "Annals of Diagnostic Pathology",
+      "pmid": "42624824",
+      "fingerprint": "0864b023a7db9c1ab8dfc90c2d824f6d6fa72785e2b389e3a879b522998d83ce",
+      "file": "26c89369eb80373753eaade3.mp3",
+      "generated_at": "2026-10-19T09:55:04.692791+00:00"
+    },
+    "bfae5f30fb067983565391e4": {
+      "title": "Rutin prostat biyopsisi raporları, en yüksek derece grubunun ötesinde, dereceye özgü tümör yükü bilgilerini de içermektedir.",
+      "journal": "Diagnostic Pathology",
+      "pmid": "42880549",
+      "fingerprint": "74b10df073159ba00540f4bfaa8dc830d48cd95ccfd1baece6df3036dd7ac47c",
+      "file": "bfae5f30fb067983565391e4.mp3",
+      "generated_at": "2026-10-19T11:29:33.663121+00:00"
+    },
+    "ce9686938b96ee20d449ced8": {
+      "title": "Primer Dermal Melanomun Kapsamlı Genomik Karakterizasyonu: Primeri Bilinmeyen Metastatik Melanomdan Ayırt Edilmesi.",
+      "journal": "Diagnostic Pathology",
+      "pmid": "42849799",
+      "fingerprint": "8f6de9a47e7cee25df6885888b401587c609a2b619fe9b3ca09e73db807cdb8d",
+      "file": "ce9686938b96ee20d449ced8.mp3",
+      "generated_at": "2026-10-19T09:53:03.355305+00:00"
+    },
+    "03d1e6ede30a15a566811cb4": {
+      "title": "Hepatosit karsinomunda tümör içi granülomlar: Klinikopatolojik ilişkiler, prognostik önemi ve tanısal tuzaklar.",
+      "journal": "Diagnostic Pathology",
+      "pmid": "42843427",
+      "fingerprint": "947d7dfad473d3d662ce44cdcc5fedf7db9211538ab9db2963d17327f63a16ba",
+      "file": "03d1e6ede30a15a566811cb4.mp3",
+      "generated_at": "2026-10-19T09:53:37.740228+00:00"
+    },
+    "4007b24f2dc8278ff296c9fc": {
+      "title": "Miyeloid sarkom: Klinik, patolojik ve moleküler bulgular.",
+      "journal": "Diagnostic Pathology",
+      "pmid": "42570680",
+      "fingerprint": "247ef1ba5f510238333e6cb353a814cb80097c6609220d28ea6449de9ebb96d5",
+      "file": "4007b24f2dc8278ff296c9fc.mp3",
       "generated_at": "2026-10-19T09:53:51.086255+00:00"
     }
   }
