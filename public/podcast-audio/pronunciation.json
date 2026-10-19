@@ -1,6 +1,11 @@
 {
   "version": 1,
   "global": [],
-  "articles": {},
+  "articles": {
+    "[\"Histopathology\",\"CCL5 ve GLUT1, kolorektal kanserin toplu istilasında öncü hücreleri tanımlar.\",\"42583704\"]": {
+      "text": "CCL5 ve Glutbir, kolorektal kanserin toplu istilasında öncü hücreleri tanımlar.",
+      "speed": 1.0
+    }
+  },
   "global_speed": 1
 }
