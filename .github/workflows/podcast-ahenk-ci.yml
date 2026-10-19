@@ -50,7 +50,7 @@ jobs:
       - name: Check Python podcast batch generation and sheet parsing
         run: python3 -m unittest scripts.test_render_podcast_audio scripts.test_podcast_audio_pronunciation
       - name: Check Windows manager Python syntax
-        run: python3 -m py_compile windows/podcast-ahenk/podcast_ahenk_gui.py windows/podcast-ahenk/simple_manager.py windows/podcast-ahenk/audio_inventory.py windows/podcast-ahenk/two_step_manager.py windows/podcast-ahenk/two_step_audio.py windows/podcast-ahenk/audio_playback.py windows/podcast-ahenk/preview_library.py scripts/podcast_audio_pronunciation.py
+        run: python3 -m py_compile windows/podcast-ahenk/podcast_ahenk_gui.py windows/podcast-ahenk/simple_manager.py windows/podcast-ahenk/audio_inventory.py windows/podcast-ahenk/two_step_manager.py windows/podcast-ahenk/two_step_audio.py windows/podcast-ahenk/audio_playback.py windows/podcast-ahenk/preview_library.py windows/podcast-ahenk/audio_runtime.py windows/podcast-ahenk/selected_web_audio.py scripts/podcast_audio_pronunciation.py
       - name: Ensure bundled open-source runtime has required files
         run: |
           test -f public/ahenk-cep/js/worker.js
@@ -129,6 +129,12 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "Ahenk preview history or instant playback regression failed" }
           & python.exe .\windows\podcast-ahenk\test_fast_audio_gui.py
           if ($LASTEXITCODE -ne 0) { throw "Ahenk fast WEB/PC audio list integration regression failed" }
+          & python.exe .\windows\podcast-ahenk\test_audio_runtime.py
+          if ($LASTEXITCODE -ne 0) { throw "Ahenk automatic engine setup regression failed" }
+          & python.exe .\windows\podcast-ahenk\test_selected_web_audio.py
+          if ($LASTEXITCODE -ne 0) { throw "Ahenk selected trial WEB publication safety failed" }
+          & python.exe .\windows\podcast-ahenk\test_web_selection_gui.py
+          if ($LASTEXITCODE -ne 0) { throw "Ahenk prominent per-clip WEB publish user interface failed" }
       - name: Regression - simple Windows GUI and local MP3 recovery
         shell: powershell
         run: |
