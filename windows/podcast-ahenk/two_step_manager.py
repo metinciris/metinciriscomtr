@@ -312,9 +312,17 @@ class TwoStepManager(base.AhenkManager):
         self._managed_task("Ahenk kütüphaneleri kuruluyor...", work, done)
 
     def _rebuild(self):
+        # When ALL website sounds have been published, the default
+        # WEB-missing filter becomes empty. Return to 'Hepsi' so users can
+        # choose a published article for pronunciation corrections.
+        super()._rebuild()
+        if (self.filter.get() == "web_missing"
+                and self.totals.get("all", 0) > 0
+                and self.totals.get("web_missing") == 0):
+            self.filter.set("all")
+            self._render()
         # A successful acceptance removes self.preview via the inherited code.
         # Make sure the old one-click replay button cannot use stale data.
-        super()._rebuild()
         if hasattr(self, "btn_replay"):
             valid = (self.preview is not None and self.current is not None
                      and self.preview.get("key") == self.current
@@ -343,6 +351,21 @@ class TwoStepManager(base.AhenkManager):
         media players often lock that file while playing, blocking subsequent
         os.replace. Unique names preserve earlier auditions and avoid locks.
         """
+        if self.current not in self.rows:
+            if self.rows and self.filter.get() == "web_missing":
+                self.filter.set("all")
+                self._render()
+                messagebox.showinfo(
+                    "Makaleyi seçin",
+                    "WEB'de eksik makale görünmüyor. 'Hepsi' listesine geçildi. "
+                    "Yeni okunmasını istediğiniz makaleyi seçip tekrar deneyin."
+                )
+            else:
+                messagebox.showinfo(
+                    "Makaleyi seçin",
+                    "Önce listeden sesini değiştirmek istediğiniz bir makaleyi seçin."
+                )
+            return
         if self.busy:
             messagebox.showinfo(
                 "Önce işlem tamamlansın",
