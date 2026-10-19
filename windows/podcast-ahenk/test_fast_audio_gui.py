@@ -99,6 +99,7 @@ class FastPCListTest(unittest.TestCase):
                         (engine, "MANIFEST_PATH", audio_dir / "manifest.json"),
                         (app_module.TwoStepManager, "_startup", lambda _self: None),
                         (app_module.TwoStepManager, "_resume_watch", lambda _self: None),
+                        (app_module.TwoStepManager, "_start_engine_automatically", lambda _self: None),
                         (app_module.TwoStepManager, "_tts", lambda _self: object()),
                         (app_module.shutil, "which", lambda _name: "ffmpeg.exe"),
                         (audio_playback.FastMP3Player, "play", fake_play),
