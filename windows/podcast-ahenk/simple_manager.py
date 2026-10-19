@@ -389,7 +389,10 @@ class AhenkManager:
         else:
             self.picked.add(key)
         self.table.set(key, "check", "☑" if key in self.picked else "☐")
+        self.table.selection_set(key)
+        self.table.focus(key)
         self._update_picked_label()
+        self._select_article()
         return "break"
 
     def _update_picked_label(self):
