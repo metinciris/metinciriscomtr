@@ -126,6 +126,25 @@ class GitStatusRegression(unittest.TestCase):
             self.assertTrue(list((home / "yedekler").glob("*")))
             self.assertEqual(len(audio_sync.changes(work)), 80)
 
+            # Now really COMMIT + PUSH just one approved local clip to the
+            # temporary bare remote. The other 78 local clips remain untouched.
+            with patch.object(audio_sync, "check_repo"):
+                publish_result = audio_sync.publish_selected_local_voices(
+                    work, home, [keys[0]]
+                )
+            self.assertIn("1 MP3", publish_result)
+            pushed = json.loads(call(
+                "git", "-C", str(work), "show", "HEAD:" + audio_sync.MANIFEST
+            ))
+            self.assertEqual(set(pushed["entries"]), {online, keys[0]})
+            still_local = audio_sync.read_json_file(work / audio_sync.MANIFEST)
+            self.assertEqual(len(still_local["entries"]), 80)
+            for key, original in locally_generated.items():
+                self.assertEqual(
+                    (work / audio_sync.AUDIO_PREFIX / (key + ".mp3")).read_bytes(),
+                    original
+                )
+
     def test_selected_batch_never_sends_unselected_audio(self):
         with tempfile.TemporaryDirectory() as t:
             root = Path(t) / "repo"
