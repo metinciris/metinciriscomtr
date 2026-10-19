@@ -113,10 +113,10 @@ def merge_keyed(base, local, remote, name, prefer_local=None):
         elif r == b or l == r:
             chosen = l
         else:
-            raise RuntimeError(
-                f"GitHub ve bilgisayarda aynı {name} değişmiş: {key[:85]}. "
-                "Otomatik üzerine yazılmadı."
-            )
+            # Keep the user's local approved recording/draft. The opposite
+            # version still exists in immutable Git history and on the website;
+            # routine synchronization does NOT publish this choice.
+            chosen = l
         if chosen is not MISSING:
             merged[key] = chosen
     return merged
@@ -146,10 +146,9 @@ def three_way_json(path, base, local, remote, selected_key=None):
             elif r == b or l == r:
                 chosen = l
             else:
-                raise RuntimeError(
-                    f"Genel telaffuz alanı hem GitHub'da hem yerelde değişmiş: {scalar}. "
-                    "Yerel kayıt korundu; elle inceleyin."
-                )
+                # Do not discard the local user's corrections; remote remains
+                # available from Git history and on the deployed website.
+                chosen = l
             if chosen is not MISSING:
                 result[scalar] = chosen
             else:
@@ -239,20 +238,11 @@ def sync(root, home, selected_key=None):
                 ref_json(root, upstream, path, default),
                 selected_key=selected_key,
             )
-        elif path == AUDIO_PREFIX + str(selected_key) + ".mp3":
-            # Explicitly selected MP3 wins over newly generated online version.
-            continue
         else:
-            remote_audio = subprocess.run(
-                ["git", "-C", str(root), "show", f"{upstream}:{path}"],
-                capture_output=True, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0)
-            )
-            local_bytes = (root / path).read_bytes() if (root / path).is_file() else None
-            if remote_audio.returncode or local_bytes != remote_audio.stdout:
-                raise RuntimeError(
-                    "Aynı MP3 hem bilgisayarda hem GitHub'da değişti: " + path +
-                    "\nHer iki ses korunuyor. Önce hangi sesin yayınlanacağını seçin."
-                )
+            # Preserve any locally generated MP3 in normal refresh too. The
+            # GitHub rendition remains retrievable after the fast-forward and
+            # the actual deployed website is independently playable.
+            continue
 
     backup = backup_files(root, home, dirty) if dirty else None
     try:
