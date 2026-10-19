@@ -197,7 +197,7 @@ class App:
         table_frame.pack(fill="both", expand=True)
         self.table = ttk.Treeview(table_frame,
                                   columns=("web", "local", "journal", "title", "pmid"),
-                                  show="headings", selectmode="browse")
+                                  show="headings", selectmode="extended")
         for name, label, size, stretch in [
             ("web", "Web", 70, False),
             ("local", "Yerel", 105, False),
@@ -343,6 +343,11 @@ class App:
         ttk.Label(run_row, text="kayıt hazırla", style="Panel.TLabel").pack(side="left")
         ttk.Button(batch_tab, text="Eksik veya eski MP3'leri üret",
                    command=self.batch_generate, style="Accent.TButton").pack(anchor="w", pady=(17, 7))
+        ttk.Button(batch_tab, text="Soldaki listeden seçtiğim makaleleri üret",
+                   command=self.generate_checked).pack(anchor="w", pady=(5, 7))
+        ttk.Label(batch_tab, text="Birden çok başlık: solda Ctrl veya Shift ile seçin. "
+                                  "Yalnız eksik veya yeniden üretilecekleri işler.",
+                  style="Muted.TLabel", wraplength=510).pack(anchor="w", pady=(0, 7))
         ttk.Button(batch_tab, text="Mevcut partiden sonra durdur",
                    command=self.stop_event.set).pack(anchor="w", pady=6)
         ttk.Label(batch_tab, text="Her 8 kayıt yerel arşive kaydedilir; otomatik yayımlanmaz. "
@@ -573,7 +578,8 @@ class App:
         selection = self.table.selection()
         if not selection:
             return
-        key = selection[0]
+        focused = self.table.focus()
+        key = focused if focused in selection else selection[0]
         article = self.by_key.get(key)
         if article is None:
             return
@@ -1012,34 +1018,89 @@ class App:
         except (ValueError, RuntimeError, OSError) as e:
             messagebox.showerror("Kabul edilemedi", str(e))
 
-    def batch_generate(self):
-        limit = 250 if self.batch.get() == "Tumu" else int(self.batch.get())
-        if not messagebox.askyesno("Toplu Ahenk uretimi",
-                                   f"En fazla {limit} ses islenecek. Her 8 seste kaydedilir; GitHub'a otomatik gonderilmez."):
+    def generate_checked(self):
+        """Produce only the selected article titles, in safe eight-title groups."""
+        keys = tuple(self.table.selection())
+        if not keys:
+            messagebox.showinfo("Başlık seçin", "Önce soldaki listeden bir veya birkaç makale seçin.")
             return
+        if not messagebox.askyesno(
+            "Seçilen başlıkları üret",
+            f"{len(keys)} başlık seçildi. Eksik veya yenilenmesi gereken MP3'ler üretilip "
+            "yerel arşive kaydedilecek.\n\nWeb sitesindeki sesler değiştirilmez. Devam?"
+        ):
+            return
+
         def work():
             articles = engine.load_sheet()
-            total = 0
+            by_key = engine.catalog(articles)
+            candidates = [key for key in keys if key in by_key]
+            count = 0
             tts = None
             try:
-                while total < limit and not self.stop_event.is_set():
-                    engine.BATCH_SIZE = min(MAX_BATCH, limit - total)
-                    plan = engine.plan_updates(articles, engine.load_manifest(), datetime.now(timezone.utc))
+                while candidates and not self.stop_event.is_set():
+                    manifest = engine.load_manifest()
+                    engine.BATCH_SIZE = 8
+                    plan = engine.plan_updates(articles, manifest, datetime.now(timezone.utc))
+                    due = [k for k in candidates if not engine.fresh(
+                        manifest["entries"].get(k), by_key[k], datetime.now(timezone.utc)
+                    )]
+                    selected = due[:8]
+                    if not selected:
+                        break
+                    plan["selected"] = selected
+                    tts = tts or self.get_tts()
+                    engine.execute_plan(
+                        plan, tts=tts,
+                        on_prepared=lambda _k, item: self.events.put(
+                            ("log", "Hazırlanan: " + item["title"][:80], None)
+                        ),
+                    )
+                    count += len(selected)
+                    candidates = [k for k in candidates if k not in selected]
+            finally:
+                engine.BATCH_SIZE = MAX_BATCH
+            return f"{count} seçili MP3 yerel arşive kaydedildi. Yayına almak için makaleyi seçip gönderin."
+        self.task("Seçilen makaleler Ahenk ile hazırlanıyor...", work,
+                  lambda msg: (self.reload(), self.note(msg)))
+
+    def batch_generate(self):
+        limit = 250 if self.batch.get() == "Tumu" else int(self.batch.get())
+        if not messagebox.askyesno(
+            "Toplu Ahenk üretimi",
+            f"En fazla {limit} ses üretilecek. 8'erli partiler hâlinde yerelde kaydedilecek.\n"
+            "Mevcut web MP3'leri değişmeyecek; yayımlama ayrı onay gerektirir. Devam?"
+        ):
+            return
+
+        def work():
+            articles = engine.load_sheet()
+            count = 0
+            tts = None
+            try:
+                while count < limit and not self.stop_event.is_set():
+                    engine.BATCH_SIZE = min(MAX_BATCH, limit - count)
+                    plan = engine.plan_updates(articles, engine.load_manifest(),
+                                               datetime.now(timezone.utc))
                     if not plan["has_changes"]:
                         break
-                    if plan["selected"] and tts is None:
-                        tts = self.get_tts()
-                    def notify(key, article):
-                        self.events.put(("log", "Üretiliyor: " + article["title"][:70], None))
-                    engine.execute_plan(plan, tts=tts, on_prepared=notify)
-                    total += len(plan["selected"])
-                    self.events.put(("log", f"{total} MP3 başarıyla arşive kaydedildi.", None))
+                    if plan["selected"]:
+                        tts = tts or self.get_tts()
+                    engine.execute_plan(
+                        plan, tts=tts,
+                        on_prepared=lambda _k, item: self.events.put(
+                            ("log", "Hazırlanan: " + item["title"][:80], None)
+                        ),
+                    )
+                    count += len(plan["selected"])
+                    self.events.put(("log", f"Yerel arşive kaydedilen: {count} MP3", None))
                     if not plan["selected"]:
                         break
             finally:
                 engine.BATCH_SIZE = MAX_BATCH
-            return f"{total} ses uretildi/yenilendi. GitHub'a Gonder ile yayinlayin."
-        self.task("Toplu ses uretimi...", work,
+            return (f"{count} MP3 hazırlandı. Soldaki 'Yerel yeni' filtresinden "
+                    "gözden geçirip web'de yayımlayabilirsiniz.")
+        self.task("Eksik ve eski MP3'ler topluca hazırlanıyor...", work,
                   lambda msg: (self.reload(), self.note(msg)))
 
     def push(self):
