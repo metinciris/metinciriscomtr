@@ -597,7 +597,8 @@ class App:
                 continue
             self.by_key[key] = article
             self.table.insert("", "end", iid=key,
-                              values=("✓ Yayında" if web_exists else "— Yok",
+                              values=(("✓ Yayında" if self.web_checked == "Şimdi / web sitesi" else "≈ Önbellekte")
+                                      if web_exists else "— Yok",
                                       local_label, article["journal"],
                                       article["title"], article["pmid"]),
                               tags=(tag,))
@@ -690,7 +691,9 @@ class App:
             f"·   PMID: {article['pmid']}"
         )
         self.web_card_status.set(
-            ("✓ Web'de yayında\nOluşturulma: " + web_stamp) if site_available
+            (("✓ Web'de yayında" if self.web_checked == "Şimdi / web sitesi"
+              else "≈ Son bilinen WEB sürümü") + "\nOluşturulma: " + web_stamp)
+            if site_available
             else "Henüz web MP3'ü yok\nYerel sesi üretebilirsiniz."
         )
         self.local_card_status.set(
