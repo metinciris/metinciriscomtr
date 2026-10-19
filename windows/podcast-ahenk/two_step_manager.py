@@ -26,6 +26,8 @@ import two_step_audio as flow
 import online_audio
 import audio_inventory
 import git_sync
+import audio_playback
+import preview_library
 from scripts import render_podcast_audio as engine
 
 
@@ -43,15 +45,21 @@ class TwoStepManager(base.AhenkManager):
         self.web_watch_checks = 0
         self.web_watch_started = 0.0
         self.web_watch_busy = False
+        self.fast_player = audio_playback.FastMP3Player()
+        self._play_seq = 0
+        self._clip_rows = {}
+        self._clips_building = False
+        self._term_after = None
         super().__init__(root)
+        root.protocol("WM_DELETE_WINDOW", self._close_window)
         if self.publish_progress:
             self._set_progress(self.publish_progress)
         root.after(900, self._resume_watch)
 
     def _build(self):
-        self.root.title("Podcast Ahenk | İki Adımda Web Sesleri 1.4")
-        self.root.geometry("1250x790")
-        self.root.minsize(980, 680)
+        self.root.title("Podcast Ahenk | WEB / PC Sesler + Yeni Denemeler 1.5")
+        self.root.geometry("1320x885")
+        self.root.minsize(1010, 715)
         style = ttk.Style(self.root)
         if "clam" in style.theme_names():
             style.theme_use("clam")
@@ -247,7 +255,61 @@ class TwoStepManager(base.AhenkManager):
         )
         self.btn_listen_pc.pack(fill="x")
 
-        dictionary = ttk.LabelFrame(right, text="TERİM SÖZLÜĞÜ", padding=(9, 5))
+        clips_list_box = ttk.LabelFrame(
+            right, text="BU MAKALENİN PC SESLERİ · Kabul edilen + yeni denemeler",
+            padding=(8, 6)
+        )
+        clips_list_box.pack(fill="x", pady=(9, 0))
+        list_row = ttk.Frame(clips_list_box)
+        list_row.pack(fill="x")
+        self.clip_tree = ttk.Treeview(
+            list_row, columns=("kind", "time", "size"),
+            show="headings", selectmode="browse", height=3
+        )
+        for column, heading, width in [
+            ("kind", "Ses kaydı", 190),
+            ("time", "Oluşturulma", 130),
+            ("size", "Boyut", 65),
+        ]:
+            self.clip_tree.heading(column, text=heading)
+            self.clip_tree.column(
+                column, width=width, minwidth=45,
+                stretch=(column == "kind")
+            )
+        self.clip_tree.pack(side="left", fill="x", expand=True)
+        clips_scroll = ttk.Scrollbar(
+            list_row, orient="vertical", command=self.clip_tree.yview
+        )
+        clips_scroll.pack(side="right", fill="y")
+        self.clip_tree.configure(yscrollcommand=clips_scroll.set)
+        self.clip_tree.bind("<<TreeviewSelect>>", self._choose_pc_recording)
+        self.clip_tree.bind("<Double-1>", self.listen_selected_recording)
+        clip_buttons = ttk.Frame(clips_list_box)
+        clip_buttons.pack(fill="x", pady=(5, 0))
+        self.btn_listen_recording = ttk.Button(
+            clip_buttons, text="▶ Seçili sesi dinle",
+            command=self.listen_selected_recording, state="disabled"
+        )
+        self.btn_listen_recording.pack(side="left", padx=(0, 5))
+        self.btn_load_recording = ttk.Button(
+            clip_buttons, text="Denemenin metnini aç",
+            command=self.load_recording_profile, state="disabled"
+        )
+        self.btn_load_recording.pack(side="left", padx=(0, 5))
+        ttk.Button(
+            clip_buttons, text="Deneme klasörü",
+            command=lambda: self._open_folder(base.PREVIEWS)
+        ).pack(side="right")
+
+        self.play_feedback = tk.StringVar(value="Dinlemek istediğiniz sesi seçin.")
+        ttk.Label(
+            clips_list_box, textvariable=self.play_feedback,
+            foreground="#52718c", wraplength=480
+        ).pack(anchor="w", pady=(5, 0))
+
+        dictionary = ttk.LabelFrame(
+            right, text="BU OKUMADA GEÇEN TERİMLER", padding=(9, 5)
+        )
         dictionary.pack(fill="x", pady=(9, 0))
         self.dictionary_summary = tk.StringVar(
             value="Telaffuz kuralları listeleniyor…"
@@ -266,6 +328,9 @@ class TwoStepManager(base.AhenkManager):
         self.editor = tk.Text(details, wrap="word", undo=True, height=4,
                               background="#fbfcff", font=("Segoe UI", 9), padx=7, pady=6)
         self.editor.pack(fill="both", expand=True)
+        self.editor.bind("<KeyRelease>", self._on_editor_change, add=True)
+        self.editor.bind("<<Paste>>", self._on_editor_change, add=True)
+        self.editor.bind("<<Cut>>", self._on_editor_change, add=True)
         options = ttk.Frame(details)
         options.pack(fill="x", pady=(6, 0))
         ttk.Label(options, text="Hız").pack(side="left")
