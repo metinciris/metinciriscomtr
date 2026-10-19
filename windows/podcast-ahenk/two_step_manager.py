@@ -423,7 +423,9 @@ class TwoStepManager(base.AhenkManager):
             ):
                 self._stage("Yükleme iptal edildi. Yerel sesler korunuyor.")
                 return
-            self._upload_approved(articles, catalog)
+            # The preflight's _task is still marked busy until its queued
+            # idle event is handled. Start upload on the NEXT Tk event turn.
+            self.root.after(200, lambda: self._upload_approved(articles, catalog))
 
         self._managed_task("WEB ve yerel sesler karşılaştırılıyor...", preflight,
                            preflight_done)
