@@ -201,5 +201,5 @@ if ($Desktop -and (Test-Path -LiteralPath $Desktop)) {
 }
 Write-Host "Kurulum tamam. Uygulama klasoru: $Repo" -ForegroundColor Green
 Write-Host "FFmpeg eksikse: winget install -e --id Gyan.FFmpeg"
-Write-Host "Uygulamada 'Ses Motorunu Kur' secenegini kullanin."
+Write-Host "Eksik ses motoru bilesenleri program acilisinda otomatik kurulur."
 Start-Process -FilePath $Launcher
