@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-10-19T11:05:03.280246+00:00",
+  "generated_at": "2026-10-19T11:30:08.580532+00:00",
   "entries": {
     "7d9cd522d0f2d5752ca6a105": {
       "title": "MAP2K1 mutasyonlu melanositik tümörler: 114 olgu üzerinden yapılan bir çalışmaya dayanarak histolojik özelliklerin moleküler fonksiyonel sınıflarıyla ilişkisi.",
@@ -609,6 +609,70 @@
       "fingerprint": "5da27c0dd2c5127982652734a8459e62c2c179f8214f7bca98e79aa5cedca4be",
       "file": "a85ffdbe7639b27d32cf7b63.mp3",
       "generated_at": "2026-10-19T09:55:25.978051+00:00"
+    },
+    "aaddea8432e595aea9b12b4e": {
+      "title": "Metastaz yapmamış lenf düğümlerinin H&E bazlı, tekrarlanabilir ve yorumlanabilir histopatolojik alt tipleri, kolorektal kanserde risk sınıflandırmasını iyileştiriyor.",
+      "journal": "Modern Pathology",
+      "pmid": "42855076",
+      "fingerprint": "d611ba2e33a567b27badfb7a8c3bd9b68a45cd70d680de1b00ff6b02f6d2d610",
+      "file": "aaddea8432e595aea9b12b4e.mp3",
+      "generated_at": "2026-10-19T11:29:33.663121+00:00"
+    },
+    "04407973deeef66f086b6e6b": {
+      "title": "Paratiroid Patolojisinin Sırları Ortaya Çıkarıldı: Minik Bezler, Büyük Sorular.",
+      "journal": "Modern Pathology",
+      "pmid": "42855075",
+      "fingerprint": "e240b12f39c8a191d1ad6d88199ca618d617c169b6b74ac280fc345edfd1baa5",
+      "file": "04407973deeef66f086b6e6b.mp3",
+      "generated_at": "2026-10-19T07:17:55.998310+00:00"
+    },
+    "06f2562d9441ee5e85a2b13f": {
+      "title": "FGFR2/3 Değişikliği Gösteren İntrahepatik Kolanjiyokarsinom: Hastalığa Özgü Sağkalımı İyileştiren Farklı Bir Klinikopatolojik ve Moleküler Alt Tip.",
+      "journal": "Modern Pathology",
+      "pmid": "42833294",
+      "fingerprint": "1914d59b52c625faeee2ac49e4edc6cf7430daf50012f664c181a8a09f2366b1",
+      "file": "06f2562d9441ee5e85a2b13f.mp3",
+      "generated_at": "2026-10-19T07:18:19.062963+00:00"
+    },
+    "55f8d04b3a9767afbef7396d": {
+      "title": "Germ Hattı-Somatik Etkileşim, Periferik Sinir Kılıfı Tümörlerinde Moleküler Farklılaşmayı Şekillendiriyor.",
+      "journal": "Modern Pathology",
+      "pmid": "42833293",
+      "fingerprint": "34c4946726d070ff406a4fe09a52b9a9265153b090e44554d93ddbf2053b3424",
+      "file": "55f8d04b3a9767afbef7396d.mp3",
+      "generated_at": "2026-10-19T07:18:49.832967+00:00"
+    },
+    "5d5db8d7a01d5dd0f24de9ff": {
+      "title": "Neoadjuvan baş ve boyun kanseri klinik çalışmalarında patolojik tam yanıtın değerlendirme yöntemleri: bir kapsamlı inceleme.",
+      "journal": "Histopathology",
+      "pmid": "42811432",
+      "fingerprint": "279b88513a8e881ccf876542b6a059497fcc59e3b62c9e888f6cc82f118d16bb",
+      "file": "5d5db8d7a01d5dd0f24de9ff.mp3",
+      "generated_at": "2026-10-19T07:22:14.717563+00:00"
+    },
+    "1919af8b47aa835d697d421f": {
+      "title": "Aterosklerozdan reperfüzyon hasarına: Koroner kalp hastalığının tüm yelpazesinde nötrofil ekstraselüler tuzaklarının kapsamlı bir incelemesi.",
+      "journal": "Histopathology",
+      "pmid": "42703890",
+      "fingerprint": "e176608b54a7567dc43a4967a0df0cabdadb2a72008959538e7d801289e570be",
+      "file": "1919af8b47aa835d697d421f.mp3",
+      "generated_at": "2026-10-19T09:53:37.740228+00:00"
+    },
+    "886a3bb08488353cbcc8dccc": {
+      "title": "Mukozal melanomun kapsamlı genomik profillemesi, yeni füzyon transkriptlerini ve hücre döngüsü, MAPK ve PI3K yollarının düzensizliğini ortaya koymaktadır.",
+      "journal": "Histopathology",
+      "pmid": "42675868",
+      "fingerprint": "5c42ab69f8c204d9d5c1520bbd2280203b094fc673f377feb6d908e51cc53f59",
+      "file": "886a3bb08488353cbcc8dccc.mp3",
+      "generated_at": "2026-10-19T09:54:06.251006+00:00"
+    },
+    "5bfaf39f625b1928cb993c7b": {
+      "title": "Tümör oluşumunu destekleyen makrofajlar tarafından tetiklenen anormal SOX9 ekspresyonu, hepatoblastomda daha kötü klinik sonuçları öngörmektedir.",
+      "journal": "Histopathology",
+      "pmid": "42657494",
+      "fingerprint": "f6e8e47aac6b835deb6062680cb0581367c797dbd18f0736198dcf296c805475",
+      "file": "5bfaf39f625b1928cb993c7b.mp3",
+      "generated_at": "2026-10-19T09:54:19.585045+00:00"
     }
   }
 }
