@@ -12,6 +12,13 @@ metinciris.com.tr/podcast için, mevcut Ahenk Cep ses motorunu kullanan **yerel 
 
 Kodun kaynağı yalnızca `https://github.com/metinciris/metinciriscomtr` olarak sabittir. Kurulum, `git clone --filter=blob:none --sparse` kullanır. Rastgele URL'den `irm | iex` veya benzeri uzaktan script çalıştırma yoktur.
 
+## Ses motoru testi ve kullanıcı dostu arayüz
+
+- Yeni arayüzde solda makale listesi, sağda seçili makalenin okuma metni ve hız ayarı bulunur. Hazır / eksik / yenilenecek sayıları üstte görünür. Bir makaleden diğerine geçince henüz kaydedilmemiş metin taslakları oturum içinde korunur.
+- İlk kurulumdan sonra **Test sesi: Ses hazır** düğmesini kullanın. Gerçek Ahenk modeliyle kısa bir ses oluşturur. Bu test yayınlanmış MP3 dosyalarına dokunmaz.
+- Windows `pythonw.exe` altında `sys.stdout`/`sys.stderr` boş olabildiğinden ses motorunun çıktısı gerektiğinde `%LOCALAPPDATA%\PodcastAhenk\ahenk_motor.log` dosyasına yönlendirilir. Hatalar `%LOCALAPPDATA%\PodcastAhenk\ahenk_hata.log` içinde ayrıntılı kaydedilir; arayüzde **İşlem kayıtları** sekmesinden klasör açılır.
+- Her işlem sırasında hareketli durum çubuğu görünür. Test ve ön dinleme bitmeden **Beğendim** seçeneği etkinleşmez.
+
 ## Ses ve okuma iyileştirme
 
 - **Makaleleri Güncelle**: Google Sheets'ten 12 derginin makalelerini alır. Hazır/yeni üretilecek/yenilenecek sesler görünür.
@@ -23,8 +30,12 @@ Kodun kaynağı yalnızca `https://github.com/metinciris/metinciriscomtr` olarak
 
 **150 gün kuralı:** Güncel listede duran bir ses 150 günü aşınca yenileme sırasına alınır. Yeni MP3 tamamlanana kadar mevcut dosya korunur. Makale listesi tehlikeli biçimde kısalmışsa toplu işlem durdurulur.
 
-**Yerel dosyalar:** Kod `%LOCALAPPDATA%\PodcastAhenk\metinciriscomtr`, sanal ortam `%LOCALAPPDATA%\PodcastAhenk\venv` ve ön dinlemeler `%LOCALAPPDATA%\PodcastAhenk\on_dinleme` altındadır. Aynı bilgisayarda ikinci kez kurulum mevcut dosyalar kirliyse durur; değişiklikler korunur.
+**Yerel dosyalar:** Kod `%LOCALAPPDATA%\PodcastAhenk\metinciriscomtr`, sanal ortam `%LOCALAPPDATA%\PodcastAhenk\venv` ve ön dinlemeler `%LOCALAPPDATA%\PodcastAhenk\on_dinleme` altındadır. Aynı bilgisayarda tekrar kurulumda yayımlanmamış yerel telaffuz/MP3 değişiklikleri korunur ve yedeklenir. GitHub aynı dosyayı da değiştirmişse çakışma nedeniyle güncelleme güvenli biçimde durdurulur (zorla üzerine yazılmaz).
 
 **Sınırlama:** Windows 10/11 üzerinde gerçek Ahenk modelinin kurulumu/çıktısı uygulamanın ilk çalıştırılmasında sınanmalıdır. Uygulama ağır paketleri otomatik olarak sessizce kurmaz; yalnız **Ses Motorunu Kur** düğmesiyle kurulur. Kaynak kuralların ve MP3'lerin GitHub'a güvenli aktarılması için yazma izniniz olmalıdır.
 
 Geri bildirim ve kaynak: https://github.com/metinciris/metinciriscomtr/tree/main/windows/podcast-ahenk
+
+## Mevcut kurulumun güncellenmesi
+
+Programı kapatın. `Downloads` klasöründe güncel `kurulum.ps1` dosyasını indirin ve aynı PowerShell komutunu yeniden çalıştırın. Yerel telaffuz sözlüğünüz (ör. `SMARCA4 -> smark-a4`) kaybolmaması için kontrol edilir; uygun ise kurulum dizini yanında zaman damgalı `yedek_*` klasörüne kopyalanır. Program açıldığında önce **Test sesi: Ses hazır** ile modeli sınayın.
