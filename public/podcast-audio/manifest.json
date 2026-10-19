@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-10-19T11:31:02.530332+00:00",
+  "generated_at": "2026-10-19T12:40:04.061240+00:00",
   "entries": {
     "7d9cd522d0f2d5752ca6a105": {
       "title": "MAP2K1 mutasyonlu melanositik tümörler: 114 olgu üzerinden yapılan bir çalışmaya dayanarak histolojik özelliklerin moleküler fonksiyonel sınıflarıyla ilişkisi.",
@@ -1009,6 +1009,38 @@
       "fingerprint": "9a9d519669cb8ecbf39a6712eaa2b755194ff5e6d3412daec787cb321d98036c",
       "file": "27b524fecf4336e84d21ce9c.mp3",
       "generated_at": "2026-10-19T09:55:25.978051+00:00"
+    },
+    "6103abf824898ff9c6ab93b0": {
+      "title": "Metastaz yapmamış lenf düğümlerinin tekrarlanabilir ve yorumlanabilir H&E tabanlı histopatolojik alt tipleri, kolorektal kanserde risk sınıflandırmasını iyileştiriyor.",
+      "journal": "Modern Pathology",
+      "pmid": "42855076",
+      "fingerprint": "cbd02a98bba35a76bda7b031eefc787d27e6f9c1734b854e9d92e4b62f8fc0a0",
+      "file": "6103abf824898ff9c6ab93b0.mp3",
+      "generated_at": "2026-10-19T07:17:31.045448+00:00"
+    },
+    "a19bac1a3f18c611e676b34b": {
+      "title": "HPV İlişkili ve HPV Bağımsız Servikal Yassı Hücreli Karsinomalarda Difüz Olmayan p16 Ekspresyonu: Histopatolojik Özellikler ve Moleküler Değişikliklere Vurgu Yapan Tek Kurum Vaka Serisi.",
+      "journal": "American Journal of Surgical Pathology",
+      "pmid": "42619632",
+      "fingerprint": "5a747ea105c2c4cee04b270925cac7bfe4060fe0e75a01cef3d7e38e3e868a2f",
+      "file": "a19bac1a3f18c611e676b34b.mp3",
+      "generated_at": "2026-10-19T09:55:04.692791+00:00"
+    },
+    "4d9c2232d28916ee5eede57d": {
+      "title": "Meme bezinin düşük dereceli iğsi hücreli lezyonlarında tanısal zorlukların üstesinden gelme: retrospektif bir inceleme.",
+      "journal": "Human Pathology",
+      "pmid": "42363645",
+      "fingerprint": "7f8f06b58e9c92cf2ee571f9211fa9d83ee849f8a703d69256c0d06759878608",
+      "file": "4d9c2232d28916ee5eede57d.mp3",
+      "generated_at": "2026-10-19T12:35:40.111139+00:00"
+    },
+    "4c7049f9494b280e294eecc6": {
+      "title": "Üst Gastrointestinal ve Pankreatikobiliyer Kanserlerde Uyumsuzluk Onarım Eksikliği: Çok Modlu Moleküler Verilerin Klinik Uygulamaya Entegrasyonu.",
+      "journal": "Virchows Archiv",
+      "pmid": "42730524",
+      "fingerprint": "5460b0394d27806455f58e95d8e09cc2ff15420218a3530b2703778278d0fc0f",
+      "file": "4c7049f9494b280e294eecc6.mp3",
+      "generated_at": "2026-10-19T12:35:40.111139+00:00"
     }
   }
 }
