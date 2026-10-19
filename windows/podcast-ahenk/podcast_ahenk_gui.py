@@ -19,6 +19,10 @@ import tempfile
 import threading
 import tkinter as tk
 import traceback
+import webbrowser
+
+import git_sync
+import online_audio
 
 ROOT = Path(__file__).resolve().parents[2]
 os.chdir(ROOT)
@@ -53,92 +57,6 @@ def run(cmd, timeout=180):
     return p.stdout.strip()
 
 
-def git(*args, timeout=180):
-    return run(["git", "-C", str(ROOT), *args], timeout=timeout)
-
-
-def verify_git():
-    remote = git("remote", "get-url", "origin").rstrip("/")
-    safe = {TRUSTED_REPO, TRUSTED_REPO.removesuffix(".git"),
-            "git@github.com:metinciris/metinciriscomtr.git",
-            "git@github.com:metinciris/metinciriscomtr"}
-    if remote not in safe:
-        raise RuntimeError("Beklenmeyen GitHub uzak deposu: " + remote)
-    if git("branch", "--show-current") != "main":
-        raise RuntimeError("Yalnizca main dalinda otomatik GitHub islemi yapilir.")
-
-
-def allowed_path(path):
-    return (path in {"public/podcast-audio/manifest.json",
-                     "public/podcast-audio/pronunciation.json"} or
-            bool(re.fullmatch(r"public/podcast-audio/[a-f0-9]{24}\.mp3", path)))
-
-
-def pull_clean():
-    """Fast-forward app code while keeping unpublished local audio corrections.
-
-    No stash, reset, deletion or overwrite. If GitHub changed the same dirty
-    file, fail before pulling so the user can resolve it explicitly.
-    """
-    verify_git()
-    status = git("status", "--porcelain", "--untracked-files=all")
-    dirty = set()
-    for line in status.splitlines():
-        path = line[3:].replace("\\", "/")
-        if " -> " in path or not allowed_path(path):
-            raise RuntimeError("Beklenmeyen yerel dosya değişikliği: " + path +
-                               "\nDosyaya dokunulmadı.")
-        dirty.add(path)
-    git("fetch", "origin", "main", timeout=240)
-    upstream = "refs/remotes/origin/main"
-    # HEAD may not contain the latest published audio, but this is still safe
-    # as long as local and remote edits are disjoint.
-    changed = set(git("diff", "--name-only", "HEAD", upstream).splitlines())
-    collision = sorted(dirty & changed)
-    if collision:
-        raise RuntimeError(
-            "GitHub'da aynı dosyalarda yeni değişiklik var: " + ", ".join(collision) +
-            "\nYerel MP3/telaffuz düzeltmeleriniz korunuyor. Önce çakışmayı inceleyin."
-        )
-    git("pull", "--ff-only", "origin", "main", timeout=240)
-    return "Program güncellendi. Yayınlanmamış MP3 ve telaffuz ayarları korundu."
-
-
-def publish():
-    verify_git()
-    status = git("status", "--porcelain", "--untracked-files=all")
-    paths = []
-    for line in status.splitlines():
-        item = line[3:]
-        if " -> " in item:
-            raise RuntimeError("Dosya tasi(n)masi tespit edildi; otomatik gonderim engellendi.")
-        item = item.replace("\\", "/")
-        if not allowed_path(item):
-            raise RuntimeError("Podcast disinda degisiklik var: " + item)
-        paths.append(item)
-    if not paths:
-        return "Gonderilecek degisiklik yok."
-    # If another PC or GitHub Actions has committed meanwhile, fail closed.
-    git("fetch", "origin", "main", timeout=240)
-    if git("rev-parse", "HEAD") != git("rev-parse", "refs/remotes/origin/main"):
-        raise RuntimeError("GitHub sizden sonra guncellenmis. Degisiklikleriniz silinmedi. "
-                           "Mevcut sesi/manifesti birlestirmeden zorla push yapilmaz.")
-    if git("diff", "--cached", "--name-only"):
-        raise RuntimeError("Baska staged dosyalar var; commit durduruldu.")
-    for path in sorted(set(paths)):
-        git("add", "-A", "--", path)
-    staged = git("diff", "--cached", "--name-only").splitlines()
-    if any(not allowed_path(p) for p in staged):
-        raise RuntimeError("Beklenmeyen staged dosya var; gonderim durduruldu.")
-    if not staged:
-        return "Git'e eklenecek fark yok."
-    git("-c", "user.name=Podcast Ahenk Ses Yoneticisi",
-        "-c", "user.email=41898282+github-actions[bot]@users.noreply.github.com",
-        "commit", "-m", "chore(podcast): publish local Ahenk MP3 and pronunciation")
-    git("push", "origin", "main", timeout=300)
-    return f"{len(staged)} dosya GitHub'a gonderildi; site dagitimi tetiklendi."
-
-
 def write_manifest(data):
     AUDIO.mkdir(parents=True, exist_ok=True)
     with tempfile.NamedTemporaryFile("w", encoding="utf-8", dir=AUDIO,
@@ -167,7 +85,13 @@ class App:
         self.tts = None
         self.rules = pron.load(RULES)
         self.manifest = engine.load_manifest()
+        self.web_manifest = online_audio.load_cached_manifest(APP_HOME)
+        self.web_checked = "Önbellek" if self.web_manifest.get("entries") else "Henüz denetlenmedi"
+        self.github_manifest = git_sync.ref_json(
+            ROOT, "HEAD", git_sync.MANIFEST, {"version": 1, "entries": {}}
+        )
         self.filter = tk.StringVar()
+        self.state_filter = tk.StringVar(value="Tümü")
         self.journal = tk.StringVar(value="Tum dergiler")
         self.batch = tk.StringVar(value="8")
         self.speed = tk.StringVar(value="1.00")
@@ -178,6 +102,7 @@ class App:
         self.load_cache()
         self.draw()
         root.after(100, self.process_events)
+        root.after(350, self.refresh_web)
 
     def make_ui(self):
         """Compact two-pane workflow: select title -> improve -> listen -> accept."""
