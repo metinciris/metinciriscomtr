@@ -457,6 +457,74 @@ def publish_live_web_voice(root, home, key, live_entry, downloaded_mp3):
             if sent else "Web'deki ses zaten GitHub'da seçili; değiştirilmedi.")
 
 
+def publish_selected_local_voices(root, home, keys):
+    """Only explicitly selected local MP3s are sent, preserving other drafts."""
+    root = Path(root)
+    keys = list(dict.fromkeys(keys))
+    if not keys or len(keys) > 150:
+        raise RuntimeError("En az bir, en fazla 150 makale seçin.")
+    for key in keys:
+        if not re.fullmatch(r"[a-f0-9]{24}", key):
+            raise RuntimeError("Geçersiz seçili makale: " + str(key))
+    sync(root, home)
+    local = read_json_file(root / MANIFEST)
+    if local is None:
+        raise RuntimeError("Yerel MP3 manifesti bulunamadı.")
+    for key in keys:
+        assert_audio_valid(root, key, local.get("entries", {}).get(key))
+    remote = ref_json(root, "HEAD", MANIFEST, {"version": 1, "entries": {}})
+    result_entries = dict(remote.get("entries", {}))
+    for key in keys:
+        result_entries[key] = local["entries"][key]
+    # Only selected recordings should modify the remote manifest.
+    chosen_manifest = dict(remote)
+    chosen_manifest["entries"] = result_entries
+    if result_entries != remote.get("entries", {}):
+        chosen_manifest["generated_at"] = datetime.now(timezone.utc).isoformat()
+
+    rule_path = root / RULES
+    before_rules = rule_path.read_bytes() if rule_path.is_file() else None
+    local_rules = read_json_file(
+        rule_path, {"version": 1, "global": [], "articles": {}, "global_speed": 1.0}
+    )
+    remote_rules = ref_json(
+        root, "HEAD", RULES, {"version": 1, "global": [], "articles": {}, "global_speed": 1.0}
+    )
+    merged_rules = dict(remote_rules)
+    selected_rules = dict(remote_rules.get("articles", {}))
+    for key in keys:
+        identity = pronunciation_identity(local["entries"][key])
+        if identity in local_rules.get("articles", {}):
+            selected_rules[identity] = local_rules["articles"][identity]
+        else:
+            selected_rules.pop(identity, None)
+    merged_rules["articles"] = selected_rules
+
+    manifest_target = root / MANIFEST
+    originals = {
+        MANIFEST: manifest_target.read_bytes() if manifest_target.is_file() else None,
+        RULES: before_rules,
+    }
+    backup_files(root, home, originals.keys())
+    try:
+        save_json(manifest_target, chosen_manifest)
+        save_json(rule_path, merged_rules)
+        sent = _commit_and_push(
+            root, [MANIFEST, RULES] +
+            [AUDIO_PREFIX + key + ".mp3" for key in keys]
+        )
+    finally:
+        for path, data in originals.items():
+            target = root / path
+            if data is None:
+                target.unlink(missing_ok=True)
+            else:
+                target.write_bytes(data)
+    if sent:
+        return f"Seçilen {len(keys)} MP3 GitHub'a gönderildi. Web yayını hazırlanıyor."
+    return "Seçili MP3'ler zaten GitHub'daki seslerle aynı."
+
+
 def remote_manifest(root):
     return ref_json(root, "HEAD", MANIFEST, {"version": 1, "entries": {}})
 
