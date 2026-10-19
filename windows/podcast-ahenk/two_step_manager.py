@@ -693,8 +693,48 @@ class TwoStepManager(base.AhenkManager):
         self._choose_pc_recording()
 
     def _selected_recording(self):
+        if not hasattr(self, "clip_tree"):
+            return None
         selection = self.clip_tree.selection()
         return self._clip_rows.get(selection[0]) if selection else None
+
+    def _choice_changed(self):
+        """Mini PC-audio list is the explicit source of a WEB upload."""
+        if not hasattr(self, "btn_publish_one"):
+            return
+        row = self._selected_recording()
+        if self.choice.get() == "web":
+            self.btn_publish_one.configure(state="disabled")
+            self.web_choice_label.set(
+                "WEB'deki ses seçildi; mevcut WEB yayını korunacak. "
+                "Başka sürüm yüklemek için aşağıdaki PC listesinden seçim yapın."
+            )
+            return
+        if self.current not in self.rows or row is None:
+            self.btn_publish_one.configure(state="disabled")
+            self.web_choice_label.set(
+                "WEB'e göndermek için aşağıdaki PC ses listesinden bir kayıt seçin."
+            )
+            return
+        kind = row["kind"]
+        if kind == "accepted" and self.rows[self.current]["pc"]:
+            self.web_choice_label.set(
+                "WEB için seçili: ✓ PC'de kabul edilmiş MP3. "
+                "Gerekirse WEB'deki mevcut ses değiştirilecek."
+            )
+            self.btn_publish_one.configure(state="normal")
+        elif kind == "trial" and row.get("record"):
+            self.web_choice_label.set(
+                "WEB için seçili: ★ Yeni deneme. Bu ses doğrudan WEB'e gider; "
+                "PC'de kabul edilmiş MP3 korunur."
+            )
+            self.btn_publish_one.configure(state="normal")
+        else:
+            self.web_choice_label.set(
+                "Bu eski denemenin okuma bilgileri yok. "
+                "WEB'e göndermek için yeni deneme üretin."
+            )
+            self.btn_publish_one.configure(state="disabled")
 
     def _profile_matches_preview(self, clip):
         try:
@@ -719,7 +759,10 @@ class TwoStepManager(base.AhenkManager):
             self.btn_listen_recording.configure(state="disabled")
             self.btn_load_recording.configure(state="disabled")
             self.btn_accept.configure(state="disabled")
+            self.choice.set("")
+            self._choice_changed()
             return
+        self.choice.set("pc")
         self.btn_listen_recording.configure(state="normal")
         if row["kind"] == "trial" and row.get("record"):
             meta = row["record"]
@@ -741,6 +784,7 @@ class TwoStepManager(base.AhenkManager):
             self.preview = None
             self.btn_accept.configure(state="disabled")
             self.btn_load_recording.configure(state="disabled")
+        self._choice_changed()
 
     def listen_selected_recording(self, _event=None):
         row = self._selected_recording()
