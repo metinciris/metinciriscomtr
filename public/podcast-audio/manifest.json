@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-10-19T11:04:39.983000+00:00",
+  "generated_at": "2026-10-19T11:04:48.707518+00:00",
   "entries": {
     "7d9cd522d0f2d5752ca6a105": {
       "title": "MAP2K1 mutasyonlu melanositik tümörler: 114 olgu üzerinden yapılan bir çalışmaya dayanarak histolojik özelliklerin moleküler fonksiyonel sınıflarıyla ilişkisi.",
@@ -417,6 +417,70 @@
       "fingerprint": "a1e7f223c49edf5bf085bd4e8a1a1ba34d37a97e518752539e73f5b0d1f5ab0f",
       "file": "a26521c86c13d9f736abcb7e.mp3",
       "generated_at": "2026-10-19T09:54:19.585045+00:00"
+    },
+    "64db36bed7032d85a749889c": {
+      "title": "ACOD1, KEAP1/NRF2 ekseni aracılığıyla tümörle ilişkili makrofajların ferroptoz direncini artırır ve üçlü negatif meme kanserinin ilerlemesini destekler.",
+      "journal": "Pathology International",
+      "pmid": "42617477",
+      "fingerprint": "0f540010cf75058e07f3b92bd3458915486b02c786d6267b36dffad1b4c38fcf",
+      "file": "64db36bed7032d85a749889c.mp3",
+      "generated_at": "2026-10-19T09:54:32.077112+00:00"
+    },
+    "1511b720fd7b71f86ab3e6c0": {
+      "title": "Diyabetik yara iyileşmesini desteklemede kendiliğinden birleşme mekanizmasının gelişimi.",
+      "journal": "Pathology International",
+      "pmid": "42617476",
+      "fingerprint": "fc4f975280e28bfa335730152d89b2bf7af247bdde27646da9e425f6fc1ca751",
+      "file": "1511b720fd7b71f86ab3e6c0.mp3",
+      "generated_at": "2026-10-19T09:54:49.122766+00:00"
+    },
+    "9c2538953236cf074aafe02e": {
+      "title": "MARCH1, PLPP3 ubikitinasyonunu düzenleyerek akciğer adenokarsinomunda malign ilerlemeyi destekler.",
+      "journal": "Pathology International",
+      "pmid": "42617475",
+      "fingerprint": "fa5ab35531f69631f59f3c11b57b4fe608a16e980c6bb29b9efd686fb5a51cf1",
+      "file": "9c2538953236cf074aafe02e.mp3",
+      "generated_at": "2026-10-19T09:55:25.978051+00:00"
+    },
+    "0cfaac5278158c559e003bca": {
+      "title": "Avustralya ve Yeni Zelanda'da ölü doğumlar: Cevap arayışında perinatal otopsi ve plasenta incelemesinin önemi.",
+      "journal": "Pathology Research and Practice",
+      "pmid": "42580930",
+      "fingerprint": "0b6b9fcf6718695f89b80a6eb8717c3cfb5d065982ce06259d98d90a51e102ef",
+      "file": "0cfaac5278158c559e003bca.mp3",
+      "generated_at": "2026-10-19T09:53:19.157274+00:00"
+    },
+    "5e06dbd077defaea567f4529": {
+      "title": "Miyeloid neoplazmlarda MECOM yeniden düzenlemelerinin yapısal karmaşıklığı ve mekanistik çeşitliliği.",
+      "journal": "Pathology Research and Practice",
+      "pmid": "42562659",
+      "fingerprint": "988f83af6233154d664b5bcce4d4b077b35cfe40c1881603eb8ff7f46d60493f",
+      "file": "5e06dbd077defaea567f4529.mp3",
+      "generated_at": "2026-10-19T09:53:37.740228+00:00"
+    },
+    "8a0d30b40a01c977871b56ea": {
+      "title": "Rutin bir tanı laboratuvarında retikülin ve kollajen fibrozisi için DSÖ derecelendirme sisteminin uygulanabilirliği.",
+      "journal": "Pathology Research and Practice",
+      "pmid": "42557184",
+      "fingerprint": "874672006e02d178fb951d89e774b0ffccaa14e41702a9157e71ad211f4df5d5",
+      "file": "8a0d30b40a01c977871b56ea.mp3",
+      "generated_at": "2026-10-19T09:53:51.086255+00:00"
+    },
+    "47ffdacc71742bbdcbeb41f6": {
+      "title": "Böbrek amiloidozunda klinikopatolojik özellikler ve prognostik faktörler: Avustralya'daki bir üçüncü basamak sağlık merkezinin 10 yıllık deneyimi.",
+      "journal": "Pathology Research and Practice",
+      "pmid": "42557181",
+      "fingerprint": "0af0aade44eb5bd31af26d8937556829bb1bdb6a203e9772c7d44c5729a7501d",
+      "file": "47ffdacc71742bbdcbeb41f6.mp3",
+      "generated_at": "2026-10-19T09:54:19.585045+00:00"
+    },
+    "e02f6a2666cec36b0d1e254a": {
+      "title": "Erken evre invaziv meme kanseri ve yumurtalık kanserinde TCF12 ekspresyonunun retrospektif değerlendirmesi: prognostik çıkarımlar ve biyolojik bilgiler.",
+      "journal": "Pathology Research and Practice",
+      "pmid": "42552187",
+      "fingerprint": "3b3078adb5808a942b0062257f3156029fd209dc4847bf300e79c292fb498e6b",
+      "file": "e02f6a2666cec36b0d1e254a.mp3",
+      "generated_at": "2026-10-19T09:54:32.077112+00:00"
     }
   }
 }
