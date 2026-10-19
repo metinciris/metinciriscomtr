@@ -83,6 +83,15 @@ class PreviewRegressions(unittest.TestCase):
                     app.articles = [item]
                     app._rebuild()
                     self.assertEqual(app.current, key)
+                    # All-site-published case: once a voice is on WEB, default
+                    # 'WEB'de eksik' view would otherwise contain zero rows.
+                    app.web_manifest = {"version": 1, "entries": {
+                        key: {**catalog[key], "generated_at": "2026-10-19T12:00:00+00:00"},
+                    }}
+                    app.filter.set("web_missing")
+                    app._rebuild()
+                    self.assertEqual(app.filter.get(), "all")
+                    self.assertEqual(app.current, key)
                     app.editor.delete("1.0", "end")
                     app.editor.insert("1.0", "Merhaba! Özel okuma denemesi.")
                     app.speed.set("0.95")
