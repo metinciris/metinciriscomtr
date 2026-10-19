@@ -351,6 +351,13 @@ class TwoStepManager(base.AhenkManager):
         media players often lock that file while playing, blocking subsequent
         os.replace. Unique names preserve earlier auditions and avoid locks.
         """
+        if self.busy:
+            messagebox.showinfo(
+                "Önce işlem tamamlansın",
+                "Web denetimi veya ses yükleme işlemi devam ediyor. "
+                "Tamamlandıktan sonra yeni okumayı üretin."
+            )
+            return
         if self.current not in self.rows:
             if self.rows and self.filter.get() == "web_missing":
                 self.filter.set("all")
@@ -365,13 +372,6 @@ class TwoStepManager(base.AhenkManager):
                     "Makaleyi seçin",
                     "Önce listeden sesini değiştirmek istediğiniz bir makaleyi seçin."
                 )
-            return
-        if self.busy:
-            messagebox.showinfo(
-                "Önce işlem tamamlansın",
-                "Web denetimi veya ses yükleme işlemi devam ediyor. "
-                "Tamamlandıktan sonra yeni okumayı üretin."
-            )
             return
         try:
             profile = self._profile()
