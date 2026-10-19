@@ -4,10 +4,12 @@ No TTS model and no GitHub network are needed.
 """
 import json
 from pathlib import Path
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 import audio_inventory
 from scripts import render_podcast_audio as engine
 
