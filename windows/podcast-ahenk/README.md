@@ -4,9 +4,9 @@ metinciris.com.tr/podcast için, mevcut Ahenk Cep ses motorunu kullanan **yerel 
 
 ## Başka bilgisayara güvenli kurulum
 
-1. Resmî kaynaklardan **Python 3.11 (64 bit)** ve **Git for Windows** kurun. Python Launcher (py) açık olsun.
+1. Resmî kaynaklardan **Python 3.11, 3.12 veya 3.13 (64 bit)** ve **Git for Windows** kurun. Python Launcher (py) varsa otomatik bulunur; ayrıca `python.exe` kontrol edilir.
 2. MP3 dönüştürmek için FFmpeg kurun: PowerShell'de `winget install -e --id Gyan.FFmpeg`. Terminali yeniden açınca `ffmpeg -version` ile doğrulayın.
-3. Bu klasördeki [kurulum.ps1](kurulum.ps1) dosyasını GitHub üzerinden indirip **içeriğini inceleyin**. Dosyanın bulunduğu dizinde PowerShell açıp `powershell -NoProfile -ExecutionPolicy Bypass -File .\kurulum.ps1` çalıştırın. Bu komut, yalnız o PowerShell işlemi için yürütme ilkesini değiştirir; yönetici yetkisi gerekmez.
+3. Bu klasördeki [kurulum.ps1](kurulum.ps1) dosyasını GitHub üzerinden indirip **içeriğini inceleyin**. Dosyanın bulunduğu dizinde PowerShell açıp `powershell -NoProfile -ExecutionPolicy Bypass -File .\kurulum.ps1` çalıştırın. Kurulum otomatik olarak mevcut 64-bit Python 3.13, 3.12 veya 3.11 sürümünü seçer. Yalnız denetlemek için `powershell -NoProfile -ExecutionPolicy Bypass -File .\kurulum.ps1 -CheckPythonOnly` kullanın. Belirli sürümü zorlamak için `-PythonVersion 3.11` ekleyin. Bu komut, yalnız o PowerShell işlemi için yürütme ilkesini değiştirir; yönetici yetkisi gerekmez.
 4. Masaüstünde **Podcast Ahenk Ses Yoneticisi** kısayolu oluşur. Açın, **Ses Motorunu Kur** düğmesine bir kez basın. Tensor/PyTorch bağımlılıkları kendi sanal ortamına kurulur. Model ilk seste Hugging Face `ozgurguler/ahenk-cep-tr` kaynağından gelir.
 5. **GitHub'a Gönder** için Git Credential Manager (Git for Windows) tarayıcı oturumu isteyebilir. Uygulama herhangi bir token/parola alanı sağlamaz, parolanızı kaydetmez.
 
