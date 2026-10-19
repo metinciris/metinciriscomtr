@@ -19,6 +19,10 @@ import tempfile
 import threading
 import tkinter as tk
 import traceback
+import webbrowser
+
+import git_sync
+import online_audio
 
 ROOT = Path(__file__).resolve().parents[2]
 os.chdir(ROOT)
@@ -53,92 +57,6 @@ def run(cmd, timeout=180):
     return p.stdout.strip()
 
 
-def git(*args, timeout=180):
-    return run(["git", "-C", str(ROOT), *args], timeout=timeout)
-
-
-def verify_git():
-    remote = git("remote", "get-url", "origin").rstrip("/")
-    safe = {TRUSTED_REPO, TRUSTED_REPO.removesuffix(".git"),
-            "git@github.com:metinciris/metinciriscomtr.git",
-            "git@github.com:metinciris/metinciriscomtr"}
-    if remote not in safe:
-        raise RuntimeError("Beklenmeyen GitHub uzak deposu: " + remote)
-    if git("branch", "--show-current") != "main":
-        raise RuntimeError("Yalnizca main dalinda otomatik GitHub islemi yapilir.")
-
-
-def allowed_path(path):
-    return (path in {"public/podcast-audio/manifest.json",
-                     "public/podcast-audio/pronunciation.json"} or
-            bool(re.fullmatch(r"public/podcast-audio/[a-f0-9]{24}\.mp3", path)))
-
-
-def pull_clean():
-    """Fast-forward app code while keeping unpublished local audio corrections.
-
-    No stash, reset, deletion or overwrite. If GitHub changed the same dirty
-    file, fail before pulling so the user can resolve it explicitly.
-    """
-    verify_git()
-    status = git("status", "--porcelain", "--untracked-files=all")
-    dirty = set()
-    for line in status.splitlines():
-        path = line[3:].replace("\\", "/")
-        if " -> " in path or not allowed_path(path):
-            raise RuntimeError("Beklenmeyen yerel dosya değişikliği: " + path +
-                               "\nDosyaya dokunulmadı.")
-        dirty.add(path)
-    git("fetch", "origin", "main", timeout=240)
-    upstream = "refs/remotes/origin/main"
-    # HEAD may not contain the latest published audio, but this is still safe
-    # as long as local and remote edits are disjoint.
-    changed = set(git("diff", "--name-only", "HEAD", upstream).splitlines())
-    collision = sorted(dirty & changed)
-    if collision:
-        raise RuntimeError(
-            "GitHub'da aynı dosyalarda yeni değişiklik var: " + ", ".join(collision) +
-            "\nYerel MP3/telaffuz düzeltmeleriniz korunuyor. Önce çakışmayı inceleyin."
-        )
-    git("pull", "--ff-only", "origin", "main", timeout=240)
-    return "Program güncellendi. Yayınlanmamış MP3 ve telaffuz ayarları korundu."
-
-
-def publish():
-    verify_git()
-    status = git("status", "--porcelain", "--untracked-files=all")
-    paths = []
-    for line in status.splitlines():
-        item = line[3:]
-        if " -> " in item:
-            raise RuntimeError("Dosya tasi(n)masi tespit edildi; otomatik gonderim engellendi.")
-        item = item.replace("\\", "/")
-        if not allowed_path(item):
-            raise RuntimeError("Podcast disinda degisiklik var: " + item)
-        paths.append(item)
-    if not paths:
-        return "Gonderilecek degisiklik yok."
-    # If another PC or GitHub Actions has committed meanwhile, fail closed.
-    git("fetch", "origin", "main", timeout=240)
-    if git("rev-parse", "HEAD") != git("rev-parse", "refs/remotes/origin/main"):
-        raise RuntimeError("GitHub sizden sonra guncellenmis. Degisiklikleriniz silinmedi. "
-                           "Mevcut sesi/manifesti birlestirmeden zorla push yapilmaz.")
-    if git("diff", "--cached", "--name-only"):
-        raise RuntimeError("Baska staged dosyalar var; commit durduruldu.")
-    for path in sorted(set(paths)):
-        git("add", "-A", "--", path)
-    staged = git("diff", "--cached", "--name-only").splitlines()
-    if any(not allowed_path(p) for p in staged):
-        raise RuntimeError("Beklenmeyen staged dosya var; gonderim durduruldu.")
-    if not staged:
-        return "Git'e eklenecek fark yok."
-    git("-c", "user.name=Podcast Ahenk Ses Yoneticisi",
-        "-c", "user.email=41898282+github-actions[bot]@users.noreply.github.com",
-        "commit", "-m", "chore(podcast): publish local Ahenk MP3 and pronunciation")
-    git("push", "origin", "main", timeout=300)
-    return f"{len(staged)} dosya GitHub'a gonderildi; site dagitimi tetiklendi."
-
-
 def write_manifest(data):
     AUDIO.mkdir(parents=True, exist_ok=True)
     with tempfile.NamedTemporaryFile("w", encoding="utf-8", dir=AUDIO,
@@ -167,7 +85,15 @@ class App:
         self.tts = None
         self.rules = pron.load(RULES)
         self.manifest = engine.load_manifest()
+        self.web_manifest = online_audio.load_cached_manifest(APP_HOME)
+        self.web_checked = "Önbellek" if self.web_manifest.get("entries") else "Henüz denetlenmedi"
+        self.github_manifest = git_sync.ref_json(
+            ROOT, "HEAD", git_sync.MANIFEST, {"version": 1, "entries": {}}
+        )
         self.filter = tk.StringVar()
+        self.state_filter = tk.StringVar(value="Tümü")
+        self.publish_choice = tk.StringVar(value="")
+        self.choice_key = None
         self.journal = tk.StringVar(value="Tum dergiler")
         self.batch = tk.StringVar(value="8")
         self.speed = tk.StringVar(value="1.00")
@@ -178,11 +104,12 @@ class App:
         self.load_cache()
         self.draw()
         root.after(100, self.process_events)
+        root.after(350, self.refresh_web)
 
     def make_ui(self):
         """Compact two-pane workflow: select title -> improve -> listen -> accept."""
         self.root.configure(bg="#f3f6fa")
-        self.root.title("Podcast Ahenk | Ses Yöneticisi 1.1")
+        self.root.title("Podcast Ahenk | Web ve Yerel Ses Yöneticisi 1.2")
         self.root.geometry("1220x800")
         self.root.minsize(980, 650)
 
@@ -212,19 +139,20 @@ class App:
         header.pack(fill="x")
         tk.Label(header, text="PODCAST   /   AHENK SES YÖNETİCİSİ",
                  bg="#18324d", fg="#ffffff", font=("Segoe UI Semibold", 17)).pack(anchor="w")
-        tk.Label(header, text="Makaleyi seçin  →  okumasını düzenleyin  →  dinleyin  →  beğenirseniz yayınlayın",
+        tk.Label(header, text="Web'deki sesi gör  →  istersen yenisini üret  →  karşılaştır  →  istediğin sesi yayınla",
                  bg="#18324d", fg="#cbd9e4", font=("Segoe UI", 10)).pack(anchor="w", pady=(3, 0))
 
         top_actions = ttk.Frame(outer, style="Root.TFrame")
         top_actions.pack(fill="x", pady=(10, 6))
         for title, command in [
+            ("↻ Web seslerini yenile", self.refresh_web),
+            ("↓ GitHub seslerini indir", self.pull),
             ("Makaleleri yenile", self.scan),
-            ("GitHub'dan güncelle", self.pull),
-            ("Ses motorunu kur", self.install),
-            ("Test sesi: Ses hazır", self.test_sound),
-            ("GitHub'a gönder", self.push),
+            ("Test sesi", self.test_sound),
+            ("Log ve klasörler", self.open_logs),
+            ("Web sitesi", self.open_site),
         ]:
-            ttk.Button(top_actions, text=title, command=command).pack(side="left", padx=(0, 8))
+            ttk.Button(top_actions, text=title, command=command).pack(side="left", padx=(0, 6))
 
         summary_frame = ttk.Frame(outer, style="Panel.TFrame", padding=(12, 8))
         summary_frame.pack(fill="x", pady=(0, 9))
@@ -232,6 +160,9 @@ class App:
         self.model_status = tk.StringVar(value="Ahenk modeli: Henüz yüklenmedi")
         ttk.Label(summary_frame, textvariable=self.summary, style="Panel.TLabel",
                   font=("Segoe UI Semibold", 10)).pack(side="left")
+        self.web_summary = tk.StringVar(value="Web: kontrol ediliyor…")
+        ttk.Label(summary_frame, textvariable=self.web_summary,
+                  style="Panel.TLabel").pack(side="left", padx=(22, 0))
         ttk.Label(summary_frame, textvariable=self.model_status,
                   style="Muted.TLabel").pack(side="right")
 
@@ -244,33 +175,43 @@ class App:
 
         ttk.Label(left, text="MAKALELER", style="Panel.TLabel",
                   font=("Segoe UI Semibold", 11)).pack(anchor="w")
-        ttk.Label(left, text="Hazır, eksik veya yenilenecek başlıkları seçin.",
-                  style="Muted.TLabel").pack(anchor="w", pady=(0, 10))
+        ttk.Label(left, text="Web (yayındaki) ve yerel MP3'leri aynı listede karşılaştırın.",
+                  style="Muted.TLabel", wraplength=470).pack(anchor="w", pady=(0, 10))
         filters = ttk.Frame(left, style="Panel.TFrame")
         filters.pack(fill="x", pady=(0, 7))
-        self.journal_list = ttk.Combobox(filters, state="readonly", width=22, textvariable=self.journal)
+        self.journal_list = ttk.Combobox(filters, state="readonly", width=17, textvariable=self.journal)
         self.journal_list.pack(side="left", padx=(0, 5))
         self.journal_list.bind("<<ComboboxSelected>>", lambda _e: self.draw())
-        search = ttk.Entry(filters, textvariable=self.filter)
+        self.state_list = ttk.Combobox(
+            filters, state="readonly", width=15, textvariable=self.state_filter,
+            values=["Tümü", "Web'de var", "Web'de yok", "Yerel yeni", "Yerel hazır",
+                    "Yerel eksik", "Yenilenecek"]
+        )
+        self.state_list.pack(side="left", padx=(0, 5))
+        self.state_list.bind("<<ComboboxSelected>>", lambda _e: self.draw())
+        search = ttk.Entry(filters, textvariable=self.filter, width=10)
         search.pack(side="left", fill="x", expand=True)
         self.filter.trace_add("write", lambda *_: self.draw())
-        ttk.Label(left, text="Arama: dergi, makale veya PMID · Durumlar: ✓ Hazır / • Eksik / ↻ Yenilenecek",
+        ttk.Label(left, text="Web = şu anda sitede oynayan MP3 · Yerel yeni = henüz yayınlanmayan ses",
                   style="Muted.TLabel", wraplength=460).pack(anchor="w", pady=(0, 8))
 
         table_frame = ttk.Frame(left, style="Panel.TFrame")
         table_frame.pack(fill="both", expand=True)
-        self.table = ttk.Treeview(table_frame, columns=("status", "journal", "title", "pmid"),
-                                  show="headings", selectmode="browse")
+        self.table = ttk.Treeview(table_frame,
+                                  columns=("web", "local", "journal", "title", "pmid"),
+                                  show="headings", selectmode="extended")
         for name, label, size, stretch in [
-            ("status", "Durum", 92, False),
-            ("journal", "Dergi", 130, False),
-            ("title", "Makale başlığı", 290, True),
+            ("web", "Web", 70, False),
+            ("local", "Yerel", 105, False),
+            ("journal", "Dergi", 112, False),
+            ("title", "Makale başlığı", 295, True),
             ("pmid", "PMID", 0, False)
         ]:
             self.table.heading(name, text=label)
             self.table.column(name, width=size, minwidth=size, stretch=stretch)
-        self.table["displaycolumns"] = ("status", "journal", "title")
-        self.table.tag_configure("ready", foreground="#147b54")
+        self.table["displaycolumns"] = ("web", "local", "journal", "title")
+        self.table.tag_configure("ready", foreground="#117854")
+        self.table.tag_configure("new", foreground="#1a6596")
         self.table.tag_configure("stale", foreground="#a66313")
         self.table.tag_configure("missing", foreground="#56677b")
         scrollbar = ttk.Scrollbar(table_frame, command=self.table.yview, orient="vertical")
@@ -281,55 +222,130 @@ class App:
 
         notebook = ttk.Notebook(right)
         notebook.pack(fill="both", expand=True)
-        article_tab = ttk.Frame(notebook, style="Panel.TFrame", padding=(10, 13))
-        global_tab = ttk.Frame(notebook, style="Panel.TFrame", padding=(10, 13))
-        batch_tab = ttk.Frame(notebook, style="Panel.TFrame", padding=(10, 13))
-        log_tab = ttk.Frame(notebook, style="Panel.TFrame", padding=(10, 13))
-        notebook.add(article_tab, text="Seçili okuma")
-        notebook.add(global_tab, text="Genel düzeltmeler")
+        audio_tab = ttk.Frame(notebook, style="Panel.TFrame", padding=(12, 12))
+        edit_tab = ttk.Frame(notebook, style="Panel.TFrame", padding=(12, 12))
+        batch_tab = ttk.Frame(notebook, style="Panel.TFrame", padding=(12, 12))
+        global_tab = ttk.Frame(notebook, style="Panel.TFrame", padding=(12, 12))
+        log_tab = ttk.Frame(notebook, style="Panel.TFrame", padding=(12, 12))
+        notebook.add(audio_tab, text="Sesler ve WEB yayını")
+        notebook.add(edit_tab, text="Okumayı iyileştir")
         notebook.add(batch_tab, text="Toplu üretim")
-        notebook.add(log_tab, text="İşlem kayıtları")
+        notebook.add(global_tab, text="Terim sözlüğü")
+        notebook.add(log_tab, text="Kayıtlar")
 
-        ttk.Label(article_tab, text="1  /  OKUMA METNİ",
-                  style="Panel.TLabel", font=("Segoe UI Semibold", 11)).pack(anchor="w")
-        self.selected_label = ttk.Label(article_tab, text="Soldan bir makale seçin.",
+        ttk.Label(audio_tab, text="BU MAKALENİN SESLERİ",
+                  style="Panel.TLabel", font=("Segoe UI Semibold", 12)).pack(anchor="w")
+        self.selected_label = ttk.Label(audio_tab, text="Soldan bir makale seçin.",
                                         style="Panel.TLabel", wraplength=530)
-        self.selected_label.pack(anchor="w", pady=(6, 7))
-        ttk.Label(article_tab, text="Yalnız seslendirilecek metni değiştirirsiniz. Sitedeki başlık değişmez.",
-                  style="Muted.TLabel", wraplength=525).pack(anchor="w", pady=(0, 7))
-        self.text = tk.Text(article_tab, height=6, wrap="word", undo=True,
+        self.selected_label.pack(anchor="w", pady=(7, 6))
+        ttk.Label(audio_tab,
+                  text="Her iki sesi dinleyin, yayına gidecek olanı kutusundan işaretleyin.",
+                  style="Muted.TLabel", wraplength=520).pack(anchor="w", pady=(0, 12))
+
+        voices = ttk.Frame(audio_tab, style="Panel.TFrame")
+        voices.pack(fill="x", pady=(0, 8))
+        voices.columnconfigure(0, weight=1)
+        voices.columnconfigure(1, weight=1)
+        left_voice = tk.Frame(voices, bg="#ebf5fc", highlightbackground="#accfe5",
+                              highlightthickness=1, padx=11, pady=12)
+        left_voice.grid(row=0, column=0, sticky="nsew", padx=(0, 7))
+        right_voice = tk.Frame(voices, bg="#e9f5f0", highlightbackground="#aad5c1",
+                               highlightthickness=1, padx=11, pady=12)
+        right_voice.grid(row=0, column=1, sticky="nsew", padx=(7, 0))
+
+        self.radio_web = tk.Radiobutton(
+            left_voice, text="WEB / Şu an yayında",
+            variable=self.publish_choice, value="web", command=self.choice_changed,
+            bg="#ebf5fc", activebackground="#ebf5fc", fg="#214b6a",
+            font=("Segoe UI Semibold", 10), anchor="w", state="disabled",
+        )
+        self.radio_web.pack(fill="x", anchor="w")
+        self.web_card_status = tk.StringVar(value="Web sesleri kontrol ediliyor...")
+        tk.Label(left_voice, textvariable=self.web_card_status,
+                 bg="#ebf5fc", fg="#47627c", wraplength=210, justify="left",
+                 font=("Segoe UI", 9), height=3).pack(fill="x", anchor="w", pady=(7, 9))
+        self.btn_web = ttk.Button(left_voice, text="▶ WEB sesini dinle",
+                                  command=self.listen_web, state="disabled")
+        self.btn_web.pack(fill="x")
+
+        self.radio_local = tk.Radiobutton(
+            right_voice, text="BİLGİSAYAR / Yeni ses",
+            variable=self.publish_choice, value="local", command=self.choice_changed,
+            bg="#e9f5f0", activebackground="#e9f5f0", fg="#215843",
+            font=("Segoe UI Semibold", 10), anchor="w", state="disabled",
+        )
+        self.radio_local.pack(fill="x", anchor="w")
+        self.local_card_status = tk.StringVar(value="Bilgisayardaki MP3 kontrol ediliyor...")
+        tk.Label(right_voice, textvariable=self.local_card_status,
+                 bg="#e9f5f0", fg="#3d6754", wraplength=210, justify="left",
+                 font=("Segoe UI", 9), height=3).pack(fill="x", anchor="w", pady=(7, 9))
+        self.btn_old = ttk.Button(right_voice, text="▶ YEREL sesimi dinle",
+                                  command=self.listen_old, state="disabled")
+        self.btn_old.pack(fill="x")
+
+        self.publish_choice_status = tk.StringVar(value="Yayına gidecek sesi seçmediniz.")
+        ttk.Label(audio_tab, textvariable=self.publish_choice_status,
+                  style="Panel.TLabel", wraplength=530,
+                  font=("Segoe UI Semibold", 9)).pack(anchor="w", pady=(10, 6))
+        self.btn_publish = ttk.Button(
+            audio_tab, text="Seçtiğim sesi WEB'de yayımla / koru",
+            command=self.publish_chosen_voice, style="Accent.TButton", state="disabled"
+        )
+        self.btn_publish.pack(fill="x", pady=(0, 9))
+        ttk.Label(audio_tab,
+                  text="GitHub'a gönderimden sonra site dağıtımı tamamlanınca dinlenen ses güncellenir. "
+                       "Yukarıdaki WEB kutusu, sitenin mevcut durumunu gösterir.",
+                  style="Muted.TLabel", wraplength=530).pack(anchor="w", pady=(0, 9))
+        self.online_details = tk.StringVar(value="Web, yerel ve GitHub bilgileri burada görünecek.")
+        ttk.Label(audio_tab, textvariable=self.online_details,
+                  style="Muted.TLabel", wraplength=530).pack(anchor="w", pady=(6, 10))
+        self.btn_restore = ttk.Button(
+            audio_tab, text="GitHub'daki MP3'ü bilgisayara geri getir (yedekli)",
+            command=self.restore_online, state="disabled"
+        )
+        self.btn_restore.pack(anchor="w")
+        ttk.Button(audio_tab, text="↓ WEB'deki MP3'ü indirip klasörü aç",
+                   command=self.save_web_voice).pack(anchor="w", pady=(9, 0))
+        ttk.Label(audio_tab,
+                  text="Yeni okuma üretmek için üstteki 'Okumayı iyileştir' sekmesini açın.",
+                  style="Muted.TLabel", wraplength=520).pack(anchor="w", pady=(15, 0))
+        self.selection_status = tk.StringVar(value="Soldan bir makale seçin.")
+        ttk.Label(audio_tab, textvariable=self.selection_status,
+                  style="Muted.TLabel", wraplength=530).pack(anchor="w", pady=(6, 0))
+
+        ttk.Label(edit_tab, text="MAKALEYE ÖZEL OKUMA DÜZELTMESİ",
+                  style="Panel.TLabel", font=("Segoe UI Semibold", 11)).pack(anchor="w")
+        ttk.Label(edit_tab, text="Yalnız seslendirilen metni değiştirirsiniz; makale başlığı aynı kalır.",
+                  style="Muted.TLabel", wraplength=520).pack(anchor="w", pady=(8, 9))
+        self.text = tk.Text(edit_tab, height=8, wrap="word", undo=True,
                             font=("Segoe UI", 10), background="#fbfcff",
                             foreground="#19334b", relief="solid", borderwidth=1,
                             padx=9, pady=8, highlightthickness=0)
         self.text.pack(fill="both", expand=True)
-        speed_row = ttk.Frame(article_tab, style="Panel.TFrame")
-        speed_row.pack(fill="x", pady=8)
+        speed_row = ttk.Frame(edit_tab, style="Panel.TFrame")
+        speed_row.pack(fill="x", pady=(11, 8))
         ttk.Label(speed_row, text="Okuma hızı", style="Panel.TLabel").pack(side="left")
-        self.speed_values = ["0.80", "0.85", "0.90", "0.95", "1.00", "1.05", "1.10", "1.15", "1.20"]
-        ttk.Combobox(speed_row, width=6, state="readonly", textvariable=self.speed,
-                     values=self.speed_values).pack(side="left", padx=7)
-        ttk.Label(speed_row, text="0.80 yavaş    1.00 normal    1.20 hızlı",
+        self.speed_values = ["0.80", "0.85", "0.90", "0.95", "1.00",
+                             "1.05", "1.10", "1.15", "1.20"]
+        ttk.Combobox(speed_row, width=6, state="readonly",
+                     textvariable=self.speed, values=self.speed_values).pack(side="left", padx=7)
+        ttk.Label(speed_row, text="0.80 yavaş  ·  1.00 normal  ·  1.20 hızlı",
                   style="Muted.TLabel").pack(side="left")
-        ttk.Label(article_tab, text="2  /  ÖNCE DİNLEYİN, SONRA KABUL EDİN",
-                  style="Panel.TLabel", font=("Segoe UI Semibold", 11)).pack(anchor="w", pady=(9, 6))
-        play_row = ttk.Frame(article_tab, style="Panel.TFrame")
-        play_row.pack(fill="x")
-        self.btn_old = ttk.Button(play_row, text="Önceki MP3'ü dinle", command=self.listen_old)
-        self.btn_old.pack(side="left", padx=(0, 7))
-        self.btn_preview = ttk.Button(play_row, text="Yeni okumayı üret ve dinle",
-                                      command=self.preview_audio, style="Accent.TButton")
-        self.btn_preview.pack(side="left")
-        accept_row = ttk.Frame(article_tab, style="Panel.TFrame")
-        accept_row.pack(fill="x", pady=(10, 4))
-        self.btn_accept = ttk.Button(accept_row, text="Beğendim, yerel MP3'ü değiştir",
-                                     command=self.accept, state="disabled")
-        self.btn_accept.pack(side="left", padx=(0, 7))
-        ttk.Button(accept_row, text="Metin ayarını kaydet", command=self.save_override).pack(side="left")
-        ttk.Button(article_tab, text="Bu makaleyi varsayılana döndür",
-                   command=self.reset_override).pack(anchor="w", pady=5)
-        self.selection_status = tk.StringVar(value="Yeni ses için önce bir makale seçin.")
-        ttk.Label(article_tab, textvariable=self.selection_status, wraplength=530,
-                  style="Muted.TLabel").pack(anchor="w", pady=(4, 0))
+        self.btn_preview = ttk.Button(
+            edit_tab, text="Yeni okumayı üret ve dinle",
+            command=self.preview_audio, style="Accent.TButton"
+        )
+        self.btn_preview.pack(anchor="w", pady=(9, 7))
+        self.btn_accept = ttk.Button(
+            edit_tab, text="Beğendim · Yerel MP3'ü bu sesle değiştir",
+            command=self.accept, state="disabled"
+        )
+        self.btn_accept.pack(anchor="w", pady=(6, 5))
+        ttk.Button(edit_tab, text="Okuma metnini ve hızı kaydet",
+                   command=self.save_override).pack(anchor="w", pady=(6, 5))
+        ttk.Label(edit_tab,
+                  text="Onaylamadan önce deneme MP3'ü mevcut yerel veya web sesini değiştirmez.",
+                  style="Muted.TLabel", wraplength=520).pack(anchor="w", pady=(10, 0))
 
         ttk.Label(global_tab, text="GENEL TELAFFUZ SÖZLÜĞÜ",
                   font=("Segoe UI Semibold", 11), style="Panel.TLabel").pack(anchor="w")
@@ -378,10 +394,22 @@ class App:
         ttk.Label(run_row, text="kayıt hazırla", style="Panel.TLabel").pack(side="left")
         ttk.Button(batch_tab, text="Eksik veya eski MP3'leri üret",
                    command=self.batch_generate, style="Accent.TButton").pack(anchor="w", pady=(17, 7))
+        ttk.Button(batch_tab, text="Soldaki listeden seçtiğim makaleleri üret",
+                   command=self.generate_checked).pack(anchor="w", pady=(5, 7))
+        ttk.Button(batch_tab, text="✓ Seçtiğim YEREL MP3'leri WEB'e gönder",
+                   command=self.publish_checked, style="Accent.TButton").pack(anchor="w", pady=(5, 7))
+        ttk.Label(batch_tab, text="Birden çok başlık: solda Ctrl veya Shift ile seçin. "
+                                  "Yalnız eksik veya yeniden üretilecekleri işler.",
+                  style="Muted.TLabel", wraplength=510).pack(anchor="w", pady=(0, 7))
         ttk.Button(batch_tab, text="Mevcut partiden sonra durdur",
                    command=self.stop_event.set).pack(anchor="w", pady=6)
-        ttk.Label(batch_tab, text="Her 8 kayıtta güvenli kayıt yapılır. GitHub'a göndermek ayrı onay gerektirir.",
+        ttk.Label(batch_tab, text="Her 8 kayıt yerel arşive kaydedilir; otomatik yayımlanmaz. "
+                                  "Yeni sesleri soldaki 'Yerel yeni' filtresinden inceleyebilirsiniz.",
                   style="Muted.TLabel", wraplength=510).pack(anchor="w", pady=12)
+        ttk.Button(batch_tab, text="Tüm yerel hazır MP3'leri GitHub'a gönder",
+                   command=self.push, style="Accent.TButton").pack(anchor="w", pady=(6, 5))
+        ttk.Button(batch_tab, text="Web'de hangi MP3'lerin bulunduğunu yenile",
+                   command=self.refresh_web).pack(anchor="w", pady=5)
 
         ttk.Label(log_tab, text="İŞLEM / HATA KAYITLARI",
                   font=("Segoe UI Semibold", 11), style="Panel.TLabel").pack(anchor="w")
@@ -391,7 +419,11 @@ class App:
                                              wrap="word", borderwidth=0,
                                              background="#f6f8fb", foreground="#23405b")
         self.log.pack(fill="both", expand=True)
-        ttk.Button(log_tab, text="Hata kayıt klasörünü aç", command=self.open_logs).pack(anchor="w", pady=8)
+        log_actions = ttk.Frame(log_tab, style="Panel.TFrame")
+        log_actions.pack(fill="x", pady=8)
+        ttk.Button(log_actions, text="Log klasörünü aç", command=self.open_logs).pack(side="left", padx=(0, 5))
+        ttk.Button(log_actions, text="Hata raporunu kopyala", command=self.copy_logs).pack(side="left", padx=(0, 5))
+        ttk.Button(log_actions, text="Kaydedilen MP3'leri aç", command=self.open_audio_folder).pack(side="left")
 
         footer = ttk.Frame(outer, style="Root.TFrame")
         footer.pack(fill="x", pady=(8, 0))
@@ -399,6 +431,18 @@ class App:
         self.progress.pack(side="left", padx=(0, 10))
         ttk.Label(footer, textvariable=self.status, style="Root.TLabel",
                   font=("Segoe UI", 9)).pack(side="left", fill="x", expand=True)
+        shortcut_bar = ttk.Frame(outer, style="Root.TFrame")
+        shortcut_bar.pack(fill="x", pady=(7, 0))
+        ttk.Label(shortcut_bar, text="HIZLI ERİŞİM:", style="Root.TLabel").pack(side="left", padx=(0, 7))
+        for label, callback in [
+            ("Logları aç", self.open_logs),
+            ("MP3 klasörü", self.open_audio_folder),
+            ("Web sesleri", self.open_web_audio_folder),
+            ("Web sitesi", self.open_site),
+            ("GitHub kodları", self.open_github),
+            ("Kullanım rehberi", self.open_guide),
+        ]:
+            ttk.Button(shortcut_bar, text=label, command=callback).pack(side="left", padx=(0, 5))
         self.redraw_rules()
 
     def note(self, msg):
@@ -488,29 +532,63 @@ class App:
         return engine.catalog([article])[key]
 
     def draw(self):
+        """Compare what is live on the site with generated local audio."""
         previously_selected = self.current
         self.by_key = {}
         self.table.delete(*self.table.get_children())
-        vals = ["Tum dergiler"] + sorted({a["journal"] for a in self.articles})
-        self.journal_list["values"] = vals
-        if self.journal.get() not in vals:
-            self.journal.set(vals[0])
+        journals = ["Tum dergiler"] + sorted({a["journal"] for a in self.articles})
+        self.journal_list["values"] = journals
+        if self.journal.get() not in journals:
+            self.journal.set(journals[0])
+
         catalog = engine.catalog(self.articles) if self.articles else {}
-        ready = missing = due = 0
-        current_time = datetime.now(timezone.utc)
+        on_web = self.web_manifest.get("entries", {})
+        on_github = self.github_manifest.get("entries", {})
+        try:
+            dirty = git_sync.changes(ROOT)
+        except (RuntimeError, OSError):
+            dirty = {}
+        totals = {"web": 0, "new": 0, "ready": 0, "due": 0, "missing": 0}
+        now = datetime.now(timezone.utc)
         for article in self.articles:
             key = engine.key_for(article["journal"], article["title"], article["pmid"])
             candidate = catalog[key]
-            prev = self.manifest["entries"].get(key)
-            if engine.fresh(prev, candidate, current_time):
-                state, tag = "✓ Hazır", "ready"
-                ready += 1
-            elif engine.playable(prev, candidate):
-                state, tag = "↻ Yenilenecek", "stale"
-                due += 1
+            local = self.manifest["entries"].get(key)
+            web = on_web.get(key)
+            hosted = on_github.get(key)
+            web_exists = isinstance(web, dict) and web.get("file") == key + ".mp3"
+            local_exists = engine.playable(local, candidate)
+            local_new = local_exists and (
+                git_sync.AUDIO_PREFIX + key + ".mp3" in dirty or local != hosted
+            )
+            if web_exists:
+                totals["web"] += 1
+            if local_new:
+                local_label, tag = "Yeni / bekliyor", "new"
+                totals["new"] += 1
+            elif engine.fresh(local, candidate, now):
+                local_label, tag = "Hazır", "ready"
+                totals["ready"] += 1
+            elif local_exists:
+                local_label, tag = "Yenilenecek", "stale"
+                totals["due"] += 1
             else:
-                state, tag = "• Eksik", "missing"
-                missing += 1
+                local_label, tag = "Eksik", "missing"
+                totals["missing"] += 1
+
+            wanted = self.state_filter.get()
+            if wanted == "Web'de var" and not web_exists:
+                continue
+            if wanted == "Web'de yok" and web_exists:
+                continue
+            if wanted == "Yerel yeni" and not local_new:
+                continue
+            if wanted == "Yerel hazır" and not local_exists:
+                continue
+            if wanted == "Yerel eksik" and local_exists:
+                continue
+            if wanted == "Yenilenecek" and tag != "stale":
+                continue
             if self.journal.get() != "Tum dergiler" and article["journal"] != self.journal.get():
                 continue
             if self.filter.get().casefold() not in (
@@ -519,9 +597,21 @@ class App:
                 continue
             self.by_key[key] = article
             self.table.insert("", "end", iid=key,
-                              values=(state, article["journal"], article["title"], article["pmid"]),
+                              values=(("✓ Yayında" if self.web_checked == "Şimdi / web sitesi" else "≈ Önbellekte")
+                                      if web_exists else "— Yok",
+                                      local_label, article["journal"],
+                                      article["title"], article["pmid"]),
                               tags=(tag,))
-        self.summary.set(f"{len(self.articles)} başlık     ✓ {ready} hazır     • {missing} eksik     ↻ {due} yenilenecek")
+
+        self.summary.set(
+            f"{len(self.articles)} makale  ·  Web {totals['web']}  ·  "
+            f"Yerel yeni {totals['new']}  ·  "
+            f"Hazır {totals['ready']}  ·  "
+            f"Yenilenecek {totals['due']}  ·  Eksik {totals['missing']}"
+        )
+        self.web_summary.set(
+            f"Web kaynağı: {self.web_checked} ({len(on_web)} MP3)"
+        )
         if previously_selected in self.by_key:
             self.table.selection_set(previously_selected)
         elif self.by_key:
@@ -529,10 +619,19 @@ class App:
         else:
             self.current = None
             self.editor_key = None
-            self.selected_label.configure(text="Aramanıza uygun makale bulunamadı.")
-            self.selection_status.set("Bir makale seçmek için filtreyi değiştirin.")
-            self.btn_accept.configure(state="disabled")
-            self.btn_old.configure(state="disabled")
+            self.selected_label.configure(text="Bu filtreye uygun makale bulunamadı.")
+            self.selection_status.set("Sol taraftaki filtreyi değiştirin.")
+            self.online_details.set("Web ve yerel ses seçimi için bir başlık seçin.")
+            self.publish_choice.set("")
+            self.choice_key = None
+            self.web_card_status.set("Başlık seçilmedi")
+            self.local_card_status.set("Başlık seçilmedi")
+            self.publish_choice_status.set("Yayına gidecek ses seçilmedi.")
+            self.radio_web.configure(state="disabled")
+            self.radio_local.configure(state="disabled")
+            for btn in (self.btn_accept, self.btn_old,
+                        self.btn_web, self.btn_publish, self.btn_restore):
+                btn.configure(state="disabled")
         if self.table.selection():
             self.choose_article()
 
@@ -540,7 +639,8 @@ class App:
         selection = self.table.selection()
         if not selection:
             return
-        key = selection[0]
+        focused = self.table.focus()
+        key = focused if focused in selection else selection[0]
         article = self.by_key.get(key)
         if article is None:
             return
@@ -549,28 +649,64 @@ class App:
                 self.text.get("1.0", "end-1c"), self.speed.get()
             )
         self.current = key
-        self.selected_label.configure(text=article["journal"] + "  ·  " + article["title"])
+        if self.choice_key != key:
+            self.publish_choice.set("")
+            self.choice_key = key
+        self.selected_label.configure(text=article["journal"] + " · " + article["title"])
         if self.editor_key != key:
             override = self.rules.get("articles", {}).get(pron.identity(article), {})
             draft = self.editor_drafts.get(key)
-            initial_text = draft[0] if draft else override.get(
-                "text", engine.spoken(article["title"])
-            )
-            initial_speed = draft[1] if draft else f"{override.get('speed', self.rules.get('global_speed', 1.0)):.2f}"
+            default_text = engine.spoken(article["title"])
+            initial_text = draft[0] if draft else override.get("text", default_text)
+            initial_speed = (draft[1] if draft else
+                             f"{override.get('speed', self.rules.get('global_speed', 1.0)):.2f}")
             self.text.delete("1.0", "end")
             self.text.insert("1.0", initial_text)
             self.speed.set(initial_speed)
             self.editor_key = key
             self.preview = None
         entry = self.manifest["entries"].get(key)
-        is_old = engine.playable(entry, self.candidate(article))
-        self.btn_old.configure(state="normal" if is_old else "disabled")
+        old_available = engine.playable(entry, self.candidate(article))
+        web_entry = self.web_manifest.get("entries", {}).get(key)
+        site_available = isinstance(web_entry, dict) and web_entry.get("file") == key + ".mp3"
+        github_available = key in self.github_manifest.get("entries", {})
+        self.btn_old.configure(state="normal" if old_available else "disabled")
+        self.btn_web.configure(state="normal" if site_available else "disabled")
+        self.btn_restore.configure(state="normal" if github_available else "disabled")
+        self.radio_web.configure(state="normal" if site_available else "disabled")
+        self.radio_local.configure(state="normal" if old_available else "disabled")
+        if not site_available and self.publish_choice.get() == "web":
+            self.publish_choice.set("")
+        if not old_available and self.publish_choice.get() == "local":
+            self.publish_choice.set("")
         can_accept = self.preview is not None and self.preview[0] == key
         self.btn_accept.configure(state="normal" if can_accept else "disabled")
+        web_stamp = str(web_entry.get("generated_at", ""))[:16].replace("T", " ") if site_available else "—"
+        local_stamp = str(entry.get("generated_at", ""))[:16].replace("T", " ") if entry else "—"
+        self.online_details.set(
+            f"WEB: {'✓ Sitede yayında' if site_available else 'MP3 henüz yok'} "
+            f"({web_stamp})   |   "
+            f"YEREL: {'✓ MP3 var' if old_available else 'MP3 yok'} ({local_stamp})\n"
+            f"GITHUB: {'✓ Kayıtlı' if github_available else 'henüz gönderilmemiş'}   "
+            f"·   PMID: {article['pmid']}"
+        )
+        self.web_card_status.set(
+            (("✓ Web'de yayında" if self.web_checked == "Şimdi / web sitesi"
+              else "≈ Son bilinen WEB sürümü") + "\nOluşturulma: " + web_stamp)
+            if site_available
+            else "Henüz web MP3'ü yok\nYerel sesi üretebilirsiniz."
+        )
+        self.local_card_status.set(
+            ("✓ MP3 mevcut\nOluşturulma: " + local_stamp) if old_available
+            else "Bu bilgisayarda MP3 yok\nToplu veya tekli üretilebilir."
+        )
+        self.choice_changed()
         if can_accept:
-            self.selection_status.set("Deneme MP3'ü hazır. Beğendiyseniz kabul edebilirsiniz.")
+            self.selection_status.set("Yeni MP3 hazır. Beğendiyseniz kabul edip web'e gönderebilirsiniz.")
+        elif old_available:
+            self.selection_status.set("Yerel MP3'ü web'dekiyle dinleyerek karşılaştırın veya yayımlayın.")
         else:
-            self.selection_status.set("Metni düzenleyip 'Yeni okumayı üret ve dinle' düğmesine basın.")
+            self.selection_status.set("Yerel ses yok. Ahenk ile üretip beğenirseniz yayımlayın.")
 
     def selected(self):
         if self.current not in self.by_key:
@@ -683,9 +819,247 @@ class App:
         self.reload()
         self.note(f"{len(articles)} makale guncellendi.")
 
+    def open_site(self):
+        webbrowser.open("https://metinciris.com.tr/podcast/")
+
+    def open_github(self):
+        webbrowser.open("https://github.com/metinciris/metinciriscomtr/tree/main/windows/podcast-ahenk")
+
+    def open_guide(self):
+        webbrowser.open("https://github.com/metinciris/metinciriscomtr/blob/main/windows/podcast-ahenk/README.md")
+
+    def open_audio_folder(self):
+        AUDIO.mkdir(parents=True, exist_ok=True)
+        try:
+            os.startfile(str(AUDIO))
+        except OSError as error:
+            messagebox.showerror("MP3 klasörü açılamadı", str(error))
+
+    def open_web_audio_folder(self):
+        folder = APP_HOME / "web_mp3"
+        folder.mkdir(parents=True, exist_ok=True)
+        try:
+            os.startfile(str(folder))
+        except OSError as error:
+            messagebox.showerror("Web ses klasörü açılamadı", str(error))
+
+    def copy_logs(self):
+        pieces = []
+        for filename in ("ahenk_hata.log", "ahenk_motor.log", "startup-error.log"):
+            path = APP_HOME / filename
+            if path.is_file():
+                try:
+                    pieces.append(filename + "\n" + path.read_text(
+                        encoding="utf-8", errors="replace"
+                    )[-4500:])
+                except OSError:
+                    pass
+        if not pieces:
+            pieces.append(self.log.get("1.0", "end-1c")[-5000:])
+        self.root.clipboard_clear()
+        self.root.clipboard_append("\n\n".join(pieces))
+        self.note("Hata raporu panoya kopyalandı. Sohbete Ctrl+V ile yapıştırabilirsiniz.")
+
+    def refresh_web(self):
+        """Actual live site, not just GitHub's future deployment manifest."""
+        def work():
+            manifest = online_audio.fetch_manifest()
+            online_audio.cache_manifest(APP_HOME, manifest)
+            return manifest
+
+        def done(manifest):
+            self.web_manifest = manifest
+            self.web_checked = "Şimdi / web sitesi"
+            self.draw()
+            self.note(f"Web sitesindeki {len(manifest['entries'])} yayımlanmış MP3 görüldü.")
+        self.task("Web sitesindeki hazır MP3 listesi okunuyor...", work, done)
+
     def pull(self):
-        self.task("GitHub guvenli guncelleniyor...", pull_clean,
-                  lambda msg: (self.reload(), self.note(msg)))
+        """Update app code + download GitHub MP3s without overwriting local edits."""
+        def work():
+            message = git_sync.sync(ROOT, APP_HOME)
+            github = git_sync.remote_manifest(ROOT)
+            try:
+                web = online_audio.fetch_manifest()
+                online_audio.cache_manifest(APP_HOME, web)
+                online_error = None
+            except (OSError, RuntimeError, ValueError) as error:
+                web = None
+                online_error = str(error)
+            return message, github, web, online_error
+
+        def done(result):
+            message, github, web, online_error = result
+            self.github_manifest = github
+            if web is not None:
+                self.web_manifest = web
+                self.web_checked = "Şimdi / web sitesi"
+            self.reload()
+            self.note(message)
+            if online_error:
+                self.note("GitHub güncellendi, fakat web sitesi geçici olarak okunamadı: " + online_error)
+        self.task("GitHub'dan hazır MP3'ler ve güncel kod indiriliyor...", work, done)
+
+    def listen_web(self):
+        try:
+            key = self.current
+            self.selected()
+            manifest = copy.deepcopy(self.web_manifest)
+            if key not in manifest.get("entries", {}):
+                raise RuntimeError("Web sitesinde bu makalenin hazır MP3 kaydı yok.")
+        except (ValueError, RuntimeError) as error:
+            messagebox.showinfo("Web'de MP3 yok", str(error))
+            return
+
+        def work():
+            return online_audio.download_clip(APP_HOME, key, manifest)
+
+        def done(path):
+            self.note("Web'de yayımlanan MP3 indirildi; bilgisayardaki yeni sesiniz değişmedi.")
+            try:
+                os.startfile(str(path))
+            except OSError as error:
+                self.note("İndirilen MP3 açılamadı: " + str(error))
+        self.task("Web sitesindeki yayımlanmış ses indiriliyor...", work, done)
+
+    def restore_online(self):
+        try:
+            key = self.current
+            self.selected()
+            if not messagebox.askyesno(
+                "GitHub sesine geri dön",
+                "Seçili makalenin yerel MP3'ü GitHub'daki yayıma hazırlanmış "
+                "sürümle değişecek. Yerel ses yedeklenir. Devam?"
+            ):
+                return
+        except ValueError as error:
+            messagebox.showerror("Başlık seçin", str(error))
+            return
+        self.task(
+            "GitHub sesinin yerel arşive yedeği alınıp geri getiriliyor...",
+            lambda: git_sync.restore_site_voice(ROOT, APP_HOME, key),
+            lambda message: (self.reload(), self.note(message)),
+        )
+
+    def choice_changed(self):
+        """Enable publishing only after a deliberate WEB or PC voice choice."""
+        choice = self.publish_choice.get()
+        self.btn_publish.configure(state="disabled")
+        if self.current not in self.by_key:
+            self.publish_choice_status.set("Önce bir makale seçin.")
+            return
+        article = self.by_key[self.current]
+        local = self.manifest.get("entries", {}).get(self.current)
+        can_local = engine.playable(local, self.candidate(article))
+        web = self.web_manifest.get("entries", {}).get(self.current)
+        can_web = isinstance(web, dict) and web.get("file") == self.current + ".mp3"
+        if choice == "web" and can_web:
+            self.publish_choice_status.set("Seçiminiz: WEB'de şu anda dinlenen ses (korunacak)")
+            self.btn_publish.configure(state="normal")
+        elif choice == "local" and can_local:
+            self.publish_choice_status.set("Seçiminiz: BİLGİSAYARDA üretilen MP3 (yayına gönderilecek)")
+            self.btn_publish.configure(state="normal")
+        else:
+            self.publish_choice_status.set("İki kutudan WEB veya YEREL sesi işaretleyin.")
+
+    def publish_chosen_voice(self):
+        choice = self.publish_choice.get()
+        if choice == "local":
+            return self.publish_selected()
+        if choice != "web":
+            messagebox.showinfo("Ses seçin", "Önce WEB veya BİLGİSAYAR kutusunu işaretleyin.")
+            return
+        try:
+            article = self.selected()
+            key = self.current
+            if key not in self.web_manifest.get("entries", {}):
+                raise RuntimeError("Bu makalenin WEB'de yayımlanmış MP3'ü yok.")
+            confirmed = messagebox.askyesno(
+                "WEB'deki sesi yayın olarak koru",
+                article["title"][:180] +
+                "\n\nŞu anda web sitesinde dinlenen MP3 GitHub'a yeniden seçilecek. "
+                "Bilgisayarınızda oluşturduğunuz alternatif MP3 korunacak, "
+                "silinmeyecek. Devam?"
+            )
+            if not confirmed:
+                return
+        except (ValueError, RuntimeError) as error:
+            messagebox.showerror("Web MP3 bulunamadı", str(error))
+            return
+
+        def work():
+            # Fetch LIVE content at time of approval; never publish stale cache.
+            manifest = online_audio.fetch_manifest()
+            if key not in manifest["entries"]:
+                raise RuntimeError("Web sitesinde seçili makale artık yok; yeniden yenileyin.")
+            live = manifest["entries"][key]
+            if (live.get("title") != article["title"] or
+                    live.get("journal") != article["journal"]):
+                raise RuntimeError("Web ve yerel makale eşleşmiyor. Yanlış MP3 gönderilmedi.")
+            clip = online_audio.download_clip(APP_HOME, key, manifest, force=True)
+            result = git_sync.publish_live_web_voice(ROOT, APP_HOME, key, live, clip)
+            return result, manifest, git_sync.remote_manifest(ROOT)
+
+        def done(result):
+            message, manifest, github = result
+            self.web_manifest = manifest
+            self.web_checked = "Şimdi / web sitesi"
+            self.github_manifest = github
+            self.reload()
+            self.note(message)
+        self.task("Web'deki gerçek MP3 doğrulanıp GitHub'da korunuyor...", work, done)
+
+    def save_web_voice(self):
+        """Download website MP3 into the separate web_MP3 folder and open it."""
+        try:
+            self.selected()
+            key = self.current
+            current = copy.deepcopy(self.web_manifest)
+            if key not in current.get("entries", {}):
+                raise RuntimeError("Bu makalenin web sitesinde MP3'ü yok.")
+        except (RuntimeError, ValueError) as error:
+            messagebox.showinfo("Web MP3 yok", str(error))
+            return
+
+        def done(path):
+            self.note("Web sitesindeki ses indirildi: " + str(path))
+            try:
+                os.startfile(str(path.parent))
+            except OSError as error:
+                self.note("Web MP3 klasörü açılamadı: " + str(error))
+        self.task(
+            "Web'de yayınlanan MP3 indiriliyor...",
+            lambda: online_audio.download_clip(APP_HOME, key, current),
+            done,
+        )
+
+    def publish_selected(self):
+        try:
+            article = self.selected()
+            key = self.current
+            local = self.manifest.get("entries", {}).get(key)
+            git_sync.assert_audio_valid(ROOT, key, local)
+            if not messagebox.askyesno(
+                "Seçili sesi web sitesinde yayımla",
+                article["title"][:180] +
+                "\n\nBu yerel MP3 GitHub'a gönderilecek. Web sitesi dağıtımı "
+                "tamamlanınca bu ses oynatılacak. Diğer yerel yeni MP3'ler gönderilmeyecek.\n\nDevam?"
+            ):
+                return
+        except (RuntimeError, ValueError) as error:
+            messagebox.showerror("Yayımlanacak ses yok", str(error))
+            return
+
+        def work():
+            msg = git_sync.publish(ROOT, APP_HOME, selected_key=key)
+            return msg, git_sync.remote_manifest(ROOT)
+
+        def done(data):
+            msg, github = data
+            self.github_manifest = github
+            self.reload()
+            self.note(msg + " Sitedeki yeni sürüm biraz sonra Web yenile ile görünür.")
+        self.task("Seçili MP3 GitHub'a gönderiliyor...", work, done)
 
     def install(self):
         def work():
@@ -816,41 +1190,161 @@ class App:
         except (ValueError, RuntimeError, OSError) as e:
             messagebox.showerror("Kabul edilemedi", str(e))
 
-    def batch_generate(self):
-        limit = 250 if self.batch.get() == "Tumu" else int(self.batch.get())
-        if not messagebox.askyesno("Toplu Ahenk uretimi",
-                                   f"En fazla {limit} ses islenecek. Her 8 seste kaydedilir; GitHub'a otomatik gonderilmez."):
+    def generate_checked(self):
+        """Produce only the selected article titles, in safe eight-title groups."""
+        keys = tuple(self.table.selection())
+        if not keys:
+            messagebox.showinfo("Başlık seçin", "Önce soldaki listeden bir veya birkaç makale seçin.")
             return
+        if not messagebox.askyesno(
+            "Seçilen başlıkları üret",
+            f"{len(keys)} başlık seçildi. Eksik veya yenilenmesi gereken MP3'ler üretilip "
+            "yerel arşive kaydedilecek.\n\nWeb sitesindeki sesler değiştirilmez. Devam?"
+        ):
+            return
+
         def work():
             articles = engine.load_sheet()
-            total = 0
+            by_key = engine.catalog(articles)
+            candidates = [key for key in keys if key in by_key]
+            count = 0
             tts = None
             try:
-                while total < limit and not self.stop_event.is_set():
-                    engine.BATCH_SIZE = min(MAX_BATCH, limit - total)
-                    plan = engine.plan_updates(articles, engine.load_manifest(), datetime.now(timezone.utc))
+                while candidates and not self.stop_event.is_set():
+                    manifest = engine.load_manifest()
+                    engine.BATCH_SIZE = 8
+                    plan = engine.plan_updates(articles, manifest, datetime.now(timezone.utc))
+                    due = [k for k in candidates if not engine.fresh(
+                        manifest["entries"].get(k), by_key[k], datetime.now(timezone.utc)
+                    )]
+                    selected = due[:8]
+                    if not selected:
+                        break
+                    plan["selected"] = selected
+                    tts = tts or self.get_tts()
+                    engine.execute_plan(
+                        plan, tts=tts,
+                        on_prepared=lambda _k, item: self.events.put(
+                            ("log", "Hazırlanan: " + item["title"][:80], None)
+                        ),
+                    )
+                    count += len(selected)
+                    candidates = [k for k in candidates if k not in selected]
+            finally:
+                engine.BATCH_SIZE = MAX_BATCH
+            return f"{count} seçili MP3 yerel arşive kaydedildi. Yayına almak için makaleyi seçip gönderin."
+        self.task("Seçilen makaleler Ahenk ile hazırlanıyor...", work,
+                  lambda msg: (self.reload(), self.note(msg)))
+
+    def batch_generate(self):
+        limit = 250 if self.batch.get() == "Tumu" else int(self.batch.get())
+        if not messagebox.askyesno(
+            "Toplu Ahenk üretimi",
+            f"En fazla {limit} ses üretilecek. 8'erli partiler hâlinde yerelde kaydedilecek.\n"
+            "Mevcut web MP3'leri değişmeyecek; yayımlama ayrı onay gerektirir. Devam?"
+        ):
+            return
+
+        def work():
+            articles = engine.load_sheet()
+            count = 0
+            tts = None
+            try:
+                while count < limit and not self.stop_event.is_set():
+                    engine.BATCH_SIZE = min(MAX_BATCH, limit - count)
+                    plan = engine.plan_updates(articles, engine.load_manifest(),
+                                               datetime.now(timezone.utc))
                     if not plan["has_changes"]:
                         break
-                    if plan["selected"] and tts is None:
-                        tts = self.get_tts()
-                    def notify(key, article):
-                        self.events.put(("log", "Üretiliyor: " + article["title"][:70], None))
-                    engine.execute_plan(plan, tts=tts, on_prepared=notify)
-                    total += len(plan["selected"])
-                    self.events.put(("log", f"{total} MP3 başarıyla arşive kaydedildi.", None))
+                    if plan["selected"]:
+                        tts = tts or self.get_tts()
+                    engine.execute_plan(
+                        plan, tts=tts,
+                        on_prepared=lambda _k, item: self.events.put(
+                            ("log", "Hazırlanan: " + item["title"][:80], None)
+                        ),
+                    )
+                    count += len(plan["selected"])
+                    self.events.put(("log", f"Yerel arşive kaydedilen: {count} MP3", None))
                     if not plan["selected"]:
                         break
             finally:
                 engine.BATCH_SIZE = MAX_BATCH
-            return f"{total} ses uretildi/yenilendi. GitHub'a Gonder ile yayinlayin."
-        self.task("Toplu ses uretimi...", work,
+            return (f"{count} MP3 hazırlandı. Soldaki 'Yerel yeni' filtresinden "
+                    "gözden geçirip web'de yayımlayabilirsiniz.")
+        self.task("Eksik ve eski MP3'ler topluca hazırlanıyor...", work,
                   lambda msg: (self.reload(), self.note(msg)))
 
-    def push(self):
-        if not messagebox.askyesno("GitHub'a gonder",
-                                   "Yalniz hazir MP3, manifest ve pronunciation.json gonderilecek. Onayliyor musunuz?"):
+    def publish_checked(self):
+        """Publish only the locally prepared MP3s selected in the article list."""
+        keys = tuple(self.table.selection())
+        if not keys:
+            messagebox.showinfo("Önce seçin", "Soldaki listeden bir veya birkaç makale seçin.")
             return
-        self.task("GitHub'a gonderiliyor...", publish, self.note)
+        unavailable = [
+            key for key in keys
+            if key not in self.manifest.get("entries", {}) or
+            not (AUDIO / (key + ".mp3")).is_file()
+        ]
+        if unavailable:
+            messagebox.showwarning(
+                "Önce üretin",
+                f"Seçilen {len(unavailable)} makalenin yerel MP3'ü eksik. "
+                "Önce üretip dinleyin; eksik sesler gönderilmeyecek."
+            )
+            return
+        names = [self.by_key.get(key, {}).get("title", key)[:75] for key in keys[:5]]
+        summary = "\n".join("• " + title for title in names)
+        if len(keys) > 5:
+            summary += f"\n... ve {len(keys) - 5} makale daha"
+        if not messagebox.askyesno(
+            "Yalnız seçili yerel sesleri WEB'e gönder",
+            f"Seçtiğiniz {len(keys)} makalenin BİLGİSAYARDAKİ MP3'ü GitHub'a gidecek."
+            "\nWeb sitesi dağıtılınca bu sesler oynatılacak."
+            "\nDiğer yerel MP3'ler korunacak.\n\n"
+            + summary + "\n\nGöndermek istiyor musunuz?"
+        ):
+            return
+
+        def work():
+            result = git_sync.publish_selected_local_voices(ROOT, APP_HOME, keys)
+            return result, git_sync.remote_manifest(ROOT)
+
+        def done(result):
+            message, github = result
+            self.github_manifest = github
+            self.reload()
+            self.note(message + " Web durumunu görmek için 'Web seslerini yenile' düğmesine basın.")
+        self.task(f"Seçilen {len(keys)} yerel MP3 GitHub'a gönderiliyor...", work, done)
+
+    def push(self):
+        try:
+            dirty = git_sync.changes(ROOT)
+        except (RuntimeError, OSError) as error:
+            messagebox.showerror("GitHub denetimi", str(error))
+            return
+        if not dirty:
+            messagebox.showinfo("GitHub güncel", "Gönderilecek yerel MP3 veya telaffuz değişikliği yok.")
+            return
+        if not messagebox.askyesno(
+            "Tüm yerel değişiklikleri yayımla",
+            f"{len(dirty)} yerel MP3/ayar dosyası GitHub'a gönderilecek.\n\n"
+            "Bu işlem çevrimiçi sitede mevcut sesleri değiştirebilir. "
+            "Yalnız tek makaleyi yayımlamak için 'Seçili MP3'ü WEB'de yayımla' "
+            "düğmesini kullanabilirsiniz.\n\nDevam edilsin mi?"
+        ):
+            return
+
+        def work():
+            msg = git_sync.publish(ROOT, APP_HOME)
+            return msg, git_sync.remote_manifest(ROOT)
+
+        def done(data):
+            msg, github = data
+            self.github_manifest = github
+            self.reload()
+            self.note(msg + " Web sayfasında görünmesi dağıtımın tamamlanmasına bağlı.")
+        self.task("Onaylı yerel MP3'ler GitHub'a gönderiliyor...", work, done)
 
 
 def main():

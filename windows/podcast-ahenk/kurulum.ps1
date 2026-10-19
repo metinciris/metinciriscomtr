@@ -106,26 +106,39 @@ if (Test-Path -LiteralPath (Join-Path $Repo ".git")) {
     }
     & git.exe -C $Repo fetch origin main
     if ($LASTEXITCODE -ne 0) { throw "GitHub guncellemesi kontrol edilemedi." }
-    $remoteChanges = @( & git.exe -C $Repo diff --name-only HEAD refs/remotes/origin/main )
-    if ($LASTEXITCODE -ne 0) { throw "Uzak degisiklikler kontrol edilemedi." }
-    foreach ($relative in $dirtyPaths) {
-        if ($remoteChanges -contains $relative) {
-            throw "Hem GitHub'da hem yerelde degisen dosya: $relative. Hicbir dosya silinmedi."
-        }
-    }
     if ($dirtyPaths.Count -gt 0) {
-        $backupDir = Join-Path $Target ("yedek_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
-        New-Item -ItemType Directory -Path $backupDir -Force | Out-Null
-        foreach ($relative in $dirtyPaths) {
-            $sourceFile = Join-Path $Repo ($relative.Replace("/", "\"))
-            if (Test-Path -LiteralPath $sourceFile) {
-                Copy-Item -LiteralPath $sourceFile -Destination (Join-Path $backupDir (Split-Path $relative -Leaf)) -ErrorAction Stop
-            }
+        Write-Host "Yerel yeni MP3 ve telaffuz dosyalari bulundu. Korunarak guncellenecek." -ForegroundColor Yellow
+        # The sync helper is loaded from the verified repository's fetched
+        # main ref. It is standard-library-only and performs per-title
+        # manifest merges with backups; never hard resets audio.
+        $SyncPython = @'
+import importlib.util
+import pathlib
+import subprocess
+import sys
+import tempfile
+root = pathlib.Path(sys.argv[1])
+home = pathlib.Path(sys.argv[2])
+source = subprocess.check_output([
+    "git", "-C", str(root), "show",
+    "refs/remotes/origin/main:windows/podcast-ahenk/git_sync.py"
+])
+with tempfile.TemporaryDirectory(prefix="ahenk-updater-", dir=str(home)) as folder:
+    script = pathlib.Path(folder) / "git_sync.py"
+    script.write_bytes(source)
+    spec = importlib.util.spec_from_file_location("ahenk_sync_updater", script)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    print(module.sync(root, home), flush=True)
+'@
+        & $PythonExe @PythonArgs -c $SyncPython $Repo $Target
+        if ($LASTEXITCODE -ne 0) {
+            throw "Yerel sesler ile GitHub guncellemesi tamamlanamadi. Yedekler korundu."
         }
-        Write-Host "Yerel ses ve telaffuz dosyalari korundu. Ek yedek: $backupDir" -ForegroundColor Green
+    } else {
+        & git.exe -C $Repo pull --ff-only origin main
+        if ($LASTEXITCODE -ne 0) { throw "GitHub guvenli guncellemesi basarisiz." }
     }
-    & git.exe -C $Repo pull --ff-only origin main
-    if ($LASTEXITCODE -ne 0) { throw "GitHub guvenli guncellemesi basarisiz; yerel dosyalar korundu." }
 } elseif (Test-Path -LiteralPath $Repo) {
     throw "Hedef klasor dolu, fakat Git deposu degil: $Repo"
 } else {

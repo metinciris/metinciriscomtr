@@ -39,3 +39,19 @@ Geri bildirim ve kaynak: https://github.com/metinciris/metinciriscomtr/tree/main
 ## Mevcut kurulumun güncellenmesi
 
 Programı kapatın. `Downloads` klasöründe güncel `kurulum.ps1` dosyasını indirin ve aynı PowerShell komutunu yeniden çalıştırın. Yerel telaffuz sözlüğünüz (ör. `SMARCA4 -> smark-a4`) kaybolmaması için kontrol edilir; uygun ise kurulum dizini yanında zaman damgalı `yedek_*` klasörüne kopyalanır. Program açıldığında önce **Test sesi: Ses hazır** ile modeli sınayın.
+
+## Web ve bilgisayardaki sesleri yan yana karşılaştırma (v1.2)
+
+1. Program metinciris.com.tr/podcast-audio/manifest.json adresindeki **gerçekten yayında olan** MP3 listesini okur. **Web seslerini yenile** ile günceller. GitHub'a yeni ses gönderilmiş olsa da site dağıtımı henüz bitmemiş olabilir.
+2. **GitHub seslerini indir** butonu depodaki hazır MP3'leri indirir. Yayımlanmamış yerel sesler ve telaffuz ayarları yedeklenir/korunur. WEB sesi ayrıca dinlendiğinde `%LOCALAPPDATA%\PodcastAhenk\web_mp3` altında saklanır.
+3. Sol listede Web/Yerel sütunları; Web'de var, Web'de yok, Yerel yeni, Yerel hazır, Yerel eksik, Yenilenecek filtreleri bulunur.
+4. Makale seçilince sağda **WEB / Şu an yayında** ve **BİLGİSAYAR / Yeni ses** kutuları yan yana açılır. İkisini ayrı ayrı dinleyin. Web'e gidecek sesi radio düğmesinden işaretleyin, sonra **Seçtiğim sesi WEB'de yayımla / koru**'ya basın. Her işlem ayrıca onay ister.
+5. WEB seçilirse web sitesinde o anda gerçekten çalınan MP3 doğrulanıp GitHub'da o ses yeniden seçilir. Yerel alternatif silinmez. YEREL seçilirse yalnız seçilen yerel MP3 gönderilir.
+6. **Toplu üretim** sekmesinden 1, 8, 24 veya tüm eksikleri üretebilir; solda Ctrl/Shift ile birden fazla makale seçip **yalnız seçilen yerel MP3'leri topluca WEB'e gönderebilirsiniz**. Önceden hazırlanmış 79 MP3'ü tekrar sentezlemeniz gerekmez.
+7. **Kayıtlar** ve ekran altındaki **HIZLI ERİŞİM** bölümünde loglar, MP3 klasörleri, web sitesi, GitHub ve rehber bağlantıları bulunur.
+
+### Eski `ublic/podcast-audio/...` hatası
+
+Eski sürüm Git durum satırındaki ilk boşluğu yanlışlıkla sildiği için `public/...` yolu `ublic/...` oluyordu. Yeni `git_sync.py` baştaki iki Git durum karakterini korur. `test_git_sync.py` 79 yerel MP3 ile eşzamanlı GitHub güncellemesini geçici Git depolarında test eder.
+
+**Not:** GitHub gönderimi sonrası site güncellemesi zaman alabilir. Sitede gerçekten yayınlanan sürümü görmek için **Web seslerini yenile** kullanın.
