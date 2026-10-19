@@ -249,24 +249,50 @@ class App:
                      values=self.speed_values).pack(side="left", padx=7)
         ttk.Label(speed_row, text="0.80 yavaş    1.00 normal    1.20 hızlı",
                   style="Muted.TLabel").pack(side="left")
-        ttk.Label(article_tab, text="2  /  ÖNCE DİNLEYİN, SONRA KABUL EDİN",
-                  style="Panel.TLabel", font=("Segoe UI Semibold", 11)).pack(anchor="w", pady=(9, 6))
+        ttk.Label(article_tab, text="2  /  WEB'DEKİ VE YEREL SESİ KARŞILAŞTIR",
+                  style="Panel.TLabel", font=("Segoe UI Semibold", 11)).pack(anchor="w", pady=(9, 5))
+        self.online_details = tk.StringVar(value="Web'deki ve yerel MP3 durumu seçildikten sonra gösterilir.")
+        ttk.Label(article_tab, textvariable=self.online_details, style="Muted.TLabel",
+                  wraplength=530).pack(anchor="w", pady=(0, 7))
         play_row = ttk.Frame(article_tab, style="Panel.TFrame")
         play_row.pack(fill="x")
-        self.btn_old = ttk.Button(play_row, text="Önceki MP3'ü dinle", command=self.listen_old)
-        self.btn_old.pack(side="left", padx=(0, 7))
-        self.btn_preview = ttk.Button(play_row, text="Yeni okumayı üret ve dinle",
-                                      command=self.preview_audio, style="Accent.TButton")
-        self.btn_preview.pack(side="left")
+        self.btn_web = ttk.Button(play_row, text="▶ WEB'deki sesi dinle",
+                                  command=self.listen_web, state="disabled")
+        self.btn_web.pack(side="left", padx=(0, 7))
+        self.btn_old = ttk.Button(play_row, text="▶ Yerel MP3'ü dinle",
+                                  command=self.listen_old, state="disabled")
+        self.btn_old.pack(side="left")
+        self.btn_preview = ttk.Button(
+            article_tab, text="Yeni okumayı Ahenk ile üret ve dinle",
+            command=self.preview_audio, style="Accent.TButton"
+        )
+        self.btn_preview.pack(anchor="w", pady=(11, 5))
         accept_row = ttk.Frame(article_tab, style="Panel.TFrame")
-        accept_row.pack(fill="x", pady=(10, 4))
-        self.btn_accept = ttk.Button(accept_row, text="Beğendim, yerel MP3'ü değiştir",
-                                     command=self.accept, state="disabled")
-        self.btn_accept.pack(side="left", padx=(0, 7))
-        ttk.Button(accept_row, text="Metin ayarını kaydet", command=self.save_override).pack(side="left")
-        ttk.Button(article_tab, text="Bu makaleyi varsayılana döndür",
-                   command=self.reset_override).pack(anchor="w", pady=5)
-        self.selection_status = tk.StringVar(value="Yeni ses için önce bir makale seçin.")
+        accept_row.pack(fill="x", pady=(3, 4))
+        self.btn_accept = ttk.Button(
+            accept_row, text="Beğendim: yerel MP3'ü bu sesle değiştir",
+            command=self.accept, state="disabled"
+        )
+        self.btn_accept.pack(side="left")
+        ttk.Button(article_tab, text="Okuma metni ve hız ayarını kaydet",
+                   command=self.save_override).pack(anchor="w", pady=(4, 4))
+        ttk.Separator(article_tab, orient="horizontal").pack(fill="x", pady=8)
+        ttk.Label(article_tab, text="3  /  WEB SİTESİNDE HANGİ SES OYNASIN?",
+                  style="Panel.TLabel", font=("Segoe UI Semibold", 11)).pack(anchor="w")
+        ttk.Label(article_tab, text="Yalnız beğendiğiniz yerel MP3'ü seçerek GitHub'a gönderin. "
+                                   "Sitede yayımlanması dağıtım tamamlanınca gerçekleşir.",
+                  style="Muted.TLabel", wraplength=525).pack(anchor="w", pady=5)
+        self.btn_publish = ttk.Button(
+            article_tab, text="Seçili MP3'ü WEB'de yayımla",
+            command=self.publish_selected, style="Accent.TButton", state="disabled"
+        )
+        self.btn_publish.pack(anchor="w", pady=(5, 5))
+        self.btn_restore = ttk.Button(
+            article_tab, text="GitHub'daki sesi yerel arşive geri al",
+            command=self.restore_online, state="disabled"
+        )
+        self.btn_restore.pack(anchor="w", pady=(3, 4))
+        self.selection_status = tk.StringVar(value="Önce soldan bir makale seçin.")
         ttk.Label(article_tab, textvariable=self.selection_status, wraplength=530,
                   style="Muted.TLabel").pack(anchor="w", pady=(4, 0))
 
