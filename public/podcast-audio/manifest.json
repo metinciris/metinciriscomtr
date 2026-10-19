@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-10-19T11:30:28.735270+00:00",
+  "generated_at": "2026-10-19T11:30:36.857878+00:00",
   "entries": {
     "7d9cd522d0f2d5752ca6a105": {
       "title": "MAP2K1 mutasyonlu melanositik tümörler: 114 olgu üzerinden yapılan bir çalışmaya dayanarak histolojik özelliklerin moleküler fonksiyonel sınıflarıyla ilişkisi.",
@@ -800,6 +800,70 @@
       "pmid": "42603711",
       "fingerprint": "d4d0489ca538dedd25821b6cec0d90113ad9ccd2eacf49e8bfccb27f3bb0548e",
       "file": "b2209428e16c522b8077627c.mp3",
+      "generated_at": "2026-10-19T09:53:51.086255+00:00"
+    },
+    "d9f240663d89ae021d74d311": {
+      "title": "İhtisas Sürecinden Meslek Hayatına: Amerika Birleşik Devletleri'nde ABD Vatandaşı Olmayan Patologlar İçin İstihdam Engellerinin Aşılması.",
+      "journal": "Virchows Archiv",
+      "pmid": "42567539",
+      "fingerprint": "a18f15b03d8d6040220fd7f0be5c6c6ac71e924028a26cd10791f5df7cdf65a5",
+      "file": "d9f240663d89ae021d74d311.mp3",
+      "generated_at": "2026-10-19T09:54:06.251006+00:00"
+    },
+    "9b72d6ba20612d2c0b8411c5": {
+      "title": "Tam kan örneklerinin hücre canlılığı, taşıma koşullarının hassas bir göstergesidir.",
+      "journal": "Virchows Archiv",
+      "pmid": "42567537",
+      "fingerprint": "c5e3cced8df9f3f6e78c7ad8ecf2acac5798cba6900066e389b19e1f31ce1b1c",
+      "file": "9b72d6ba20612d2c0b8411c5.mp3",
+      "generated_at": "2026-10-19T09:54:19.585045+00:00"
+    },
+    "ed3a7ed71323c2d45b236696": {
+      "title": "21. Yüzyılda Hayati Tehlike Arz Eden Glikoz Test Sonuçlarının Bildirilmesine İlişkin Kritik Sınırlar ve Klinik Öneriler.",
+      "journal": "Virchows Archiv",
+      "pmid": "42551888",
+      "fingerprint": "65ee324c232aa2eccc89ba2eddd64954ea44d6fc3c4118013ee785e45d1bc210",
+      "file": "ed3a7ed71323c2d45b236696.mp3",
+      "generated_at": "2026-10-19T09:54:49.122766+00:00"
+    },
+    "e9a07e324d400bce901d65cf": {
+      "title": "Prostat Kanserinin Alt Tiplerine İlişkin Güncel Bilgiler.",
+      "journal": "Virchows Archiv",
+      "pmid": "42547080",
+      "fingerprint": "ced1f5cec49f325d2ac8f6449015f4cd2dae76cdbc69a76c36c99abfe1dd11d2",
+      "file": "e9a07e324d400bce901d65cf.mp3",
+      "generated_at": "2026-10-19T09:55:04.692791+00:00"
+    },
+    "acf4be282f367bae8b9844a4": {
+      "title": "İdiyopatik ve sekonder plevroparenkimal fibroelastozda belirgin elastik ve kolajen lif paternlerinin niceliksel değerlendirmesi ortaya çıkar.",
+      "journal": "Journal of Pathology",
+      "pmid": "42878800",
+      "fingerprint": "f5b1bd8ead4d4f516c8c1e124f5aae190c31deb1103a58a1cd8313a8ac50e91d",
+      "file": "acf4be282f367bae8b9844a4.mp3",
+      "generated_at": "2026-10-19T11:29:33.663121+00:00"
+    },
+    "2c28a2d1e07cfed0bc43e630": {
+      "title": "Epitel farklılaşması ve EWSR1 füzyonları içeren kutanöz bazaloid neoplazmlar: dört vaka serisi.",
+      "journal": "Journal of Pathology",
+      "pmid": "42862344",
+      "fingerprint": "0e4c577571888b8f1e74dafb6fe4e81dcb1490417d68f63bbd28029cc0a18789",
+      "file": "2c28a2d1e07cfed0bc43e630.mp3",
+      "generated_at": "2026-10-19T11:29:33.663121+00:00"
+    },
+    "3273a5bb7b85a55d76596a89": {
+      "title": "Melanositik tümörlerde LEF1 ekspresyonu, CTNNB1 mutasyon durumunu doğru bir şekilde tahmin edemez ve bu durum, çift fenotipli lezyonlarda potansiyel bir tuzak görevi görür.",
+      "journal": "Journal of Pathology",
+      "pmid": "42858195",
+      "fingerprint": "c85aeb6aa1e4d474f724c9b501b4ccfabe8c6c883263574e5e6d82145974ade6",
+      "file": "3273a5bb7b85a55d76596a89.mp3",
+      "generated_at": "2026-10-19T09:53:19.157274+00:00"
+    },
+    "545e4952beaf6e560bc43cb9": {
+      "title": "Orta Doğu'daki bir kohortta prostat patolojisi için tanısal yapay zeka modellerinin doğrulanması.",
+      "journal": "Journal of Pathology",
+      "pmid": "42858194",
+      "fingerprint": "48afd32ef4ae955543189385e188663c40aa6fe40df845b8377860cfc227fb52",
+      "file": "545e4952beaf6e560bc43cb9.mp3",
       "generated_at": "2026-10-19T09:53:51.086255+00:00"
     }
   }
