@@ -298,6 +298,27 @@ class TwoStepManager(base.AhenkManager):
 
         self._managed_task("Ahenk kütüphaneleri kuruluyor...", work, done)
 
+    def save_text(self):
+        if self.busy:
+            messagebox.showinfo("İşlem devam ediyor",
+                                "Yayın işlemi sırasında okuma ayarı değiştirilemez.")
+            return
+        return super().save_text()
+
+    def accept_sound(self):
+        if self.busy:
+            messagebox.showinfo("İşlem devam ediyor",
+                                "Ses dosyası yüklemesi tamamlandıktan sonra kaydedilebilir.")
+            return
+        return super().accept_sound()
+
+    def open_dictionary(self):
+        if self.busy:
+            messagebox.showinfo("İşlem devam ediyor",
+                                "Telaffuz sözlüğünü yayın sonrasında düzenleyin.")
+            return
+        return super().open_dictionary()
+
     def _stage(self, label, percent=None, counter=None):
         """Main-thread only: update the prominent progress strip."""
         self.stage_description.set(str(label))
