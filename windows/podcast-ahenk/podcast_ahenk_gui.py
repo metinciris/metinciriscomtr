@@ -619,6 +619,13 @@ class App:
             self.selected_label.configure(text="Bu filtreye uygun makale bulunamadı.")
             self.selection_status.set("Sol taraftaki filtreyi değiştirin.")
             self.online_details.set("Web ve yerel ses seçimi için bir başlık seçin.")
+            self.publish_choice.set("")
+            self.choice_key = None
+            self.web_card_status.set("Başlık seçilmedi")
+            self.local_card_status.set("Başlık seçilmedi")
+            self.publish_choice_status.set("Yayına gidecek ses seçilmedi.")
+            self.radio_web.configure(state="disabled")
+            self.radio_local.configure(state="disabled")
             for btn in (self.btn_accept, self.btn_old,
                         self.btn_web, self.btn_publish, self.btn_restore):
                 btn.configure(state="disabled")
@@ -639,6 +646,9 @@ class App:
                 self.text.get("1.0", "end-1c"), self.speed.get()
             )
         self.current = key
+        if self.choice_key != key:
+            self.publish_choice.set("")
+            self.choice_key = key
         self.selected_label.configure(text=article["journal"] + " · " + article["title"])
         if self.editor_key != key:
             override = self.rules.get("articles", {}).get(pron.identity(article), {})
@@ -659,8 +669,13 @@ class App:
         github_available = key in self.github_manifest.get("entries", {})
         self.btn_old.configure(state="normal" if old_available else "disabled")
         self.btn_web.configure(state="normal" if site_available else "disabled")
-        self.btn_publish.configure(state="normal" if old_available else "disabled")
         self.btn_restore.configure(state="normal" if github_available else "disabled")
+        self.radio_web.configure(state="normal" if site_available else "disabled")
+        self.radio_local.configure(state="normal" if old_available else "disabled")
+        if not site_available and self.publish_choice.get() == "web":
+            self.publish_choice.set("")
+        if not old_available and self.publish_choice.get() == "local":
+            self.publish_choice.set("")
         can_accept = self.preview is not None and self.preview[0] == key
         self.btn_accept.configure(state="normal" if can_accept else "disabled")
         web_stamp = str(web_entry.get("generated_at", ""))[:16].replace("T", " ") if site_available else "—"
@@ -672,6 +687,15 @@ class App:
             f"GITHUB: {'✓ Kayıtlı' if github_available else 'henüz gönderilmemiş'}   "
             f"·   PMID: {article['pmid']}"
         )
+        self.web_card_status.set(
+            ("✓ Web'de yayında\nOluşturulma: " + web_stamp) if site_available
+            else "Henüz web MP3'ü yok\nYerel sesi üretebilirsiniz."
+        )
+        self.local_card_status.set(
+            ("✓ MP3 mevcut\nOluşturulma: " + local_stamp) if old_available
+            else "Bu bilgisayarda MP3 yok\nToplu veya tekli üretilebilir."
+        )
+        self.choice_changed()
         if can_accept:
             self.selection_status.set("Yeni MP3 hazır. Beğendiyseniz kabul edip web'e gönderebilirsiniz.")
         elif old_available:
