@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-10-19T11:30:36.857878+00:00",
+  "generated_at": "2026-10-19T11:30:45.790181+00:00",
   "entries": {
     "7d9cd522d0f2d5752ca6a105": {
       "title": "MAP2K1 mutasyonlu melanositik tümörler: 114 olgu üzerinden yapılan bir çalışmaya dayanarak histolojik özelliklerin moleküler fonksiyonel sınıflarıyla ilişkisi.",
@@ -864,6 +864,70 @@
       "pmid": "42858194",
       "fingerprint": "48afd32ef4ae955543189385e188663c40aa6fe40df845b8377860cfc227fb52",
       "file": "545e4952beaf6e560bc43cb9.mp3",
+      "generated_at": "2026-10-19T09:53:51.086255+00:00"
+    },
+    "2e080845128d1b3f35161522": {
+      "title": "Mide displazisi: yüzey epitelinden türetilen öncü lezyonların bütünleşik bir sınıflandırması.",
+      "journal": "Journal of Pathology",
+      "pmid": "42841970",
+      "fingerprint": "ac17853b4baec04345c5b1dc0e45a27748e2450e0baa8d21ada6ac295904fbb4",
+      "file": "2e080845128d1b3f35161522.mp3",
+      "generated_at": "2026-10-19T09:54:06.251006+00:00"
+    },
+    "77316e506bb61a324f62e30c": {
+      "title": "Karsinom beyin metastazlarındaki tümör içi desmoplastik stroma, kanserle ilişkili fibroblast (CAF) benzeri immünofenotipe sahip stromal hücreler barındırır.",
+      "journal": "Journal of Pathology",
+      "pmid": "42841969",
+      "fingerprint": "6b5b479db916777358d27a7b58b2d0e8728a2280d6ed0dc912d636189ab8c60e",
+      "file": "77316e506bb61a324f62e30c.mp3",
+      "generated_at": "2026-10-19T09:54:32.077112+00:00"
+    },
+    "bc70c9cb94991b8331db3c0a": {
+      "title": "Küçük, iyi diferansiye olmuş pankreas nöroendokrin tümörlerinde telomerlerin alternatif uzatılması: bağımsız doğrulama ve platformlar arası uyumluluk.",
+      "journal": "Journal of Pathology",
+      "pmid": "42836995",
+      "fingerprint": "f7223092fd059d5d375924db05772179e0e07b6ca8a5921f1e287c5f517d24a7",
+      "file": "bc70c9cb94991b8331db3c0a.mp3",
+      "generated_at": "2026-10-19T09:54:49.122766+00:00"
+    },
+    "9b47dbc5e0d7c7f4b547d811": {
+      "title": "Akciğer nöroendokrin tümörlerinde VEGF sinyal yolunun işleyişi: Çok merkezli bir çalışmada histolojik alt tiplerle ilişkiler.",
+      "journal": "Journal of Pathology",
+      "pmid": "42836994",
+      "fingerprint": "28d90651e04678eac807206c4fa9de80006be087aa27bd269b7701d064243dbb",
+      "file": "9b47dbc5e0d7c7f4b547d811.mp3",
+      "generated_at": "2026-10-19T09:55:04.692791+00:00"
+    },
+    "55fbccc303a901f8b8880baa": {
+      "title": "MGA::NUTM1 füzyon sarkomu: kapsamlı literatür incelemesiyle NUT yeniden düzenlenmiş sarkomların spektrumunu genişletmek.",
+      "journal": "Annals of Diagnostic Pathology",
+      "pmid": "42771852",
+      "fingerprint": "a0e430177604ea8728a4ecee321eb063b5cee69257b025d42f8f6bf95fcfd757",
+      "file": "55fbccc303a901f8b8880baa.mp3",
+      "generated_at": "2026-10-19T11:29:33.663121+00:00"
+    },
+    "e5c1fa52602d5c79438d529d": {
+      "title": "Erişkin cerrahi hastalarda sitratlı TEG (tromboelastografi) sonuçları üzerinde 15 dakikalık inkübasyonun etkisi - prospektif gözlemsel bir çalışma.",
+      "journal": "Annals of Diagnostic Pathology",
+      "pmid": "42762497",
+      "fingerprint": "db5b12ab88deb174434c476faf66f618a0b77f196ecd59d3bffd23da34d2cf44",
+      "file": "e5c1fa52602d5c79438d529d.mp3",
+      "generated_at": "2026-10-19T09:53:03.355305+00:00"
+    },
+    "8599ca293d080f992e056b08": {
+      "title": "Düşük dereceli miksoid iğsi hücreli tümörde LGALS3::POU5F1 gen füzyonu tespit edildi.",
+      "journal": "Annals of Diagnostic Pathology",
+      "pmid": "42759051",
+      "fingerprint": "ed10cb1178c0aa18fae8c7e3e1ca880a56d6d8ad14d380e5befed91f041af39c",
+      "file": "8599ca293d080f992e056b08.mp3",
+      "generated_at": "2026-10-19T09:53:37.740228+00:00"
+    },
+    "51dc16e1631c2bf5108edf07": {
+      "title": "Heparin bağımsız trombosit aktive edici anti-trombosit faktör 4 antikorlarının saptanması için salin tam kan empedans agregometrisi.",
+      "journal": "Annals of Diagnostic Pathology",
+      "pmid": "42722359",
+      "fingerprint": "5ae49a8f2b05d67f94cc1734c8639c54b3694bd3ab3a2c4266eb607400233a5d",
+      "file": "51dc16e1631c2bf5108edf07.mp3",
       "generated_at": "2026-10-19T09:53:51.086255+00:00"
     }
   }
