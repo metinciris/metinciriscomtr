@@ -15,12 +15,22 @@ from scripts import render_podcast_audio as engine
 
 
 def present(root, key):
-    """A minimal physical-file check, independent of manifest bookkeeping."""
+    """Inspect one MP3 without allowing a Windows file lock to crash the GUI.
+
+    ffplay, Windows MCI or antivirus scanners can temporarily hold an MP3
+    with a restrictive share mode. Opening it then raises PermissionError
+    (Errno 13). Treat it as temporarily unreadable, NEVER delete or replace it.
+    A later refresh checks it again after the other program releases the lock.
+    """
     path = Path(root) / "public" / "podcast-audio" / (key + ".mp3")
-    if not path.is_file() or path.stat().st_size <= 1024:
+    try:
+        if not path.is_file() or path.stat().st_size <= 1024:
+            return False
+        with path.open("rb") as stream:
+            header = stream.read(3)
+    except OSError:
+        # Path still belongs to the user's local archive. Do not touch it.
         return False
-    with path.open("rb") as stream:
-        header = stream.read(3)
     return header == b"ID3" or (
         len(header) >= 2 and header[0] == 255 and (header[1] & 224) == 224
     )

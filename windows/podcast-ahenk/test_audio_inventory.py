@@ -59,6 +59,50 @@ class AudioInventoryTests(unittest.TestCase):
         self.assertEqual(counts["pc_missing"], 1)
         self.assertEqual(counts["publish_ready"], 1)
 
+    def test_windows_mp3_lock_does_not_crash_the_audio_inventory(self):
+        """An active player may deny read access to one otherwise valid MP3."""
+        locked_key, readable_key = self.keys
+        locked_path = self.audio / (locked_key + ".mp3")
+        readable_path = self.audio / (readable_key + ".mp3")
+        write_mp3(locked_path, b"LOCKED_KEEP_ORIGINAL")
+        write_mp3(readable_path)
+        original = locked_path.read_bytes()
+        real_open = Path.open
+
+        def locked_open(path, *args, **kwargs):
+            if Path(path) == locked_path:
+                raise PermissionError(13, "Permission denied", str(path))
+            return real_open(path, *args, **kwargs)
+
+        with patch.object(Path, "open", autospec=True, side_effect=locked_open):
+            rows, counts = audio_inventory.inventory(
+                self.root, self.catalog, self.manifest,
+                {"version": 1, "entries": {}},
+            )
+
+        self.assertFalse(rows[locked_key]["pc"])
+        self.assertTrue(rows[readable_key]["pc"])
+        self.assertEqual(counts["pc"], 1)
+        self.assertEqual(counts["pc_missing"], 1)
+        self.assertEqual(locked_path.read_bytes(), original)
+        # A second refresh can immediately see the file once it is unlocked.
+        self.assertTrue(audio_inventory.present(self.root, locked_key))
+
+    def test_windows_mp3_permission_error_on_stat_is_nonfatal(self):
+        key = self.keys[0]
+        locked = self.audio / (key + ".mp3")
+        write_mp3(locked)
+        real_stat = Path.stat
+
+        def locked_stat(path, *args, **kwargs):
+            if Path(path) == locked:
+                raise PermissionError(13, "Permission denied", str(path))
+            return real_stat(path, *args, **kwargs)
+
+        with patch.object(Path, "stat", autospec=True, side_effect=locked_stat):
+            self.assertFalse(audio_inventory.present(self.root, key))
+        self.assertTrue(locked.exists())
+
     def test_recover_manifest_record_without_modifying_audio(self):
         key = self.keys[0]
         path = self.audio / (key + ".mp3")

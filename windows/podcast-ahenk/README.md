@@ -163,3 +163,16 @@ Yüklemeden hemen önce gerçek siteye tekrar bakar. WEB'de eksik bütün sesler
 **Önceden üretilmiş sesler:** Yükleme denemesi kabul edilmiş yerel MP3'ü veya başka bir makalenin MP3'ünü silmez. `Yeni ses üret` düğmesi her defasında ayrı deneme dosyası oluşturur; `PC'ye kabul et` yalnız seçili deneme için geçerlidir.
 
 **Not:** TTS paketlerinin ilk kurulumu internet bağlantısı ve disk alanı gerektirebilir. Başarısız olursa uygulama WEB/PC hazır sesler için çalışmayı sürdürür; kurulum hatası Log/Hata bölümüne yazılır ve bir sonraki açılışta yeniden denenir.
+
+## Açılışta Permission denied / MP3 kilidi (Windows)
+
+Program açılırken `[Errno 13] Permission denied: .../podcast-audio/<hash>.mp3`
+görünüyorsa bir oynatıcı (ffplay, Windows Media Player/MCI) veya güvenlik
+taraması ilgili MP3 dosyasını Windows'ta kilitlemiş olabilir. Artık envanter
+kontrolü bu tek MP3 için `OSError` yakalar ve uygulamayı kapatmaz.
+Kilitli MP3'ün üzerine yazılmaz, silinmez ve kalıcı olarak "kayboldu"
+varsayılmaz; oynatıcı kapatılıp liste yenilenince tekrar görünür.
+Kilit açıkken yeni ses üretmeye/yüklemeye çalışmayın. Diğer tüm MP3'ler
+normal şekilde listelenir. Hata devam ederse `ahenk_hata.log` içindeki
+**traceback** bölümünü paylaşın; Windows/antivirüs izinleri ayrıca
+incelenmelidir.
