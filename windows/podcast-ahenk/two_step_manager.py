@@ -1585,17 +1585,28 @@ class TwoStepManager(base.AhenkManager):
 
 
 def main():
-    root = tk.Tk()
-    try:
-        TwoStepManager(root)
-    except Exception as exc:
-        with ERROR_LOG.open("a", encoding="utf-8") as handle:
-            handle.write(datetime.now().isoformat() + "\n" +
-                         traceback.format_exc() + "\n")
-        messagebox.showerror("Ahenk açılamadı", str(exc) + "\n" + str(ERROR_LOG))
-        root.destroy()
-        return
-    root.mainloop()
+    # A scheduled PC audio synthesis should never edit the local repository
+    # concurrently with a visible user session.
+    import app_single_instance
+    with app_single_instance.exclusive_archive() as available:
+        if not available:
+            messagebox.showinfo(
+                "Podcast Ahenk zaten çalışıyor",
+                "Başka bir Ahenk penceresi veya günlük ses üretim görevi "
+                "çalışıyor. MP3 dosyalarını korumak için ikinci işlem açılmadı."
+            )
+            return
+        root = tk.Tk()
+        try:
+            TwoStepManager(root)
+        except Exception as exc:
+            with ERROR_LOG.open("a", encoding="utf-8") as handle:
+                handle.write(datetime.now().isoformat() + "\n" +
+                             traceback.format_exc() + "\n")
+            messagebox.showerror("Ahenk açılamadı", str(exc) + "\n" + str(ERROR_LOG))
+            root.destroy()
+            return
+        root.mainloop()
 
 
 if __name__ == "__main__":

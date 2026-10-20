@@ -50,7 +50,7 @@ jobs:
       - name: Check Python podcast batch generation and sheet parsing
         run: python3 -m unittest scripts.test_render_podcast_audio scripts.test_podcast_audio_pronunciation
       - name: Check Windows manager Python syntax
-        run: python3 -m py_compile windows/podcast-ahenk/podcast_ahenk_gui.py windows/podcast-ahenk/simple_manager.py windows/podcast-ahenk/audio_inventory.py windows/podcast-ahenk/two_step_manager.py windows/podcast-ahenk/two_step_audio.py windows/podcast-ahenk/audio_playback.py windows/podcast-ahenk/preview_library.py windows/podcast-ahenk/audio_runtime.py windows/podcast-ahenk/selected_web_audio.py scripts/podcast_audio_pronunciation.py
+        run: python3 -m py_compile windows/podcast-ahenk/podcast_ahenk_gui.py windows/podcast-ahenk/simple_manager.py windows/podcast-ahenk/audio_inventory.py windows/podcast-ahenk/two_step_manager.py windows/podcast-ahenk/two_step_audio.py windows/podcast-ahenk/audio_playback.py windows/podcast-ahenk/preview_library.py windows/podcast-ahenk/audio_runtime.py windows/podcast-ahenk/selected_web_audio.py windows/podcast-ahenk/gunluk_otomatik.py windows/podcast-ahenk/app_single_instance.py scripts/podcast_audio_pronunciation.py
       - name: Ensure bundled open-source runtime has required files
         run: |
           test -f public/ahenk-cep/js/worker.js
@@ -135,6 +135,26 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "Ahenk selected trial WEB publication safety failed" }
           & python.exe .\windows\podcast-ahenk\test_web_selection_gui.py
           if ($LASTEXITCODE -ne 0) { throw "Ahenk prominent per-clip WEB publish user interface failed" }
+      - name: Regression - automatic daily Ahenk batch and single-writer protection
+        shell: powershell
+        run: |
+          & python.exe .\windows\podcast-ahenk\test_gunluk_otomatik.py
+          if ($LASTEXITCODE -ne 0) { throw "Daily automatic Ahenk regression failed" }
+          foreach ($path in @(
+            ".\windows\podcast-ahenk\gorev_kur.ps1",
+            ".\windows\podcast-ahenk\gorev_kaldir.ps1",
+            ".\windows\podcast-ahenk\gorev_durum.ps1"
+          )) {
+            $tokens = $null
+            $syntaxErrors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile(
+              $path, [ref]$tokens, [ref]$syntaxErrors
+            ) | Out-Null
+            if ($syntaxErrors.Count -gt 0) {
+              $syntaxErrors | Format-List | Out-String | Write-Host
+              throw "Daily Ahenk PowerShell parse error: $path"
+            }
+          }
       - name: Regression - simple Windows GUI and local MP3 recovery
         shell: powershell
         run: |

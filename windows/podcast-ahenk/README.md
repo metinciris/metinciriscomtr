@@ -176,3 +176,54 @@ Kilit açıkken yeni ses üretmeye/yüklemeye çalışmayın. Diğer tüm MP3'le
 normal şekilde listelenir. Hata devam ederse `ahenk_hata.log` içindeki
 **traceback** bölümünü paylaşın; Windows/antivirüs izinleri ayrıca
 incelenmelidir.
+
+## Her gün 12:30'da PC ile otomatik eksik ses tamamlama
+
+Bu görev Windows Görev Zamanlayıcı ile **bilgisayarınızda** çalışır;
+ChatGPT veya GitHub Actions'tan uzaktan bilgisayar açılmaz. Bilgisayar
+açık ve Windows oturumunuz açık olmalıdır. Uykudaysa uyandırılmaz; zaman
+kaçırılmışsa Windows uygun olduğunda görevi çalıştırmayı dener.
+
+### Bir kez kurun
+
+Önce **Ahenk penceresini kapatın** ve güncel uygulamayı
+`kurulum.ps1` ile GitHub'dan güncelleyin. Ardından PowerShell'de:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:LOCALAPPDATA\PodcastAhenk\metinciriscomtr\windows\podcast-ahenk\gorev_kur.ps1"
+```
+
+Oluşturulan görev: `PodcastAhenk_GunlukSes_1230`.
+Windows saatiyle her gün **12:30**'da kullanıcı oturumunda, **sessizce**
+çalışır; işlem bitince Python işlemi kapanır. Aynı anda Ahenk penceresi
+açıksa hiçbir dosyaya dokunmadan o günkü işi atlar. Günlük görev
+ile görünür uygulama aynı kilidi kullanır.
+
+Görev önce canlı webdeki ve GitHub `main` içindeki ses kayıtlarını
+karşılaştırır. Zaten yayında olan veya GitHub'a yüklenmiş ancak WEB
+dağıtımı bekleyen MP3'e dokunmaz. Eksik sesler varsa PC'de önceden kabul
+edilmiş MP3'leri yeniden üretmez; kayıtsız/kilitli dosyaları da korur.
+Gerçek eksikleri sekizli gruplar hâlinde Ahenk Cep ile üretir.
+**GitHub'a tek toplu push** yapar. Başka sesler değiştirilmez ve
+otomatik silme/150 günlük yenileme yapılmaz; o politikayı GitHub Actions
+yürütür. GitHub'a push için **önceden doğrulanmış** Git kimlik bilgileri
+gereklidir. Otomatik işlem giriş penceresi beklemez.
+
+### Test / durum / devre dışı bırakma
+
+```powershell
+# Görevi Windows üzerinden hemen başlatır:
+Start-ScheduledTask -TaskName "PodcastAhenk_GunlukSes_1230"
+
+# Son çalışmayı, yapılmış işleri ve sıradaki saati gösterir:
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:LOCALAPPDATA\PodcastAhenk\metinciriscomtr\windows\podcast-ahenk\gorev_durum.ps1"
+
+# Otomasyonu kaldırır; sesleri silmez:
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:LOCALAPPDATA\PodcastAhenk\metinciriscomtr\windows\podcast-ahenk\gorev_kaldir.ps1"
+```
+
+Günlük: `%LOCALAPPDATA%\PodcastAhenk\gunluk_otomatik.log`
+Durum JSON: `%LOCALAPPDATA%\PodcastAhenk\gunluk_otomatik_sonuc.json`.
+Günlük dosyası 4 MB'ı geçerse `.log` eski dosyasına dönüştürülür.
+GitHub bağlantısı veya ses motoru başarısız olursa hata loglanır,
+mevcut sesler korunur ve bir sonraki günlük çalışma tekrar dener.
