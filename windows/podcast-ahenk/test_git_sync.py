@@ -190,6 +190,31 @@ class GitStatusRegression(unittest.TestCase):
             )
             self.assertEqual(audio_sync.read_json_file(root / audio_sync.RULES), local_rules)
 
+
+    def test_automatic_publisher_refuses_a_github_race(self):
+        """Other published article must never be silently replaced by PC."""
+        with tempfile.TemporaryDirectory() as t:
+            root, home = Path(t) / "repo", Path(t) / "home"
+            key = "a" * 24
+            candidate = entry(key, "Bilgisayarda hazir ses")
+            local = make_manifest({key: candidate})
+            write_json(root / audio_sync.MANIFEST, local)
+            file = root / audio_sync.AUDIO_PREFIX / (key + ".mp3")
+            file.parent.mkdir(parents=True, exist_ok=True)
+            file.write_bytes(mp3_bytes("LOCAL_UNPUBLISHED"))
+            original = file.read_bytes()
+            remote = make_manifest({key: entry(key, "GitHub Actions yayinladi")})
+            with patch.object(audio_sync, "sync"), \
+                 patch.object(audio_sync, "ref_json", return_value=remote), \
+                 patch.object(audio_sync, "_commit_and_push",
+                              side_effect=AssertionError("Unsafe push called")):
+                with self.assertRaisesRegex(RuntimeError, "Otomatik yayin durduruldu"):
+                    audio_sync.publish_selected_local_voices(
+                        root, home, [key], reject_existing=True
+                    )
+            self.assertEqual(file.read_bytes(), original)
+            self.assertEqual(audio_sync.read_json_file(root / audio_sync.MANIFEST), local)
+
     def test_web_selected_restores_original_local_mp3(self):
         with tempfile.TemporaryDirectory() as t:
             root, home = Path(t) / "repo", Path(t) / "home"

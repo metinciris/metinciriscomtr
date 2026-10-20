@@ -122,6 +122,7 @@ class DailyPodcastJobTests(unittest.TestCase):
         model.assert_called_once()
         publisher.assert_called_once()
         self.assertEqual(publisher.call_args.args[2], expected)
+        self.assertTrue(publisher.call_args.kwargs["reject_existing"])
 
     def test_unregistered_pc_recording_is_never_overwritten(self):
         key = self.keys[-1]

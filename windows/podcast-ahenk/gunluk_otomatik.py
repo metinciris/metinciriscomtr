@@ -184,7 +184,7 @@ def run_once():
     if upload:
         note(f"GitHub'a TEK gönderim: {len(upload)} MP3. "
              "Web'deki mevcut kayıtların üzerine yazılmıyor.")
-        git_sync.publish_selected_local_voices(ROOT, HOME, upload)
+        git_sync.publish_selected_local_voices(ROOT, HOME, upload, reject_existing=True)
         result["uploaded"] = len(upload)
         result["status"] = "uploaded_waiting_for_deploy"
     else:
