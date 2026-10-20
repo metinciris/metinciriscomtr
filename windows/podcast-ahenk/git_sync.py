@@ -457,7 +457,7 @@ def publish_live_web_voice(root, home, key, live_entry, downloaded_mp3):
             if sent else "Web'deki ses zaten GitHub'da seçili; değiştirilmedi.")
 
 
-def publish_selected_local_voices(root, home, keys):
+def publish_selected_local_voices(root, home, keys, reject_existing=False):
     """Only explicitly selected local MP3s are sent, preserving other drafts."""
     root = Path(root)
     keys = list(dict.fromkeys(keys))
@@ -473,6 +473,17 @@ def publish_selected_local_voices(root, home, keys):
     for key in keys:
         assert_audio_valid(root, key, local.get("entries", {}).get(key))
     remote = ref_json(root, "HEAD", MANIFEST, {"version": 1, "entries": {}})
+    if reject_existing:
+        # The scheduled PC job uses this opt-in fail-closed guard. If another
+        # GitHub Action/PC has published one of the same article keys during
+        # synthesis, do NOT overwrite that newly published rendition.
+        collisions = [key for key in keys if key in remote.get("entries", {})]
+        if collisions:
+            raise RuntimeError(
+                "Otomatik yayin durduruldu: GitHub bu sirada "
+                f"{len(collisions)} makaleye ses eklemis. Mevcut WEB/GitHub "
+                "kayitlari korunuyor; sonraki gun yeniden kontrol edilecek."
+            )
     result_entries = dict(remote.get("entries", {}))
     for key in keys:
         result_entries[key] = local["entries"][key]
