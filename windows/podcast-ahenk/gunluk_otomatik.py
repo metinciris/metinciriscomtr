@@ -39,7 +39,11 @@ def now():
 
 
 def note(message):
-    print(now(), "|", message, flush=True)
+    # Windows scheduled job logs UTF-8; interactive cp1252 test consoles may not.
+    text = f"{now()} | {message}"
+    encoding = getattr(sys.stdout, "encoding", None) or "utf-8"
+    safe = text.encode(encoding, errors="backslashreplace").decode(encoding)
+    print(safe, flush=True)
 
 
 def save_status(data):
