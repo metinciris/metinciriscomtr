@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-10-19T13:07:10.587708+00:00",
+  "generated_at": "2026-10-20T14:16:51.335009+00:00",
   "entries": {
     "7d9cd522d0f2d5752ca6a105": {
       "title": "MAP2K1 mutasyonlu melanositik tümörler: 114 olgu üzerinden yapılan bir çalışmaya dayanarak histolojik özelliklerin moleküler fonksiyonel sınıflarıyla ilişkisi.",
@@ -961,6 +961,54 @@
       "fingerprint": "5da27c0dd2c5127982652734a8459e62c2c179f8214f7bca98e79aa5cedca4be",
       "file": "a85ffdbe7639b27d32cf7b63.mp3",
       "generated_at": "2026-10-19T09:55:25.978051+00:00"
+    },
+    "aaddea8432e595aea9b12b4e": {
+      "title": "Metastaz yapmamış lenf düğümlerinin H&E bazlı, tekrarlanabilir ve yorumlanabilir histopatolojik alt tipleri, kolorektal kanserde risk sınıflandırmasını iyileştiriyor.",
+      "journal": "Modern Pathology",
+      "pmid": "42855076",
+      "fingerprint": "d611ba2e33a567b27badfb7a8c3bd9b68a45cd70d680de1b00ff6b02f6d2d610",
+      "file": "aaddea8432e595aea9b12b4e.mp3",
+      "generated_at": "2026-10-20T14:11:55.643102+00:00"
+    },
+    "cd495784364edb1fb819a0d0": {
+      "title": "HPV İlişkili ve HPV Bağımsız Servikal Yassı Hücreli Karsinomalarda Yaygın Olmayan p16 Ekspresyonu: Histopatolojik Özellikler ve Moleküler Değişikliklere Vurgu Yapan Tek Kurum Vaka Serisi.",
+      "journal": "American Journal of Surgical Pathology",
+      "pmid": "42619632",
+      "fingerprint": "2c75585f1c4fc11a45c4d94e39b66b0557e9109f15e018025f6252cd327f4aee",
+      "file": "cd495784364edb1fb819a0d0.mp3",
+      "generated_at": "2026-10-20T14:11:55.643102+00:00"
+    },
+    "4a02804450ed21e7667422eb": {
+      "title": "Meme bezinin düşük dereceli iğne hücreli lezyonlarında tanısal zorlukların üstesinden gelme: retrospektif bir inceleme.",
+      "journal": "Human Pathology",
+      "pmid": "42363645",
+      "fingerprint": "75a809b482ce185f02b24f66a0cb53f549ed6a852914bb20757a53cd7d3073b9",
+      "file": "4a02804450ed21e7667422eb.mp3",
+      "generated_at": "2026-10-20T14:11:55.643102+00:00"
+    },
+    "ee366d12879b0a8a113895f3": {
+      "title": "Üst Gastrointestinal ve Pankreatikobiliyer Kanserlerde Uyumsuzluk Onarım Eksikliği: Klinik Uygulamada Çok Modlu Moleküler Verilerin Entegrasyonu.",
+      "journal": "Virchows Archiv",
+      "pmid": "42730524",
+      "fingerprint": "60209e76785c3bdbce860e9f352fd9c1da5a6a652a3314e9de8afb6a83e6cfd4",
+      "file": "ee366d12879b0a8a113895f3.mp3",
+      "generated_at": "2026-10-19T09:52:30.961657+00:00"
+    },
+    "55fbccc303a901f8b8880baa": {
+      "title": "MGA::NUTM1 füzyon sarkomu: kapsamlı literatür incelemesiyle NUT yeniden düzenlenmiş sarkomların spektrumunu genişletmek.",
+      "journal": "Annals of Diagnostic Pathology",
+      "pmid": "42771852",
+      "fingerprint": "a0e430177604ea8728a4ecee321eb063b5cee69257b025d42f8f6bf95fcfd757",
+      "file": "55fbccc303a901f8b8880baa.mp3",
+      "generated_at": "2026-10-20T14:11:55.643102+00:00"
+    },
+    "61ee7e25987c063d862d7848": {
+      "title": "LDHA ekspresyonu, Pan-Kla düzeyi ve H3K18la düzeyi, laringeal skuamöz hücreli karsinomun klinik ilerlemesiyle ilişkilidir.",
+      "journal": "International Journal of Surgical Pathology",
+      "pmid": "42665803",
+      "fingerprint": "127e4b9dea79960bf63e0b104b07c4c87255b81b91d8609b7f5108dc941b463e",
+      "file": "61ee7e25987c063d862d7848.mp3",
+      "generated_at": "2026-10-20T14:11:55.643102+00:00"
     }
   }
 }
