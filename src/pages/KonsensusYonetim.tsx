@@ -371,6 +371,23 @@ export function KonsensusYonetim() {
       {activePoster && <PosterLightbox url={activePoster} onClose={() => setActivePoster(null)} />}
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
+
+      {/* Düzenleme sırasında kaydetmek için formun en altına inmeye gerek yok. */}
+      {isAdmin && formData.id && (
+        <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50">
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={!isFormValid() || actionLoading}
+            aria-label="Düzenlenen toplantının değişikliklerini kaydet"
+            className="inline-flex max-w-[calc(100vw-2rem)] items-center justify-center gap-2 rounded-2xl bg-blue-600 px-5 py-3.5 text-sm font-black text-white shadow-2xl ring-4 ring-white/90 transition hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {actionLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
+            {actionLoading ? 'Kaydediliyor…' : 'Değişiklikleri Kaydet'}
+          </button>
+        </div>
+      )}
+
       <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-gradient-to-r from-slate-800 to-indigo-900 text-white p-8 sm:p-10 rounded-3xl shadow-lg relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32" />
