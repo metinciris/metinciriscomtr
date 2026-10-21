@@ -456,7 +456,7 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
     konsensus: {
         slug: 'konsensus',
         title: 'Patoloji Konsensus Toplantı Takibi | Prof Dr Metin Çiriş',
-        description: 'Tıbbi patoloji konsensus toplantılarını canlı takip edin. Toplantı takvimi, Zoom erişim linkleri ve vaka tartışma arşivi.',
+        description: 'Tıbbi patoloji konsensus toplantılarını canlı takip edin. Toplantı takvimi, Zoom ve Teams katılım bağlantıları ile vaka tartışma arşivi.',
         keywords: 'patoloji konsensus, toplantı takibi, patoloji eğitim, online toplantı, patoloji vakaları',
         lastmod: '2026-07-16',
         priority: 0.7,
