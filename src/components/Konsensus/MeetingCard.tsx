@@ -29,6 +29,7 @@ import {
     canShowPoster,
     getZoomVisibilityCountdown,
     getEffectiveZoomLink,
+    getMeetingPlatformName,
 } from './utils';
 
 interface MeetingCardProps {
@@ -71,6 +72,7 @@ export function MeetingCard({
     const duration = Math.max(15, meeting.duration ?? 60);
 
     const effectiveZoomLink = getEffectiveZoomLink(meeting);
+    const meetingPlatform = getMeetingPlatformName(effectiveZoomLink);
     const hasZoomLink = !!effectiveZoomLink;
     const hasZoomId = !!(meeting.zoom_id && meeting.zoom_id.trim());
     const hasZoomPassword = !!(meeting.zoom_password && meeting.zoom_password.trim());
@@ -259,10 +261,10 @@ export function MeetingCard({
                                         <div className="rounded-2xl bg-amber-50/80 border border-amber-200 p-4 space-y-1.5 shadow-sm">
                                             <div className="flex items-center gap-2 text-amber-900 font-black text-sm">
                                                 <Video className="w-4 h-4 text-amber-600 shrink-0" />
-                                                <span>Zoom bilgileri henüz gizli</span>
+                                                <span>Toplantı katılım bilgileri henüz gizli</span>
                                             </div>
                                             <p className="text-xs font-semibold text-amber-800 leading-relaxed">
-                                                Toplantı başlamadan 2 saat önce bağlantı, ID ve parola görünecek.
+                                                Toplantı başlamadan 2 saat önce bağlantı, varsa ID ve parola görünecek.
                                             </p>
                                             {getZoomVisibilityCountdown(meeting, now) && (
                                                 <div className="pt-1 text-xs font-black text-amber-900 flex items-center gap-1.5">
@@ -276,7 +278,7 @@ export function MeetingCard({
                                             <div className="rounded-2xl bg-emerald-50 border border-emerald-200 p-4 space-y-1 shadow-sm">
                                                 <div className="flex items-center gap-2 text-emerald-900 font-black text-sm">
                                                     <Video className="w-4 h-4 text-emerald-600 shrink-0" />
-                                                    <span>Zoom bağlantısı yayınlandı!</span>
+                                                    <span>{meetingPlatform} bağlantısı yayınlandı!</span>
                                                 </div>
                                                 {isUpcoming && meetingStart && (
                                                     <p className="text-xs font-semibold text-emerald-800">
@@ -302,7 +304,7 @@ export function MeetingCard({
                                                     rel="noopener noreferrer"
                                                 >
                                                     <Video className="w-4 h-4 mr-2" />
-                                                    {isLive ? 'Canlı Yayına Katıl' : 'Zoom\'a Katıl'}
+                                                    {isLive ? 'Canlı Yayına Katıl' : meetingPlatform === 'Teams' ? "Teams'e Katıl" : "Zoom'a Katıl"}
                                                 </a>
                                             )}
 
@@ -310,7 +312,7 @@ export function MeetingCard({
                                                 <div className="flex flex-wrap gap-2">
                                                     {hasZoomId && (
                                                         <div className="bg-gray-100 px-3 py-2 rounded-xl text-sm font-semibold text-gray-700">
-                                                            <span className="font-black text-gray-900">Zoom ID:</span> {meeting.zoom_id}
+                                                            <span className="font-black text-gray-900">{meetingPlatform === 'Teams' ? 'Toplantı ID:' : 'Zoom ID:'}</span> {meeting.zoom_id}
                                                         </div>
                                                     )}
 
