@@ -259,7 +259,7 @@ export function Konsensus() {
       >
         <h2>Patoloji Konsensus Toplantı Takibi</h2>
         <p>
-          Tıbbi patoloji topluluklarının düzenlediği bilimsel toplantıları, vaka tartışmalarını ve konsensus oturumlarını takip edin. Toplantı tarihleri, Zoom linkleri ve arşivlenmiş oturum detaylarına erişin.
+          Tıbbi patoloji topluluklarının düzenlediği bilimsel toplantıları, vaka tartışmalarını ve konsensus oturumlarını takip edin. Toplantı tarihleri, katılım bağlantıları ve arşivlenmiş oturum detaylarına erişin.
         </p>
       </div>
       {activePoster && <PosterLightbox url={activePoster} onClose={() => setActivePoster(null)} />}
