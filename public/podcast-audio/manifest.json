@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-10-20T14:16:51.335009+00:00",
+  "generated_at": "2026-10-21T09:30:53.915422+00:00",
   "entries": {
     "7d9cd522d0f2d5752ca6a105": {
       "title": "MAP2K1 mutasyonlu melanositik tümörler: 114 olgu üzerinden yapılan bir çalışmaya dayanarak histolojik özelliklerin moleküler fonksiyonel sınıflarıyla ilişkisi.",
@@ -1009,6 +1009,46 @@
       "fingerprint": "127e4b9dea79960bf63e0b104b07c4c87255b81b91d8609b7f5108dc941b463e",
       "file": "61ee7e25987c063d862d7848.mp3",
       "generated_at": "2026-10-20T14:11:55.643102+00:00"
+    },
+    "81dceef3f96c94123408d25e": {
+      "title": "Doğrudan tümör-yağ hücresi teması / Stroma Reaktif İnvazyon Ön Alanı (TAC/SARIFA), kolorektal kanserde olumsuz sonucu öngörüyor: odaklanmış kanıt sentezi ve meta-analiz.",
+      "journal": "Human Pathology",
+      "pmid": "42460779",
+      "fingerprint": "edb83928fa0bd9811b7a201105de6928b93ab597d9edf4a4df96a5e4d2bc0954",
+      "file": "81dceef3f96c94123408d25e.mp3",
+      "generated_at": "2026-10-19T09:53:03.355305+00:00"
+    },
+    "506889b1b791e3f384a561d2": {
+      "title": "Boyun bölgesinde ortaya çıkan, lokal olarak ilerlemiş bir PML::JAK1 miyofibroblastik sarkomu.",
+      "journal": "Journal of Pathology",
+      "pmid": "42900368",
+      "fingerprint": "ef184e1d356c31ff952180836cb19d5e64c8413d4b97bf5dc760f401b1269474",
+      "file": "506889b1b791e3f384a561d2.mp3",
+      "generated_at": "2026-10-21T09:30:31.344675+00:00"
+    },
+    "d5b0686ecf47feaa820c8f21": {
+      "title": "Fibroelastozun kantitatif değerlendirmesi, idiyopatik ve sekonder plevroparenkimal fibroelastozda belirgin elastik ve kolajen lifi paternlerini ortaya koymaktadır.",
+      "journal": "Journal of Pathology",
+      "pmid": "42878800",
+      "fingerprint": "7942074b154e57bc3ef12206002bf88ca81907ada9e8010a7fa49a1fd21c7ef7",
+      "file": "d5b0686ecf47feaa820c8f21.mp3",
+      "generated_at": "2026-10-21T09:30:31.344675+00:00"
+    },
+    "19af02669193327a8b0c8066": {
+      "title": "Los Angeles'ta evsiz ve diyabet hastası olan kişilerin sağlık hizmetlerine erişimini iyileştirmek için mobil yerinde test uygulaması.",
+      "journal": "Annals of Diagnostic Pathology",
+      "pmid": "42896849",
+      "fingerprint": "7215edd0f62bde237a85df5b8edbcc79ddced795550b763e7005be5cfd708d26",
+      "file": "19af02669193327a8b0c8066.mp3",
+      "generated_at": "2026-10-21T09:30:31.344675+00:00"
+    },
+    "6e0006fa13a019e5f23b821b": {
+      "title": "Biyopsi verileriyle eğitilmiş yapay zeka algoritmasının, tesadüfen saptanan prostat adenokarsinomunun tespiti için TURP ve HoLEP örneklerine genelleştirilebilirliği.",
+      "journal": "International Journal of Surgical Pathology",
+      "pmid": "42816888",
+      "fingerprint": "015a6c53617c0072559551483bc0f471c1ed073d38914d894f3a63807694478d",
+      "file": "6e0006fa13a019e5f23b821b.mp3",
+      "generated_at": "2026-10-21T09:30:31.344675+00:00"
     }
   }
 }
