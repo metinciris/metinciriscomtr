@@ -112,11 +112,11 @@ export function getZoomVisibilityCountdown(m: Meeting, now = new Date()): string
 
     if (hours > 0) {
         if (mins > 0) {
-            return `Zoom bilgileri ${hours} saat ${mins} dakika sonra yayınlanacak.`;
+            return `Katılım bilgileri ${hours} saat ${mins} dakika sonra yayınlanacak.`;
         }
-        return `Zoom bilgileri ${hours} saat sonra yayınlanacak.`;
+        return `Katılım bilgileri ${hours} saat sonra yayınlanacak.`;
     }
-    return `Zoom bilgileri ${mins} dakika sonra yayınlanacak.`;
+    return `Katılım bilgileri ${mins} dakika sonra yayınlanacak.`;
 }
 
 export function getEffectiveZoomLink(m: Meeting): string | null {
@@ -130,6 +130,19 @@ export function getEffectiveZoomLink(m: Meeting): string | null {
     return null;
 }
 
+export function getMeetingPlatformName(link?: string | null): 'Zoom' | 'Teams' {
+    if (!link?.trim()) return 'Zoom';
+    try {
+        const hostname = new URL(link.trim()).hostname.toLowerCase();
+        if (hostname === 'teams.microsoft.com' || hostname.endsWith('.teams.microsoft.com') || hostname === 'teams.live.com' || hostname === 'teams.cloud.microsoft') {
+            return 'Teams';
+        }
+    } catch {
+        // Eski Zoom kayitlari yalnizca toplanti ID'si icerebilir.
+    }
+    return 'Zoom';
+}
+
 export function buildGoogleCalendarUrl(m: Meeting, now = new Date()) {
     const duration = Math.max(15, m.duration ?? 60);
     const start = toCompact(m.date, m.time || '20:00');
@@ -138,12 +151,13 @@ export function buildGoogleCalendarUrl(m: Meeting, now = new Date()) {
 
     const showZoom = canShowZoomInfo(m, now);
     const zoomLink = getEffectiveZoomLink(m);
+    const meetingPlatform = getMeetingPlatformName(zoomLink);
 
     let details = (m.description ?? '').trim();
     if (m.organizer) details = `Düzenleyen: ${m.organizer}\n\n${details}`;
     if (showZoom) {
-        if (zoomLink) details += `\n\nZoom: ${zoomLink}`;
-        if (m.zoom_id) details += `\nZoom ID: ${m.zoom_id}`;
+        if (zoomLink) details += `\n\n${meetingPlatform}: ${zoomLink}`;
+        if (m.zoom_id) details += `\n${meetingPlatform === 'Teams' ? 'Toplantı ID' : 'Zoom ID'}: ${m.zoom_id}`;
         if (m.zoom_password) details += `\nŞifre: ${m.zoom_password}`;
     }
 
@@ -166,12 +180,13 @@ export function buildIcs(m: Meeting, now = new Date()) {
 
     const showZoom = canShowZoomInfo(m, now);
     const zoomLink = getEffectiveZoomLink(m);
+    const meetingPlatform = getMeetingPlatformName(zoomLink);
 
     let description = (m.description ?? '').replace(/\n/g, '\\n');
     if (m.organizer) description = `Düzenleyen: ${m.organizer}\\n\\n${description}`;
     if (showZoom) {
-        if (zoomLink) description += `\\n\\nZoom: ${zoomLink}`;
-        if (m.zoom_id) description += `\\nZoom ID: ${m.zoom_id}`;
+        if (zoomLink) description += `\\n\\n${meetingPlatform}: ${zoomLink}`;
+        if (m.zoom_id) description += `\\n${meetingPlatform === 'Teams' ? 'Toplantı ID' : 'Zoom ID'}: ${m.zoom_id}`;
         if (m.zoom_password) description += `\\nŞifre: ${m.zoom_password}`;
     }
 
@@ -335,6 +350,7 @@ export function shareWhatsApp(m: Meeting, now = new Date()) {
 
     const showZoom = canShowZoomInfo(m, now);
     const zoomLink = getEffectiveZoomLink(m);
+    const meetingPlatform = getMeetingPlatformName(zoomLink);
     const hasZoomInfo = Boolean(
         m.has_zoom_info ||
         zoomLink ||
@@ -344,13 +360,13 @@ export function shareWhatsApp(m: Meeting, now = new Date()) {
 
     if (showZoom && hasZoomInfo) {
         if (m.zoom_id || m.zoom_password || zoomLink) {
-            msg += `\n🔗 *Zoom Bilgileri:*\n`;
+            msg += `\n🔗 *${meetingPlatform} Bilgileri:*\n`;
             if (m.zoom_id) msg += `• ID: ${m.zoom_id}\n`;
             if (m.zoom_password) msg += `• Şifre: ${m.zoom_password}\n`;
             if (zoomLink) msg += `• Bağlantı: ${zoomLink}\n`;
         }
     } else if (!showZoom && hasZoomInfo) {
-        msg += `\nGüncel Zoom katılım bilgileri toplantıdan 2 saat önce yayınlanacaktır:\nhttps://konsensus.bolt.host\n`;
+        msg += `\nGüncel toplantı katılım bilgileri toplantıdan 2 saat önce yayınlanacaktır:\nhttps://konsensus.bolt.host\n`;
     }
 
     msg += `\n📅 *Google Takvim'e Ekle:*\n${buildGoogleCalendarUrl(m, now)}`;
