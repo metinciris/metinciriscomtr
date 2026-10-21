@@ -18,7 +18,8 @@ import {
   normalizeId,
   dateKeyInTz,
   parseYMD,
-  getMeetingStatus
+  getMeetingStatus,
+  getMeetingPlatformName,
 } from '../components/Konsensus/utils';
 
 import { MeetingCard } from '../components/Konsensus/MeetingCard';
@@ -104,6 +105,7 @@ export function KonsensusYonetim() {
   }, [formData.organizer]);
 
   const cleanFormTopic = useMemo(() => stripOrganizerPrefix(formData.title), [formData.title]);
+  const meetingPlatform = getMeetingPlatformName(formData.zoomLink);
   const titlePreview = useMemo(
     () => buildMeetingTitle(formData.title, formData.organizer),
     [formData.title, formData.organizer]
@@ -378,7 +380,7 @@ export function KonsensusYonetim() {
               Konsensus Yönetim Paneli
             </h1>
             <p className="mt-3 text-white/90 text-sm sm:text-base font-semibold">
-              Toplantı ekleme, düzenleme, silme ve tam Zoom/afiş erişim alanıdır.
+              Toplantı ekleme, düzenleme, silme ve katılım bağlantısı/afiş erişim alanıdır.
             </p>
           </div>
         </div>
@@ -680,11 +682,13 @@ export function KonsensusYonetim() {
                   </div>
 
                   <div className="p-4 rounded-3xl bg-blue-50/60 border border-blue-100 space-y-3">
-                    <div className="text-xs font-black tracking-widest text-blue-800 uppercase">Zoom Detayları</div>
+                    <div className="text-xs font-black tracking-widest text-blue-800 uppercase">{formData.zoomLink.trim() ? `${meetingPlatform} Detayları` : 'Zoom / Teams Detayları'}</div>
+                    <label htmlFor="meeting-join-link" className="text-xs font-black text-gray-700">{formData.zoomLink.trim() ? `${meetingPlatform} Linki` : 'Toplantı Linki (Zoom / Teams)'}</label>
                     <input
+                      id="meeting-join-link"
                       value={formData.zoomLink}
                       onChange={(e) => setFormData((p) => ({ ...p, zoomLink: e.target.value }))}
-                      placeholder="Zoom Link"
+                      placeholder="Zoom veya Teams bağlantısı"
                       className="w-full px-4 py-2 rounded-xl bg-white border border-blue-100 font-semibold"
                     />
                     <div className="grid grid-cols-2 gap-2">
