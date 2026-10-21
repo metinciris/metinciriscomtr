@@ -12,7 +12,7 @@
     "scoreHome": 1,
     "scoreAway": 4,
     "source": "football-data",
-    "lastFetchedAt": "2026-10-21T11:30:28.525Z"
+    "lastFetchedAt": "2026-10-21T21:27:48.363Z"
   },
   {
     "id": "football-CL-575355",
@@ -27,7 +27,7 @@
     "scoreHome": 6,
     "scoreAway": 0,
     "source": "football-data",
-    "lastFetchedAt": "2026-10-21T11:30:28.525Z"
+    "lastFetchedAt": "2026-10-21T21:27:48.363Z"
   },
   {
     "id": "football-CL-575360",
@@ -42,7 +42,7 @@
     "scoreHome": 2,
     "scoreAway": 2,
     "source": "football-data",
-    "lastFetchedAt": "2026-10-21T11:30:28.525Z"
+    "lastFetchedAt": "2026-10-21T21:27:48.363Z"
   },
   {
     "id": "football-CL-575369",
@@ -53,11 +53,11 @@
     "awayTeam": "Galatasaray SK",
     "startTimeUTC": "2026-10-21T16:45:00Z",
     "startTimeLocal": "2026-10-21T19:45:00+03:00",
-    "status": "scheduled",
-    "scoreHome": null,
-    "scoreAway": null,
+    "status": "finished",
+    "scoreHome": 2,
+    "scoreAway": 4,
     "source": "football-data",
-    "lastFetchedAt": "2026-10-21T11:30:28.525Z"
+    "lastFetchedAt": "2026-10-21T21:27:48.363Z"
   },
   {
     "id": "football-CL-575378",
@@ -72,6 +72,21 @@
     "scoreHome": null,
     "scoreAway": null,
     "source": "football-data",
-    "lastFetchedAt": "2026-10-21T11:30:28.525Z"
+    "lastFetchedAt": "2026-10-21T21:27:48.363Z"
+  },
+  {
+    "id": "football-CL-575387",
+    "sport": "football",
+    "competition": "UEFA Champions League",
+    "season": "2025/26",
+    "homeTeam": "Fenerbahçe SK",
+    "awayTeam": "Liverpool FC",
+    "startTimeUTC": "2026-11-04T17:45:00Z",
+    "startTimeLocal": "2026-11-04T20:45:00+03:00",
+    "status": "scheduled",
+    "scoreHome": null,
+    "scoreAway": null,
+    "source": "football-data",
+    "lastFetchedAt": "2026-10-21T21:27:48.363Z"
   }
 ]
