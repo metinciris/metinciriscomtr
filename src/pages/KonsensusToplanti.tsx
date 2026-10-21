@@ -8,6 +8,7 @@ import {
   downloadIcs,
   formatDateTR,
   getEffectiveZoomLink,
+  getMeetingPlatformName,
   getMeetingStatus,
   getOrganizerWithEmoji,
   toTimeRange,
@@ -86,6 +87,7 @@ export function KonsensusToplanti() {
   const zoomVisible = canShowZoomInfo(meeting, new Date());
   const { isPastToday: isPastMeeting } = getMeetingStatus(meeting, new Date());
   const zoomLink = getEffectiveZoomLink(meeting);
+  const meetingPlatform = getMeetingPlatformName(zoomLink);
   const hasZoomLink = !!zoomLink;
   const hasZoomId = !!meeting.zoom_id?.trim();
   const hasZoomPassword = !!meeting.zoom_password?.trim();
@@ -163,12 +165,12 @@ export function KonsensusToplanti() {
                         className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-blue-600 text-white font-black hover:bg-blue-700 transition"
                       >
                         <Video className="w-4 h-4" />
-                        Zoom'a Katıl
+                        {meetingPlatform === 'Teams' ? "Teams'e Katıl" : "Zoom'a Katıl"}
                       </a>
                     )}
                     {hasZoomId && (
                       <div className="px-4 py-3 rounded-2xl bg-white border border-emerald-100 text-sm font-semibold text-gray-700">
-                        <span className="font-black text-gray-900">Zoom ID:</span> {meeting.zoom_id}
+                        <span className="font-black text-gray-900">{meetingPlatform === 'Teams' ? 'Toplantı ID:' : 'Zoom ID:'}</span> {meeting.zoom_id}
                       </div>
                     )}
                     {hasZoomPassword && (
