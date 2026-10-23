@@ -551,6 +551,30 @@ export default function Podcast({ }: PodcastProps) {
             </div>
           </div>
 
+          {newestPmids.length > 0 && (() => {
+            const latest = newestPmids.map(pmid => articles.find(a => a.pmid === pmid))
+              .filter((a): a is Article => Boolean(a));
+            if (!latest.length) return null;
+            return (
+              <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-5 mb-6">
+                <h2 className="font-bold text-lg mb-1">Son Eklenen Makaleler</h2>
+                <p className="text-xs text-gray-500 mb-3">Günlük takipte tespit edilen güncel makaleler</p>
+                <div className="grid gap-2">
+                  {latest.map(a => {
+                    const idx = articles.findIndex(item => item.pmid === a.pmid);
+                    return (
+                      <button key={a.pmid} type="button" onClick={() => handleCardClick(idx)}
+                        className="text-left rounded-lg border border-gray-100 hover:border-blue-300 px-3 py-2">
+                        <span className="font-medium text-sm">{a.title}</span>
+                        <span className="block text-xs text-gray-500 mt-1">{a.journal} · {a.date} · PMID {a.pmid}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>
+            );
+          })()}
+
           {/* Dergi grupları + kartlar */}
           <div className="podcast-articles-section">
             {journalGroups.map((group) => {
