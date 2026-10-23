@@ -7,6 +7,7 @@ import { prepareAhenkText } from '../lib/ahenkPronunciation';
 import { loadPodcastPronunciationRules, applyPodcastPronunciationRules } from '../lib/podcastPronunciationOverrides';
 import { getPodcastArticleScrollTop } from '../lib/podcastScroll';
 import { indexPreparedPodcastAudio, normalizePodcastPmid, podcastAudioKey } from '../lib/podcastPreparedAudio';
+import { latestPodcastPmids } from '../lib/podcastRecent';
 
 interface PodcastProps {
   onNavigate: (page: string) => void; // App ile uyum için; bu sayfada kullanmıyoruz
@@ -192,19 +193,22 @@ export default function Podcast({ }: PodcastProps) {
       await readyManifest;
       preloadReadyClip(0);
       setJournalGroups(groups);
-      void fetch(`https://docs.google.com/spreadsheets/d/${PODCAST_SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent('Makale_Havuzu')}&range=A1:G1000&headers=0`)
+      // Makale_Havuzu henüz boş olsa da Son Eklenenler alanı mevcut 120
+      // çevrilmiş başlıktan tarih sırasına göre anında gösterilir.
+      setNewestPmids(latestPodcastPmids(flatArticles));
+      // Kalıcı havuz doldukça, gerçek sisteme eklenme zamanı öncelik kazanır.
+      // Bir gün hata verirse çalışan liste kaybolmaz.
+      void fetch(`https://docs.google.com/spreadsheets/d/${PODCAST_SHEET_ID}/gviz/tq?tqx=out:json&gid=692807853&range=A1:G1000&headers=0`)
         .then(response => response.ok ? response.text() : Promise.reject(new Error('Makale havuzu erisilemiyor')))
         .then(raw => {
           const body = JSON.parse(raw.slice(raw.indexOf('{'), raw.lastIndexOf('}') + 1));
-          const rows = (body.table?.rows || []).slice(1);
-          const latest = rows.map((row: any) => ({
+          const records = (body.table?.rows || []).slice(1).map((row: any) => ({
             pmid: normalizePodcastPmid(row.c?.[0]?.v),
-            time: String(row.c?.[6]?.v || ''),
-          })).filter((entry: {pmid:string;time:string}) => entry.pmid && entry.time);
-          latest.sort((a: {time:string;pmid:string}, b: {time:string;pmid:string}) =>
-            b.time.localeCompare(a.time) || b.pmid.localeCompare(a.pmid));
-          setNewestPmids(latest.slice(0, 10).map((entry: {pmid:string}) => entry.pmid));
-        }).catch(() => setNewestPmids([]));
+            firstSeen: String(row.c?.[6]?.v || ''),
+          }));
+          setNewestPmids(latestPodcastPmids(flatArticles, records));
+        })
+        .catch(error => console.info('Yeni kayıt arşivi erişilemedi; mevcut dergi listesindeki son makaleler gösteriliyor.', error));
       setArticles(flatArticles);
       setLoadingMessage('');
       setStatus(clipUrl(flatArticles[0])
@@ -558,7 +562,7 @@ export default function Podcast({ }: PodcastProps) {
           {latestArticles.length > 0 && (
               <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-5 mb-6">
                 <h2 className="font-bold text-lg mb-1">Son Eklenen Makaleler</h2>
-                <p className="text-xs text-gray-500 mb-3">Günlük takipte tespit edilen güncel makaleler</p>
+                <p className="text-xs text-gray-500 mb-3">Güncel dergi listesinde PubMed tarihine göre sıralanır; arşive yeni eklenenlere öncelik verilir</p>
                 <div className="grid gap-2">
                   {latestArticles.map(a => {
                     const idx = articles.findIndex(item => item.pmid === a.pmid);
