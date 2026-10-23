@@ -36,6 +36,7 @@ const JOURNAL_ROWS = [0, 11, 22, 33, 44, 55, 66, 77, 88, 99, 110, 121];
 
 export default function Podcast({ }: PodcastProps) {
   const [journalGroups, setJournalGroups] = useState<JournalGroup[]>([]);
+  const [newestPmids, setNewestPmids] = useState<string[]>([]);
   const [articles, setArticles] = useState<Article[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -191,6 +192,19 @@ export default function Podcast({ }: PodcastProps) {
       await readyManifest;
       preloadReadyClip(0);
       setJournalGroups(groups);
+      void fetch(`https://docs.google.com/spreadsheets/d/${PODCAST_SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent('Makale_Havuzu')}&range=A1:G1000&headers=0`)
+        .then(response => response.ok ? response.text() : Promise.reject(new Error('Makale havuzu erisilemiyor')))
+        .then(raw => {
+          const body = JSON.parse(raw.slice(raw.indexOf('{'), raw.lastIndexOf('}') + 1));
+          const rows = (body.table?.rows || []).slice(1);
+          const latest = rows.map((row: any) => ({
+            pmid: normalizePodcastPmid(row.c?.[0]?.v),
+            time: String(row.c?.[6]?.v || ''),
+          })).filter((entry: {pmid:string;time:string}) => entry.pmid && entry.time);
+          latest.sort((a: {time:string;pmid:string}, b: {time:string;pmid:string}) =>
+            b.time.localeCompare(a.time) || b.pmid.localeCompare(a.pmid));
+          setNewestPmids(latest.slice(0, 10).map((entry: {pmid:string}) => entry.pmid));
+        }).catch(() => setNewestPmids([]));
       setArticles(flatArticles);
       setLoadingMessage('');
       setStatus(clipUrl(flatArticles[0])
@@ -440,7 +454,7 @@ export default function Podcast({ }: PodcastProps) {
             <h1 className="text-2xl font-bold mb-2">
               Günlük Patoloji Makaleleri
             </h1>
-            <p className="text-sm mb-2">Her güne özel sesli podcast</p>
+            <p className="text-sm mb-2">Patoloji makale başlıklarını Türkçe okuyun veya dinleyin</p>
             <span className="inline-block bg-white/10 px-4 py-1 rounded-full text-xs font-medium">
               {today}
             </span>
@@ -572,7 +586,7 @@ export default function Podcast({ }: PodcastProps) {
                           <div className="podcast-article-title">
                             {article.title}
                           </div>
-                          <div className="podcast-article-meta">
+                          <div className="podcast-article-meta flex flex-wrap items-center gap-x-3 gap-y-1">
                             {article.author && (
                               <span className="podcast-meta-item">
                                 {article.author}
