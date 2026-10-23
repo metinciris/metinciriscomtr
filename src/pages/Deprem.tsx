@@ -50,6 +50,7 @@ import {
 import { trackClick } from '../utils/analytics';
 import { EarthquakeVoice, formatEarthquakeAnnouncement } from '../lib/earthquakeVoice';
 import type { AhenkLoadStatus } from '../lib/ahenkCep';
+import { readEarthquakeVoiceEnabled, saveEarthquakeVoiceEnabled } from '../lib/earthquakeVoicePreference';
 
 
 /* ============================================================
@@ -373,7 +374,7 @@ export function Deprem() {
   const [error, setError] = useState<string | null>(null);
 
   // Bildirim
-  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(readEarthquakeVoiceEnabled);
   const [voiceLoad, setVoiceLoad] = useState<AhenkLoadStatus>({ phase: 'idle', percent: 0, detail: '' });
 
   // Desktop tablo sıralama
@@ -395,7 +396,7 @@ export function Deprem() {
      Refs
   ------------------------------ */
   const seenIdsRef = useRef<Set<string>>(new Set());
-  const notificationsEnabledRef = useRef(false);
+  const notificationsEnabledRef = useRef(notificationsEnabled);
   const voiceRef = useRef<EarthquakeVoice | null>(null);
   const soundQueue = useRef<Earthquake[]>([]);
   const isPlaying = useRef(false);
@@ -403,18 +404,25 @@ export function Deprem() {
   /* ============================================================
      10) Tek sesli deprem bildirimi (Ahenk Cep / tarayici TTS)
      ============================================================ */
+  const createVoice = () => {
+    if (voiceRef.current) return voiceRef.current;
+    const voice = new EarthquakeVoice((status) => {
+      if (voiceRef.current === voice) setVoiceLoad(status);
+    });
+    voiceRef.current = voice;
+    voice.activate();
+    return voice;
+  };
+
   const toggleNotifications = () => {
     const enable = !notificationsEnabledRef.current;
     notificationsEnabledRef.current = enable;
+    saveEarthquakeVoiceEnabled(enable);
     setNotificationsEnabled(enable);
 
     if (enable) {
-      // AudioContext bu kullanici tiklamasinin icinde etkinlestirilir.
-      const voice = new EarthquakeVoice((status) => {
-        if (voiceRef.current === voice) setVoiceLoad(status);
-      });
-      voiceRef.current = voice;
-      voice.activate();
+      // Kullanici tiklamasi AudioContext'i etkinlestirme sansi verir.
+      createVoice();
     } else {
       soundQueue.current = [];
       voiceRef.current?.deactivate();
@@ -422,6 +430,11 @@ export function Deprem() {
       setVoiceLoad({ phase: 'idle', percent: 0, detail: '' });
     }
   };
+
+  // Ilk ziyarette varsayilan acik; kapatma tercihi localStorage'da kalir.
+  useEffect(() => {
+    if (notificationsEnabledRef.current) createVoice();
+  }, []);
 
   // Sayfadan cikarken model, oynatici ve devam eden sesi kapat.
   useEffect(() => () => {
@@ -528,7 +541,7 @@ export function Deprem() {
     fetchData();
     const id = setInterval(() => fetchData(), 30000);
     return () => clearInterval(id);
-  }, [notificationsEnabled]);
+  }, []);
 
   /* ============================================================
      12) Memo: distanceMap, alert listesi, sıralamalar
@@ -829,7 +842,7 @@ export function Deprem() {
                         : 'Türkçe sesli bildirim açık'}
               </div>
               <div className="text-[10px] text-white/50 text-center max-w-[220px]">
-                Sekme açık ve ses izni etkin olmalıdır.
+                Ses varsayılan açıktır; istemezseniz kapatabilirsiniz. Tarayıcı ilk ses için dokunma izni isteyebilir.
               </div>
             </div>
 
