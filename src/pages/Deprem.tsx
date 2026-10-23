@@ -48,6 +48,8 @@ import {
   toIstanbulParam
 } from '../utils/earthquakeUtils';
 import { trackClick } from '../utils/analytics';
+import { EarthquakeVoice, formatEarthquakeAnnouncement } from '../lib/earthquakeVoice';
+import type { AhenkLoadStatus } from '../lib/ahenkCep';
 
 
 /* ============================================================
@@ -173,12 +175,6 @@ function NotificationToggle({ enabled, onToggle }: { enabled: boolean; onToggle:
       role="switch"
       aria-checked={enabled}
       onClick={onToggle}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onToggle();
-        }
-      }}
       className={[
         'group inline-flex items-center gap-3 select-none shrink-0 rounded-full px-3 py-2',
         'border backdrop-blur-sm shadow-sm active:scale-[0.98]',
@@ -217,7 +213,7 @@ function NotificationToggle({ enabled, onToggle }: { enabled: boolean; onToggle:
 
       {/* Hafif teşvik */}
       <span className="hidden sm:inline text-xs text-white/70 group-hover:text-white/80 transition">
-        {enabled ? '• tık uyarısı aktif' : '• açarsan uyarı veririm'}
+        {enabled ? '• sesli anons aktif' : '• sesli uyarı al'}
       </span>
     </button>
   );
@@ -378,6 +374,7 @@ export function Deprem() {
 
   // Bildirim
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [voiceLoad, setVoiceLoad] = useState<AhenkLoadStatus>({ phase: 'idle', percent: 0, detail: '' });
 
   // Desktop tablo sıralama
   const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: SortDirection }>({
@@ -398,107 +395,70 @@ export function Deprem() {
      Refs
   ------------------------------ */
   const seenIdsRef = useRef<Set<string>>(new Set());
-  const audioCtxRef = useRef<AudioContext | null>(null);
+  const notificationsEnabledRef = useRef(false);
+  const voiceRef = useRef<EarthquakeVoice | null>(null);
   const soundQueue = useRef<Earthquake[]>([]);
   const isPlaying = useRef(false);
 
   /* ============================================================
-     10) Ses (WebAudio)
+     10) Tek sesli deprem bildirimi (Ahenk Cep / tarayici TTS)
      ============================================================ */
-  const ensureAudio = async () => {
-    if (!notificationsEnabled) return null;
-    const Ctor = window.AudioContext || (window as any).webkitAudioContext;
-    if (!Ctor) return null;
+  const toggleNotifications = () => {
+    const enable = !notificationsEnabledRef.current;
+    notificationsEnabledRef.current = enable;
+    setNotificationsEnabled(enable);
 
-    if (!audioCtxRef.current) audioCtxRef.current = new Ctor();
-
-    if (audioCtxRef.current.state === 'suspended') {
-      try {
-        await audioCtxRef.current.resume();
-      } catch {
-        // ignore
-      }
-    }
-    return audioCtxRef.current;
-  };
-
-  // Clear sound queue when notifications are disabled
-  useEffect(() => {
-    if (!notificationsEnabled) {
+    if (enable) {
+      // AudioContext bu kullanici tiklamasinin icinde etkinlestirilir.
+      const voice = new EarthquakeVoice((status) => {
+        if (voiceRef.current === voice) setVoiceLoad(status);
+      });
+      voiceRef.current = voice;
+      voice.activate();
+    } else {
       soundQueue.current = [];
-      isPlaying.current = false;
-    }
-  }, [notificationsEnabled]);
-
-  const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
-  const playBeep = async (frequency: number, duration: number, gainLevel = 0.1) => {
-    if (!notificationsEnabled) return;
-    try {
-      const ctx = await ensureAudio();
-      if (!ctx) return;
-
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-
-      osc.type = 'sine';
-      osc.frequency.value = frequency;
-
-      gain.gain.setValueAtTime(gainLevel, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + duration);
-
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-
-      osc.start();
-      osc.stop(ctx.currentTime + duration);
-    } catch (e) {
-      console.error('Audio error:', e);
+      voiceRef.current?.deactivate();
+      voiceRef.current = null;
+      setVoiceLoad({ phase: 'idle', percent: 0, detail: '' });
     }
   };
 
-  const playNearPreamble = async () => {
-    if (!notificationsEnabled) return;
-    await playBeep(440, 0.55, 0.11);
-    await sleep(650);
-  };
+  // Sayfadan cikarken model, oynatici ve devam eden sesi kapat.
+  useEffect(() => () => {
+    notificationsEnabledRef.current = false;
+    soundQueue.current = [];
+    voiceRef.current?.deactivate();
+    voiceRef.current = null;
+  }, []);
 
-  const playBeepSequence = async (count: number) => {
-    if (!notificationsEnabled || count <= 0) return;
-    for (let i = 0; i < count; i++) {
-      await playBeep(880, 0.15, 0.1);
-      await sleep(280);
-    }
-  };
-
-  const processSoundQueue = async (distanceMap: Map<string, number>) => {
-    if (isPlaying.current) return;
-    if (!notificationsEnabled || soundQueue.current.length === 0) return;
-
+  const processSoundQueue = async () => {
+    if (isPlaying.current || !notificationsEnabledRef.current || !soundQueue.current.length) return;
     isPlaying.current = true;
+    try {
+      while (notificationsEnabledRef.current && soundQueue.current.length > 0) {
+        const eq = soundQueue.current.shift();
+        if (!eq) continue;
 
-    while (soundQueue.current.length > 0) {
-      if (!notificationsEnabled) {
-        soundQueue.current = [];
-        break;
+        const distance = calculateDistance(
+          ISPARTA_COORDS.lat,
+          ISPARTA_COORDS.lng,
+          eq.geojson.coordinates[1],
+          eq.geojson.coordinates[0]
+        );
+        const rel = getRelation(eq.title, distance);
+
+        // Mevcut esik korunur: Isparta/yakin veya ulke geneli 3,0+.
+        // ID'ler seenIdsRef'te saklandigi icin her deprem yalnizca bir kez okunur.
+        if (rel || eq.mag >= 3.0) {
+          await voiceRef.current?.announce(formatEarthquakeAnnouncement(eq.title, eq.mag));
+        }
       }
-
-      const eq = soundQueue.current.shift();
-      if (!eq) break;
-
-      const distance = distanceMap.get(eq.earthquake_id) ?? 999999;
-      const rel = getRelation(eq.title, distance);
-
-      // Sadece Isparta veya yakını ise, ya da genel depremlerde şiddeti 3.0 ve üzeri ise bildirim ver
-      if (rel || eq.mag >= 3.0) {
-        if (rel) await playNearPreamble();
-        await playBeepSequence(Math.floor(eq.mag));
+    } finally {
+      isPlaying.current = false;
+      if (notificationsEnabledRef.current && soundQueue.current.length > 0) {
+        void processSoundQueue();
       }
-
-      if (soundQueue.current.length > 0) await sleep(800);
     }
-
-    isPlaying.current = false;
   };
 
   /* ============================================================
@@ -543,7 +503,7 @@ export function Deprem() {
       } else {
         newOnes.forEach((eq) => {
           seenIdsRef.current.add(eq.earthquake_id);
-          if (notificationsEnabled) {
+          if (notificationsEnabledRef.current) {
             soundQueue.current.push(eq);
           }
         });
@@ -551,19 +511,8 @@ export function Deprem() {
 
       setEarthquakes(list);
 
-      const dmap = new Map<string, number>();
-      for (const eq of list) {
-        const d = calculateDistance(
-          ISPARTA_COORDS.lat,
-          ISPARTA_COORDS.lng,
-          eq.geojson.coordinates[1],
-          eq.geojson.coordinates[0]
-        );
-        dmap.set(eq.earthquake_id, d);
-      }
-
-      if (notificationsEnabled && soundQueue.current.length > 0) {
-        processSoundQueue(dmap);
+      if (notificationsEnabledRef.current && soundQueue.current.length > 0) {
+        void processSoundQueue();
       }
     } catch (err: any) {
       console.error('Deprem verisi hatası:', err);
@@ -860,15 +809,27 @@ export function Deprem() {
 
 
               <p className="text-white/75 text-xs mt-1">
-                Sadece <strong>Isparta ve yakını</strong> ile Türkiye geneli <strong>3.0 ve üzeri</strong> depremlerde ses çalar.
+                Isparta ve yakınındaki veya Türkiye genelindeki <strong>3.0 ve üzeri</strong> yeni depremler için
+                <strong> konum ve büyüklük bir kez</strong> seslendirilir. İlk açılışta geçmiş depremler okunmaz.
               </p>
             </div>
 
             <div className="flex flex-col items-center gap-2">
               <div className="text-xs font-extrabold text-white/80 uppercase tracking-wide">Bildirim</div>
-              <NotificationToggle enabled={notificationsEnabled} onToggle={() => setNotificationsEnabled((v) => !v)} />
-              <div className="text-[10px] text-white/60 text-center leading-tight">
-                Isparta/Yakın veya 3.0+
+              <NotificationToggle enabled={notificationsEnabled} onToggle={toggleNotifications} />
+              <div className="text-[10px] text-white/70 text-center leading-tight max-w-[220px]" role="status">
+                {!notificationsEnabled
+                  ? 'Konum + büyüklük · tek anons'
+                  : voiceLoad.phase === 'ready'
+                    ? 'Ahenk hazır · sesli anons açık'
+                    : voiceLoad.phase === 'loading'
+                      ? 'Ahenk hazırlanıyor (' + voiceLoad.percent + '%) · tarayıcı sesi açık'
+                      : voiceLoad.phase === 'error'
+                        ? 'Ahenk açılamadı · tarayıcı sesi açık'
+                        : 'Türkçe sesli bildirim açık'}
+              </div>
+              <div className="text-[10px] text-white/50 text-center max-w-[220px]">
+                Sekme açık ve ses izni etkin olmalıdır.
               </div>
             </div>
 
