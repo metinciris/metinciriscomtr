@@ -8,6 +8,13 @@ import { loadPodcastPronunciationRules, applyPodcastPronunciationRules } from '.
 import { getPodcastArticleScrollTop } from '../lib/podcastScroll';
 import { indexPreparedPodcastAudio, normalizePodcastPmid, podcastAudioKey } from '../lib/podcastPreparedAudio';
 import { latestPodcastPmids } from '../lib/podcastRecent';
+import {
+  buildPodcastPlaybackQueue,
+  buildPodcastJournalQueue,
+  nextPodcastQueueIndex,
+  podcastQueueProgress,
+  type PodcastPlaybackQueue,
+} from '../lib/podcastPlaybackQueue';
 
 interface PodcastProps {
   onNavigate: (page: string) => void; // App ile uyum için; bu sayfada kullanmıyoruz
@@ -40,6 +47,8 @@ export default function Podcast({ }: PodcastProps) {
   const [newestPmids, setNewestPmids] = useState<string[]>([]);
   const [articles, setArticles] = useState<Article[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [playbackPhase, setPlaybackPhase] = useState<'recent' | 'journals'>('recent');
+  const [queueProgress, setQueueProgress] = useState('');
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [status, setStatus] = useState('Hazır');
@@ -65,6 +74,11 @@ export default function Podcast({ }: PodcastProps) {
   const preparedAudioRef = useRef<HTMLAudioElement | null>(null);
   const nextAudioRef = useRef<HTMLAudioElement | null>(null);
   const readyClipsRef = useRef<Map<string, string>>(new Map());
+  const newestPmidsRef = useRef<string[]>([]);
+  const playbackQueueRef = useRef<PodcastPlaybackQueue>({ indexes: [], recentCount: 0 });
+  const queuePositionRef = useRef(0);
+  const userSelectedPlaylistRef = useRef(false);
+  const playlistFinishedRef = useRef(false);
 
   // volumeRef'i her zaman güncel tut
   useEffect(() => {
@@ -191,13 +205,23 @@ export default function Podcast({ }: PodcastProps) {
 
       articlesRef.current = flatArticles;
       await readyManifest;
-      preloadReadyClip(0);
+
+      // Immediately prepare the complete listening order:
+      // latest 10 first, then remaining articles in the original journal order.
+      const initialLatest = latestPodcastPmids(flatArticles);
+      newestPmidsRef.current = initialLatest;
+      const initialQueue = buildPodcastPlaybackQueue(flatArticles, initialLatest);
+      playbackQueueRef.current = initialQueue;
+      queuePositionRef.current = 0;
+      const initialIndex = initialQueue.indexes[0] ?? 0;
+      setPlaybackPhase(initialQueue.recentCount ? 'recent' : 'journals');
+      setQueueProgress(podcastQueueProgress(initialQueue, 0));
+      preloadReadyClip(initialIndex);
       setJournalGroups(groups);
-      // Makale_Havuzu henüz boş olsa da Son Eklenenler alanı mevcut 120
-      // çevrilmiş başlıktan tarih sırasına göre anında gösterilir.
-      setNewestPmids(latestPodcastPmids(flatArticles));
-      // Kalıcı havuz doldukça, gerçek sisteme eklenme zamanı öncelik kazanır.
-      // Bir gün hata verirse çalışan liste kaybolmaz.
+      setNewestPmids(initialLatest);
+
+      // The optional first-seen archive may reorder the latest ten.
+      // Never change a playback queue once the visitor has pressed Play.
       void fetch(`https://docs.google.com/spreadsheets/d/${PODCAST_SHEET_ID}/gviz/tq?tqx=out:json&gid=692807853&range=A1:G1000&headers=0`)
         .then(response => response.ok ? response.text() : Promise.reject(new Error('Makale havuzu erisilemiyor')))
         .then(raw => {
@@ -206,15 +230,26 @@ export default function Podcast({ }: PodcastProps) {
             pmid: normalizePodcastPmid(row.c?.[0]?.v),
             firstSeen: String(row.c?.[6]?.v || ''),
           }));
-          setNewestPmids(latestPodcastPmids(flatArticles, records));
+          if (userSelectedPlaylistRef.current) return;
+          const latest = latestPodcastPmids(flatArticles, records);
+          newestPmidsRef.current = latest;
+          setNewestPmids(latest);
+          const updatedQueue = buildPodcastPlaybackQueue(flatArticles, latest);
+          playbackQueueRef.current = updatedQueue;
+          queuePositionRef.current = 0;
+          const nextFirst = updatedQueue.indexes[0] ?? 0;
+          setCurrentIndex(nextFirst);
+          setPlaybackPhase(updatedQueue.recentCount ? 'recent' : 'journals');
+          setQueueProgress(podcastQueueProgress(updatedQueue, 0));
+          preloadReadyClip(nextFirst);
         })
         .catch(error => console.info('Yeni kayıt arşivi erişilemedi; mevcut dergi listesindeki son makaleler gösteriliyor.', error));
       setArticles(flatArticles);
       setLoadingMessage('');
-      setStatus(clipUrl(flatArticles[0])
+      setStatus(clipUrl(flatArticles[initialIndex])
         ? 'Hazır MP3 · beklemeden dinlenebilir'
         : 'Ahenk Cep hazır');
-      setCurrentIndex(0);
+      setCurrentIndex(initialIndex);
     } catch (err) {
       console.error(err);
       setLoadingMessage('Veriler alınamadı.');
@@ -276,11 +311,17 @@ export default function Podcast({ }: PodcastProps) {
 
   const finishArticle = (index: number, token: number) => {
     if (token !== playbackTokenRef.current) return;
-    if (index + 1 < articlesRef.current.length) {
-      void startSpeech(index + 1);
+    const queue = playbackQueueRef.current;
+    const position = queuePositionRef.current;
+    if (queue.indexes[position] !== index) return;
+    const next = nextPodcastQueueIndex(queue, position);
+    if (next !== undefined) {
+      queuePositionRef.current = position + 1;
+      void startSpeech(next);
     } else {
+      playlistFinishedRef.current = true;
       setIsPlaying(false);
-      setStatus('Hazır');
+      setStatus('Dinleme listesi tamamlandı.');
     }
   };
 
@@ -295,6 +336,10 @@ export default function Podcast({ }: PodcastProps) {
     const token = ++playbackTokenRef.current;
 
     setCurrentIndex(index);
+    const queue = playbackQueueRef.current;
+    const position = queuePositionRef.current;
+    setPlaybackPhase(position < queue.recentCount ? 'recent' : 'journals');
+    setQueueProgress(podcastQueueProgress(queue, position));
     setIsPlaying(true);
     // Prepared audio has priority: bypass the TTS model entirely.
     const url = clipUrl(article);
@@ -329,7 +374,8 @@ export default function Podcast({ }: PodcastProps) {
           return;
         }
         setStatus('Hazır MP3 çalınıyor...');
-        preloadReadyClip(index + 1);
+        const nextIndex = nextPodcastQueueIndex(playbackQueueRef.current, queuePositionRef.current);
+        if (nextIndex !== undefined) preloadReadyClip(nextIndex);
         return;
       } catch (error) {
         console.warn('Hazır MP3 çalınamadı; Ahenk ile ses üretilecek:', error);
@@ -387,10 +433,44 @@ export default function Podcast({ }: PodcastProps) {
     }
   };
 
+  const playQueueAt = (queue: PodcastPlaybackQueue, position: number) => {
+    const index = queue.indexes[position];
+    if (index === undefined) return;
+    userSelectedPlaylistRef.current = true;
+    playlistFinishedRef.current = false;
+    playbackQueueRef.current = queue;
+    queuePositionRef.current = position;
+    primeAudio();
+    void startSpeech(index);
+  };
+
   const handlePlay = () => {
     if (!articlesRef.current.length) return;
+    if (playlistFinishedRef.current) {
+      playQueueAt(buildPodcastPlaybackQueue(articlesRef.current, newestPmidsRef.current), 0);
+      return;
+    }
+    userSelectedPlaylistRef.current = true;
     primeAudio();
-    void startSpeech(currentIndex);
+    const queue = playbackQueueRef.current;
+    const index = queue.indexes[queuePositionRef.current] ?? 0;
+    void startSpeech(index);
+  };
+
+  const handleRecentPlay = () => {
+    playQueueAt(buildPodcastPlaybackQueue(articlesRef.current, newestPmidsRef.current), 0);
+  };
+
+  const handleRecentClick = (pmid: string) => {
+    const queue = buildPodcastPlaybackQueue(articlesRef.current, newestPmidsRef.current);
+    const target = normalizePodcastPmid(pmid);
+    const position = queue.indexes.findIndex((index, i) =>
+      i < queue.recentCount && normalizePodcastPmid(articlesRef.current[index]?.pmid) === target);
+    if (position >= 0) playQueueAt(queue, position);
+  };
+
+  const handleJournalClick = (index: number) => {
+    playQueueAt(buildPodcastJournalQueue(articlesRef.current.length), index);
   };
 
   const handleStop = () => {
@@ -409,19 +489,21 @@ export default function Podcast({ }: PodcastProps) {
     if (preparedAudioRef.current) preparedAudioRef.current.volume = newVolume;
   };
 
-  const handleCardClick = (index: number) => {
-    primeAudio();
-    void startSpeech(index);
-  };
-
   // Mobilde büyük sabit menü ve oynatıcı varken otomatik kaydırma,
   // okunmakta olan başlığı menünün altına gizliyordu. Mobilde ekrana dokunmayalım:
   // başlık, menünün altına konumlandırılan oynatıcıda hep görünür.
   // Masaüstünde seçilen kartı hem menünün hem oynatıcının ALTINDA göster.
   useEffect(() => {
+    if (!userSelectedPlaylistRef.current) return;
     if (window.matchMedia('(max-width: 767px)').matches) return;
 
-    const el = document.querySelector<HTMLElement>(
+    const currentPmid = articles[currentIndex]?.pmid?.replace(/[^0-9]/g, '');
+    // During the latest-ten portion, keep the visible latest item in view.
+    // Do NOT jump down to that item's original journal card.
+    const recentElement = playbackPhase === 'recent' && currentPmid
+      ? document.querySelector<HTMLElement>(`[data-recent-pmid="${currentPmid}"]`)
+      : null;
+    const el = recentElement || document.querySelector<HTMLElement>(
       `[data-article-index="${currentIndex}"]`,
     );
     if (!el) return;
@@ -440,7 +522,7 @@ export default function Podcast({ }: PodcastProps) {
       }),
       behavior: 'smooth',
     });
-  }, [currentIndex]);
+  }, [currentIndex, playbackPhase, articles]);
 
   const currentArticle = articles[currentIndex];
   const currentTitle =
@@ -555,20 +637,33 @@ export default function Podcast({ }: PodcastProps) {
                   Ahenk yüklenemedi. Durdurup yeniden Oynat ile deneyebilirsiniz.
                 </p>
               )}
+              {queueProgress && (
+                <div className="text-xs font-semibold text-[#336699]">{queueProgress}</div>
+              )}
               <div className="text-[11px] text-gray-500 italic">{status}</div>
             </div>
           </div>
 
           {latestArticles.length > 0 && (
               <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-5 mb-6">
-                <h2 className="font-bold text-lg mb-1">Son Eklenen Makaleler</h2>
-                <p className="text-xs text-gray-500 mb-3">Güncel dergi listesinde PubMed tarihine göre sıralanır; arşive yeni eklenenlere öncelik verilir</p>
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+                  <h2 className="font-bold text-lg">Son Eklenen Makaleler</h2>
+                  <button type="button" onClick={handleRecentPlay}
+                    className="inline-flex items-center gap-2 rounded-lg bg-[#336699] px-3 py-2 text-xs font-semibold text-white hover:bg-[#264d73]">
+                    <Play size={14} />
+                    Son eklenenleri sırayla dinle
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500 mb-3">Önce son eklenenler, ardından dergiler sırayla okunur. Tekrar eden makaleler yeniden seslendirilmez.</p>
                 <div className="grid gap-2">
                   {latestArticles.map(a => {
                     const idx = articles.findIndex(item => item.pmid === a.pmid);
                     return (
-                      <button key={a.pmid} type="button" onClick={() => handleCardClick(idx)}
-                        className="text-left rounded-lg border border-gray-100 hover:border-blue-300 px-3 py-2">
+                      <button key={a.pmid} data-recent-pmid={a.pmid} type="button"
+                        onClick={() => handleRecentClick(a.pmid!)}
+                        className={'text-left rounded-lg border px-3 py-2 hover:border-blue-300 ' +
+                          (playbackPhase === 'recent' && currentIndex === idx
+                            ? 'bg-blue-50 border-blue-300' : 'border-gray-100')}>
                         <span className="font-medium text-sm">{a.title}</span>
                         <span className="block text-xs text-gray-500 mt-1">{a.journal} · {a.date} · PMID {a.pmid}</span>
                       </button>
@@ -599,7 +694,7 @@ export default function Podcast({ }: PodcastProps) {
                   <div className="podcast-articles-grid">
                     {group.articles.map((article, idx) => {
                       const globalIndex = baseIndex + idx;
-                      const isActive = globalIndex === currentIndex;
+                      const isActive = playbackPhase === 'journals' && globalIndex === currentIndex;
                       return (
                         <div
                           key={`${group.journal}-${idx}`}
@@ -608,7 +703,7 @@ export default function Podcast({ }: PodcastProps) {
                             'podcast-article-card' +
                             (isActive ? ' podcast-article-card-active' : '')
                           }
-                          onClick={() => handleCardClick(globalIndex)}
+                          onClick={() => handleJournalClick(globalIndex)}
                         >
                           <div className="podcast-article-title">
                             {article.title}
