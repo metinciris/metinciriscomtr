@@ -11,6 +11,8 @@ on:
       - 'src/lib/podcastScroll.test.ts'
       - 'src/lib/podcastPreparedAudio.ts'
       - 'src/lib/podcastPreparedAudio.test.ts'
+      - 'src/lib/podcastRecent.ts'
+      - 'src/lib/podcastRecent.test.ts'
       - 'src/lib/podcastPronunciationOverrides.ts'
       - 'src/lib/podcastPronunciationOverrides.test.ts'
       - 'scripts/podcast_audio_pronunciation.py'
@@ -46,7 +48,7 @@ jobs:
       - name: Check lint
         run: npm run lint
       - name: Check podcast pronunciation and scroll placement
-        run: npm run test -- src/lib/ahenkPronunciation.test.ts src/lib/podcastScroll.test.ts src/lib/podcastPreparedAudio.test.ts src/lib/podcastPronunciationOverrides.test.ts
+        run: npm run test -- src/lib/ahenkPronunciation.test.ts src/lib/podcastScroll.test.ts src/lib/podcastPreparedAudio.test.ts src/lib/podcastPronunciationOverrides.test.ts src/lib/podcastRecent.test.ts
       - name: Check Python podcast batch generation and sheet parsing
         run: python3 -m unittest scripts.test_render_podcast_audio scripts.test_podcast_audio_pronunciation
       - name: Check Windows manager Python syntax
