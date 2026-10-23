@@ -444,6 +444,10 @@ export default function Podcast({ }: PodcastProps) {
     'Makale başlıklarını Türkçe dinlemek için oynat düğmesine tıklayın';
   const currentJournal = currentArticle?.journal || 'Dergi Adı';
   const currentPMID = currentArticle?.pmid || '';
+  const latestArticles = newestPmids
+    .map(pmid => articles.find(article => article.pmid === pmid))
+    .filter((article): article is Article => Boolean(article));
+
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -551,16 +555,12 @@ export default function Podcast({ }: PodcastProps) {
             </div>
           </div>
 
-          {newestPmids.length > 0 && (() => {
-            const latest = newestPmids.map(pmid => articles.find(a => a.pmid === pmid))
-              .filter((a): a is Article => Boolean(a));
-            if (!latest.length) return null;
-            return (
+          {latestArticles.length > 0 && (
               <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-5 mb-6">
                 <h2 className="font-bold text-lg mb-1">Son Eklenen Makaleler</h2>
                 <p className="text-xs text-gray-500 mb-3">Günlük takipte tespit edilen güncel makaleler</p>
                 <div className="grid gap-2">
-                  {latest.map(a => {
+                  {latestArticles.map(a => {
                     const idx = articles.findIndex(item => item.pmid === a.pmid);
                     return (
                       <button key={a.pmid} type="button" onClick={() => handleCardClick(idx)}
@@ -572,8 +572,7 @@ export default function Podcast({ }: PodcastProps) {
                   })}
                 </div>
               </section>
-            );
-          })()}
+          )}
 
           {/* Dergi grupları + kartlar */}
           <div className="podcast-articles-section">
