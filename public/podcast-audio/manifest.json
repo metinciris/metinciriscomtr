@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-10-22T09:32:40.747224+00:00",
+  "generated_at": "2026-10-23T09:30:30.724071+00:00",
   "entries": {
     "7d9cd522d0f2d5752ca6a105": {
       "title": "MAP2K1 mutasyonlu melanositik tümörler: 114 olgu üzerinden yapılan bir çalışmaya dayanarak histolojik özelliklerin moleküler fonksiyonel sınıflarıyla ilişkisi.",
@@ -1009,6 +1009,22 @@
       "fingerprint": "015a6c53617c0072559551483bc0f471c1ed073d38914d894f3a63807694478d",
       "file": "6e0006fa13a019e5f23b821b.mp3",
       "generated_at": "2026-10-22T09:32:16.543368+00:00"
+    },
+    "a1535c53fe5412cc6ea7b6b3": {
+      "title": "Rutin prostat biyopsisi raporları, en yüksek derece grubunun ötesinde, dereceye özgü tümör yükü bilgilerini de içerir.",
+      "journal": "Diagnostic Pathology",
+      "pmid": "42880549",
+      "fingerprint": "169c4f617b390dce5eac8fb6ee1f26e99f72eb424595e7300abfef5c718a50bb",
+      "file": "a1535c53fe5412cc6ea7b6b3.mp3",
+      "generated_at": "2026-10-19T09:52:30.961657+00:00"
+    },
+    "a7a5fea454b285c2431ba827": {
+      "title": "Anormal HER2 ekspresyonu, fumarat hidrataz eksikliği olan böbrek hücreli karsinomu için spesifik ve uygulanabilir bir tanısal belirteç olarak kullanılabilir.",
+      "journal": "Diagnostic Pathology",
+      "pmid": "42874879",
+      "fingerprint": "4718fb185abb912b4db09f80c4d65e0cc8c827507230fc0aea523781db87cc5a",
+      "file": "a7a5fea454b285c2431ba827.mp3",
+      "generated_at": "2026-10-23T09:30:20.667393+00:00"
     }
   }
 }
