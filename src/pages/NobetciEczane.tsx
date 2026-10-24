@@ -1,8 +1,7 @@
 import React, { useEffect } from 'react';
+import { NobetciEczane as NobetciEczaneLegacy } from './NobetciEczaneLegacy';
 import { PageContainer } from '../components/PageContainer';
 import { Building2, Phone, Clock, AlertCircle, ExternalLink, MapPin } from 'lucide-react';
-
-const ECZANELERI_IFRAME_SRC = 'https://eczaneleri.net/asset/eczane/js/iframe/iframe.js';
 
 export function NobetciEczane() {
   const now = new Date();
@@ -22,65 +21,85 @@ export function NobetciEczane() {
   const weekdayEn = now.toLocaleDateString('en-US', { weekday: 'long' });
   const todayEn = `${day} ${monthEn} ${year} ${weekdayEn}`;
 
+  const [mode, setMode] = React.useState<'new' | 'legacy'>('new');
   const [isLoading, setIsLoading] = React.useState(true);
-  const containerRef = React.useRef<HTMLDivElement>(null);
+  const widgetRef = React.useRef<HTMLDivElement>(null);
 
-  // Eczaneleri.NET widget kurulumu
+  // Eczane Adresi: yalnızca Isparta / Merkez için ücretsiz gömülü widget.
+  // Kaynak atıf bağlantısı sağlayıcının istediği şekilde görünür bırakılır.
+  // Sağlayıcı JS'i yüklenmezse çalışan eski Eczaneleri.NET gömüsüne dönülür.
   useEffect(() => {
-    (window as any).pharmacyiFrame = {
-      color1: '00d2d3',
-      color2: '17a2b8',
-      city: 'isparta',   // sadece Isparta
-      county: 'merkez',  // Isparta merkez
-      type: 'default-iframe',
-      width: 768,        // px cinsinden (max-w-3xl boyutuna uygun)
-      height: 1500       // px cinsinden (daha yüksek yapıldı)
+    if (mode !== 'new') return;
+
+    const container = widgetRef.current;
+    if (!container) return;
+
+    let active = true;
+    setIsLoading(true);
+
+    const hasRendered = (): boolean => {
+      if (!active) return false;
+      const hasContent =
+        container.childElementCount > 0 ||
+        Boolean(container.shadowRoot?.childElementCount) ||
+        Boolean(container.textContent?.trim());
+
+      if (hasContent) {
+        setIsLoading(false);
+        observer.disconnect();
+        window.clearTimeout(timeoutId);
+      }
+      return hasContent;
     };
+
+    const observer = new MutationObserver(() => {
+      hasRendered();
+    });
+    observer.observe(container, { childList: true, subtree: true, characterData: true });
 
     const script = document.createElement('script');
-    script.src = ECZANELERI_IFRAME_SRC;
+    script.src = 'https://eczaneadresi.com/api/public/widget/embed.js';
     script.async = true;
+    script.addEventListener('load', hasRendered);
+    script.addEventListener('error', () => {
+      if (active) setMode('legacy');
+    });
     document.body.appendChild(script);
 
-    let observer: MutationObserver | null = null;
-
-    const checkIframe = () => {
-      const iframe = containerRef.current?.querySelector('iframe');
-      if (iframe) {
-        iframe.addEventListener('load', () => setIsLoading(false));
-        return true;
-      }
-      return false;
-    };
-
-    if (!checkIframe() && containerRef.current) {
-      observer = new MutationObserver(() => {
-        if (checkIframe()) {
-          observer?.disconnect();
-        }
-      });
-      observer.observe(containerRef.current, {
-        childList: true,
-        subtree: true,
-      });
-    }
-
-    // 6 saniyelik yedek zaman aşımı (eğer dış kaynak yüklenemezse sayfa takılı kalmasın)
-    const fallbackTimeout = setTimeout(() => {
-      setIsLoading(false);
-    }, 6000);
+    // Script yüklense bile hiç çıktı oluşturmazsa boş ekran bırakma.
+    const timeoutId = window.setTimeout(() => {
+      if (active && !hasRendered()) setMode('legacy');
+    }, 15000);
 
     return () => {
-      try {
-        document.body.removeChild(script);
-      } catch { }
-      if (observer) {
-        observer.disconnect();
-      }
-      clearTimeout(fallbackTimeout);
-      delete (window as any).pharmacyiFrame;
+      active = false;
+      observer.disconnect();
+      window.clearTimeout(timeoutId);
+      script.remove();
+      // JS sağlayıcısının eklediği düğümler React dışındadır.
+      container.replaceChildren();
     };
-  }, []);
+  }, [mode]);
+
+  if (mode === 'legacy') {
+    return (
+      <>
+        <div className="mx-auto max-w-6xl px-4 pt-4">
+          <button
+            type="button"
+            onClick={() => setMode('new')}
+            className="rounded-lg border border-rose-200 bg-white px-4 py-2 text-sm font-medium text-rose-800 hover:bg-rose-50"
+          >
+            Yeni haritalı görünümü tekrar dene
+          </button>
+          <p className="mt-2 text-sm text-gray-600">
+            Önceki nöbetçi eczane görünümü açıldı. İsterseniz yeni widget'a dönebilirsiniz.
+          </p>
+        </div>
+        <NobetciEczaneLegacy />
+      </>
+    );
+  }
 
   return (
     <PageContainer>
@@ -101,7 +120,7 @@ export function NobetciEczane() {
       >
         <h2>Isparta Nöbetçi Eczaneler ve Eczane Listesi</h2>
         <p>
-          Isparta Merkez ve ilçelerindeki günlük nöbetçi eczanelere anında ulaşın. Eczane adresleri, telefon numaraları ve yol tarifleri ile nöbetçi listesini güncel olarak takip edin.
+          Isparta Merkez'deki günlük nöbetçi eczanelere anında ulaşın. Eczane adresleri, telefon numaraları ve yol tarifleri ile nöbetçi listesini güncel olarak takip edin.
         </p>
       </div>
       <div className="bg-gradient-to-r from-[#990000] to-[#8B0000] text-white p-12 mb-8">
@@ -130,30 +149,36 @@ export function NobetciEczane() {
           <p className="text-muted-foreground mb-4">
             Aşağıdaki nöbetçi eczaneler otomatik alınmaktadır:
           </p>
-          {/* Widget konteyneri – script burayı dolduracak */}
           {isLoading && (
-            <div className="flex flex-col items-center justify-center py-16 px-4 border border-dashed border-gray-200 rounded-lg bg-gray-50/50 my-4 animate-pulse">
-              <div className="animate-spin rounded-full h-8 w-8 border-2 border-t-transparent border-[#990000] mb-3"></div>
-              <p className="text-muted-foreground text-center font-medium text-sm m-0">
-                Güncel nöbetçi eczane bilgisi çekiliyor...
-              </p>
+            <div role="status" aria-live="polite" className="my-4 flex items-center justify-center gap-3 rounded-lg border border-gray-200 bg-gray-50 px-4 py-6">
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-t-transparent border-[#990000]" />
+              <p className="m-0 text-sm text-muted-foreground">Isparta Merkez nöbetçi eczaneleri yükleniyor...</p>
             </div>
           )}
-          <style dangerouslySetInnerHTML={{ __html: `
-            .pharmacy-container iframe {
-              width: 100% !important;
-              height: 1500px !important;
-              min-height: 1500px !important;
-              border: none !important;
-            }
-          `}} />
           <div
-            ref={containerRef}
-            className="pharmacy-container w-full overflow-hidden"
-            style={isLoading ? { position: 'absolute', opacity: 0, pointerEvents: 'none', height: 0 } : {}}
+            ref={widgetRef}
+            id="eczane-adresi-widget"
+            data-scope="district"
+            data-city="isparta"
+            data-district="merkez"
+            data-limit="10"
+            data-theme="light"
+            data-accent="#E11D48"
+            data-map="true"
+            className="w-full min-h-[320px]"
+            aria-label="Isparta Merkez nöbetçi eczaneleri ve harita"
           />
-          <p className="text-xs text-muted-foreground mt-3 text-center">
-            Veri kaynağı: Eczaneleri.NET – Saatlik olarak güncellenir.
+          <div className="mt-4 text-center">
+            <button
+              type="button"
+              onClick={() => setMode('legacy')}
+              className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              Önceki gömülü görünümü aç
+            </button>
+          </div>
+          <p className="mt-3 text-center text-xs text-muted-foreground">
+            Veri: Eczane Adresi (bağımsız servis). Widget'ın kaynak atıf satırı görünür bırakılır.
           </p>
         </div>
       </div>
@@ -163,7 +188,7 @@ export function NobetciEczane() {
         <div className="max-w-3xl mx-auto">
           <h2 className="mb-4">Resmi Nöbetçi Eczane Listesi</h2>
           <p className="text-muted-foreground mb-8">
-            Isparta ili merkez ve ilçelerindeki güncel nöbetçi eczane listesi için
+            Isparta'daki güncel resmî nöbetçi eczane listesi için
             aşağıdaki butona tıklayarak Isparta Eczacılar Odası resmi web sitesini ziyaret edebilirsiniz.
           </p>
 
@@ -203,9 +228,9 @@ export function NobetciEczane() {
           <div className="bg-[#00A6D6] w-16 h-16 flex items-center justify-center text-white mx-auto mb-4">
             <MapPin size={32} />
           </div>
-          <h3 className="mb-2">Tüm İlçeler</h3>
+          <h3 className="mb-2">Isparta Merkez</h3>
           <p className="text-muted-foreground m-0">
-            Merkez ve tüm ilçelerin nöbetçi eczaneleri
+            Yalnızca Isparta Merkez nöbetçi eczaneleri
           </p>
         </div>
 
@@ -223,9 +248,9 @@ export function NobetciEczane() {
           <div className="bg-[#990000] w-16 h-16 flex items-center justify-center text-white mx-auto mb-4">
             <Building2 size={32} />
           </div>
-          <h3 className="mb-2">Resmi Kaynak</h3>
+          <h3 className="mb-2">Resmî Kaynak Kontrolü</h3>
           <p className="text-muted-foreground m-0">
-            Isparta Eczacılar Odası onaylı
+            Isparta Eczacılar Odası resmî listesi
           </p>
         </div>
       </div>
