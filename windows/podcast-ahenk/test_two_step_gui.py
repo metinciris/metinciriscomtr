@@ -93,8 +93,10 @@ class TwoStepGuiSmoke(unittest.TestCase):
                     app = ui.TwoStepManager(tk_root)
                     app.articles = articles
                     app._rebuild()
-                    self.assertIsNotNone(app.step_one)
-                    self.assertIsNotNone(app.step_two)
+                    self.assertFalse(hasattr(app, "step_one"))
+                    self.assertFalse(hasattr(app, "step_two"))
+                    self.assertIsNotNone(app.stage_bar)
+                    self.assertIsNotNone(app.btn_auto_run)
                     self.assertEqual(app.filter.get(), "web_missing")
                     app.prepare_web_missing()
                     wait_until_idle(tk_root, app)

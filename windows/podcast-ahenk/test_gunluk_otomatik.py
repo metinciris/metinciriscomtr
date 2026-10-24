@@ -1,5 +1,6 @@
 """Offline tests of daily 12:30 PC runner: never touch the actual site/repo."""
 import json
+from contextlib import nullcontext
 from pathlib import Path
 import sys
 import tempfile
@@ -44,6 +45,15 @@ class DailyPodcastJobTests(unittest.TestCase):
         self.addCleanup(self.root_patch.stop)
         self.addCleanup(self.home_patch.stop)
         self.addCleanup(self.status_patch.stop)
+        self.metadata_patch = patch.object(
+            daily.git_metadata, "metadata_checkout",
+            side_effect=lambda *_args: nullcontext(self.root)
+        )
+        self.metadata_mock = self.metadata_patch.start()
+        self.addCleanup(self.metadata_patch.stop)
+        self.refresh_patch = patch.object(daily.git_metadata, "refresh_metadata")
+        self.refresh_patch.start()
+        self.addCleanup(self.refresh_patch.stop)
 
     def manifest(self, number):
         return {
@@ -64,7 +74,7 @@ class DailyPodcastJobTests(unittest.TestCase):
         with patch.object(daily.online_audio, "fetch_manifest",
                           return_value=self.manifest(120)), \
              patch.object(engine, "load_sheet", return_value=self.articles), \
-             patch.object(daily.git_sync, "sync",
+             patch.object(daily.git_metadata, "metadata_checkout",
                           side_effect=AssertionError("Unexpected Git sync")), \
              patch.object(daily.audio_runtime, "ensure_runtime",
                           side_effect=AssertionError("Unexpected model load")):
@@ -77,12 +87,12 @@ class DailyPodcastJobTests(unittest.TestCase):
         with patch.object(daily.online_audio, "fetch_manifest",
                           return_value=self.manifest(80)), \
              patch.object(engine, "load_sheet", return_value=self.articles), \
-             patch.object(daily.git_sync, "sync"), \
+             patch.object(daily.git_metadata, "refresh_metadata"), \
              patch.object(daily.git_sync, "remote_manifest",
                           return_value=self.manifest(120)), \
              patch.object(daily.audio_runtime, "ensure_runtime",
                           side_effect=AssertionError("Unexpected model load")), \
-             patch.object(daily.git_sync, "publish_selected_local_voices",
+             patch.object(daily.git_metadata, "publish_missing",
                           side_effect=AssertionError("Unexpected reupload")):
             result = daily.run_once()
         self.assertEqual(result["status"], "waiting_for_deploy")
@@ -105,14 +115,14 @@ class DailyPodcastJobTests(unittest.TestCase):
         with patch.object(daily.online_audio, "fetch_manifest",
                           return_value=self.manifest(80)), \
              patch.object(engine, "load_sheet", return_value=self.articles), \
-             patch.object(daily.git_sync, "sync"), \
+             patch.object(daily.git_metadata, "refresh_metadata"), \
              patch.object(daily.git_sync, "remote_manifest",
                           return_value=self.manifest(85)), \
              patch.object(engine, "load_manifest", return_value=local), \
              patch.object(daily.audio_runtime, "ensure_runtime"), \
              patch.object(engine, "create_tts", return_value=object()) as model, \
              patch.object(engine, "execute_plan", side_effect=fake_generate), \
-             patch.object(daily.git_sync, "publish_selected_local_voices",
+             patch.object(daily.git_metadata, "publish_missing",
                           return_value="uploaded") as publisher:
             result = daily.run_once()
 
@@ -124,7 +134,6 @@ class DailyPodcastJobTests(unittest.TestCase):
         model.assert_called_once()
         publisher.assert_called_once()
         self.assertEqual(publisher.call_args.args[2], expected)
-        self.assertTrue(publisher.call_args.kwargs["reject_existing"])
 
     def test_unregistered_pc_recording_is_never_overwritten(self):
         key = self.keys[-1]
@@ -134,14 +143,14 @@ class DailyPodcastJobTests(unittest.TestCase):
         with patch.object(daily.online_audio, "fetch_manifest",
                           return_value=self.manifest(119)), \
              patch.object(engine, "load_sheet", return_value=self.articles), \
-             patch.object(daily.git_sync, "sync"), \
+             patch.object(daily.git_metadata, "refresh_metadata"), \
              patch.object(daily.git_sync, "remote_manifest",
                           return_value=self.manifest(119)), \
              patch.object(engine, "load_manifest",
                           return_value={"version": 1, "entries": {}}), \
              patch.object(daily.audio_runtime, "ensure_runtime",
                           side_effect=AssertionError("Must not generate")), \
-             patch.object(daily.git_sync, "publish_selected_local_voices",
+             patch.object(daily.git_metadata, "publish_missing",
                           side_effect=AssertionError("Must not publish")):
             result = daily.run_once()
         self.assertEqual(result["generated"], 0)
@@ -153,7 +162,7 @@ class DailyPodcastJobTests(unittest.TestCase):
         with patch.object(daily.online_audio, "fetch_manifest",
                           return_value={"version": 1, "entries": {}}), \
              patch.object(engine, "load_sheet", return_value=titles(20)), \
-             patch.object(daily.git_sync, "sync",
+             patch.object(daily.git_metadata, "metadata_checkout",
                           side_effect=AssertionError("Unexpected Git sync")):
             with self.assertRaisesRegex(RuntimeError, "en az 96"):
                 daily.run_once()
@@ -165,7 +174,7 @@ class DailyPodcastJobTests(unittest.TestCase):
         with patch.object(daily.online_audio, "fetch_manifest",
                           return_value=corrupt), \
              patch.object(engine, "load_sheet", return_value=self.articles), \
-             patch.object(daily.git_sync, "sync",
+             patch.object(daily.git_metadata, "metadata_checkout",
                           side_effect=AssertionError("Must not sync")):
             with self.assertRaisesRegex(RuntimeError, "eşleşmiyor"):
                 daily.run_once()
@@ -198,14 +207,14 @@ class DailyPodcastJobTests(unittest.TestCase):
         with patch.object(daily.online_audio, "fetch_manifest",
                           return_value=self.manifest(110)), \
              patch.object(engine, "load_sheet", return_value=self.articles), \
-             patch.object(daily.git_sync, "sync"), \
+             patch.object(daily.git_metadata, "refresh_metadata"), \
              patch.object(daily.git_sync, "remote_manifest",
                           return_value=self.manifest(110)), \
              patch.object(engine, "load_manifest", return_value=local), \
              patch.object(daily.audio_runtime, "ensure_runtime"), \
              patch.object(engine, "create_tts", return_value=object()), \
              patch.object(engine, "execute_plan", side_effect=fake_generate), \
-             patch.object(daily.git_sync, "publish_selected_local_voices",
+             patch.object(daily.git_metadata, "publish_missing",
                           return_value="uploaded") as publisher:
             result = daily.run_once(progress=received.append)
         self.assertEqual(result["generated"], 10)
@@ -228,14 +237,14 @@ class DailyPodcastJobTests(unittest.TestCase):
         with patch.object(daily.online_audio, "fetch_manifest",
                           return_value=self.manifest(118)), \
              patch.object(engine, "load_sheet", return_value=self.articles), \
-             patch.object(daily.git_sync, "sync"), \
+             patch.object(daily.git_metadata, "refresh_metadata"), \
              patch.object(daily.git_sync, "remote_manifest",
                           return_value=self.manifest(118)), \
              patch.object(engine, "load_manifest",
                           return_value={"version": 1, "entries": {}}), \
              patch.object(daily.audio_runtime, "ensure_runtime",
                           side_effect=AssertionError("Must not load TTS")), \
-             patch.object(daily.git_sync, "publish_selected_local_voices",
+             patch.object(daily.git_metadata, "publish_missing",
                           side_effect=AssertionError("Must not upload")):
             result = daily.run_once(stopping=stopping)
         self.assertTrue(result["stopped"])
@@ -252,13 +261,13 @@ class DailyPodcastJobTests(unittest.TestCase):
         with patch.object(daily.online_audio, "fetch_manifest",
                           return_value=self.manifest(119)), \
              patch.object(engine, "load_sheet", return_value=self.articles), \
-             patch.object(daily.git_sync, "sync"), \
+             patch.object(daily.git_metadata, "refresh_metadata"), \
              patch.object(daily.git_sync, "remote_manifest",
                           return_value=self.manifest(119)), \
              patch.object(engine, "load_manifest", return_value=local), \
              patch.object(daily.audio_runtime, "ensure_runtime",
                           side_effect=AssertionError("Must not load model")), \
-             patch.object(daily.git_sync, "publish_selected_local_voices",
+             patch.object(daily.git_metadata, "publish_missing",
                           return_value="uploaded") as uploader:
             result = daily.run_once()
         self.assertEqual(result["generated"], 0)

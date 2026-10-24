@@ -85,6 +85,7 @@ class TwoStepManager(base.AhenkManager):
         self._engine_error = None
         self._auto_start_requested = False
         self._auto_running = False
+        self._auto_tracking = False
         super().__init__(root)
         root.protocol("WM_DELETE_WINDOW", self._close_window)
         root.after(450, self._start_engine_automatically)
@@ -93,7 +94,7 @@ class TwoStepManager(base.AhenkManager):
         root.after(900, self._resume_watch)
 
     def _build(self):
-        self.root.title("Podcast Ahenk | Seçilen Sesi WEB'e Gönder + Yeni Okuma 1.6")
+        self.root.title("Podcast Ahenk | Otomatik Ses Tamamlama 1.7")
         self.root.geometry("1320x885")
         self.root.minsize(1010, 715)
         style = ttk.Style(self.root)
@@ -118,61 +119,58 @@ class TwoStepManager(base.AhenkManager):
                  bg="#1b344f", fg="#d9e5ef",
                  font=("Segoe UI", 10)).pack(anchor="w", pady=(2, 0))
 
-        operations = ttk.Frame(self.root, padding=(12, 11))
-        operations.pack(fill="x")
-        operations.columnconfigure(0, weight=1)
-        operations.columnconfigure(1, weight=1)
-        self.step_one = ttk.Button(
-            operations, text="1  WEB'DE EKSİK TÜM SESLERİ HAZIRLA",
-            command=self.prepare_web_missing, style="Primary.TButton"
+        # A single prominent status + one progress bar replaces the two
+        # oversized manual step buttons and the duplicate publication bar.
+        status_box = ttk.Frame(self.root, padding=(13, 9))
+        status_box.pack(fill="x")
+        ttk.Label(
+            status_box,
+            text="EKSİK SESLER TAMAMLANIYOR VE WEB'E YÜKLENİYOR",
+            font=("Segoe UI Semibold", 12),
+            foreground="#116e77",
+        ).pack(anchor="w")
+        self.stage_description = tk.StringVar(
+            value="WEB'deki eksik sesler otomatik kontrol edilecek."
         )
-        self.step_one.grid(row=0, column=0, sticky="ew", padx=(0, 7))
-        self.step_two = ttk.Button(
-            operations, text="2  HAZIR SESLERİ WEB'E YÜKLE",
-            command=self.upload_web_missing, style="Secondary.TButton"
+        ttk.Label(
+            status_box, textvariable=self.stage_description,
+            font=("Segoe UI Semibold", 10), wraplength=1100,
+        ).pack(anchor="w", pady=(4, 5))
+        self.stage_bar = ttk.Progressbar(status_box, maximum=100, mode="determinate")
+        self.stage_bar.pack(fill="x", pady=(0, 6))
+        self.stage_bar["value"] = 0
+        self.stage_counters = tk.StringVar(
+            value="Eksik ses kontrolü: —  |  GitHub: —  |  WEB yayını: —"
         )
-        self.step_two.grid(row=0, column=1, sticky="ew", padx=(7, 0))
+        ttk.Label(
+            status_box, textvariable=self.stage_counters, font=("Segoe UI", 9)
+        ).pack(anchor="w", pady=(0, 4))
 
-        auto_controls = ttk.Frame(self.root, padding=(12, 0))
-        auto_controls.pack(fill="x")
+        # Preserve the older test/manual-step status field without displaying
+        # a redundant second progress bar in the actual interface.
+        self.web_progress_bar = ttk.Progressbar(
+            status_box, maximum=100, mode="determinate"
+        )
+        self.web_progress_bar["value"] = 0
+
+        auto_controls = ttk.Frame(status_box)
+        auto_controls.pack(fill="x", pady=(1, 3))
         self.auto_start_enabled = tk.BooleanVar(value=read_auto_setting(HOME))
         ttk.Checkbutton(
             auto_controls,
-            text="Program açılınca WEB'deki eksikleri otomatik hazırla ve gönder",
+            text="Program açılınca otomatik tamamla ve gönder",
             variable=self.auto_start_enabled,
             command=self._auto_setting_changed,
         ).pack(side="left")
         self.btn_auto_run = ttk.Button(
-            auto_controls, text="↻ Şimdi otomatik tamamla",
+            auto_controls, text="↻ Şimdi tekrar kontrol et",
             command=self.run_automatic_workflow,
         )
         self.btn_auto_run.pack(side="right")
         self.auto_state = tk.StringVar(value="Otomatik mod: hazır.")
-        ttk.Label(auto_controls, textvariable=self.auto_state,
-                  foreground="#346781").pack(side="right", padx=(0, 14))
-
-        status_box = ttk.Frame(self.root, padding=(13, 4))
-        status_box.pack(fill="x")
-        self.stage_description = tk.StringVar(value="Hazır. Web'deki eksikleri denetlemek için 1. adıma basın.")
-        self.stage_counters = tk.StringVar(value="Hazırlama: —    |    GitHub: —    |    WEB yayını: —")
-        ttk.Label(status_box, textvariable=self.stage_description,
-                  font=("Segoe UI Semibold", 10), wraplength=1100).pack(anchor="w")
-        ttk.Label(status_box, textvariable=self.stage_counters,
-                  font=("Segoe UI", 9)).pack(anchor="w", pady=(4, 5))
-        bars = ttk.Frame(status_box)
-        bars.pack(fill="x", pady=(0, 8))
-        bars.columnconfigure(0, weight=1)
-        bars.columnconfigure(1, weight=1)
-        ttk.Label(bars, text="Hazırlama / GitHub gönderimi",
-                  foreground="#506c82").grid(row=0, column=0, sticky="w")
-        ttk.Label(bars, text="WEB'de doğrulanan yayın",
-                  foreground="#506c82").grid(row=0, column=1, sticky="w", padx=(13, 0))
-        self.stage_bar = ttk.Progressbar(bars, maximum=100, mode="determinate")
-        self.stage_bar.grid(row=1, column=0, sticky="ew", pady=(4, 0))
-        self.web_progress_bar = ttk.Progressbar(bars, maximum=100, mode="determinate")
-        self.web_progress_bar.grid(row=1, column=1, sticky="ew", padx=(13, 0), pady=(4, 0))
-        self.stage_bar["value"] = 0
-        self.web_progress_bar["value"] = 0
+        ttk.Label(
+            auto_controls, textvariable=self.auto_state, foreground="#346781"
+        ).pack(side="right", padx=(0, 14))
 
         event_row = ttk.Frame(status_box)
         event_row.pack(fill="x", pady=(2, 5))
@@ -535,8 +533,10 @@ class TwoStepManager(base.AhenkManager):
             percent = 84 if previous >= 20 else 8
         elif phase == "uploading":
             percent = 88
-        elif phase in ("uploaded", "complete", "waiting"):
+        elif phase == "complete":
             percent = 100
+        elif phase in ("uploaded", "waiting"):
+            percent = 92
         elif phase == "stopping":
             percent = min(83, previous)
         else:
@@ -556,6 +556,7 @@ class TwoStepManager(base.AhenkManager):
             self._append_auto_event("Başka işlem sürüyor; ikinci iş başlatılmadı.")
             return
         self._auto_running = True
+        self._auto_tracking = True
         self.btn_auto_run.configure(state="disabled")
         self.web_progress_bar["value"] = 0
         self._stage("OTOMATİK · WEB ve GitHub sesleri kontrol ediliyor…", 0,
@@ -626,7 +627,10 @@ class TwoStepManager(base.AhenkManager):
         )
         if result.get("stopped"):
             summary = "DURDURULDU · " + summary
-        self._stage("OTOMATİK SONUÇ · " + summary, 100,
+        percent = 100 if phase == "complete" or (
+            not uploaded and phase == "skipped_unapproved_files"
+        ) else 92
+        self._stage("OTOMATİK SONUÇ · " + summary, percent,
                     f"Yeni: {produced} | GitHub: {uploaded} | Kontrol: {skipped}")
         if phase == "complete":
             # WEB bar should not remain at zero when everything is live.
@@ -1744,6 +1748,9 @@ class TwoStepManager(base.AhenkManager):
         total = len(progress.get("target_keys", []))
         verified = len(progress.get("website_confirmed", []))
         self.web_progress_bar["value"] = 100 * verified / max(1, total)
+        # The only VISIBLE bar tracks the whole automatic pipeline:
+        # after GitHub upload it remains below 100 until the WEB publishes.
+        auto_tracking = bool(getattr(self, "_auto_tracking", False))
         phase = progress.get("phase")
         self.stage_counters.set(
             f"GitHub: {sent}/{total} gönderildi  |  "
@@ -1760,6 +1767,10 @@ class TwoStepManager(base.AhenkManager):
                 f"WEB yayını bekleniyor: {total - verified} ses.",
                 100 * sent / max(1, total)
             )
+        if auto_tracking:
+            self.stage_bar["value"] = 92 + 8 * verified / max(1, total)
+            if verified == total and total:
+                self.stage_bar["value"] = 100
 
     def _resume_watch(self):
         if self._auto_start_requested or self._auto_running:

@@ -145,6 +145,66 @@ class GitStatusRegression(unittest.TestCase):
                     original
                 )
 
+    def test_sparse_metadata_refresh_does_not_erase_pc_audio(self):
+        """Git sparse merge can delete a skip-worktree MP3: back it up."""
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            remote, seed, work, home = (
+                base / "origin.git", base / "seed",
+                base / "work", base / "home",
+            )
+            call("git", "init", "--bare", "--initial-branch=main", str(remote))
+            call("git", "clone", str(remote), str(seed))
+            call("git", "-C", str(seed), "config", "user.name", "Test")
+            call("git", "-C", str(seed), "config", "user.email", "test@example.invalid")
+            a, b = "a" * 24, "b" * 24
+            first = mp3_bytes("ORIGINAL_PC")
+            src = seed / audio_sync.AUDIO_PREFIX / (a + ".mp3")
+            src.parent.mkdir(parents=True, exist_ok=True)
+            src.write_bytes(first)
+            write_json(seed / audio_sync.MANIFEST, make_manifest({a: entry(a)}))
+            write_json(seed / audio_sync.RULES, {
+                "version": 1, "articles": {}, "global": [], "global_speed": 1.0,
+            })
+            call("git", "-C", str(seed), "add", ".")
+            call("git", "-C", str(seed), "commit", "-m", "initial")
+            call("git", "-C", str(seed), "push", "origin", "main")
+            call("git", "clone", str(remote), str(work))
+            audio = work / audio_sync.AUDIO_PREFIX / (a + ".mp3")
+            original = audio.read_bytes()
+            call(
+                "git", "-C", str(work), "sparse-checkout", "set", "--no-cone",
+                "/public/podcast-audio/manifest.json",
+                "/public/podcast-audio/pronunciation.json",
+            )
+            audio.parent.mkdir(parents=True, exist_ok=True)
+            audio.write_bytes(original)
+            self.assertTrue(audio_sync.metadata_only_checkout(work))
+
+            # GitHub Actions replaces a published rendition with a new MP3.
+            src.write_bytes(mp3_bytes("CHANGED_REMOTE"))
+            newest = seed / audio_sync.AUDIO_PREFIX / (b + ".mp3")
+            newest.write_bytes(mp3_bytes("NEW_REMOTE"))
+            write_json(seed / audio_sync.MANIFEST, make_manifest({
+                a: entry(a, date="2026-10-24T15:00:00+00:00"),
+                b: entry(b),
+            }))
+            call("git", "-C", str(seed), "add", ".")
+            call("git", "-C", str(seed), "commit", "-m", "second")
+            call("git", "-C", str(seed), "push", "origin", "main")
+
+            with patch.object(audio_sync, "VALID_REMOTE", {str(remote)}):
+                result = audio_sync.sync(work, home)
+            self.assertIn("manifesti güncellendi", result)
+            self.assertEqual(audio.read_bytes(), original)
+            self.assertFalse(
+                (work / audio_sync.AUDIO_PREFIX / (b + ".mp3")).exists()
+            )
+            self.assertEqual(set(
+                audio_sync.read_json_file(work / audio_sync.MANIFEST)["entries"]
+            ), {a, b})
+            self.assertTrue(list((home / "yedekler").glob("*")))
+
     def test_selected_batch_never_sends_unselected_audio(self):
         with tempfile.TemporaryDirectory() as t:
             root = Path(t) / "repo"

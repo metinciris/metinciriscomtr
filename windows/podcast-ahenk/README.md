@@ -262,3 +262,30 @@ Windows'un günlük 12:30 görevi ayrıca çalışır. Pencere açıkken
 eşzamanlı dosya değişikliği olmasın diye günlük görev atlanır.
 Otomatik işlem çalışırken pencere kapanması önlenir; önce
 Durdur düğmesini kullanmak gerekir.
+
+## Tek ilerleme çubuğu ve metadata-only GitHub kontrolü
+
+Arayüzde iki büyük '1 / 2' düğmesi ve ikinci çubuk kaldırıldı.
+Üstte tek **Eksik Sesler Tamamlanıyor ve WEB'e Yükleniyor**
+başlığı ve tüm otomasyon sürecini izleyen ilerleme çubuğu vardır.
+Üstteki küçük 'Şimdi tekrar kontrol et' ve açılışta otomatik
+işlem seçeneği korunur. Makalelerin listesi ve manuel tek ses
+dinleme / seçili ses gönderme alanları alt bölümde kalır.
+
+**PC'ye bütün WEB MP3'lerini indirmek artık gerekli değildir.**
+Otomatik kontrol, WEB manifest JSON'unu ve Google Sheets başlıklarını
+okur. WEB'de eksik ses varsa GitHub'ın yalnız manifest ve telaffuz
+JSON dosyalarını içeren **geçici, kısmi Git deposunu** açar. Yayındaki
+MP3 dosyalarını PC'ye indirmez. Yalnız gerçekten WEB/GitHub'da eksik
+makaleler için yerel ses sentezlenir. Hazır onaylı yerel sesler yeniden
+üretilmez. Gönderirken yalnız seçilmiş yeni MP3'ler geçici depoya
+kopyalanır ve tek GitHub commit/push yapılır.
+
+**Mevcut PC kayıtları silinmez.** Önceki kurulumda indirilmiş olan
+MP3'ler bilgisayarda kalır; gelecekteki otomatik eşitleme artık
+bu seslerin güncel kopyalarını yeniden indirmez.
+Yeni kurulumda ses klasörünün yalnız JSON dosyaları ilk çekilir.
+
+GitHub Actions aynı başlığı bu sırada yayımlarsa hiçbir sesin üzerine
+yazılmaz. Git veya WEB sorunu varsa dosyalar korunur, işlem durumu
+arayüzde görünür; daha sonra tek düğmeyle tekrar denenebilir.

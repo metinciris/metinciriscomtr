@@ -22,6 +22,7 @@ import app_single_instance
 import audio_inventory
 import audio_runtime
 import git_sync
+import git_metadata
 import manifest_recovery
 import online_audio
 import two_step_audio
@@ -153,104 +154,104 @@ def run_once(progress=None, stopping=None):
 
     report("sync", message="GitHub arşivi güvenle eşitleniyor.")
     note(f"{len(catalog)} makale, WEB'de {len(live_missing)} eksik. GitHub eşitleniyor.")
-    git_sync.sync(ROOT, HOME)
-    remote = git_sync.remote_manifest(ROOT)
-    missing = truly_unpublished(catalog, live, remote)[:MAX_PER_RUN]
-    result["github_missing"] = len(missing)
-    if not missing:
-        note("Eksik MP3'ler GitHub'a önceden gönderilmiş; WEB yayını bekleniyor.")
-        result["status"] = "waiting_for_deploy"
-        report("waiting", message="Sesler GitHub'da hazır; WEB dağıtımı bekleniyor.")
-        return completed()
-
-    existing, unregistered = approved_pc_keys(
-        catalog, missing, engine.load_manifest()
-    )
-    # An existing but invalid or unreadable local MP3 is NEVER replaced:
-    # it may be a personal recording or locked by a player.
-    need_generate = []
-    blocked = []
-    for key in unregistered:
-        destination = ROOT / "public" / "podcast-audio" / (key + ".mp3")
-        if destination.exists():
-            blocked.append(key)
-        else:
-            need_generate.append(key)
-    note(f"{len(existing)} onaylı PC sesi hazır; {len(need_generate)} üretilecek; "
-         f"{len(blocked)} mevcut fakat okunamayan/kayıtsız MP3 korunacak.")
-    result["skipped"] = blocked[:]
-    result["ready_pc"] = len(existing)
-    result["to_generate"] = len(need_generate)
-    save_status(result)
-    report(
-        "planned", len(existing), len(missing),
-        f"WEB'de {len(missing)} eksik · PC'de hazır {len(existing)} · "
-        f"Yeni üretilecek {len(need_generate)} · Kontrol gerekli {len(blocked)}."
-    )
-
-    if need_generate and not (stopping is not None and stopping.is_set()):
-        report("engine", 0, len(need_generate), "Ahenk motoru hazırlanıyor…")
-        audio_runtime.ensure_runtime(ROOT, report=note)
-        model = engine.create_tts()
-        try:
-            for start in range(0, len(need_generate), CHUNK_SIZE):
-                if stopping is not None and stopping.is_set():
-                    break
-                chunk = need_generate[start:start + CHUNK_SIZE]
-                staged = [0]
-                def on_prepared(_key, article):
-                    staged[0] += 1
-                    report(
-                        "generating", start + staged[0], len(need_generate),
-                        "Ses hazırlanıyor: " + article["title"][:100]
+    with git_metadata.metadata_checkout(ROOT, HOME) as metadata:
+        remote = git_sync.remote_manifest(metadata)
+        missing = truly_unpublished(catalog, live, remote)[:MAX_PER_RUN]
+        result["github_missing"] = len(missing)
+        if not missing:
+            note("Eksik MP3'ler GitHub'a önceden gönderilmiş; WEB yayını bekleniyor.")
+            result["status"] = "waiting_for_deploy"
+            report("waiting", message="Sesler GitHub'da hazır; WEB dağıtımı bekleniyor.")
+            return completed()
+    
+        existing, unregistered = approved_pc_keys(
+            catalog, missing, engine.load_manifest()
+        )
+        # An existing but invalid or unreadable local MP3 is NEVER replaced:
+        # it may be a personal recording or locked by a player.
+        need_generate = []
+        blocked = []
+        for key in unregistered:
+            destination = ROOT / "public" / "podcast-audio" / (key + ".mp3")
+            if destination.exists():
+                blocked.append(key)
+            else:
+                need_generate.append(key)
+        note(f"{len(existing)} onaylı PC sesi hazır; {len(need_generate)} üretilecek; "
+             f"{len(blocked)} mevcut fakat okunamayan/kayıtsız MP3 korunacak.")
+        result["skipped"] = blocked[:]
+        result["ready_pc"] = len(existing)
+        result["to_generate"] = len(need_generate)
+        save_status(result)
+        report(
+            "planned", len(existing), len(missing),
+            f"WEB'de {len(missing)} eksik · PC'de hazır {len(existing)} · "
+            f"Yeni üretilecek {len(need_generate)} · Kontrol gerekli {len(blocked)}."
+        )
+    
+        if need_generate and not (stopping is not None and stopping.is_set()):
+            report("engine", 0, len(need_generate), "Ahenk motoru hazırlanıyor…")
+            audio_runtime.ensure_runtime(ROOT, report=note)
+            model = engine.create_tts()
+            try:
+                for start in range(0, len(need_generate), CHUNK_SIZE):
+                    if stopping is not None and stopping.is_set():
+                        break
+                    chunk = need_generate[start:start + CHUNK_SIZE]
+                    staged = [0]
+                    def on_prepared(_key, article):
+                        staged[0] += 1
+                        report(
+                            "generating", start + staged[0], len(need_generate),
+                            "Ses hazırlanıyor: " + article["title"][:100]
+                        )
+                    engine.execute_plan(
+                        {"version": 1, "candidates": catalog, "selected": chunk},
+                        tts=model, preserve_local=True, on_prepared=on_prepared,
                     )
-                engine.execute_plan(
-                    {"version": 1, "candidates": catalog, "selected": chunk},
-                    tts=model, preserve_local=True, on_prepared=on_prepared,
-                )
-                result["generated"] += len(chunk)
-                save_status(result)
-                report(
-                    "generating", result["generated"], len(need_generate),
-                    f"{result['generated']}/{len(need_generate)} yeni MP3 hazırlandı."
-                )
-                note(f"MP3 üretildi: {result['generated']}/{len(need_generate)}")
-        finally:
-            del model
-    result["stopped"] = bool(stopping is not None and stopping.is_set())
-    if result["stopped"]:
-        report("stopping", result["generated"], len(need_generate),
-               "Durduruldu. Tamamlanan partiler korunup hazır sesler gönderilecek.")
-
-    # A GitHub Actions run may have published some clips while TTS was busy.
-    # Re-fetch main and recheck keys to ensure we do not overwrite those.
-    report("sync", message="Yükleme öncesi GitHub yeniden kontrol ediliyor.")
-    git_sync.sync(ROOT, HOME)
-    latest_remote = git_sync.remote_manifest(ROOT)
-    fresh_set = set(truly_unpublished(catalog, live, latest_remote))
-    final_missing = [key for key in missing if key in fresh_set]
-    upload, skipped = approved_pc_keys(
-        catalog, final_missing, engine.load_manifest()
-    )
-    result["skipped"] = list(dict.fromkeys(result["skipped"] + skipped))
-    if upload:
-        report("uploading", 0, len(upload),
-               f"{len(upload)} hazır ses GitHub'a tek toplu gönderimle yükleniyor…")
-        note(f"GitHub'a TEK gönderim: {len(upload)} MP3. "
-             "Web'deki mevcut kayıtların üzerine yazılmıyor.")
-        git_sync.publish_selected_local_voices(ROOT, HOME, upload, reject_existing=True)
-        result["uploaded"] = len(upload)
-        result["uploaded_keys"] = upload
-        result["status"] = "uploaded_waiting_for_deploy"
-        report("uploaded", len(upload), len(upload),
-               f"{len(upload)} MP3 GitHub'a gönderildi · WEB dağıtımı bekleniyor.")
-    else:
-        result["status"] = "skipped_unapproved_files" if result["skipped"] else "waiting_for_deploy"
-        report("waiting", len(existing), len(missing),
-               f"Yeni gönderim yok · Kontrol gerekli: {len(result['skipped'])}.")
-    note(f"Görev tamam: yeni {result['generated']}, GitHub'a {result['uploaded']}, "
-         f"atlanan {len(result['skipped'])}. Program kapanıyor.")
-    return completed()
+                    result["generated"] += len(chunk)
+                    save_status(result)
+                    report(
+                        "generating", result["generated"], len(need_generate),
+                        f"{result['generated']}/{len(need_generate)} yeni MP3 hazırlandı."
+                    )
+                    note(f"MP3 üretildi: {result['generated']}/{len(need_generate)}")
+            finally:
+                del model
+        result["stopped"] = bool(stopping is not None and stopping.is_set())
+        if result["stopped"]:
+            report("stopping", result["generated"], len(need_generate),
+                   "Durduruldu. Tamamlanan partiler korunup hazır sesler gönderilecek.")
+    
+        # A GitHub Actions run may have published some clips while TTS was busy.
+        # Re-fetch main and recheck keys to ensure we do not overwrite those.
+        report("sync", message="Yükleme öncesi GitHub yeniden kontrol ediliyor.")
+        git_metadata.refresh_metadata(metadata)
+        latest_remote = git_sync.remote_manifest(metadata)
+        fresh_set = set(truly_unpublished(catalog, live, latest_remote))
+        final_missing = [key for key in missing if key in fresh_set]
+        upload, skipped = approved_pc_keys(
+            catalog, final_missing, engine.load_manifest()
+        )
+        result["skipped"] = list(dict.fromkeys(result["skipped"] + skipped))
+        if upload:
+            report("uploading", 0, len(upload),
+                   f"{len(upload)} hazır ses GitHub'a tek toplu gönderimle yükleniyor…")
+            note(f"GitHub'a TEK gönderim: {len(upload)} MP3. "
+                 "Web'deki mevcut kayıtların üzerine yazılmıyor.")
+            git_metadata.publish_missing(ROOT, metadata, upload)
+            result["uploaded"] = len(upload)
+            result["uploaded_keys"] = upload
+            result["status"] = "uploaded_waiting_for_deploy"
+            report("uploaded", len(upload), len(upload),
+                   f"{len(upload)} MP3 GitHub'a gönderildi · WEB dağıtımı bekleniyor.")
+        else:
+            result["status"] = "skipped_unapproved_files" if result["skipped"] else "waiting_for_deploy"
+            report("waiting", len(existing), len(missing),
+                   f"Yeni gönderim yok · Kontrol gerekli: {len(result['skipped'])}.")
+        note(f"Görev tamam: yeni {result['generated']}, GitHub'a {result['uploaded']}, "
+             f"atlanan {len(result['skipped'])}. Program kapanıyor.")
+        return completed()
 
 
 def main():
