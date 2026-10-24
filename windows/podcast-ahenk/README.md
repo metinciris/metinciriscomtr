@@ -228,3 +228,37 @@ Günlük dosyası 4 MB'ı geçerse `.log` eski dosyasına dönüştürülür.
 GitHub bağlantısı veya ses motoru başarısız olursa hata loglanır,
 mevcut sesler korunur ve bir sonraki günlük çalışma tekrar dener.
 \n\n## Elektrik kesintisi sonrası manifest kurtarma (24 Ekim 2026)\n\nYerel `public/podcast-audio/manifest.json` dosyası kesinti sırasında boş/bozuk kalırsa\nprogram artık açılırken önce dosyanın ham hâlini `%LOCALAPPDATA%\\PodcastAhenk\\kurtarma`\naltına yedekler, ardından Git HEAD, eski yerel yedekler ve makale önbelleğine göre\nbütün erişilebilir sesleri eşleştirerek yeni manifesti atomik olarak oluşturur.\nMP3 **silmez veya yeniden sentezlemez**. GitHub'dakilerle birebir aynı sesler\nonaylı metadata ile korunur. Yerel değişmiş/özel sesler `unknown-recovered`\nolarak görünür; dinlenip onaylanmadan günlük otomasyon bunları yüklemez.\n\n**Program açılmadan manuel kurtarma** (güncel dosyalar indirilmişse):\n\n```powershell\n$homeDir = Join-Path $env:LOCALAPPDATA 'PodcastAhenk'\n$repoDir = Join-Path $homeDir 'metinciriscomtr'\n& (Join-Path $homeDir 'venv\\Scripts\\python.exe') (Join-Path $repoDir 'windows\\podcast-ahenk\\manifest_recovery.py') --root $repoDir --home $homeDir\n```\n\nDaha eski kurulumda kurtarma kodu yoksa GitHub'dan yalnız kurtarma dosyası\ngetirilebilir; önce kayıtların ham yedeği alınmalıdır. Güvenli GitHub güncellemesi\nancak kurtarma tamamlandıktan sonra yapılmalıdır.\n
+## Açılışta otomatik WEB eksiklerini tamamla ve GitHub'a gönder
+
+**Varsayılan açık:** Podcast Ahenk Ses Yöneticisi masaüstü kısayoluyla
+açıldığında WEB manifesti ve Google Sheets başlıkları arka planda okunur.
+GitHub main dalı kontrol edilir. WEB'de zaten var olan veya GitHub'a
+gönderilmiş ama WEB dağıtımını bekleyen sesler **tekrar üretilmez**.
+
+Gerçekten eksik MP3'ler PC'de varsa ve kabul edilmişse yeniden üretilmez;
+yoksa 8'li partilerle **Ahenk Cep** kullanılır. Sesler GitHub'a
+**tek toplu gönderimle** yüklenir. WEB'deki mevcut seslere dokunulmaz.
+
+Üst panelde **Açılışta otomatik hazırla + gönder** seçeneği bulunur (açık).
+Seçimi kapatıp kalıcı olarak devre dışı bırakabilirsiniz.
+**Şimdi otomatik tamamla** düğmesi işlem sonucunu yeniden denetler;
+aynı anda ikinci işlem başlatılmaz. **Durdur (parti sonrası)**
+aktif partinin tamamlanmasını bekleyerek işlemi durdurur.
+
+**İlerleme ve sonuç:** Hazırlama/GitHub çubuğu, WEB yayını
+doğrulama çubuğu, kaydırılabilir işlem günlüğü, üretilen/yüklenen
+ve kontrol gereken ses sayısı ekranda görünür. WEB yayınının
+GitHub'a gönderimden sonra tamamlanması ayrıca izlenir.
+
+Özel veya kilitli MP3 kayıtları, kayıtsız sesler ve
+`unknown-recovered` olarak kurtarılmış dosyalar **silinmez ve otomatik
+olarak yüklenmez**; önce dinlenip elle onaylanabilir.
+Hatalar pencerede gösterilir, yerel kayıtlar korunur.
+
+Açılış tercihi: `%LOCALAPPDATA%\PodcastAhenk\acilis_otomatik.json`
+Sonuç raporu: `%LOCALAPPDATA%\PodcastAhenk\gunluk_otomatik_sonuc.json`
+
+Windows'un günlük 12:30 görevi ayrıca çalışır. Pencere açıkken
+eşzamanlı dosya değişikliği olmasın diye günlük görev atlanır.
+Otomatik işlem çalışırken pencere kapanması önlenir; önce
+Durdur düğmesini kullanmak gerekir.

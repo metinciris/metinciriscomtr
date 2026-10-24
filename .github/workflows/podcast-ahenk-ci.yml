@@ -125,6 +125,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "Ahenk stage 1 GUI / no-upload regression failed" }
           & python.exe .\windows\podcast-ahenk\test_two_step_publish.py
           if ($LASTEXITCODE -ne 0) { throw "Ahenk stage 2 GitHub/WEB status regression failed" }
+          & python.exe .\windows\podcast-ahenk\test_auto_start_gui.py
+          if ($LASTEXITCODE -ne 0) { throw "Ahenk automatic startup regression failed" }
           & python.exe .\windows\podcast-ahenk\test_preview_sound.py
           if ($LASTEXITCODE -ne 0) { throw "Ahenk preview playback and acceptance regression failed" }
           & python.exe .\windows\podcast-ahenk\test_pending_glossary.py
