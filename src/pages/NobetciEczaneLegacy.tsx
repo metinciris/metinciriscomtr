@@ -193,10 +193,11 @@ export function NobetciEczane() {
         </div>
       </div>
 
-      {/* Guncel AQI rengiyle tek tonlu arka plan, koyu goz/agizli belirgin yuzler.
-          Kucuk hava kalitesi karti ayni kalir; veri yoksa notr arka plan vardir. */}
+      {/* Eczane listesi ve Polen/Hava Kalitesi ayni tek tonlu canli AQI zemininde.
+          Koyu detayli yuzler dis kenarlarda; iframe ve grafikler ust katmandadir.
+          Hava kalitesi verisi yoksa notr arka plan gosterilir. */}
       <section
-        aria-label="Isparta Merkez nöbetçi eczaneleri"
+        aria-label="Isparta Merkez nöbetçi eczaneleri, polen ve hava kalitesi"
         className="relative isolate mb-8 overflow-hidden rounded-2xl border px-3 py-7 shadow-sm sm:px-8 sm:py-9"
         style={{
           borderColor: currentAir ? withOpacity(currentAir.color, 0.58) : '#D6E9E9',
@@ -265,10 +266,13 @@ export function NobetciEczane() {
             Kaynak: Eczaneleri.NET. Güncel bilgileri Isparta Eczacılar Odası'ndan doğrulayın.
           </p>
         </div>
-      </section>
 
-      {/* Isparta Merkez icin kompakt hava kalitesi ve polen tahmini */}
-      <IspartaAirPollenBanner onAqiChange={setCurrentAqi} />
+        {/* Polen ve Hava Kalitesi karti da AYNI AQI renkli zeminin icinde.
+            Kartin kendi beyaz zemini ve yedi gunluk grafikler aynen korunur. */}
+        <div className="relative z-10 mt-6">
+          <IspartaAirPollenBanner onAqiChange={setCurrentAqi} embedded />
+        </div>
+      </section>
 
       {/* Ana Yönlendirme Kartı */}
       <div className="bg-white p-12 mb-8 text-center">
