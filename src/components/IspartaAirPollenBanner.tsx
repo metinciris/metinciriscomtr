@@ -214,11 +214,11 @@ const AQI_STAGES = [
   { max: Infinity, range: '301+', name: 'Tehlikeli', color: '#95637D', ink: '#6B3857', icon: 5 },
 ] as const;
 
-function aqiCategory(value: number | null) {
+export function aqiCategory(value: number | null) {
   return value === null ? null : AQI_STAGES.find(stage => value <= stage.max) ?? null;
 }
 
-function withOpacity(hex: string, opacity: number) {
+export function withOpacity(hex: string, opacity: number) {
   const rgb = parseInt(hex.slice(1), 16);
   return 'rgba(' + ((rgb >> 16) & 255) + ',' + ((rgb >> 8) & 255) + ',' + (rgb & 255) + ',' + opacity + ')';
 }
@@ -396,7 +396,11 @@ function EChartMini({
   );
 }
 
-export function IspartaAirPollenBanner() {
+export function IspartaAirPollenBanner({
+  onAqiChange,
+}: {
+  onAqiChange?: (aqi: number | null) => void;
+} = {}) {
   const [data, setData] = useState<AirResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
@@ -426,11 +430,17 @@ export function IspartaAirPollenBanner() {
         if (active) {
           setData(value);
           setFailed(false);
+          // Eczane cevresindeki dekor mevcut hava kalitesi ile ayni kaynagi kullanir.
+          // Yeniden API sorgusu yapmaya gerek yoktur.
+          const latestAqi = value.current?.us_aqi;
+          onAqiChange?.(valid(latestAqi) ? latestAqi : null);
         }
       } catch {
         if (active) {
           setData(null);
           setFailed(true);
+          // Model verisine ulasilamazsa sahte durum/renk gostermeyelim.
+          onAqiChange?.(null);
         }
       } finally {
         window.clearTimeout(timeout);
@@ -445,7 +455,7 @@ export function IspartaAirPollenBanner() {
       window.clearInterval(interval);
       controller?.abort();
     };
-  }, []);
+  }, [onAqiChange]);
 
   const current = data?.current;
   const aqi = valid(current?.us_aqi) ? current.us_aqi : null;
