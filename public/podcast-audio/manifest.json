@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-10-24T10:16:12.805603+00:00",
+  "generated_at": "2026-10-24T10:16:20.670354+00:00",
   "entries": {
     "7d9cd522d0f2d5752ca6a105": {
       "title": "MAP2K1 mutasyonlu melanositik tümörler: 114 olgu üzerinden yapılan bir çalışmaya dayanarak histolojik özelliklerin moleküler fonksiyonel sınıflarıyla ilişkisi.",
@@ -1345,6 +1345,70 @@
       "fingerprint": "unknown-recovered",
       "file": "6daf10ead64800a3d3a3fc8e.mp3",
       "generated_at": "2026-10-24T07:53:27.832544+00:00"
+    },
+    "af20c836c2b0d33a2aaec748": {
+      "title": "MGA::NUTM1 füzyon sarkomu: kapsamlı literatür incelemesiyle NUT yeniden düzenlenmiş sarkomların spektrumunu genişletmek.",
+      "journal": "American Journal of Clinical Pathology",
+      "pmid": "42771852",
+      "fingerprint": "unknown-recovered",
+      "file": "af20c836c2b0d33a2aaec748.mp3",
+      "generated_at": "2026-10-24T07:53:30.941545+00:00"
+    },
+    "beb76381a1b9faadae6b806f": {
+      "title": "Rutin prostat biyopsisi raporları, en yüksek derece grubunun ötesinde, dereceye özgü tümör yükü bilgilerini de içermektedir.",
+      "journal": "Human Pathology",
+      "pmid": "42880549",
+      "fingerprint": "unknown-recovered",
+      "file": "beb76381a1b9faadae6b806f.mp3",
+      "generated_at": "2026-10-24T07:53:34.317304+00:00"
+    },
+    "ea194007b39c8dffd6262f2a": {
+      "title": "Akut lösemi dışında, hastalık evrimi ve ilerlemesinde alışılmadık paternler gösteren miyeloid neoplazmalar: Avrupa Kemik İliği Çalışma Grubu çalıştay raporu.",
+      "journal": "Human Pathology",
+      "pmid": "42874880",
+      "fingerprint": "unknown-recovered",
+      "file": "ea194007b39c8dffd6262f2a.mp3",
+      "generated_at": "2026-10-24T07:53:37.758242+00:00"
+    },
+    "f88d0368a3f2ccf2bc0c6a8a": {
+      "title": "Anormal HER2 ekspresyonu, fumarat hidrataz eksikliği olan böbrek hücreli karsinomu için spesifik ve uygulanabilir bir tanısal belirteç olarak kullanılabilir.",
+      "journal": "Human Pathology",
+      "pmid": "42874879",
+      "fingerprint": "unknown-recovered",
+      "file": "f88d0368a3f2ccf2bc0c6a8a.mp3",
+      "generated_at": "2026-10-24T07:53:41.483981+00:00"
+    },
+    "b0054c373fad195480bdd006": {
+      "title": "Primer Dermal Melanomun Kapsamlı Genomik Karakterizasyonu: Primeri Bilinmeyen Metastatik Melanomdan Ayırt Edilmesi.",
+      "journal": "Human Pathology",
+      "pmid": "42849799",
+      "fingerprint": "unknown-recovered",
+      "file": "b0054c373fad195480bdd006.mp3",
+      "generated_at": "2026-10-24T07:53:44.958532+00:00"
+    },
+    "1fcbbb4b38fa0bc4017c3018": {
+      "title": "Hepatosit karsinomunda tümör içi granülomlar: Klinikopatolojik ilişkiler, prognostik önemi ve tanısal tuzaklar.",
+      "journal": "Human Pathology",
+      "pmid": "42843427",
+      "fingerprint": "unknown-recovered",
+      "file": "1fcbbb4b38fa0bc4017c3018.mp3",
+      "generated_at": "2026-10-24T07:53:49.689911+00:00"
+    },
+    "42691522330004d433fb0b70": {
+      "title": "Miyeloid sarkom: Klinik, patolojik ve moleküler bulgular.",
+      "journal": "Human Pathology",
+      "pmid": "42570680",
+      "fingerprint": "unknown-recovered",
+      "file": "42691522330004d433fb0b70.mp3",
+      "generated_at": "2026-10-24T07:53:52.392789+00:00"
+    },
+    "268444b4dd734886da7d3034": {
+      "title": "Primer ve metastatik mide ve gastroözofageal kavşak adenokarsinomlarında FGFR2b ekspresyonunun mekansal ve lezyonlar arası heterojenliği.",
+      "journal": "Human Pathology",
+      "pmid": "42822735",
+      "fingerprint": "unknown-recovered",
+      "file": "268444b4dd734886da7d3034.mp3",
+      "generated_at": "2026-10-24T07:53:57.495312+00:00"
     }
   }
 }
