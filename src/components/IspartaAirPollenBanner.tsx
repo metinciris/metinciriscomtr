@@ -216,10 +216,14 @@ export function IspartaAirPollenBanner() {
   const pm25 = valid(current?.pm2_5) ? current.pm2_5 : null;
   const status = aqiCategory(aqi);
 
+  // React Compiler: memoization bagimliliklari callback'in kullandigi
+  // alanlarla birebir ayni olmali. Tum data nesnesini bagimlilik yapma.
+  const hourlyTimes = data?.hourly?.time;
+  const hourlyAqi = data?.hourly?.european_aqi;
+  const modelTime = data?.current?.time;
   const trend = useMemo(() => {
-    const hours = data?.hourly?.time ?? [];
-    const values = data?.hourly?.european_aqi ?? [];
-    const modelTime = data?.current?.time;
+    const hours = hourlyTimes ?? [];
+    const values = hourlyAqi ?? [];
     if (!modelTime || !hours.length) return [];
     const start = hours.findIndex(hour => hour >= modelTime);
     if (start === -1) return [];
@@ -227,7 +231,7 @@ export function IspartaAirPollenBanner() {
       label: time.slice(11, 16),
       value: values[start + i],
     })).filter(({ value }) => valid(value));
-  }, [data]);
+  }, [hourlyTimes, hourlyAqi, modelTime]);
 
   const pollen = useMemo(() => POLLEN_TYPES
     .flatMap(type => {
