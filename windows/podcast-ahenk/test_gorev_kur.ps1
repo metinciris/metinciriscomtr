@@ -12,7 +12,7 @@ try {
     [System.IO.File]::WriteAllText($Gui, "print('test')", [System.Text.Encoding]::UTF8)
     [System.IO.File]::WriteAllBytes($Pythonw, [byte[]]@())
     $Installer = Join-Path $PSScriptRoot "gorev_kur.ps1"
-    $Output = & $Installer -Target $TempRoot -CheckOnly | Out-String
+    $Output = & $Installer -Target $TempRoot -CheckOnly 6>&1 | Out-String
     if ($Output -notmatch "DENETIM" -or $Output -notmatch "12:30" -or
         $Output -notmatch "two_step_manager\.py" -or
         $Output -notmatch "--scheduled") {
