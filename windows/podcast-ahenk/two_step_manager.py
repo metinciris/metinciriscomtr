@@ -628,6 +628,13 @@ class TwoStepManager(base.AhenkManager):
             summary = "DURDURULDU · " + summary
         self._stage("OTOMATİK SONUÇ · " + summary, 100,
                     f"Yeni: {produced} | GitHub: {uploaded} | Kontrol: {skipped}")
+        if phase == "complete":
+            # WEB bar should not remain at zero when everything is live.
+            self.web_progress_bar["value"] = 100
+        elif not uploaded:
+            listed = int(result.get("listed", 0))
+            visible = listed - int(result.get("web_missing", 0))
+            self.web_progress_bar["value"] = 100 * visible / max(1, listed)
         self._append_auto_event("SONUÇ: " + summary)
         self._note(summary)
 
