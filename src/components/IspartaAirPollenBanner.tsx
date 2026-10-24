@@ -6,8 +6,8 @@ import { Leaf, MapPin, Wind } from 'lucide-react';
 const AIR_URL = 'https://air-quality-api.open-meteo.com/v1/air-quality?' + new URLSearchParams({
   latitude: '37.7606',
   longitude: '30.5566',
-  current: 'european_aqi,grass_pollen,pm2_5,carbon_monoxide',
-  hourly: 'european_aqi,grass_pollen,pm2_5,carbon_monoxide',
+  current: 'us_aqi,grass_pollen,pm2_5,carbon_monoxide',
+  hourly: 'us_aqi,grass_pollen,pm2_5,carbon_monoxide',
   past_days: '3',
   forecast_days: '4',
   timezone: 'Europe/Istanbul',
@@ -18,7 +18,7 @@ const ECHARTS_SCRIPT = 'https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.
 
 interface AirCurrent {
   time?: string;
-  european_aqi?: number | null;
+  us_aqi?: number | null;
   grass_pollen?: number | null;
   pm2_5?: number | null;
   carbon_monoxide?: number | null;
@@ -33,7 +33,7 @@ interface AirResponse {
   };
   hourly?: {
     time?: string[];
-    european_aqi?: (number | null)[];
+    us_aqi?: (number | null)[];
     grass_pollen?: (number | null)[];
     pm2_5?: (number | null)[];
     carbon_monoxide?: (number | null)[];
@@ -91,27 +91,6 @@ const valid = (value: unknown): value is number =>
 
 // Ayrı birimlerdeki metrikler ayni eksende karsilastirilmaz.
 // Her satirin kendi y-olcegi olan 7 gunluk mini grafigi bulunur.
-type DatedValue = { day: string; value: number | null };
-
-function dailyAverage(times: string[] | undefined, readings: (number | null)[] | undefined): DatedValue[] {
-  if (!times?.length) return [];
-  const buckets = new Map<string, { total: number; count: number }>();
-  times.forEach((time, index) => {
-    const day = time.slice(0, 10);
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return;
-    const bucket = buckets.get(day) ?? { total: 0, count: 0 };
-    const reading = readings?.[index];
-    if (valid(reading)) {
-      bucket.total += reading;
-      bucket.count += 1;
-    }
-    buckets.set(day, bucket);
-  });
-  return [...buckets].map(([day, bucket]) => ({
-    day,
-    value: bucket.count ? Math.round(bucket.total / bucket.count * 10) / 10 : null,
-  }));
-}
 
 function shortDay(isoDay: string): string {
   const date = new Date(isoDay + 'T12:00:00+03:00');
@@ -125,6 +104,8 @@ function sevenDayAirOption(
   readings: (number | null)[] | undefined,
   currentTime: string | undefined,
   animate: boolean,
+  lineColor: string,
+  fillColor: string,
 ): Record<string, unknown> | null {
   if (!times?.length || !readings?.some(valid)) return null;
   const currentIndex = currentTime ? times.findIndex(t => t >= currentTime) : -1;
@@ -164,20 +145,20 @@ function sevenDayAirOption(
       splitLine: { lineStyle: { color: 'rgba(23,162,184,0.13)', type: 'dashed' } },
     },
     series: [{
-      name: 'Avrupa AQI',
+      name: 'ABD AQI',
       type: 'line',
       smooth: 0.3,
       showSymbol: false,
       connectNulls: false,
       data: readings.map(value => valid(value) ? value : null),
-      lineStyle: { color: TEAL, width: 2.5 },
-      itemStyle: { color: TEAL },
+      lineStyle: { color: lineColor, width: 2.5 },
+      itemStyle: { color: lineColor },
       areaStyle: {
         color: {
           type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
           colorStops: [
-            { offset: 0, color: 'rgba(23,162,184,0.28)' },
-            { offset: 1, color: 'rgba(23,162,184,0.02)' },
+            { offset: 0, color: withOpacity(fillColor, 0.32) },
+            { offset: 1, color: withOpacity(fillColor, 0.025) },
           ],
         },
       },
@@ -204,27 +185,33 @@ function sevenDayAirOption(
 }
 
 function sevenDayMiniOption(
-  days: DatedValue[],
-  today: string | undefined,
+  times: string[] | undefined,
+  readings: (number | null)[] | undefined,
+  currentTime: string | undefined,
   unit: string,
   animate: boolean,
 ): Record<string, unknown> | null {
-  const present = days.filter(item => valid(item.value));
-  // Tamami sifir olan bir polen serisini buyuk grafik olarak gostermeyelim.
-  if (present.length < 2 || present.every(item => item.value === 0)) return null;
-  const dates = days.map(item => item.day);
-  const todayDay = today?.slice(0, 10);
+  if (!times?.length || !readings?.length) return null;
+  const present = readings.filter(valid);
+  if (present.length < 2 || present.every(value => value === 0)) return null;
+
+  // "Şimdi" üç küçük grafikte de günlük ortalamaya değil gerçek saate bağlanır.
+  const nowIndex = currentTime ? times.findIndex(time => time >= currentTime) : -1;
+  const nowHour = nowIndex >= 0 ? times[nowIndex] : null;
+  const nowValue = nowIndex >= 0 ? readings[nowIndex] : null;
+
   return {
     animation: animate,
     animationDuration: 550,
     animationEasing: 'cubicOut',
-    grid: { left: 2, right: 3, top: 8, bottom: 6 },
+    grid: { left: 2, right: 4, top: 19, bottom: 3 },
     tooltip: {
-      trigger: 'axis', confine: true,
+      trigger: 'axis',
+      confine: true,
       valueFormatter: (value: unknown) =>
         valid(value) ? value.toLocaleString('tr-TR', { maximumFractionDigits: 1 }) + ' ' + unit : 'Veri yok',
     },
-    xAxis: { type: 'category', boundaryGap: false, data: dates, show: false },
+    xAxis: { type: 'category', boundaryGap: false, data: times, show: false },
     yAxis: { type: 'value', min: 0, show: false, scale: false },
     series: [{
       name: '7 günlük değişim',
@@ -232,28 +219,68 @@ function sevenDayMiniOption(
       smooth: true,
       showSymbol: false,
       connectNulls: false,
-      data: days.map(item => valid(item.value) ? item.value : null),
+      data: readings.map(value => valid(value) ? value : null),
       lineStyle: { color: TEAL, width: 2 },
       itemStyle: { color: TEAL },
       areaStyle: { color: 'rgba(23,162,184,0.10)' },
-      markLine: todayDay && dates.includes(todayDay) ? {
+      markLine: nowHour ? {
         silent: true, animation: false, symbol: ['none', 'none'],
+        label: {
+          show: true, formatter: 'Şimdi', position: 'end',
+          fontSize: 9, fontWeight: 'bold', color: '#A94E2E', distance: 2,
+        },
+        lineStyle: { color: '#E16D45', type: 'dashed', width: 1.4 },
+        data: [{ xAxis: nowHour }],
+      } : undefined,
+      markPoint: nowHour && valid(nowValue) ? {
+        symbol: 'circle', symbolSize: 7,
         label: { show: false },
-        lineStyle: { color: '#E16D45', type: 'dashed', width: 1 },
-        data: [{ xAxis: todayDay }],
+        itemStyle: { color: '#E16D45', borderColor: '#FFFFFF', borderWidth: 1 },
+        data: [{ coord: [nowHour, nowValue], name: 'Şimdi' }],
       } : undefined,
     }],
   };
 }
 
+const AQI_STAGES = [
+  { max: 50, range: '0–50', name: 'İyi', color: '#B1DB6D', ink: '#4D7A29', icon: 0 },
+  { max: 100, range: '51–100', name: 'Orta', color: '#F7D46B', ink: '#8D620F', icon: 1 },
+  { max: 150, range: '101–150', name: 'Hassas gruplar için sağlıksız', color: '#F19B65', ink: '#A85420', icon: 2 },
+  { max: 200, range: '151–200', name: 'Sağlıksız', color: '#F16F7B', ink: '#A9364C', icon: 3 },
+  { max: 300, range: '201–300', name: 'Çok sağlıksız', color: '#957CAF', ink: '#654687', icon: 4 },
+  { max: Infinity, range: '301+', name: 'Tehlikeli', color: '#95637D', ink: '#6B3857', icon: 5 },
+] as const;
+
 function aqiCategory(value: number | null) {
-  if (value === null) return { name: 'Veri yok', color: '#64748B' };
-  if (value <= 20) return { name: 'İyi', color: '#168565' };
-  if (value <= 40) return { name: 'Makul', color: '#7A821B' };
-  if (value <= 60) return { name: 'Orta', color: '#AD7418' };
-  if (value <= 80) return { name: 'Kötü', color: '#BF582D' };
-  if (value <= 100) return { name: 'Çok kötü', color: '#B83759' };
-  return { name: 'Aşırı kötü', color: '#8F44A7' };
+  return value === null ? null : AQI_STAGES.find(stage => value <= stage.max) ?? null;
+}
+
+function withOpacity(hex: string, opacity: number) {
+  const rgb = parseInt(hex.slice(1), 16);
+  return 'rgba(' + ((rgb >> 16) & 255) + ',' + ((rgb >> 8) & 255) + ',' + (rgb & 255) + ',' + opacity + ')';
+}
+
+// Kullanıcının örnek görselindeki 6 renkli yüz ikonundan kırpılıp küçültülmüş sprite.
+// Bir PNG verisi CSS arka planıyla tek bir ikon olarak gösterilir.
+const AQI_FACE_SPRITE = 'REPLACE_WITH_SPRITE_DATA';
+
+function AqiFace({ index, size = 40, label }: { index: number; size?: number; label: string }) {
+  return (
+    <span
+      role="img"
+      aria-label={label}
+      title={label}
+      className="inline-block shrink-0"
+      style={{
+        width: size,
+        height: size,
+        backgroundImage: 'url("' + AQI_FACE_SPRITE + '")',
+        backgroundRepeat: 'no-repeat',
+        backgroundSize: (size * 6) + 'px ' + size + 'px',
+        backgroundPosition: (-size * index) + 'px 0',
+      }}
+    />
+  );
 }
 
 function EChartMini({
@@ -363,7 +390,7 @@ export function IspartaAirPollenBanner() {
   }, []);
 
   const current = data?.current;
-  const aqi = valid(current?.european_aqi) ? current.european_aqi : null;
+  const aqi = valid(current?.us_aqi) ? current.us_aqi : null;
   const status = aqiCategory(aqi);
   const currentTime = current?.time;
   const days = data?.hourly?.time;
@@ -373,7 +400,11 @@ export function IspartaAirPollenBanner() {
 
   // CAMS 3 geride + bugün + 3 ileride = toplam 7 takvim günü.
   // Null degerler korunur, eksik olcumler asla 0'a donusturulmez.
-  const airOption = sevenDayAirOption(days, data?.hourly?.european_aqi, currentTime, animate);
+  const airOption = sevenDayAirOption(
+    days, data?.hourly?.us_aqi, currentTime, animate,
+    status?.ink ?? TEAL,
+    status?.color ?? TEAL,
+  );
   const grass = valid(current?.grass_pollen) ? current.grass_pollen : null;
   const pm25 = valid(current?.pm2_5) ? current.pm2_5 : null;
   const co = valid(current?.carbon_monoxide) ? current.carbon_monoxide : null;
@@ -386,15 +417,15 @@ export function IspartaAirPollenBanner() {
       display: grass === null ? 'Veri yok' : grass === 0
         ? 'Çok düşük' : grass.toLocaleString('tr-TR', { maximumFractionDigits: 1 }),
       unit: grass === 0 ? '' : 'tane/m³',
-      points: dailyAverage(days, data?.hourly?.grass_pollen),
+      readings: data?.hourly?.grass_pollen,
     },
     {
       key: 'pm25',
-      label: 'PM2.5',
+      label: 'Partikül (PM2.5)',
       currentValue: pm25,
       display: pm25 === null ? 'Veri yok' : pm25.toLocaleString('tr-TR', { maximumFractionDigits: 1 }),
       unit: 'µg/m³',
-      points: dailyAverage(days, data?.hourly?.pm2_5),
+      readings: data?.hourly?.pm2_5,
     },
     {
       key: 'co',
@@ -402,7 +433,7 @@ export function IspartaAirPollenBanner() {
       currentValue: co,
       display: co === null ? 'Veri yok' : co.toLocaleString('tr-TR', { maximumFractionDigits: 1 }),
       unit: 'µg/m³',
-      points: dailyAverage(days, data?.hourly?.carbon_monoxide),
+      readings: data?.hourly?.carbon_monoxide,
     },
   ];
 
@@ -428,19 +459,33 @@ export function IspartaAirPollenBanner() {
       </div>
 
       <div className="grid gap-3 p-3 md:grid-cols-2 sm:p-4">
-        <article className="min-w-0 rounded-xl border border-[#D3ECEF] bg-[#F7FCFD] p-4">
+        <article className="min-w-0 rounded-xl border p-4"
+          style={{
+            borderColor: status ? withOpacity(status.color, 0.65) : '#D3ECEF',
+            background: status ? 'linear-gradient(120deg, ' + withOpacity(status.color, 0.12) + ', #F7FCFD 76%)' : '#F7FCFD',
+          }}>
           <div className="flex items-center gap-2">
-            <Wind size={19} color={TEAL} aria-hidden="true" />
+            <Wind size={19} color={status?.ink ?? TEAL} aria-hidden="true" />
             <h2 className="m-0 text-base font-semibold text-slate-800">Hava Kalitesi</h2>
-            <span className="ml-auto text-[11px] text-slate-500">Avrupa AQI</span>
+            <span className="ml-auto text-[11px] text-slate-500">ABD AQI</span>
           </div>
-          <div className="mt-3 flex items-end gap-3">
-            <span className="text-4xl font-bold leading-none tabular-nums" style={{ color: TEAL }}>
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <span className="text-4xl font-bold leading-none tabular-nums"
+              style={{ color: status?.ink ?? '#64748B' }}>
               {loading ? '…' : aqi === null ? '—' : Math.round(aqi)}
             </span>
-            <span className="pb-1 text-sm font-semibold" style={{ color: status.color }}>
-              {loading ? 'Yükleniyor' : failed ? 'Veri alınamadı' : status.name}
-            </span>
+            {status ? (
+              <div className="flex min-w-0 items-center gap-2">
+                <AqiFace index={status.icon} size={42} label={status.name} />
+                <span className="max-w-44 text-xs font-bold leading-snug" style={{ color: status.ink }}>
+                  {status.name}
+                </span>
+              </div>
+            ) : (
+              <span className="text-sm text-slate-500">
+                {loading ? 'Yükleniyor' : failed ? 'Veri alınamadı' : 'Veri yok'}
+              </span>
+            )}
           </div>
           <div className="mt-3">
             {airOption ? (
@@ -457,9 +502,19 @@ export function IspartaAirPollenBanner() {
               </div>
             )}
           </div>
-          <div className="mt-2 flex flex-wrap items-center justify-between gap-2 border-t border-[#D3ECEF] pt-2 text-[11px] text-slate-600">
-            <span>3 gün geçmiş · bugün · 3 gün tahmin</span>
-            <span className="inline-flex items-center gap-1 font-semibold text-[#B65330]">
+          <div className="mt-2 flex flex-wrap items-center justify-between gap-2 border-t border-[#D3ECEF] pt-2">
+            <div className="flex flex-wrap items-center gap-1" aria-label="ABD AQI renkli durum simgeleri">
+              {AQI_STAGES.map(stage => (
+                <span key={stage.icon} className="rounded-md p-0.5"
+                  style={{
+                    border: status?.icon === stage.icon ? '1.5px solid ' + stage.ink : '1.5px solid transparent',
+                    background: status?.icon === stage.icon ? withOpacity(stage.color, 0.18) : 'transparent',
+                  }}>
+                  <AqiFace index={stage.icon} size={30} label={stage.range + ': ' + stage.name} />
+                </span>
+              ))}
+            </div>
+            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#B65330]">
               <span className="inline-block h-3 border-l-2 border-dashed border-[#E16D45]" aria-hidden="true" />
               Şimdi
             </span>
@@ -470,14 +525,17 @@ export function IspartaAirPollenBanner() {
           <div className="flex items-center gap-2">
             <Leaf size={19} color={TEAL} aria-hidden="true" />
             <h2 className="m-0 text-base font-semibold text-slate-800">Polen ve Hava Etkenleri</h2>
-            <span className="ml-auto text-[11px] text-slate-500">7 gün</span>
+            <span className="ml-auto inline-flex items-center gap-1 text-[11px] font-semibold text-[#A94E2E]">
+              <span className="inline-block h-3 border-l-2 border-dashed border-[#E16D45]" aria-hidden="true" />
+              Şimdi
+            </span>
           </div>
           <p className="mb-0 mt-2 text-xs text-slate-500">
             Çim poleni, ince partikül ve karbon monoksit
           </p>
           <div className="mt-2 space-y-2">
             {metrics.map(metric => {
-              const miniature = sevenDayMiniOption(metric.points, currentTime, metric.unit || 'tane/m³', animate);
+              const miniature = sevenDayMiniOption(days, metric.readings, currentTime, metric.unit || 'tane/m³', animate);
               return (
                 <div key={metric.key} className="grid grid-cols-[minmax(0,1fr)_minmax(96px,42%)] items-center gap-2 rounded-lg bg-white/80 px-3 py-2">
                   <div className="min-w-0">
@@ -495,10 +553,10 @@ export function IspartaAirPollenBanner() {
                     <EChartMini
                       option={miniature}
                       label={metric.label + ' için yedi günlük ayrı ölçekli eğilim'}
-                      height={43}
+                      height={58}
                     />
                   ) : (
-                    <div className="flex h-11 items-center justify-center text-right text-[11px] text-slate-400">
+                    <div className="flex h-14 items-center justify-center text-right text-[11px] text-slate-400">
                       {loading ? 'Yükleniyor…' : metric.currentValue === 0 ? 'Çok düşük' : '7 günlük veri yok'}
                     </div>
                   )}
