@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-10-24T10:16:57.680588+00:00",
+  "generated_at": "2026-10-24T10:17:05.152130+00:00",
   "entries": {
     "7d9cd522d0f2d5752ca6a105": {
       "title": "MAP2K1 mutasyonlu melanositik tümörler: 114 olgu üzerinden yapılan bir çalışmaya dayanarak histolojik özelliklerin moleküler fonksiyonel sınıflarıyla ilişkisi.",
@@ -1728,6 +1728,30 @@
       "pmid": "42580288",
       "fingerprint": "8bf7f06bf7e35fda945e4908114f71d58867895595f9a6290834e31d0e28a427",
       "file": "243516b9e41c82dde3e46e25.mp3",
+      "generated_at": "2026-10-24T10:14:43.830171+00:00"
+    },
+    "77ac91fb42403b97661c37f3": {
+      "title": "Meme implantı ilişkili skuamöz hücreli karsinom (BIA-SCC): Radyolojik-patolojik korelasyonlu iki vakanın klinikopatolojik analizi ve literatür taraması.",
+      "journal": "Annals of Diagnostic Pathology",
+      "pmid": "42580287",
+      "fingerprint": "dc95c6bbf4cd0ec0c1748133a8f8a4b2ad77d3245c92312376da6e7c1012079d",
+      "file": "77ac91fb42403b97661c37f3.mp3",
+      "generated_at": "2026-10-24T10:14:43.830171+00:00"
+    },
+    "ff6af8351e45af2d9b29ecec": {
+      "title": "Soliter fibröz tümörde nükleer STAT6 immünohistokimyasının tanısal doğruluğu: sistematik inceleme ve meta-analiz.",
+      "journal": "Annals of Diagnostic Pathology",
+      "pmid": "42566929",
+      "fingerprint": "8f460ba6d48c034c8cf9523097f6fc2a5f0b269ae9cab725b1cfc47cdaad7e9a",
+      "file": "ff6af8351e45af2d9b29ecec.mp3",
+      "generated_at": "2026-10-24T10:14:43.830171+00:00"
+    },
+    "8cf1613128c395bd079b146b": {
+      "title": "Yeni TRPS1 belirtecinin, metastatik meme karsinomunu adrenal neoplazmlardan ayırt etmede geleneksel meme spesifik belirteçleriyle karşılaştırıldığında tanısal özgüllüğü.",
+      "journal": "Annals of Diagnostic Pathology",
+      "pmid": "42561593",
+      "fingerprint": "5da27c0dd2c5127982652734a8459e62c2c179f8214f7bca98e79aa5cedca4be",
+      "file": "8cf1613128c395bd079b146b.mp3",
       "generated_at": "2026-10-24T10:14:43.830171+00:00"
     }
   }
