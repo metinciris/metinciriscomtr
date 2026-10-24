@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-10-24T10:15:33.540701+00:00",
+  "generated_at": "2026-10-24T10:15:41.722527+00:00",
   "entries": {
     "7d9cd522d0f2d5752ca6a105": {
       "title": "MAP2K1 mutasyonlu melanositik tümörler: 114 olgu üzerinden yapılan bir çalışmaya dayanarak histolojik özelliklerin moleküler fonksiyonel sınıflarıyla ilişkisi.",
@@ -1025,6 +1025,70 @@
       "fingerprint": "unknown-recovered",
       "file": "9b4ef21c3842b760a199e56d.mp3",
       "generated_at": "2026-10-24T07:51:33.729791+00:00"
+    },
+    "24b6a98c03989ca642cece18": {
+      "title": "Endometrial kanserdeki farklılaşma kaybı, IFN-γ ile geri kazandırılabilen HLA-I susturulmasıyla ilişkilidir.",
+      "journal": "The Journal of Pathology",
+      "pmid": "42535334",
+      "fingerprint": "unknown-recovered",
+      "file": "24b6a98c03989ca642cece18.mp3",
+      "generated_at": "2026-10-24T07:51:36.715890+00:00"
+    },
+    "de402f2eb479b458b348140c": {
+      "title": "Patologların dijital patoloji sistemlerini seçerken dikkate almaları gereken pratik hususlar: bir ESDIP kılavuzu.",
+      "journal": "The Journal of Pathology",
+      "pmid": "42535314",
+      "fingerprint": "unknown-recovered",
+      "file": "de402f2eb479b458b348140c.mp3",
+      "generated_at": "2026-10-24T07:51:38.975201+00:00"
+    },
+    "01ebf698612e428ccd27303f": {
+      "title": "Deri ve deri altı dokusunu etkileyen GLI1 mutasyonlu mezenkimal neoplazmların klinikopatolojik karakterizasyonu: sekiz vakalık bir seri.",
+      "journal": "Histopathology",
+      "pmid": "42538637",
+      "fingerprint": "unknown-recovered",
+      "file": "01ebf698612e428ccd27303f.mp3",
+      "generated_at": "2026-10-24T07:51:42.080824+00:00"
+    },
+    "2fe54de65b4aee8b6242f1ba": {
+      "title": "Eşlik eden patolojik paternlerle birlikte monoklonal immünoglobulin ilişkili böbrek lezyonları: klinikopatolojik özellikler ve sonuçlar.",
+      "journal": "Histopathology",
+      "pmid": "42533743",
+      "fingerprint": "unknown-recovered",
+      "file": "2fe54de65b4aee8b6242f1ba.mp3",
+      "generated_at": "2026-10-24T07:51:44.744114+00:00"
+    },
+    "1aa2ca97d35cf4f1b04b923b": {
+      "title": "Anogenital papiller skuamöz intraepitelyal lezyonda Hippo sinyal yolunun bozulması ve YAP1 aktivasyonu.",
+      "journal": "Histopathology",
+      "pmid": "42460855",
+      "fingerprint": "unknown-recovered",
+      "file": "1aa2ca97d35cf4f1b04b923b.mp3",
+      "generated_at": "2026-10-24T07:51:47.096905+00:00"
+    },
+    "3ecf6aa2af4763afa80293a4": {
+      "title": "Doğrudan tümör-yağ hücresi teması / Stroma AReaktif İnvazyon Ön Alanı (TAC/SARIFA), kolorektal kanserde olumsuz sonucu öngörüyor: odaklanmış kanıt sentezi ve meta-analiz.",
+      "journal": "Histopathology",
+      "pmid": "42460779",
+      "fingerprint": "unknown-recovered",
+      "file": "3ecf6aa2af4763afa80293a4.mp3",
+      "generated_at": "2026-10-24T07:51:50.356607+00:00"
+    },
+    "a23218e6cdaaa75ebdd1bc99": {
+      "title": "Malign struma ovarii: moleküler patogenez, sınıflandırma, tanı ve tedavideki gelişmeler.",
+      "journal": "Histopathology",
+      "pmid": "42438932",
+      "fingerprint": "unknown-recovered",
+      "file": "a23218e6cdaaa75ebdd1bc99.mp3",
+      "generated_at": "2026-10-24T07:51:52.326566+00:00"
+    },
+    "59587ec61ff8caa58be58bd8": {
+      "title": "Sonic hedgehog hepatosellüler adenomlarının klinikopatolojik özellikleri, özellikle küçük lezyonlara odaklanılarak.",
+      "journal": "Histopathology",
+      "pmid": "42427309",
+      "fingerprint": "unknown-recovered",
+      "file": "59587ec61ff8caa58be58bd8.mp3",
+      "generated_at": "2026-10-24T07:51:54.701162+00:00"
     }
   }
 }
