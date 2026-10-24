@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-10-24T10:16:27.920141+00:00",
+  "generated_at": "2026-10-24T10:16:35.113610+00:00",
   "entries": {
     "7d9cd522d0f2d5752ca6a105": {
       "title": "MAP2K1 mutasyonlu melanositik tümörler: 114 olgu üzerinden yapılan bir çalışmaya dayanarak histolojik özelliklerin moleküler fonksiyonel sınıflarıyla ilişkisi.",
@@ -1473,6 +1473,70 @@
       "fingerprint": "unknown-recovered",
       "file": "4077c01243124095e529562c.mp3",
       "generated_at": "2026-10-24T07:55:16.894712+00:00"
+    },
+    "d358e6218b1f736c6bce12be": {
+      "title": "Laktik asit-Chac1 ekseni, ferroptozla ilişkili hücre ölümünü ve tümör ilerlemesini düzenler.",
+      "journal": "Pathology - Research and Practice",
+      "pmid": "42632256",
+      "fingerprint": "unknown-recovered",
+      "file": "d358e6218b1f736c6bce12be.mp3",
+      "generated_at": "2026-10-24T07:55:24.426579+00:00"
+    },
+    "3bd8bf0e6b417f9c2311e9df": {
+      "title": "Mikropartiküller ve kolorektal kanser.",
+      "journal": "Pathology - Research and Practice",
+      "pmid": "42617478",
+      "fingerprint": "unknown-recovered",
+      "file": "3bd8bf0e6b417f9c2311e9df.mp3",
+      "generated_at": "2026-10-24T07:55:26.268008+00:00"
+    },
+    "e794bdaa421c562df7ddcb41": {
+      "title": "ACOD1, KEAP1/NRF2 ekseni aracılığıyla tümörle ilişkili makrofajların ferroptoz direncini artırır ve üçlü negatif meme kanserinin ilerlemesini destekler.",
+      "journal": "Pathology - Research and Practice",
+      "pmid": "42617477",
+      "fingerprint": "unknown-recovered",
+      "file": "e794bdaa421c562df7ddcb41.mp3",
+      "generated_at": "2026-10-24T07:55:30.595246+00:00"
+    },
+    "1b6ec21f0323affdcaa1abde": {
+      "title": "Diyabetik yara iyileşmesini desteklemede kendiliğinden birleşme mekanizmasının gelişimi.",
+      "journal": "Pathology - Research and Practice",
+      "pmid": "42617476",
+      "fingerprint": "unknown-recovered",
+      "file": "1b6ec21f0323affdcaa1abde.mp3",
+      "generated_at": "2026-10-24T07:55:33.507871+00:00"
+    },
+    "f96b194e6be6c0e2ef83b197": {
+      "title": "MARCH1, PLPP3 ubikitinasyonunu düzenleyerek akciğer adenokarsinomunda malign ilerlemeyi destekler.",
+      "journal": "Pathology - Research and Practice",
+      "pmid": "42617475",
+      "fingerprint": "fa5ab35531f69631f59f3c11b57b4fe608a16e980c6bb29b9efd686fb5a51cf1",
+      "file": "f96b194e6be6c0e2ef83b197.mp3",
+      "generated_at": "2026-10-24T10:13:55.083626+00:00"
+    },
+    "53320b11cc192608b959785d": {
+      "title": "Ölü doğumlarda plasenta patolojisi.",
+      "journal": "Pathology",
+      "pmid": "42613294",
+      "fingerprint": "0317d39a9df4ff9e8787ea34bc4f55c53d50229bc63346c67f17dba7982e1f93",
+      "file": "53320b11cc192608b959785d.mp3",
+      "generated_at": "2026-10-24T10:13:55.083626+00:00"
+    },
+    "de9cd9d25a2d06516f5122ba": {
+      "title": "Tek hücreli RNA dizilemesinin, viral enfeksiyonun klinik tespiti için monosit doğrudan lökosit alt popülasyonu transkript bolluğu tayin oranına dayalı biyobelirteçlere (IFI27/PSAP veya IFI27/CTSS) dönüştürülmesi.",
+      "journal": "Pathology",
+      "pmid": "42595652",
+      "fingerprint": "unknown-recovered",
+      "file": "de9cd9d25a2d06516f5122ba.mp3",
+      "generated_at": "2026-10-24T07:56:22.137101+00:00"
+    },
+    "631c51960374cc36cd0ccf9f": {
+      "title": "Tekil gebeliklerde immün olmayan fetal hidropsun araştırılması: perinatal patologlar için pratik bir kılavuz.",
+      "journal": "Pathology",
+      "pmid": "42586875",
+      "fingerprint": "unknown-recovered",
+      "file": "631c51960374cc36cd0ccf9f.mp3",
+      "generated_at": "2026-10-24T07:56:25.160147+00:00"
     }
   }
 }
