@@ -91,7 +91,7 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
     'nobetci-eczane': {
         slug: 'nobetci-eczane',
         title: 'Isparta Nöbetçi Eczaneler | Prof Dr Metin Çiriş',
-        description: 'Isparta Merkez ve tüm ilçeler için güncel nöbetçi eczane listesi. Adres, telefon ve harita bilgileriyle anlık eczane takibi.',
+        description: 'Isparta Merkez için güncel nöbetçi eczane listesi. Adres, telefon ve harita bilgileriyle anlık eczane takibi.',
         keywords: 'nöbetçi eczane, Isparta eczane, gece eczane, Isparta nöbetçi eczaneler, eczane telefon',
         lastmod: '2026-07-16',
         priority: 0.7,
