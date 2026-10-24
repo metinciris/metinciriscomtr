@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-10-24T10:16:50.060154+00:00",
+  "generated_at": "2026-10-24T10:16:57.680588+00:00",
   "entries": {
     "7d9cd522d0f2d5752ca6a105": {
       "title": "MAP2K1 mutasyonlu melanositik tümörler: 114 olgu üzerinden yapılan bir çalışmaya dayanarak histolojik özelliklerin moleküler fonksiyonel sınıflarıyla ilişkisi.",
@@ -1665,6 +1665,70 @@
       "fingerprint": "d3217a0a03894a52d9d8faefd2444205c4459779d509c17a6cb1ec2edfd0dda2",
       "file": "af7b909862e816a62a8a1795.mp3",
       "generated_at": "2026-10-24T10:14:28.267929+00:00"
+    },
+    "678d874f3e6eed63f0e14d99": {
+      "title": "Ultrason eşliğinde yapılan iğne biyopsilerinde karsinomun kökeninin teşhisi: Bölgeye özgü immünohistokimyasal belirteçlere dayalı, bağlam odaklı bir yaklaşım.",
+      "journal": "Diagnostic Pathology",
+      "pmid": "42464336",
+      "fingerprint": "bbeb1ce98bd08eebc311e88e47bd105a577f907f9ec751cf8402b60af6bd792e",
+      "file": "678d874f3e6eed63f0e14d99.mp3",
+      "generated_at": "2026-10-24T10:14:28.267929+00:00"
+    },
+    "f6974fffec06f417b7ef9ed8": {
+      "title": "Morfoloji bir füzyonu düşündürdüğünde: Histoloji ve immünohistokimyadan RNA dizilemesine kadar patoloji merkezli bir aşamalı yaklaşım çerçevesi.",
+      "journal": "Annals of Diagnostic Pathology",
+      "pmid": "42674962",
+      "fingerprint": "28f7f75e03a4b35479c5d696e2e102f85aa199c7f22d86b41bb4f789107f64e2",
+      "file": "f6974fffec06f417b7ef9ed8.mp3",
+      "generated_at": "2026-10-24T10:14:28.267929+00:00"
+    },
+    "7f4b315a7a9e93677c5bea1a": {
+      "title": "SMARCA4 eksikliği olan 110 adet geleneksel küçük hücreli olmayan akciğer kanseri vakasının klinikopatolojik analizi.",
+      "journal": "Annals of Diagnostic Pathology",
+      "pmid": "42664756",
+      "fingerprint": "9a9d519669cb8ecbf39a6712eaa2b755194ff5e6d3412daec787cb321d98036c",
+      "file": "7f4b315a7a9e93677c5bea1a.mp3",
+      "generated_at": "2026-10-24T10:14:28.267929+00:00"
+    },
+    "a20b7e54b5be9b4ef57442ea": {
+      "title": "Akut megakaryoblastik lösemi ve miyeloid sarkomda ERG ve CD31 ekspresyonu: Tanısal bir tuzak.",
+      "journal": "Annals of Diagnostic Pathology",
+      "pmid": "42664755",
+      "fingerprint": "62f5a4d458034261eaa3c499fee48f7d466f4edee384a553b3dbf9a04a76f782",
+      "file": "a20b7e54b5be9b4ef57442ea.mp3",
+      "generated_at": "2026-10-24T10:14:28.267929+00:00"
+    },
+    "5bb422924a0826af353adebf": {
+      "title": "Şeffaf hücreli papiller böbrek hücreli tümörde GPNMB ekspresyonu: Sınırlı özgüllük ve şeffaf hücreli böbrek neoplazmlarında potansiyel bir tanısal tuzak.",
+      "journal": "Annals of Diagnostic Pathology",
+      "pmid": "42641476",
+      "fingerprint": "6215f7850baa77a64296434708c7a93dcf73b948597ae2ddebb743a09d8004da",
+      "file": "5bb422924a0826af353adebf.mp3",
+      "generated_at": "2026-10-24T10:14:28.267929+00:00"
+    },
+    "abb0ef0acb6a5a29ae1790fd": {
+      "title": "Transbronşiyal akciğer kriyobiyopsi örneklerinde fibroblastik odakların mekansal dağılımı.",
+      "journal": "Annals of Diagnostic Pathology",
+      "pmid": "42636713",
+      "fingerprint": "0089515762e06d2f0817b0d4a2fd8ac656a15b0151859d4c84f19a09cf50f5fc",
+      "file": "abb0ef0acb6a5a29ae1790fd.mp3",
+      "generated_at": "2026-10-24T10:14:28.267929+00:00"
+    },
+    "ea737f6972d2a1f0018b6ddd": {
+      "title": "Kolorektal gastrik heterotopinin klinikopatolojik özellikleri.",
+      "journal": "Annals of Diagnostic Pathology",
+      "pmid": "42617375",
+      "fingerprint": "7747a09fe5c1f98819f786eea3b7df7f6de6c82efac25477e8f5f0f112da051b",
+      "file": "ea737f6972d2a1f0018b6ddd.mp3",
+      "generated_at": "2026-10-24T10:14:28.267929+00:00"
+    },
+    "243516b9e41c82dde3e46e25": {
+      "title": "Stroma AReaktif İnvazyon Ön Alanları (SARIFA), Clark seviye V kutanöz melanomda yayılımla ilgili histopatolojik özelliklerle ilişkilidir.",
+      "journal": "Annals of Diagnostic Pathology",
+      "pmid": "42580288",
+      "fingerprint": "8bf7f06bf7e35fda945e4908114f71d58867895595f9a6290834e31d0e28a427",
+      "file": "243516b9e41c82dde3e46e25.mp3",
+      "generated_at": "2026-10-24T10:14:43.830171+00:00"
     }
   }
 }
