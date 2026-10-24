@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-10-23T10:12:22.367987+00:00",
+  "generated_at": "2026-10-24T10:15:33.540701+00:00",
   "entries": {
     "7d9cd522d0f2d5752ca6a105": {
       "title": "MAP2K1 mutasyonlu melanositik tümörler: 114 olgu üzerinden yapılan bir çalışmaya dayanarak histolojik özelliklerin moleküler fonksiyonel sınıflarıyla ilişkisi.",
@@ -961,6 +961,70 @@
       "fingerprint": "4b52918c7bcd0cfc2abc390a604c9aaf1cd30758df11928a9f01f316d799e0d4",
       "file": "c8295aaf219702d54f5f8c07.mp3",
       "generated_at": "2026-10-23T10:12:22.367987+00:00"
+    },
+    "b7598fcd937033f76a2f3226": {
+      "title": "Aterosklerozdan reperfüzyon hasarına: Koroner kalp hastalığının tüm yelpazesinde nötrofil ekstraselüler tuzaklarının kapsamlı bir incelemesi.",
+      "journal": "The Journal of Pathology",
+      "pmid": "42703890",
+      "fingerprint": "unknown-recovered",
+      "file": "b7598fcd937033f76a2f3226.mp3",
+      "generated_at": "2026-10-24T07:51:11.589362+00:00"
+    },
+    "eb8e23f6822f9f19b3fe4d75": {
+      "title": "Mukozal melanomun kapsamlı genomik profillemesi, yeni füzyon transkriptlerini ve hücre döngüsü, MAPK ve PI3K yollarının düzensizliğini ortaya koymaktadır.",
+      "journal": "The Journal of Pathology",
+      "pmid": "42675868",
+      "fingerprint": "unknown-recovered",
+      "file": "eb8e23f6822f9f19b3fe4d75.mp3",
+      "generated_at": "2026-10-24T07:51:15.296364+00:00"
+    },
+    "8b9eee6f0dcc43ff333872c6": {
+      "title": "Tümör oluşumunu destekleyen makrofajlar tarafından tetiklenen anormal SOX9 ekspresyonu, hepatoblastomda daha kötü klinik sonuçları öngörmektedir.",
+      "journal": "The Journal of Pathology",
+      "pmid": "42657494",
+      "fingerprint": "unknown-recovered",
+      "file": "8b9eee6f0dcc43ff333872c6.mp3",
+      "generated_at": "2026-10-24T07:51:18.544360+00:00"
+    },
+    "2e5d5519bc7ee4f1e864bc14": {
+      "title": "Sindirim sistemindeki SMARCA4 eksikliği olan farklılaşmamış maligniteler: TCGA kohortundan elde edilen genomik bilgilerle klinikopatolojik özellikler ve prognostik önem.",
+      "journal": "The Journal of Pathology",
+      "pmid": "42619565",
+      "fingerprint": "unknown-recovered",
+      "file": "2e5d5519bc7ee4f1e864bc14.mp3",
+      "generated_at": "2026-10-24T07:51:22.709265+00:00"
+    },
+    "4f546ca2aba6c88c7379d843": {
+      "title": "CCL5 ve GLUT1, kolorektal kanserin toplu istilasında öncü hücreleri tanımlar.",
+      "journal": "The Journal of Pathology",
+      "pmid": "42583704",
+      "fingerprint": "unknown-recovered",
+      "file": "4f546ca2aba6c88c7379d843.mp3",
+      "generated_at": "2026-10-24T07:51:25.010590+00:00"
+    },
+    "79b12a66783bbf9eaa17acfd": {
+      "title": "Çok merkezli verilerde çoklu torba örnek öğrenimi ve temel model kullanılarak mide karsinomu biyopsi görüntülerinde EBV durumunun tahmin edilmesi.",
+      "journal": "The Journal of Pathology",
+      "pmid": "42557819",
+      "fingerprint": "unknown-recovered",
+      "file": "79b12a66783bbf9eaa17acfd.mp3",
+      "generated_at": "2026-10-24T07:51:27.916840+00:00"
+    },
+    "212a4fbe4d507f4b76de43e8": {
+      "title": "Anaplastik tiroid kanserinde terapötik hedef olarak TIM3: tümör mikroortamından kaynaklanan TGFβ1 tarafından indüklenen M2 benzeri makrofajlarda yukarı regülasyon.",
+      "journal": "The Journal of Pathology",
+      "pmid": "42557785",
+      "fingerprint": "unknown-recovered",
+      "file": "212a4fbe4d507f4b76de43e8.mp3",
+      "generated_at": "2026-10-24T07:51:30.979340+00:00"
+    },
+    "9b4ef21c3842b760a199e56d": {
+      "title": "Vankomisin, bağırsaktaki Parabacteroides goldsteinii bakterisini çoğaltır ve kolestazda hepatobiliyer sistemin yeniden yapılanmasını destekler.",
+      "journal": "The Journal of Pathology",
+      "pmid": "42549638",
+      "fingerprint": "unknown-recovered",
+      "file": "9b4ef21c3842b760a199e56d.mp3",
+      "generated_at": "2026-10-24T07:51:33.729791+00:00"
     }
   }
 }
