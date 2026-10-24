@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-10-24T10:15:41.722527+00:00",
+  "generated_at": "2026-10-24T10:15:49.933608+00:00",
   "entries": {
     "7d9cd522d0f2d5752ca6a105": {
       "title": "MAP2K1 mutasyonlu melanositik tümörler: 114 olgu üzerinden yapılan bir çalışmaya dayanarak histolojik özelliklerin moleküler fonksiyonel sınıflarıyla ilişkisi.",
@@ -1089,6 +1089,70 @@
       "fingerprint": "unknown-recovered",
       "file": "59587ec61ff8caa58be58bd8.mp3",
       "generated_at": "2026-10-24T07:51:54.701162+00:00"
+    },
+    "21a73106f6442f99aae2ff07": {
+      "title": "MAP3K kinaz füzyonu içeren miksoid neoplazmlar: 39 olgu üzerinde yapılan bir çalışma.",
+      "journal": "Histopathology",
+      "pmid": "42402939",
+      "fingerprint": "unknown-recovered",
+      "file": "21a73106f6442f99aae2ff07.mp3",
+      "generated_at": "2026-10-24T07:51:56.841885+00:00"
+    },
+    "d20256cf719a14893f48a637": {
+      "title": "Akciğer büyük hücreli nöroendokrin karsinomunda TROP2 immünoreaktivitesi.",
+      "journal": "Histopathology",
+      "pmid": "42390022",
+      "fingerprint": "unknown-recovered",
+      "file": "d20256cf719a14893f48a637.mp3",
+      "generated_at": "2026-10-24T07:51:59.287886+00:00"
+    },
+    "35714b53984d3be11389af2e": {
+      "title": "Meme bezinin malign adenomiyoepitelyoması: Morfolojik çeşitliliği ve tanısal zorlukları gösteren yedi vaka.",
+      "journal": "Histopathology",
+      "pmid": "42365981",
+      "fingerprint": "unknown-recovered",
+      "file": "35714b53984d3be11389af2e.mp3",
+      "generated_at": "2026-10-24T07:52:02.633884+00:00"
+    },
+    "12897eca33ce5497459a8806": {
+      "title": "Retinoblastoma benzeri DNA metilasyon profiline sahip, CRX pozitif ve RB1 eksikliği olan bir kemik tümörü.",
+      "journal": "Histopathology",
+      "pmid": "42365976",
+      "fingerprint": "unknown-recovered",
+      "file": "12897eca33ce5497459a8806.mp3",
+      "generated_at": "2026-10-24T07:52:05.939654+00:00"
+    },
+    "6ad0b86b93a6ef9484068f76": {
+      "title": "Pankreatobiliyer Sistemin Mezenkimal Neoplazmaları.",
+      "journal": "Archives of Pathology & Laboratory Medicine",
+      "pmid": "42730539",
+      "fingerprint": "unknown-recovered",
+      "file": "6ad0b86b93a6ef9484068f76.mp3",
+      "generated_at": "2026-10-24T07:52:07.746651+00:00"
+    },
+    "88ecb6ec3cc71cfe7cf742a9": {
+      "title": "İltihaplı Yumuşak Doku Tümörleri: Koyun Postuna Bürünen Kurt.",
+      "journal": "Archives of Pathology & Laboratory Medicine",
+      "pmid": "42730528",
+      "fingerprint": "unknown-recovered",
+      "file": "88ecb6ec3cc71cfe7cf742a9.mp3",
+      "generated_at": "2026-10-24T07:52:09.460650+00:00"
+    },
+    "d3852da8d1c797203ccd3e28": {
+      "title": "Üst Gastrointestinal ve Pankreatikobiliyer Kanserlerde Uyumsuzluk Onarım Eksikliği: Klinik Uygulamada Çok Modlu Moleküler Verilerin Entegrasyonu.",
+      "journal": "Archives of Pathology & Laboratory Medicine",
+      "pmid": "42730524",
+      "fingerprint": "unknown-recovered",
+      "file": "d3852da8d1c797203ccd3e28.mp3",
+      "generated_at": "2026-10-24T07:52:12.921649+00:00"
+    },
+    "7d02039fc18642204a5dcf20": {
+      "title": "Meme Kanseri Tanısı Kapasitesinin Geliştirilmesi: Nijerya'da Toplum Sağlığı Sonuçları için Radyoloji-Patoloji Projesi Genişletmesinin (ECHO) Değerlendirilmesi.",
+      "journal": "Archives of Pathology & Laboratory Medicine",
+      "pmid": "42730522",
+      "fingerprint": "unknown-recovered",
+      "file": "7d02039fc18642204a5dcf20.mp3",
+      "generated_at": "2026-10-24T07:52:16.520650+00:00"
     }
   }
 }
