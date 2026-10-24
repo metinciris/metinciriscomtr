@@ -105,9 +105,11 @@ function sevenDayAirOption(
   animate: boolean,
   lineColor: string,
   fillColor: string,
+  axisMax: number,
 ): Record<string, unknown> | null {
   if (!times?.length || !readings?.some(valid)) return null;
   return {
+    backgroundColor: 'transparent',
     animation: animate,
     animationDuration: 650,
     animationEasing: 'cubicOut',
@@ -134,6 +136,7 @@ function sevenDayAirOption(
     yAxis: {
       type: 'value',
       min: 0,
+      max: axisMax, // ayni olcek, renk bantlariyla bire bir eslesir
       minInterval: 10,
       axisLine: { show: false },
       axisTick: { show: false },
@@ -153,8 +156,8 @@ function sevenDayAirOption(
         color: {
           type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
           colorStops: [
-            { offset: 0, color: withOpacity(fillColor, 0.46) },
-            { offset: 1, color: withOpacity(fillColor, 0.07) },
+            { offset: 0, color: withOpacity(fillColor, 0.12) },
+            { offset: 1, color: withOpacity(fillColor, 0.01) },
           ],
         },
       },
@@ -220,6 +223,33 @@ function withOpacity(hex: string, opacity: number) {
   return 'rgba(' + ((rgb >> 16) & 255) + ',' + ((rgb >> 8) & 255) + ',' + (rgb & 255) + ',' + opacity + ')';
 }
 
+// AQI grafiğinin Y eksenini renklendirme ile ayni sinirda tut.
+// Grafik 51'e ulastiginda yesil (0-50) ile sari (51-100)
+// her iki tarafta da acikca gorunmeli. Daha yuksek degerlerde
+// turuncu, kirmizi ve mor esikler de otomatik eklenir.
+function aqiAxisMax(readings: (number | null)[] | undefined): number {
+  const numbers = readings?.filter(valid) ?? [];
+  const highest = numbers.length ? Math.max(...numbers) : 0;
+  return Math.max(100, Math.ceil((highest + 5) / 50) * 50);
+}
+
+function aqiBandBackground(axisMax: number): string {
+  let start = 0;
+  const stops: string[] = [];
+  for (const stage of AQI_STAGES) {
+    const end = Math.min(axisMax, stage.max);
+    if (end <= start) continue;
+    const tone = withOpacity(stage.color, end <= 100 ? 0.35 : 0.26);
+    stops.push(
+      tone + ' ' + (100 * start / axisMax).toFixed(2) + '%',
+      tone + ' ' + (100 * end / axisMax).toFixed(2) + '%',
+    );
+    start = end;
+    if (start >= axisMax) break;
+  }
+  return 'linear-gradient(to top, ' + stops.join(', ') + ')';
+}
+
 // Kullanıcının örnek görselindeki 6 renkli yüz ikonundan kırpılıp küçültülmüş sprite.
 // Bir PNG verisi CSS arka planıyla tek bir ikon olarak gösterilir.
 const AQI_FACE_SPRITE = 'data:image/png;base64,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';
@@ -253,6 +283,7 @@ function EChartMini({
   gridRight = 9,
   gridTop = 29,
   gridBottom = 26,
+  bandBackground,
   compactMarker = false,
 }: {
   option: Record<string, unknown>;
@@ -264,6 +295,7 @@ function EChartMini({
   gridRight?: number;
   gridTop?: number;
   gridBottom?: number;
+  bandBackground?: string;
   compactMarker?: boolean;
 }) {
   const host = useRef<HTMLDivElement>(null);
@@ -325,7 +357,20 @@ function EChartMini({
 
   return (
     <div className="relative w-full" style={{ height }}>
-      <div ref={host} role="img" aria-label={label} className="h-full w-full" />
+      {bandBackground && (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute z-0 rounded-sm"
+          style={{
+            left: gridLeft,
+            right: gridRight,
+            top: gridTop,
+            bottom: gridBottom,
+            background: bandBackground,
+          }}
+        />
+      )}
+      <div ref={host} role="img" aria-label={label} className="relative z-[1] h-full w-full" />
       {markerLeft && (
         <div className="pointer-events-none absolute z-10" aria-hidden="true"
           style={{ left: markerLeft, marginLeft: markerOffset, top: 0, bottom: 0 }}>
@@ -413,10 +458,13 @@ export function IspartaAirPollenBanner() {
 
   // CAMS 3 geride + bugün + 3 ileride = toplam 7 takvim günü.
   // Null degerler korunur, eksik olcumler asla 0'a donusturulmez.
+  const maxAqi = aqiAxisMax(data?.hourly?.us_aqi);
+  const airBands = aqiBandBackground(maxAqi);
   const airOption = sevenDayAirOption(
     days, data?.hourly?.us_aqi, animate,
     status?.ink ?? TEAL,
     status?.color ?? TEAL,
+    maxAqi,
   );
   const grass = valid(current?.grass_pollen) ? current.grass_pollen : null;
   const pm25 = valid(current?.pm2_5) ? current.pm2_5 : null;
@@ -512,6 +560,7 @@ export function IspartaAirPollenBanner() {
                 gridRight={9}
                 gridTop={29}
                 gridBottom={26}
+                bandBackground={airBands}
               />
             ) : (
               <div className="flex h-40 items-center justify-center rounded-lg bg-white/80 px-3 text-center text-sm text-slate-500">
