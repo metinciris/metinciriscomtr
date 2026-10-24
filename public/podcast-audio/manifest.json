@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-10-24T10:16:42.356830+00:00",
+  "generated_at": "2026-10-24T10:16:50.060154+00:00",
   "entries": {
     "7d9cd522d0f2d5752ca6a105": {
       "title": "MAP2K1 mutasyonlu melanositik tümörler: 114 olgu üzerinden yapılan bir çalışmaya dayanarak histolojik özelliklerin moleküler fonksiyonel sınıflarıyla ilişkisi.",
@@ -1601,6 +1601,70 @@
       "fingerprint": "e72ca9e5101ffe8ab0778bc538ed45e5f1fcbbf5400489ee4a78e1ddd0734788",
       "file": "347af933258a090bb135322c.mp3",
       "generated_at": "2026-10-24T10:14:11.975400+00:00"
+    },
+    "ca29f38f524681148d157f7c": {
+      "title": "Uzaktan WSI tabanlı tiroid sitolojisinin geleneksel sitolojik tanıya kıyasla tanısal uyumluluğu: bir pilot çalışma.",
+      "journal": "Diagnostic Pathology",
+      "pmid": "42773449",
+      "fingerprint": "a6e7119379511d40c132424903fa30e9cbd38d75669c8ea446cfcc2241ec6a8a",
+      "file": "ca29f38f524681148d157f7c.mp3",
+      "generated_at": "2026-10-24T10:14:11.975400+00:00"
+    },
+    "c2b7dd626d4166d3b9601201": {
+      "title": "Paratiroid adenomlarında ince iğne bazlı lokalizasyon teknikleri: histopatolojik güvenlik ve fibrozis paternlerine ilişkin retrospektif kohort çalışması.",
+      "journal": "Diagnostic Pathology",
+      "pmid": "42855687",
+      "fingerprint": "fd6653a2d76c6f7d501e7602c8c6a6024e393ab28e6da6071d16d6c5a827bebe",
+      "file": "c2b7dd626d4166d3b9601201.mp3",
+      "generated_at": "2026-10-24T10:14:11.975400+00:00"
+    },
+    "3b676a48998a570333438332": {
+      "title": "Biyopsi verileriyle eğitilmiş yapay zeka algoritmasının, tesadüfen saptanan prostat adenokarsinomunun tespiti için TURP ve HoLEP örneklerine genelleştirilebilirliği.",
+      "journal": "Diagnostic Pathology",
+      "pmid": "42816888",
+      "fingerprint": "015a6c53617c0072559551483bc0f471c1ed073d38914d894f3a63807694478d",
+      "file": "3b676a48998a570333438332.mp3",
+      "generated_at": "2026-10-24T10:14:11.975400+00:00"
+    },
+    "f2e3e7b3add2b5d6b71a82ce": {
+      "title": "LDHA ekspresyonu, Pan-Kla düzeyi ve H3K18la düzeyi, laringeal skuamöz hücreli karsinomun klinik ilerlemesiyle ilişkilidir.",
+      "journal": "Diagnostic Pathology",
+      "pmid": "42665803",
+      "fingerprint": "127e4b9dea79960bf63e0b104b07c4c87255b81b91d8609b7f5108dc941b463e",
+      "file": "f2e3e7b3add2b5d6b71a82ce.mp3",
+      "generated_at": "2026-10-24T10:14:11.975400+00:00"
+    },
+    "db48b55b1121637747499d0f": {
+      "title": "Obezitenin Helicobacter pylori'nin kokoid form dönüşümüne etkisi ve bunun mide iltihabı paterniyle ilişkisi: retrospektif karşılaştırmalı bir çalışma.",
+      "journal": "Diagnostic Pathology",
+      "pmid": "42698084",
+      "fingerprint": "64e64879bfd918ec974f40e652ba98c67df0c22b9ac8b55dfcd74800119811ff",
+      "file": "db48b55b1121637747499d0f.mp3",
+      "generated_at": "2026-10-24T10:14:11.975400+00:00"
+    },
+    "d581d2a289d71e9506b80853": {
+      "title": "Mesane kanserinde lenf düğümü metastazlarının derin öğrenme destekli tespiti.",
+      "journal": "Diagnostic Pathology",
+      "pmid": "42581380",
+      "fingerprint": "e4a644ad146131bab94cea8ff96ea53c13033d8759234121e237613ad1820fc5",
+      "file": "d581d2a289d71e9506b80853.mp3",
+      "generated_at": "2026-10-24T10:14:11.975400+00:00"
+    },
+    "820696ee553680c8b72b518a": {
+      "title": "Meme bezinin primer asiner hücreli karsinomu: Dokuz vakalık bir seriden ve kapsamlı bir literatür incelemesinden elde edilen bilgiler.",
+      "journal": "Diagnostic Pathology",
+      "pmid": "42768374",
+      "fingerprint": "b3cd375dc2e0060f5b2f2214b74b24600d7ccb18aa7ac4f4693902e52a32ead2",
+      "file": "820696ee553680c8b72b518a.mp3",
+      "generated_at": "2026-10-24T10:14:11.975400+00:00"
+    },
+    "af7b909862e816a62a8a1795": {
+      "title": "Prostat kanseri tanısının iyileştirilmesi: Gleason skorları ve immünohistokimyasal belirteçlerin korelatif analizi.",
+      "journal": "Diagnostic Pathology",
+      "pmid": "42823706",
+      "fingerprint": "d3217a0a03894a52d9d8faefd2444205c4459779d509c17a6cb1ec2edfd0dda2",
+      "file": "af7b909862e816a62a8a1795.mp3",
+      "generated_at": "2026-10-24T10:14:28.267929+00:00"
     }
   }
 }
