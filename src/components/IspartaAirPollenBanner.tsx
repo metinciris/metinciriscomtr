@@ -314,9 +314,10 @@ function EChartMini({
     ? times.findIndex(time => time >= currentTime) : -1;
   const fraction = currentIndex >= 0 && times && times.length > 1
     ? currentIndex / (times.length - 1) : null;
+  const markerOffset = fraction === null ? 0
+    : gridLeft - fraction * (gridLeft + gridRight);
   const markerLeft = fraction === null ? null
-    : 'calc(' + (fraction * 100).toFixed(5) + '% + '
-      + (gridLeft - fraction * (gridLeft + gridRight)).toFixed(3) + 'px)';
+    : (fraction * 100).toFixed(5) + '%';
 
   if (unavailable) {
     return <div className="flex items-center justify-center text-xs text-slate-500" style={{ height }}>Grafik şu anda yüklenemiyor.</div>;
@@ -327,7 +328,7 @@ function EChartMini({
       <div ref={host} role="img" aria-label={label} className="h-full w-full" />
       {markerLeft && (
         <div className="pointer-events-none absolute z-10" aria-hidden="true"
-          style={{ left: markerLeft, top: 0, bottom: 0 }}>
+          style={{ left: markerLeft, marginLeft: markerOffset, top: 0, bottom: 0 }}>
           <span className="absolute z-10 whitespace-nowrap rounded-sm px-1 font-bold"
             style={{
               top: compactMarker ? 0 : 1,
