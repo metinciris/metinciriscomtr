@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-10-24T10:16:35.113610+00:00",
+  "generated_at": "2026-10-24T10:16:42.356830+00:00",
   "entries": {
     "7d9cd522d0f2d5752ca6a105": {
       "title": "MAP2K1 mutasyonlu melanositik tümörler: 114 olgu üzerinden yapılan bir çalışmaya dayanarak histolojik özelliklerin moleküler fonksiyonel sınıflarıyla ilişkisi.",
@@ -1537,6 +1537,70 @@
       "fingerprint": "unknown-recovered",
       "file": "631c51960374cc36cd0ccf9f.mp3",
       "generated_at": "2026-10-24T07:56:25.160147+00:00"
+    },
+    "166c424f399f846c05134e3a": {
+      "title": "Avustralya ve Yeni Zelanda'da ölü doğumlar: Cevap arayışında perinatal otopsi ve plasenta incelemesinin önemi.",
+      "journal": "Pathology",
+      "pmid": "42580930",
+      "fingerprint": "unknown-recovered",
+      "file": "166c424f399f846c05134e3a.mp3",
+      "generated_at": "2026-10-24T07:56:27.674013+00:00"
+    },
+    "1f73d8cbcead1987c7b115d2": {
+      "title": "Miyeloid neoplazmlarda MECOM yeniden düzenlemelerinin yapısal karmaşıklığı ve mekanistik çeşitliliği.",
+      "journal": "Pathology",
+      "pmid": "42562659",
+      "fingerprint": "988f83af6233154d664b5bcce4d4b077b35cfe40c1881603eb8ff7f46d60493f",
+      "file": "1f73d8cbcead1987c7b115d2.mp3",
+      "generated_at": "2026-10-24T10:13:55.083626+00:00"
+    },
+    "6c76a64ef7b70d49f2b3feca": {
+      "title": "Fonksiyonel referans limiti ile klinik karar limiti arasındaki fark üzerine: Loh ve ark. (2026) yazarlarından bir yanıt.",
+      "journal": "Pathology",
+      "pmid": "42562658",
+      "fingerprint": "1a8a4c34fd06fcfc0b77eb6ffd8155bbd868a1f6746eefc592b06296fb9f9082",
+      "file": "6c76a64ef7b70d49f2b3feca.mp3",
+      "generated_at": "2026-10-24T10:13:55.083626+00:00"
+    },
+    "d6d11c45bf8b5abb270e91d7": {
+      "title": "Rutin bir tanı laboratuvarında retikülin ve kollajen fibrozisi için DSÖ derecelendirme sisteminin uygulanabilirliği.",
+      "journal": "Pathology",
+      "pmid": "42557184",
+      "fingerprint": "874672006e02d178fb951d89e774b0ffccaa14e41702a9157e71ad211f4df5d5",
+      "file": "d6d11c45bf8b5abb270e91d7.mp3",
+      "generated_at": "2026-10-24T10:13:55.083626+00:00"
+    },
+    "e59455cf55bcc2731b43d6ea": {
+      "title": "BRCA1 mutasyonlu timoma ve PARP inhibitörlerinin rolü: bir vaka raporu.",
+      "journal": "Pathology",
+      "pmid": "42557183",
+      "fingerprint": "922556eb417abfdade48d70d2888abfb86bc4af4ff921a880d685cdb25cb8377",
+      "file": "e59455cf55bcc2731b43d6ea.mp3",
+      "generated_at": "2026-10-24T10:13:55.083626+00:00"
+    },
+    "1f751ddf0fb492795d4c2db5": {
+      "title": "PRKAR1A::ALK füzyonu içeren kutanöz iğsi hücreli lezyon.",
+      "journal": "Pathology",
+      "pmid": "42557182",
+      "fingerprint": "a223f0b92e9d6ee61b2c25b0f23a29f67dd99f302742f4a9af44b1f32c1f5b5b",
+      "file": "1f751ddf0fb492795d4c2db5.mp3",
+      "generated_at": "2026-10-24T10:13:55.083626+00:00"
+    },
+    "190dd2200846f2935e75713c": {
+      "title": "Böbrek amiloidozunda klinikopatolojik özellikler ve prognostik faktörler: Avustralya'daki bir üçüncü basamak sağlık merkezinin 10 yıllık deneyimi.",
+      "journal": "Pathology",
+      "pmid": "42557181",
+      "fingerprint": "0af0aade44eb5bd31af26d8937556829bb1bdb6a203e9772c7d44c5729a7501d",
+      "file": "190dd2200846f2935e75713c.mp3",
+      "generated_at": "2026-10-24T10:13:55.083626+00:00"
+    },
+    "347af933258a090bb135322c": {
+      "title": "Endometrial karsinomda androjen reseptör ekspresyonunun immünohistokimyasal değerlendirilmesi ve klinikopatolojik önemi.",
+      "journal": "Diagnostic Pathology",
+      "pmid": "42791571",
+      "fingerprint": "e72ca9e5101ffe8ab0778bc538ed45e5f1fcbbf5400489ee4a78e1ddd0734788",
+      "file": "347af933258a090bb135322c.mp3",
+      "generated_at": "2026-10-24T10:14:11.975400+00:00"
     }
   }
 }
