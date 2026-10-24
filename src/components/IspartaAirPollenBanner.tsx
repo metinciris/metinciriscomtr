@@ -102,15 +102,11 @@ function shortDay(isoDay: string): string {
 function sevenDayAirOption(
   times: string[] | undefined,
   readings: (number | null)[] | undefined,
-  currentTime: string | undefined,
   animate: boolean,
   lineColor: string,
   fillColor: string,
 ): Record<string, unknown> | null {
   if (!times?.length || !readings?.some(valid)) return null;
-  const currentIndex = currentTime ? times.findIndex(t => t >= currentTime) : -1;
-  const nowHour = currentIndex >= 0 ? times[currentIndex] : null;
-  const nowValue = currentIndex >= 0 ? readings[currentIndex] : null;
   return {
     animation: animate,
     animationDuration: 650,
@@ -142,7 +138,7 @@ function sevenDayAirOption(
       axisLine: { show: false },
       axisTick: { show: false },
       axisLabel: { show: false },
-      splitLine: { lineStyle: { color: 'rgba(23,162,184,0.13)', type: 'dashed' } },
+      splitLine: { lineStyle: { color: 'rgba(53,83,100,0.26)', type: 'dashed' } },
     },
     series: [{
       name: 'ABD AQI',
@@ -151,35 +147,18 @@ function sevenDayAirOption(
       showSymbol: false,
       connectNulls: false,
       data: readings.map(value => valid(value) ? value : null),
-      lineStyle: { color: lineColor, width: 2.5 },
+      lineStyle: { color: lineColor, width: 3.7 },
       itemStyle: { color: lineColor },
       areaStyle: {
         color: {
           type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
           colorStops: [
-            { offset: 0, color: withOpacity(fillColor, 0.32) },
-            { offset: 1, color: withOpacity(fillColor, 0.025) },
+            { offset: 0, color: withOpacity(fillColor, 0.46) },
+            { offset: 1, color: withOpacity(fillColor, 0.07) },
           ],
         },
       },
-      markLine: nowHour ? {
-        silent: true,
-        animation: false,
-        symbol: ['none', 'none'],
-        lineStyle: { color: '#E16D45', width: 1.6, type: 'dashed' },
-        label: {
-          show: true, color: '#B65330', fontSize: 11, fontWeight: 'bold',
-          formatter: 'Şimdi', position: 'end', distance: 3,
-        },
-        data: [{ xAxis: nowHour }],
-      } : undefined,
-      markPoint: nowHour && valid(nowValue) ? {
-        symbol: 'circle',
-        symbolSize: 10,
-        label: { show: false },
-        itemStyle: { color: '#E16D45', borderColor: '#FFFFFF', borderWidth: 2 },
-        data: [{ coord: [nowHour, nowValue], name: 'Şimdi' }],
-      } : undefined,
+
     }],
   };
 }
@@ -187,7 +166,6 @@ function sevenDayAirOption(
 function sevenDayMiniOption(
   times: string[] | undefined,
   readings: (number | null)[] | undefined,
-  currentTime: string | undefined,
   unit: string,
   animate: boolean,
 ): Record<string, unknown> | null {
@@ -195,10 +173,6 @@ function sevenDayMiniOption(
   const present = readings.filter(valid);
   if (present.length < 2 || present.every(value => value === 0)) return null;
 
-  // "Şimdi" üç küçük grafikte de günlük ortalamaya değil gerçek saate bağlanır.
-  const nowIndex = currentTime ? times.findIndex(time => time >= currentTime) : -1;
-  const nowHour = nowIndex >= 0 ? times[nowIndex] : null;
-  const nowValue = nowIndex >= 0 ? readings[nowIndex] : null;
 
   return {
     animation: animate,
@@ -220,24 +194,10 @@ function sevenDayMiniOption(
       showSymbol: false,
       connectNulls: false,
       data: readings.map(value => valid(value) ? value : null),
-      lineStyle: { color: TEAL, width: 2 },
+      lineStyle: { color: '#11879D', width: 2.7 },
       itemStyle: { color: TEAL },
-      areaStyle: { color: 'rgba(23,162,184,0.10)' },
-      markLine: nowHour ? {
-        silent: true, animation: false, symbol: ['none', 'none'],
-        label: {
-          show: true, formatter: 'Şimdi', position: 'end',
-          fontSize: 9, fontWeight: 'bold', color: '#A94E2E', distance: 2,
-        },
-        lineStyle: { color: '#E16D45', type: 'dashed', width: 1.4 },
-        data: [{ xAxis: nowHour }],
-      } : undefined,
-      markPoint: nowHour && valid(nowValue) ? {
-        symbol: 'circle', symbolSize: 7,
-        label: { show: false },
-        itemStyle: { color: '#E16D45', borderColor: '#FFFFFF', borderWidth: 1 },
-        data: [{ coord: [nowHour, nowValue], name: 'Şimdi' }],
-      } : undefined,
+      areaStyle: { color: 'rgba(23,162,184,0.19)' },
+
     }],
   };
 }
@@ -287,10 +247,24 @@ function EChartMini({
   option,
   label,
   height = 112,
+  times,
+  currentTime,
+  gridLeft = 6,
+  gridRight = 9,
+  gridTop = 29,
+  gridBottom = 26,
+  compactMarker = false,
 }: {
   option: Record<string, unknown>;
   label: string;
   height?: number;
+  times?: string[];
+  currentTime?: string;
+  gridLeft?: number;
+  gridRight?: number;
+  gridTop?: number;
+  gridBottom?: number;
+  compactMarker?: boolean;
 }) {
   const host = useRef<HTMLDivElement>(null);
   const [unavailable, setUnavailable] = useState(false);
@@ -332,10 +306,48 @@ function EChartMini({
     };
   }, [option]);
 
+  // ECharts simple paketinde markLine bileseni bulunmayabiliyor.
+  // Onun yerine gercek hourly dizisindeki indeks ve ECharts'in grid
+  // kenarlarini kullanarak HTML cizgisini dogrudan veri saatine hizaliyoruz.
+  // boundaryGap:false => ilk kategori plot solunda, son kategori saginda.
+  const currentIndex = times?.length && currentTime
+    ? times.findIndex(time => time >= currentTime) : -1;
+  const fraction = currentIndex >= 0 && times && times.length > 1
+    ? currentIndex / (times.length - 1) : null;
+  const markerLeft = fraction === null ? null
+    : 'calc(' + (fraction * 100).toFixed(5) + '% + '
+      + (gridLeft - fraction * (gridLeft + gridRight)).toFixed(3) + 'px)';
+
   if (unavailable) {
     return <div className="flex items-center justify-center text-xs text-slate-500" style={{ height }}>Grafik şu anda yüklenemiyor.</div>;
   }
-  return <div ref={host} role="img" aria-label={label} className="w-full" style={{ height }} />;
+
+  return (
+    <div className="relative w-full" style={{ height }}>
+      <div ref={host} role="img" aria-label={label} className="h-full w-full" />
+      {markerLeft && (
+        <div className="pointer-events-none absolute z-10" aria-hidden="true"
+          style={{ left: markerLeft, top: 0, bottom: 0 }}>
+          <span className="absolute z-10 whitespace-nowrap rounded-sm px-1 font-bold"
+            style={{
+              top: compactMarker ? 0 : 1,
+              left: 0,
+              transform: 'translateX(-50%)',
+              fontSize: compactMarker ? 9 : 11,
+              lineHeight: compactMarker ? '13px' : '16px',
+              color: '#A84420',
+              backgroundColor: 'rgba(255,255,255,0.91)',
+            }}>Şimdi</span>
+          <span className="absolute"
+            style={{
+              top: gridTop, bottom: gridBottom, left: 0,
+              borderLeft: '2px dashed #E16D45',
+              filter: 'drop-shadow(0 0 1px rgba(255,255,255,0.95))',
+            }} />
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function IspartaAirPollenBanner() {
@@ -401,7 +413,7 @@ export function IspartaAirPollenBanner() {
   // CAMS 3 geride + bugün + 3 ileride = toplam 7 takvim günü.
   // Null degerler korunur, eksik olcumler asla 0'a donusturulmez.
   const airOption = sevenDayAirOption(
-    days, data?.hourly?.us_aqi, currentTime, animate,
+    days, data?.hourly?.us_aqi, animate,
     status?.ink ?? TEAL,
     status?.color ?? TEAL,
   );
@@ -470,14 +482,14 @@ export function IspartaAirPollenBanner() {
             <span className="ml-auto text-[11px] text-slate-500">ABD AQI</span>
           </div>
           <div className="mt-3 flex flex-wrap items-center gap-3">
-            <span className="text-4xl font-bold leading-none tabular-nums"
+            <span className="text-[56px] font-extrabold leading-none tabular-nums sm:text-[64px]"
               style={{ color: status?.ink ?? '#64748B' }}>
               {loading ? '…' : aqi === null ? '—' : Math.round(aqi)}
             </span>
             {status ? (
               <div className="flex min-w-0 items-center gap-2">
-                <AqiFace index={status.icon} size={42} label={status.name} />
-                <span className="max-w-44 text-xs font-bold leading-snug" style={{ color: status.ink }}>
+                <AqiFace index={status.icon} size={62} label={status.name} />
+                <span className="max-w-44 text-sm font-bold leading-snug" style={{ color: status.ink }}>
                   {status.name}
                 </span>
               </div>
@@ -491,8 +503,14 @@ export function IspartaAirPollenBanner() {
             {airOption ? (
               <EChartMini
                 option={airOption}
-                label="Isparta Merkez 7 günlük hava kalitesi değişimi; turuncu kesikli Şimdi çizgisi"
+                label="Isparta Merkez yedi günlük hava kalitesi değişimi; gerçek saat konumunda Şimdi çizgisi"
                 height={158}
+                times={days}
+                currentTime={currentTime}
+                gridLeft={6}
+                gridRight={9}
+                gridTop={29}
+                gridBottom={26}
               />
             ) : (
               <div className="flex h-40 items-center justify-center rounded-lg bg-white/80 px-3 text-center text-sm text-slate-500">
@@ -514,10 +532,7 @@ export function IspartaAirPollenBanner() {
                 </span>
               ))}
             </div>
-            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#B65330]">
-              <span className="inline-block h-3 border-l-2 border-dashed border-[#E16D45]" aria-hidden="true" />
-              Şimdi
-            </span>
+
           </div>
         </article>
 
@@ -525,17 +540,14 @@ export function IspartaAirPollenBanner() {
           <div className="flex items-center gap-2">
             <Leaf size={19} color={TEAL} aria-hidden="true" />
             <h2 className="m-0 text-base font-semibold text-slate-800">Polen ve Hava Etkenleri</h2>
-            <span className="ml-auto inline-flex items-center gap-1 text-[11px] font-semibold text-[#A94E2E]">
-              <span className="inline-block h-3 border-l-2 border-dashed border-[#E16D45]" aria-hidden="true" />
-              Şimdi
-            </span>
+            <span className="ml-auto text-[11px] text-slate-500">7 günlük eğilim</span>
           </div>
           <p className="mb-0 mt-2 text-xs text-slate-500">
             Çim poleni, ince partikül ve karbon monoksit
           </p>
           <div className="mt-2 space-y-2">
             {metrics.map(metric => {
-              const miniature = sevenDayMiniOption(days, metric.readings, currentTime, metric.unit || 'tane/m³', animate);
+              const miniature = sevenDayMiniOption(days, metric.readings, metric.unit || 'tane/m³', animate);
               return (
                 <div key={metric.key} className="grid grid-cols-[minmax(0,1fr)_minmax(96px,42%)] items-center gap-2 rounded-lg bg-white/80 px-3 py-2">
                   <div className="min-w-0">
@@ -552,8 +564,15 @@ export function IspartaAirPollenBanner() {
                   {miniature ? (
                     <EChartMini
                       option={miniature}
-                      label={metric.label + ' için yedi günlük ayrı ölçekli eğilim'}
+                      label={metric.label + ' için yedi günlük ayrı ölçekli eğilim ve Şimdi işareti'}
                       height={58}
+                      times={days}
+                      currentTime={currentTime}
+                      gridLeft={2}
+                      gridRight={4}
+                      gridTop={19}
+                      gridBottom={3}
+                      compactMarker
                     />
                   ) : (
                     <div className="flex h-14 items-center justify-center text-right text-[11px] text-slate-400">
