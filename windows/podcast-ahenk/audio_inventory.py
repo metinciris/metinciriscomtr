@@ -109,6 +109,8 @@ def restore_missing_entries(root, catalog, keys, backup_dir):
     root = Path(root)
     manifest_path = root / "public" / "podcast-audio" / "manifest.json"
     if manifest_path.is_file():
+        from manifest_recovery import recover_if_invalid
+        recover_if_invalid(root, backup_dir)
         manifest = json.loads(manifest_path.read_text(encoding="utf-8-sig"))
     else:
         manifest = {"version": 1, "entries": {}}

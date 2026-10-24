@@ -27,6 +27,7 @@ sys.dont_write_bytecode = True
 
 import audio_inventory
 import git_sync
+import manifest_recovery
 import online_audio
 from stdio_guard import ensure_stdio
 from scripts import render_podcast_audio as engine
@@ -69,6 +70,11 @@ class AhenkManager:
         self.picked = set()
         self.web_confirmed = False
         self.rules = pron.load(RULES)
+        recovery = manifest_recovery.recover_if_invalid(ROOT, HOME)
+        if recovery.get("repaired"):
+            with (HOME / "ahenk_islem.log").open("a", encoding="utf-8") as log:
+                log.write("MP3 manifest recovered after interruption: " +
+                          json.dumps(recovery, ensure_ascii=False) + "\n")
         self.manifest = engine.load_manifest()
         self.web_manifest = online_audio.load_cached_manifest(HOME)
         self.articles = self._read_cache()
@@ -313,6 +319,7 @@ class AhenkManager:
             self.refresh_web()
 
     def _rebuild(self):
+        manifest_recovery.recover_if_invalid(ROOT, HOME)
         self.manifest = engine.load_manifest()
         self.catalog = engine.catalog(self.articles) if self.articles else {}
         self.rows, self.totals = audio_inventory.inventory(

@@ -22,6 +22,7 @@ import app_single_instance
 import audio_inventory
 import audio_runtime
 import git_sync
+import manifest_recovery
 import online_audio
 import two_step_audio
 from scripts import render_podcast_audio as engine
@@ -96,6 +97,8 @@ def approved_pc_keys(catalog, keys, manifest):
             and item.get("title") == candidate["title"]
             and item.get("journal") == candidate["journal"]
             and engine.normalize_pmid(item.get("pmid")) == candidate["pmid"]
+            # Unverified local MP3 must be reviewed in the GUI first.
+            and item.get("fingerprint") != "unknown-recovered"
         )
         if valid and audio_inventory.present(ROOT, key):
             approved.append(key)
@@ -224,6 +227,10 @@ def main():
                         })
                         return 0
                     os.chdir(ROOT)
+                    recovery = manifest_recovery.recover_if_invalid(ROOT, HOME)
+                    if recovery.get("repaired"):
+                        note("Interrupted manifest recovered, MP3s preserved. "
+                             "Unverified recordings will not be auto-uploaded.")
                     run_once()
                 return 0
             except Exception as error:

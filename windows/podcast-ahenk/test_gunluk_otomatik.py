@@ -168,6 +168,18 @@ class DailyPodcastJobTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "eşleşmiyor"):
                 daily.run_once()
 
+    def test_recovered_unverified_local_mp3_is_not_auto_published(self):
+        key = self.keys[-1]
+        path = self.audio / (key + ".mp3")
+        path.write_bytes(b"ID3" + b"PRIVATE" * 240)
+        entry = {**self.catalog[key], "fingerprint": "unknown-recovered"}
+        manifest = {"version": 1, "entries": {key: entry}}
+        approved, skipped = daily.approved_pc_keys(
+            self.catalog, [key], manifest
+        )
+        self.assertEqual(approved, [])
+        self.assertEqual(skipped, [key])
+
     def test_registered_pc_clip_uploads_without_model(self):
         key = self.keys[-1]
         file = self.audio / (key + ".mp3")
