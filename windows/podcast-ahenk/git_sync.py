@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 import json
 import os
+import filecmp
 import re
 import shutil
 import subprocess
@@ -240,6 +241,14 @@ def remote_changed(root):
     return set(git(root, "diff", "--name-only", "HEAD", "refs/remotes/origin/main").splitlines())
 
 
+def metadata_only_checkout(root):
+    """Recognize a new installation that excludes published remote MP3s."""
+    cp = git_result(root, "sparse-checkout", "list", check=False)
+    return cp.returncode == 0 and (
+        "/public/podcast-audio/manifest.json" in cp.stdout.splitlines()
+    )
+
+
 def sync(root, home, selected_key=None):
     """Fast-forward GitHub code and import voices, retaining local accepted MP3s.
 
@@ -276,7 +285,19 @@ def sync(root, home, selected_key=None):
             # the actual deployed website is independently playable.
             continue
 
-    backup = backup_files(root, home, dirty) if dirty else None
+    # When the local checkout is sparse, a remote MP3 update can remove an
+    # existing skip-worktree file without listing it in git status. Preserve
+    # EVERY local recording, even if it appears clean to Git, before merging.
+    sparse_audio = (
+        [
+            AUDIO_PREFIX + p.name
+            for p in (root / AUDIO_PREFIX).glob("*.mp3")
+            if AUDIO_NAME.fullmatch(AUDIO_PREFIX + p.name)
+        ]
+        if metadata_only_checkout(root) else []
+    )
+    protect = sorted(set(dirty) | set(sparse_audio))
+    backup = backup_files(root, home, protect) if protect else None
     try:
         for path, code in dirty.items():
             dest = root / path
@@ -294,6 +315,12 @@ def sync(root, home, selected_key=None):
                 atomic_copy(copy, dest)
             elif code == "??":
                 dest.unlink(missing_ok=True)
+        for path in sparse_audio:
+            copy = backup / path
+            if copy.is_file():
+                dest = root / path
+                if not dest.is_file() or not filecmp.cmp(copy, dest, shallow=False):
+                    atomic_copy(copy, dest)
         raise RuntimeError(
             "GitHub güncellemesi tamamlanamadı; yerel dosyalar yedekten korundu.\n" +
             str(exc)
@@ -307,8 +334,16 @@ def sync(root, home, selected_key=None):
             atomic_copy(backup / path, dest)
         elif code in (" D", "D "):
             dest.unlink(missing_ok=True)
+    # Re-check all skip-worktree MP3s: Git might have quietly removed a
+    # locally retained copy when a remote published rendition changed.
+    for path in sparse_audio:
+        copy = backup / path
+        if copy.is_file():
+            dest = root / path
+            if not dest.is_file() or not filecmp.cmp(copy, dest, shallow=False):
+                atomic_copy(copy, dest)
     return (
-        f"GitHub sesleri indirildi, {len(dirty)} yerel dosya korundu."
+        f"GitHub manifesti güncellendi, {len(dirty)} yerel değişiklik korundu."
         + (f" Yedek: {backup}" if backup else "")
     )
 
@@ -330,7 +365,10 @@ def _commit_and_push(root, paths):
     if git(root, "diff", "--cached", "--name-only"):
         raise RuntimeError("Git indexinde başka bekleyen değişiklik var.")
     for path in sorted(set(paths)):
-        git(root, "add", "-A", "--", path)
+        if AUDIO_NAME.fullmatch(path):
+            git(root, "add", "--sparse", "-A", "--", path)
+        else:
+            git(root, "add", "-A", "--", path)
     staged = git(root, "diff", "--cached", "--name-only").splitlines()
     if any(not allowed(p) for p in staged):
         raise RuntimeError("GitHub'a podcast dışı dosya gönderimi engellendi.")

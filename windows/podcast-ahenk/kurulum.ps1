@@ -11,6 +11,7 @@ param(
 $ErrorActionPreference = "Stop"
 $Expected = "https://github.com/metinciris/metinciriscomtr.git"
 $Repo = Join-Path $Target "metinciriscomtr"
+$FreshCheckout = -not (Test-Path -LiteralPath (Join-Path $Repo ".git"))
 $Venv = Join-Path $Target "venv"
 $Probe = "import sys,struct; print(str(sys.version_info.major)+'.'+str(sys.version_info.minor)+'|'+str(struct.calcsize('P')*8))"
 Write-Host "Podcast Ahenk Ses Yoneticisi | metinciris/metinciriscomtr" -ForegroundColor Cyan
@@ -160,8 +161,16 @@ with tempfile.TemporaryDirectory(prefix="ahenk-updater-", dir=str(home)) as fold
     if ($LASTEXITCODE -ne 0) { throw "GitHub indirme hatasi." }
 }
 
-& git.exe -C $Repo sparse-checkout set scripts public/podcast-audio windows/podcast-ahenk
-if ($LASTEXITCODE -ne 0) { throw "Gerekli uygulama dosyalari alinamadi." }
+# New PCs only receive Python and JSON metadata; the WEB's 119+ MP3s
+# must not be downloaded to check which article titles are missing.
+# Existing installs keep their sparse rules and all local MP3s unchanged.
+if ($FreshCheckout) {
+    & git.exe -C $Repo sparse-checkout set --no-cone "/scripts/" "/windows/podcast-ahenk/" "/public/podcast-audio/manifest.json" "/public/podcast-audio/pronunciation.json"
+    if ($LASTEXITCODE -ne 0) { throw "Metadata-only Ahenk kurulumu tamamlanamadi." }
+    Write-Host "Yeni kurulum: sadece ses metadata dosyalari indirildi; WEB MP3'leri PC'ye cekilmedi." -ForegroundColor Green
+} else {
+    Write-Host "Mevcut yerel MP3 dosyalari ve Git ayarlari aynen korundu." -ForegroundColor Green
+}
 
 $venvPython = Join-Path $Venv "Scripts\python.exe"
 $venvPythonw = Join-Path $Venv "Scripts\pythonw.exe"
