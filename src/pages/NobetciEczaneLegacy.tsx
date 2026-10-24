@@ -5,6 +5,18 @@ import { Building2, Phone, Clock, AlertCircle, ExternalLink, MapPin } from 'luci
 
 const ECZANELERI_IFRAME_SRC = 'https://eczaneleri.net/asset/eczane/js/iframe/iframe.js';
 
+// Bu iframe farkli bir domainden gelir: parent sayfa iframe'in scrollHeight
+// degerini okuyamaz. Sağlayici postMessage ile boyut bildirirse otomatik uyarlanir.
+// Bildirmiyorsa Isparta Merkez'deki listeye uygun kompakt bir yukseklik kullanilir.
+const DESKTOP_IFRAME_HEIGHT = 1000;
+const MOBILE_IFRAME_HEIGHT = 1200;
+const LONG_LIST_HEIGHT = 1850;
+
+const responsiveIframeHeight = () =>
+  typeof window !== 'undefined' && window.matchMedia('(max-width: 640px)').matches
+    ? MOBILE_IFRAME_HEIGHT
+    : DESKTOP_IFRAME_HEIGHT;
+
 export function NobetciEczane() {
   const now = new Date();
 
@@ -24,10 +36,39 @@ export function NobetciEczane() {
   const todayEn = `${day} ${monthEn} ${year} ${weekdayEn}`;
 
   const [isLoading, setIsLoading] = React.useState(true);
+  const [frameHeight, setFrameHeight] = React.useState(responsiveIframeHeight);
+  const [isExpanded, setIsExpanded] = React.useState(false);
   const containerRef = React.useRef<HTMLDivElement>(null);
 
   // Eczaneleri.NET widget kurulumu
   useEffect(() => {
+    const frameInitially = responsiveIframeHeight();
+    let iframe: HTMLIFrameElement | null = null;
+    let heightReported = false;
+
+    // Iframe saglayicisi guvenilir bir boyut bildirimi gonderirse
+    // gercek icerik boyunu kullan; diger mesajlari yok say.
+    const onMessage = (event: MessageEvent) => {
+      if (!iframe?.contentWindow || event.source !== iframe.contentWindow) return;
+      if (event.origin !== 'https://eczaneleri.net' && event.origin !== 'https://www.eczaneleri.net') return;
+      let payload: unknown = event.data;
+      if (typeof payload === 'string') {
+        try { payload = JSON.parse(payload) as unknown; } catch { return; }
+      }
+      if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return;
+      const msg = payload as Record<string, unknown>;
+      const reported = msg.height ?? msg.contentHeight ?? msg.scrollHeight;
+      const height = typeof reported === 'string' ? Number(reported) : reported;
+      if (typeof height !== 'number' || !Number.isFinite(height) || height < 500 || height > 4000) return;
+      heightReported = true;
+      setFrameHeight(Math.ceil(height + 12));
+    };
+    const onViewportResize = () => {
+      if (!heightReported) setFrameHeight(responsiveIframeHeight());
+    };
+    window.addEventListener('message', onMessage);
+    window.addEventListener('resize', onViewportResize);
+
     (window as any).pharmacyiFrame = {
       color1: '00d2d3',
       color2: '17a2b8',
@@ -35,7 +76,7 @@ export function NobetciEczane() {
       county: 'merkez',  // Isparta merkez
       type: 'default-iframe',
       width: 768,        // px cinsinden (max-w-3xl boyutuna uygun)
-      height: 1500       // px cinsinden (daha yüksek yapıldı)
+      height: frameInitially // sağlayıcının kendi iframe ölçüsü için ilk yükseklik
     };
 
     const script = document.createElement('script');
@@ -46,12 +87,12 @@ export function NobetciEczane() {
     let observer: MutationObserver | null = null;
 
     const checkIframe = () => {
-      const iframe = containerRef.current?.querySelector('iframe');
-      if (iframe) {
-        iframe.addEventListener('load', () => setIsLoading(false));
-        return true;
-      }
-      return false;
+      const embedded = containerRef.current?.querySelector('iframe') ?? null;
+      if (!embedded) return false;
+      iframe = embedded;
+      embedded.title = 'Isparta Merkez nöbetçi eczaneleri';
+      embedded.addEventListener('load', () => setIsLoading(false));
+      return true;
     };
 
     if (!checkIframe() && containerRef.current) {
@@ -79,9 +120,24 @@ export function NobetciEczane() {
         observer.disconnect();
       }
       clearTimeout(fallbackTimeout);
+      window.removeEventListener('message', onMessage);
+      window.removeEventListener('resize', onViewportResize);
       delete (window as any).pharmacyiFrame;
     };
   }, []);
+
+  // Kisa listeyi gereksiz uzatmaz; uzun gunlerde kullanici tek tikla
+  // iframe gorunum alanini genisletebilir.
+  const visibleIframeHeight = isExpanded ? Math.max(frameHeight, LONG_LIST_HEIGHT) : frameHeight;
+  const iframeContainerStyle = {
+    '--pharmacy-iframe-height': String(visibleIframeHeight) + 'px',
+    ...(isLoading ? {
+      position: 'absolute' as const,
+      opacity: 0,
+      pointerEvents: 'none' as const,
+      height: 0,
+    } : {}),
+  } as React.CSSProperties;
 
   return (
     <PageContainer>
@@ -138,17 +194,30 @@ export function NobetciEczane() {
           )}
           <style dangerouslySetInnerHTML={{ __html: `
             .pharmacy-container iframe {
+              display: block;
               width: 100% !important;
-              height: 1500px !important;
-              min-height: 1500px !important;
+              height: var(--pharmacy-iframe-height, 1000px) !important;
+              min-height: 0 !important;
               border: none !important;
             }
           `}} />
           <div
             ref={containerRef}
             className="pharmacy-container w-full overflow-hidden"
-            style={isLoading ? { position: 'absolute', opacity: 0, pointerEvents: 'none', height: 0 } : {}}
+            style={iframeContainerStyle}
           />
+          {!isLoading && (
+            <div className="mt-2 text-center">
+              <button
+                type="button"
+                aria-expanded={isExpanded}
+                onClick={() => setIsExpanded(value => !value)}
+                className="text-xs font-medium text-[#0F6F7E] underline underline-offset-2 hover:text-[#17A2B8]"
+              >
+                {isExpanded ? 'Listeyi daralt' : 'Liste uzunsa genişlet'}
+              </button>
+            </div>
+          )}
           <p className="text-xs text-muted-foreground mt-3 text-center">
             Kaynak: Eczaneleri.NET. Güncel bilgileri Isparta Eczacılar Odası'ndan doğrulayın.
           </p>
