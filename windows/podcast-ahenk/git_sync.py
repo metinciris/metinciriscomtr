@@ -184,10 +184,42 @@ def save_json(path, payload):
         with os.fdopen(fd, "w", encoding="utf-8") as file:
             json.dump(payload, file, ensure_ascii=False, indent=2)
             file.write("\n")
+            file.flush()
+            os.fsync(file.fileno())
         os.replace(tmp, path)
     finally:
         if os.path.exists(tmp):
             os.unlink(tmp)
+
+
+def atomic_restore_bytes(path, data):
+    """Restore JSON/MP3 safely even if power is lost during the write."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, temp = tempfile.mkstemp(prefix=".ahenk-restore-", dir=str(path.parent))
+    try:
+        with os.fdopen(fd, "wb") as stream:
+            stream.write(data)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temp, path)
+    finally:
+        if os.path.exists(temp):
+            os.unlink(temp)
+
+
+def atomic_copy(source, destination):
+    """Copy into a temporary file before replacing the live destination."""
+    source, destination = Path(source), Path(destination)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    fd, temp = tempfile.mkstemp(prefix=".ahenk-copy-", dir=str(destination.parent))
+    os.close(fd)
+    try:
+        shutil.copy2(source, temp)
+        os.replace(temp, destination)
+    finally:
+        if os.path.exists(temp):
+            os.unlink(temp)
 
 
 def backup_files(root, home, paths):
@@ -259,7 +291,7 @@ def sync(root, home, selected_key=None):
             copy = backup / path
             if copy.is_file():
                 dest.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(copy, dest)
+                atomic_copy(copy, dest)
             elif code == "??":
                 dest.unlink(missing_ok=True)
         raise RuntimeError(
@@ -272,7 +304,7 @@ def sync(root, home, selected_key=None):
             save_json(dest, merged[path])
         elif (backup / path).is_file():
             dest.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(backup / path, dest)
+            atomic_copy(backup / path, dest)
         elif code in (" D", "D "):
             dest.unlink(missing_ok=True)
     return (
@@ -368,11 +400,11 @@ def publish(root, home, selected_key=None):
                 root, [MANIFEST, RULES, AUDIO_PREFIX + selected_key + ".mp3"]
             )
         finally:
-            manifest_path.write_bytes(original_manifest)
+            atomic_restore_bytes(manifest_path, original_manifest)
             if original_rules is None:
                 rule_path.unlink(missing_ok=True)
             else:
-                rule_path.write_bytes(original_rules)
+                atomic_restore_bytes(rule_path, original_rules)
         return (
             "Seçilen MP3 GitHub'a gönderildi. Site dağıtımı tamamlanınca yayında olacak."
             if sent else "Seçili ses zaten GitHub'daki sürümle aynı."
@@ -442,7 +474,7 @@ def publish_live_web_voice(root, home, key, live_entry, downloaded_mp3):
         # All modifications are limited to the user's chosen MP3 and manifest.
         # No unapproved pronunciation rules or other local MP3s are staged.
         mp3_target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(source, mp3_target)
+        atomic_copy(source, mp3_target)
         save_json(manifest_target, chosen)
         sent = _commit_and_push(root, (mp3_name, MANIFEST))
     finally:
@@ -452,7 +484,7 @@ def publish_live_web_voice(root, home, key, live_entry, downloaded_mp3):
                 destination.unlink(missing_ok=True)
             else:
                 destination.parent.mkdir(parents=True, exist_ok=True)
-                destination.write_bytes(original)
+                atomic_restore_bytes(destination, original)
     return ("Web'de dinlediğiniz orijinal MP3 GitHub'a yeniden seçildi. Dağıtım başlayacak."
             if sent else "Web'deki ses zaten GitHub'da seçili; değiştirilmedi.")
 
@@ -530,7 +562,7 @@ def publish_selected_local_voices(root, home, keys, reject_existing=False):
             if data is None:
                 target.unlink(missing_ok=True)
             else:
-                target.write_bytes(data)
+                atomic_restore_bytes(target, data)
     if sent:
         return f"Seçilen {len(keys)} MP3 GitHub'a gönderildi. Web yayını hazırlanıyor."
     return "Seçili MP3'ler zaten GitHub'daki seslerle aynı."
@@ -558,7 +590,7 @@ def restore_site_voice(root, home, key):
     backup = backup_files(root, home, [MANIFEST, path])
     dest = root / path
     dest.parent.mkdir(parents=True, exist_ok=True)
-    dest.write_bytes(cp.stdout)
+    atomic_restore_bytes(dest, cp.stdout)
     local = read_json_file(root / MANIFEST)
     local["entries"][key] = item
     save_json(root / MANIFEST, local)
