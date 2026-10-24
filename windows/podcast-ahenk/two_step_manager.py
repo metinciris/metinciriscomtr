@@ -41,6 +41,29 @@ CACHE = base.CACHE
 ERROR_LOG = base.ERROR_LOG
 BATCH = 8
 AUTO_SETTINGS = "acilis_otomatik.json"
+SCHEDULED_LAUNCH_LOG = "gorev_1230.log"
+SCHEDULED_RESULT_VISIBLE_MS = 90_000
+
+
+def scheduled_launch_requested(args):
+    """Only the Windows 12:30 Task Scheduler passes --scheduled."""
+    if not args:
+        return False
+    if args == ["--scheduled"]:
+        return True
+    raise ValueError("Desteklenmeyen Podcast Ahenk başlatma parametresi.")
+
+
+def scheduled_log(message):
+    """Write visible GUI task audit even under pythonw.exe (no console)."""
+    try:
+        HOME.mkdir(parents=True, exist_ok=True)
+        with (HOME / SCHEDULED_LAUNCH_LOG).open("a", encoding="utf-8") as stream:
+            stream.write(datetime.now().isoformat() + " | " + message + "\n")
+    except OSError:
+        # A logging permission issue must never destroy or block existing MP3s.
+        pass
+
 
 
 def read_auto_setting(home):
@@ -86,6 +109,7 @@ class TwoStepManager(base.AhenkManager):
         self._auto_start_requested = False
         self._auto_running = False
         self._auto_tracking = False
+        self._scheduled_mode = False
         super().__init__(root)
         root.protocol("WM_DELETE_WINDOW", self._close_window)
         root.after(450, self._start_engine_automatically)
@@ -589,10 +613,21 @@ class TwoStepManager(base.AhenkManager):
                             "Yerel MP3'ler korundu · Tekrar deneyebilirsiniz")
                 self._append_auto_event("HATA: " + error)
                 self._note("Otomatik işlem tamamlanamadı: " + error)
+                self._scheduled_finish("HATA: " + error[:250])
                 return
             self._auto_completed(data)
 
         self._task("WEB'deki eksikler otomatik tamamlanıyor...", work, done)
+
+    def _scheduled_finish(self, message):
+        """Scheduled windows are self-contained, so tomorrow can run again."""
+        if not self._scheduled_mode:
+            return
+        scheduled_log(message)
+        self._append_auto_event(
+            "12:30 görevi tamamlandı; sonuç 90 saniye gösterilip pencere kapanacak."
+        )
+        self.root.after(SCHEDULED_RESULT_VISIBLE_MS, self.root.destroy)
 
     def _auto_completed(self, result):
         articles = result.get("_articles")
@@ -650,6 +685,7 @@ class TwoStepManager(base.AhenkManager):
                 self._append_auto_event(
                     "Yükleme kontrolü: Yerel kayıt sayısı farklı; dosyaları gözden geçirin."
                 )
+                self._scheduled_finish("UYARI: GitHub gönderilen seslerin yerel kaydı doğrulanamadı.")
                 return
             state = flow.new_progress(keys)
             state["github_sent"] = list(keys)
@@ -668,6 +704,10 @@ class TwoStepManager(base.AhenkManager):
         elif phase == "waiting_for_deploy":
             self._append_auto_event("GitHub hazır; WEB dağıtımı bekleniyor.")
             self._resume_watch()
+        self._scheduled_finish(
+            f"ISLEM BITTI: yeni={produced}, Github={uploaded}, "
+            f"kontrol={skipped}, durum={phase}"
+        )
 
     def _ensure_engine_dependencies(self):
         """Run exactly one setup job even if first TTS click overlaps startup."""
@@ -1868,31 +1908,47 @@ class TwoStepManager(base.AhenkManager):
         self._managed_task("WEB'deki yayın kontrol ediliyor...", work, done)
 
 
-def main():
-    # A scheduled PC audio synthesis should never edit the local repository
-    # concurrently with a visible user session.
+def main(scheduled=False):
+    # Windows Task Scheduler starts the same visible application as the user's
+    # desktop shortcut. Existing app holds the named mutex: never open twice.
     import app_single_instance
+    if scheduled:
+        scheduled_log("Windows 12:30 görevi Ahenk penceresini başlatmak istedi.")
     with app_single_instance.exclusive_archive() as available:
         if not available:
-            messagebox.showinfo(
-                "Podcast Ahenk zaten çalışıyor",
-                "Başka bir Ahenk penceresi veya günlük ses üretim görevi "
-                "çalışıyor. MP3 dosyalarını korumak için ikinci işlem açılmadı."
-            )
+            if scheduled:
+                scheduled_log("ATLANDI: Ahenk zaten açık; ikinci pencere başlatılmadı.")
+            else:
+                messagebox.showinfo(
+                    "Podcast Ahenk zaten çalışıyor",
+                    "Başka bir Ahenk penceresi veya günlük ses üretim görevi "
+                    "çalışıyor. MP3 dosyalarını korumak için ikinci işlem açılmadı."
+                )
             return
         root = tk.Tk()
         try:
             manager = TwoStepManager(root)
+            manager._scheduled_mode = scheduled
             manager.enable_startup_autorun()
+            if scheduled:
+                if manager.auto_start_enabled.get():
+                    scheduled_log("Ahenk penceresi açıldı; otomatik WEB kontrolü başlayacak.")
+                else:
+                    scheduled_log("Açılışta otomatik tamamlama kullanıcı tarafından kapatılmış.")
+                    root.after(15_000, root.destroy)
         except Exception as exc:
             with ERROR_LOG.open("a", encoding="utf-8") as handle:
                 handle.write(datetime.now().isoformat() + "\n" +
                              traceback.format_exc() + "\n")
-            messagebox.showerror("Ahenk açılamadı", str(exc) + "\n" + str(ERROR_LOG))
+            if scheduled:
+                scheduled_log("ACILIS HATASI: " + str(exc)[:260])
+                # The scheduled task must not hang at a modal dialog.
+            else:
+                messagebox.showerror("Ahenk açılamadı", str(exc) + "\n" + str(ERROR_LOG))
             root.destroy()
             return
         root.mainloop()
 
 
 if __name__ == "__main__":
-    main()
+    main(scheduled=scheduled_launch_requested(sys.argv[1:]))

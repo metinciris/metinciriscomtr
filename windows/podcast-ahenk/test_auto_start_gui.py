@@ -147,6 +147,47 @@ class AutoStartGuiTests(unittest.TestCase):
         finally:
             root.destroy()
 
+    def test_scheduled_launch_option_and_single_finish_timer(self):
+        self.assertFalse(ui.scheduled_launch_requested([]))
+        self.assertTrue(ui.scheduled_launch_requested(["--scheduled"]))
+        with self.assertRaises(ValueError):
+            ui.scheduled_launch_requested(["--unexpected"])
+
+        root = tk.Tk()
+        root.withdraw()
+        try:
+            app = self.make_app(root, lambda **_kwargs: {})
+            app._scheduled_mode = True
+            with patch.object(root, "after", wraps=root.after) as after:
+                app._scheduled_finish("Yeni: 0; GitHub: 0; tamamlandı")
+                close_callbacks = [
+                    args for args, _kwargs in
+                    ((call.args, call.kwargs) for call in after.call_args_list)
+                    if args and args[0] == ui.SCHEDULED_RESULT_VISIBLE_MS
+                ]
+            self.assertEqual(len(close_callbacks), 1)
+            self.assertEqual(close_callbacks[0][1], root.destroy)
+            log = self.home / ui.SCHEDULED_LAUNCH_LOG
+            self.assertIn("tamamlandı", log.read_text(encoding="utf-8"))
+        finally:
+            root.destroy()
+
+    def test_normal_desktop_launch_does_not_schedule_auto_close(self):
+        root = tk.Tk()
+        root.withdraw()
+        try:
+            app = self.make_app(root, lambda **_kwargs: {})
+            self.assertFalse(app._scheduled_mode)
+            with patch.object(root, "after", wraps=root.after) as after:
+                app._scheduled_finish("Desktop session; stay open")
+                self.assertFalse(
+                    any(call.args and call.args[0] == ui.SCHEDULED_RESULT_VISIBLE_MS
+                        for call in after.call_args_list)
+                )
+            self.assertFalse((self.home / ui.SCHEDULED_LAUNCH_LOG).exists())
+        finally:
+            root.destroy()
+
     def test_automatic_error_is_visible_and_does_not_block_with_dialog(self):
         def failing_job(progress=None, stopping=None):
             progress({"phase": "checking", "message": "WEB yanıtı bekleniyor"})

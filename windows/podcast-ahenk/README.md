@@ -177,56 +177,55 @@ normal şekilde listelenir. Hata devam ederse `ahenk_hata.log` içindeki
 **traceback** bölümünü paylaşın; Windows/antivirüs izinleri ayrıca
 incelenmelidir.
 
-## Her gün 12:30'da PC ile otomatik eksik ses tamamlama
+## Her gün 12:30'da PC'de bir kez görünür Podcast Ahenk aç
 
-Bu görev Windows Görev Zamanlayıcı ile **bilgisayarınızda** çalışır;
-ChatGPT veya GitHub Actions'tan uzaktan bilgisayar açılmaz. Bilgisayar
-açık ve Windows oturumunuz açık olmalıdır. Uykudaysa uyandırılmaz; zaman
-kaçırılmışsa Windows uygun olduğunda görevi çalıştırmayı dener.
+Artık Windows Görev Zamanlayıcı **arka plandaki `gunluk_otomatik.py` yerine
+doğrudan görünür `two_step_manager.py --scheduled` penceresini** açar.
+Ahenk açılır açılmaz mevcut otomatik WEB eksik ses kontrolünü ve gerekirse
+üretim/yükleme işlemini zaten çalıştırır. Ek bir tuşa basmak gerekmez.
 
-### Bir kez kurun
-
-Önce **Ahenk penceresini kapatın** ve güncel uygulamayı
-`kurulum.ps1` ile GitHub'dan güncelleyin. Ardından PowerShell'de:
+**Önemli düzeltme:** Önceki `kurulum.ps1`, masaüstü kısayolunu oluşturuyor
+ancak günlük görev kaydını otomatik yapmıyordu. Yeni kurulum artık mevcut
+`PodcastAhenk_GunlukSes_1230` görevini denetleyip yeniden düzenler;
+yoksa oluşturur. Daha önceki görünmeyen Python işçisi görevi, aynı
+isimde görünür görev ile değiştirilir. Kurulumu **bir kez çalıştırmak**
+yeterlidir.
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:LOCALAPPDATA\PodcastAhenk\metinciriscomtr\windows\podcast-ahenk\gorev_kur.ps1"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:LOCALAPPDATA\PodcastAhenk\metinciriscomtr\windows\podcast-ahenk\kurulum.ps1"
 ```
 
-Oluşturulan görev: `PodcastAhenk_GunlukSes_1230`.
-Windows saatiyle her gün **12:30**'da kullanıcı oturumunda, **sessizce**
-çalışır; işlem bitince Python işlemi kapanır. Aynı anda Ahenk penceresi
-açıksa hiçbir dosyaya dokunmadan o günkü işi atlar. Günlük görev
-ile görünür uygulama aynı kilidi kullanır.
+Zamanlama **her gün 12:30 (Windows yerel saati)**; bilgisayar ve Windows
+oturumu açıksa pencere görünür. Program zaten çalışıyorsa ikinci pencere
+açılmaz ve ses işlemleri çakışmaz. Eksik yoksa modeli yüklemez; varsa
+yalnız gerçekten eksikleri 8'li partilerle tamamlar ve GitHub'a gönderir.
+Başarılı işlem veya hata sonunda **90 saniye sonucu ekranda gösterip
+otomatik kapanır**; böylece ertesi gün görev tekrar çalışabilir.
 
-Görev önce canlı webdeki ve GitHub `main` içindeki ses kayıtlarını
-karşılaştırır. Zaten yayında olan veya GitHub'a yüklenmiş ancak WEB
-dağıtımı bekleyen MP3'e dokunmaz. Eksik sesler varsa PC'de önceden kabul
-edilmiş MP3'leri yeniden üretmez; kayıtsız/kilitli dosyaları da korur.
-Gerçek eksikleri sekizli gruplar hâlinde Ahenk Cep ile üretir.
-**GitHub'a tek toplu push** yapar. Başka sesler değiştirilmez ve
-otomatik silme/150 günlük yenileme yapılmaz; o politikayı GitHub Actions
-yürütür. GitHub'a push için **önceden doğrulanmış** Git kimlik bilgileri
-gereklidir. Otomatik işlem giriş penceresi beklemez.
+Bilgisayar kapalıyken görev çalışamaz; `StartWhenAvailable` ile Windows
+uygun olduğunda gecikmiş görevi başlatmayı dener, ancak oturum kapalıyken
+görünür uygulama çalışmaz. Sistem saati ve görevlerin etkinliği kontrol
+edilmelidir. Otomatik açılış tercihi kapatılmışsa günlük görev üretim
+yapmaz. Yükleme için daha önceden tanımlanmış GitHub erişimi gerekir.
 
-### Test / durum / devre dışı bırakma
+### Görevin gerçekten çalıştığını görme
 
 ```powershell
-# Görevi Windows üzerinden hemen başlatır:
-Start-ScheduledTask -TaskName "PodcastAhenk_GunlukSes_1230"
-
-# Son çalışmayı, yapılmış işleri ve sıradaki saati gösterir:
+# Durum: kayit, son ve sonraki calisma, varsa hata, son log
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:LOCALAPPDATA\PodcastAhenk\metinciriscomtr\windows\podcast-ahenk\gorev_durum.ps1"
 
-# Otomasyonu kaldırır; sesleri silmez:
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:LOCALAPPDATA\PodcastAhenk\metinciriscomtr\windows\podcast-ahenk\gorev_kaldir.ps1"
+# Hemen deneme: gorunur pencere acmali (once Ahenk'i kapatin)
+Start-ScheduledTask -TaskName "PodcastAhenk_GunlukSes_1230"
 ```
 
-Günlük: `%LOCALAPPDATA%\PodcastAhenk\gunluk_otomatik.log`
-Durum JSON: `%LOCALAPPDATA%\PodcastAhenk\gunluk_otomatik_sonuc.json`.
-Günlük dosyası 4 MB'ı geçerse `.log` eski dosyasına dönüştürülür.
-GitHub bağlantısı veya ses motoru başarısız olursa hata loglanır,
-mevcut sesler korunur ve bir sonraki günlük çalışma tekrar dener.
+Yerel açılış günlüğü: `%LOCALAPPDATA%\PodcastAhenk\gorev_1230.log`.
+İşlem sonucu: `%LOCALAPPDATA%\PodcastAhenk\gunluk_otomatik_sonuc.json`.
+Ayrıca `Windows Görev Zamanlayıcı` içinde son çalıştırma kodu görünür.
+
+Görevi kaldırmak için `gorev_kaldir.ps1` kullanılabilir; **yerel
+ve WEB MP3'leri silinmez**. Sadece uygulamayı güncellemek, görev kaydını
+silmez. Kurulum sırasında `-NoDailyTask` ile görev güncellemesi atlanabilir.
+
 \n\n## Elektrik kesintisi sonrası manifest kurtarma (24 Ekim 2026)\n\nYerel `public/podcast-audio/manifest.json` dosyası kesinti sırasında boş/bozuk kalırsa\nprogram artık açılırken önce dosyanın ham hâlini `%LOCALAPPDATA%\\PodcastAhenk\\kurtarma`\naltına yedekler, ardından Git HEAD, eski yerel yedekler ve makale önbelleğine göre\nbütün erişilebilir sesleri eşleştirerek yeni manifesti atomik olarak oluşturur.\nMP3 **silmez veya yeniden sentezlemez**. GitHub'dakilerle birebir aynı sesler\nonaylı metadata ile korunur. Yerel değişmiş/özel sesler `unknown-recovered`\nolarak görünür; dinlenip onaylanmadan günlük otomasyon bunları yüklemez.\n\n**Program açılmadan manuel kurtarma** (güncel dosyalar indirilmişse):\n\n```powershell\n$homeDir = Join-Path $env:LOCALAPPDATA 'PodcastAhenk'\n$repoDir = Join-Path $homeDir 'metinciriscomtr'\n& (Join-Path $homeDir 'venv\\Scripts\\python.exe') (Join-Path $repoDir 'windows\\podcast-ahenk\\manifest_recovery.py') --root $repoDir --home $homeDir\n```\n\nDaha eski kurulumda kurtarma kodu yoksa GitHub'dan yalnız kurtarma dosyası\ngetirilebilir; önce kayıtların ham yedeği alınmalıdır. Güvenli GitHub güncellemesi\nancak kurtarma tamamlandıktan sonra yapılmalıdır.\n
 ## Açılışta otomatik WEB eksiklerini tamamla ve GitHub'a gönder
 
