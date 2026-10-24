@@ -119,8 +119,10 @@ export function IspartaAirPollenBanner() {
   const trend = from < 0 ? [] : values.slice(from, from + 12).filter(valid);
 
   const pollen = TYPES
-    .map(type => ({ label: type.label, value: current?.[type.key] }))
-    .filter((item): item is { label: string; value: number } => valid(item.value))
+    .flatMap(type => {
+      const value = current?.[type.key];
+      return valid(value) ? [{ label: type.label, value }] : [];
+    })
     .sort((a, b) => b.value - a.value)
     .slice(0, 3);
   const maxPollen = Math.max(1, ...pollen.map(item => item.value));
