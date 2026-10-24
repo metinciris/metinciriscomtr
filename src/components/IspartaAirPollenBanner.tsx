@@ -407,8 +407,10 @@ function EChartMini({
 
 export function IspartaAirPollenBanner({
   onAqiChange,
+  embedded = false,
 }: {
   onAqiChange?: (aqi: number | null) => void;
+  embedded?: boolean;
 } = {}) {
   const [data, setData] = useState<AirResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -524,7 +526,7 @@ export function IspartaAirPollenBanner({
   return (
     <section
       aria-label="Isparta Merkez hava kalitesi, polen ve hava kirleticileri tahmini"
-      className="mx-auto mb-8 max-w-5xl overflow-hidden rounded-2xl border bg-white shadow-sm"
+      className={`mx-auto max-w-5xl overflow-hidden rounded-2xl border bg-white shadow-sm${embedded ? '' : ' mb-8'}`}
       style={{ borderColor: 'rgba(23,162,184,0.28)' }}
     >
       <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-white sm:px-5"
@@ -556,7 +558,7 @@ export function IspartaAirPollenBanner({
             </span>
             {status ? (
               <div className="flex min-w-0 items-center gap-2">
-                <AqiFace index={status.icon} size={62} label={status.name} />
+                <AqiFace index={status.icon} size={62} label={status.name} darkDetails={status.icon < 3} />
                 <span className="max-w-44 text-sm font-bold leading-snug" style={{ color: status.ink }}>
                   {status.name}
                 </span>
@@ -597,7 +599,7 @@ export function IspartaAirPollenBanner({
                     border: status?.icon === stage.icon ? '1.5px solid ' + stage.ink : '1.5px solid transparent',
                     background: status?.icon === stage.icon ? withOpacity(stage.color, 0.18) : 'transparent',
                   }}>
-                  <AqiFace index={stage.icon} size={30} label={stage.range + ': ' + stage.name} />
+                  <AqiFace index={stage.icon} size={30} label={stage.range + ': ' + stage.name} darkDetails={stage.icon < 3} />
                 </span>
               ))}
             </div>
