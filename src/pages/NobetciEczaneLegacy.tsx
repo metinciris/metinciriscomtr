@@ -17,6 +17,17 @@ const responsiveIframeHeight = () =>
     ? MOBILE_IFRAME_HEIGHT
     : DESKTOP_IFRAME_HEIGHT;
 
+// AQI rengi beyazla karistirilip tek, opak bir arka plan tonu uretilir.
+// Sayfanin alt zemini gorunmez; bolgesel acik-koyu gradient yoktur.
+function pastelAqiColor(hex: string): string {
+  const mix = 0.22;
+  const r = Number.parseInt(hex.slice(1, 3), 16);
+  const g = Number.parseInt(hex.slice(3, 5), 16);
+  const b = Number.parseInt(hex.slice(5, 7), 16);
+  const soft = (value: number) => Math.round(255 * (1 - mix) + value * mix);
+  return `rgb(${soft(r)}, ${soft(g)}, ${soft(b)})`;
+}
+
 export function NobetciEczane() {
   const now = new Date();
 
@@ -182,20 +193,14 @@ export function NobetciEczane() {
         </div>
       </div>
 
-      {/* Eczane çevresindeki süsler hava kalitesi kartının GÜNCEL endeksine bağlıdır.
-          Çeşitli yüzler veya sabit yeşil/sarı renkler yerine sadece o anki
-          AQI seviyesi kullanılır. Veri yoksa nötr arka plan gösterilir. */}
+      {/* Guncel AQI rengiyle tek tonlu arka plan, koyu goz/agizli belirgin yuzler.
+          Kucuk hava kalitesi karti ayni kalir; veri yoksa notr arka plan vardir. */}
       <section
         aria-label="Isparta Merkez nöbetçi eczaneleri"
         className="relative isolate mb-8 overflow-hidden rounded-2xl border px-3 py-7 shadow-sm sm:px-8 sm:py-9"
         style={{
-          borderColor: currentAir ? withOpacity(currentAir.color, 0.48) : '#D6E9E9',
-          background: currentAir
-            ? 'radial-gradient(circle at 10% 18%, ' + withOpacity(currentAir.color, 0.33) + ', transparent 30%), ' +
-              'radial-gradient(circle at 90% 29%, ' + withOpacity(currentAir.color, 0.29) + ', transparent 30%), ' +
-              'radial-gradient(circle at 13% 83%, ' + withOpacity(currentAir.color, 0.20) + ', transparent 32%), ' +
-              'linear-gradient(120deg, #FFFFFF 0%, ' + withOpacity(currentAir.color, 0.10) + ' 55%, #FFFFFF 100%)'
-            : 'linear-gradient(120deg, #FAFCFD 0%, #FFFFFF 100%)',
+          borderColor: currentAir ? withOpacity(currentAir.color, 0.58) : '#D6E9E9',
+          backgroundColor: currentAir ? pastelAqiColor(currentAir.color) : '#FAFCFD',
         }}
       >
         {/* Her ikonu aynı güncel hava kalitesi durumu belirler.
@@ -206,17 +211,17 @@ export function NobetciEczane() {
             aria-hidden="true"
             className="pointer-events-none absolute inset-0 z-0 hidden overflow-hidden lg:block"
           >
-            <div className="absolute left-3 top-[8%] opacity-[0.16]">
-              <AqiFace index={currentAir.icon} size={104} label="" />
+            <div className="absolute left-3 top-[8%] opacity-[0.62]">
+              <AqiFace index={currentAir.icon} size={116} label="" darkDetails />
             </div>
-            <div className="absolute right-3 top-[16%] opacity-[0.15]">
-              <AqiFace index={currentAir.icon} size={110} label="" />
+            <div className="absolute right-3 top-[16%] opacity-[0.60]">
+              <AqiFace index={currentAir.icon} size={120} label="" darkDetails />
             </div>
-            <div className="absolute left-5 bottom-[25%] opacity-[0.11]">
-              <AqiFace index={currentAir.icon} size={94} label="" />
+            <div className="absolute left-5 bottom-[25%] opacity-[0.54]">
+              <AqiFace index={currentAir.icon} size={104} label="" darkDetails />
             </div>
-            <div className="absolute right-4 bottom-[9%] opacity-[0.12]">
-              <AqiFace index={currentAir.icon} size={106} label="" />
+            <div className="absolute right-4 bottom-[9%] opacity-[0.56]">
+              <AqiFace index={currentAir.icon} size={114} label="" darkDetails />
             </div>
           </div>
         )}
