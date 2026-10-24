@@ -1,13 +1,7 @@
 {
-  "date": "23.10.2026",
-  "items": [
-    "YÜZÜK ÇORBASI",
-    "ETLİ PATLICAN",
-    "ARPA ŞEHRİYE PİLAVI",
-    "CACIK",
-    "YÜZÜK ÇORBASI"
-  ],
-  "kcal": "1000",
+  "date": "24.10.2026",
+  "items": [],
+  "kcal": null,
   "source": "https://w3.sdu.edu.tr/aylik-yemek-listesi?dosya=yemekler_ogle&tur=2",
-  "updatedAt": "2026-10-23T12:42:30.966Z"
+  "updatedAt": "2026-10-24T09:02:28.807Z"
 }
