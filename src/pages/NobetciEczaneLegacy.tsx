@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { PageContainer } from '../components/PageContainer';
-import { IspartaAirPollenBanner } from '../components/IspartaAirPollenBanner';
+import { AqiFace, IspartaAirPollenBanner } from '../components/IspartaAirPollenBanner';
 import { Building2, Phone, Clock, AlertCircle, ExternalLink, MapPin } from 'lucide-react';
 
 const ECZANELERI_IFRAME_SRC = 'https://eczaneleri.net/asset/eczane/js/iframe/iframe.js';
@@ -180,9 +180,52 @@ export function NobetciEczane() {
         </div>
       </div>
 
-      {/* Nöbetçi Eczane Widget'ı */}
-      <div className="bg-white p-8 mb-8">
-        <div className="max-w-3xl mx-auto">
+      {/* Nöbetçi eczane: hava kalitesi kartına uyumlu, hafif dekoratif çevre.
+          Dış kaynak iframe içeriği değiştirilmez. Soluk yüzler sadece süstür;
+          pointer-events-none sayesinde arama, arama bağlantısı ve haritalar etkilenmez. */}
+      <section
+        aria-label="Isparta Merkez nöbetçi eczaneleri"
+        className="relative isolate mb-8 overflow-hidden rounded-2xl border border-[#D6E9E9] px-3 py-7 shadow-sm sm:px-8 sm:py-9"
+        style={{
+          background:
+            'radial-gradient(circle at 8% 18%, rgba(177,219,109,0.33), transparent 27%), ' +
+            'radial-gradient(circle at 92% 30%, rgba(247,212,107,0.27), transparent 28%), ' +
+            'radial-gradient(circle at 14% 83%, rgba(23,162,184,0.17), transparent 30%), ' +
+            'linear-gradient(120deg, #F7FCF5 0%, #FFFEF6 54%, #F3FAFC 100%)',
+        }}
+      >
+        {/* Masaüstünde iframe çevresindeki boşlukları değerlendirir.
+            İkonlar içerik/durum göstergesi değildir ve erişilebilirlik ağacında gizlidir.
+            Orta bölümdeki eczane kartlarının metnine dokunulmaz. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 z-20 hidden overflow-hidden lg:block"
+          style={{
+            background:
+              'linear-gradient(90deg, rgba(177,219,109,0.075) 0%, transparent 22%, ' +
+              'transparent 78%, rgba(247,212,107,0.065) 100%)',
+          }}
+        >
+          <div className="absolute left-3 top-[8%] opacity-[0.15]">
+            <AqiFace index={0} size={94} label="" />
+          </div>
+          <div className="absolute right-4 top-[15%] opacity-[0.14]">
+            <AqiFace index={1} size={98} label="" />
+          </div>
+          <div className="absolute left-8 top-[45%] opacity-[0.09]">
+            <AqiFace index={2} size={74} label="" />
+          </div>
+          <div className="absolute right-7 top-[53%] opacity-[0.09]">
+            <AqiFace index={4} size={78} label="" />
+          </div>
+          <div className="absolute left-5 bottom-[9%] opacity-[0.11]">
+            <AqiFace index={0} size={100} label="" />
+          </div>
+          <div className="absolute right-5 bottom-[8%] opacity-[0.11]">
+            <AqiFace index={1} size={90} label="" />
+          </div>
+        </div>
+        <div className="relative z-10 max-w-3xl mx-auto">
           {/* Widget konteyneri – script burayı dolduracak */}
           {isLoading && (
             <div className="flex flex-col items-center justify-center py-16 px-4 border border-dashed border-gray-200 rounded-lg bg-gray-50/50 my-4 animate-pulse">
@@ -222,7 +265,7 @@ export function NobetciEczane() {
             Kaynak: Eczaneleri.NET. Güncel bilgileri Isparta Eczacılar Odası'ndan doğrulayın.
           </p>
         </div>
-      </div>
+      </section>
 
       {/* Isparta Merkez icin kompakt hava kalitesi ve polen tahmini */}
       <IspartaAirPollenBanner />
