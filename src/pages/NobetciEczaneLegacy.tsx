@@ -101,7 +101,7 @@ export function NobetciEczane() {
       >
         <h2>Isparta Nöbetçi Eczaneler ve Eczane Listesi</h2>
         <p>
-          Isparta Merkez ve ilçelerindeki günlük nöbetçi eczanelere anında ulaşın. Eczane adresleri, telefon numaraları ve yol tarifleri ile nöbetçi listesini güncel olarak takip edin.
+          Isparta Merkez'deki günlük nöbetçi eczanelere anında ulaşın. Eczane adresleri, telefon numaraları ve yol tarifleri ile nöbetçi listesini güncel olarak takip edin.
         </p>
       </div>
       <div className="bg-gradient-to-r from-[#990000] to-[#8B0000] text-white p-12 mb-8">
@@ -126,10 +126,6 @@ export function NobetciEczane() {
       {/* Nöbetçi Eczane Widget'ı */}
       <div className="bg-white p-8 mb-8">
         <div className="max-w-3xl mx-auto">
-          <h2 className="mb-3">Bugünkü Nöbetçi Eczaneler (Isparta)</h2>
-          <p className="text-muted-foreground mb-4">
-            Aşağıdaki nöbetçi eczaneler otomatik alınmaktadır:
-          </p>
           {/* Widget konteyneri – script burayı dolduracak */}
           {isLoading && (
             <div className="flex flex-col items-center justify-center py-16 px-4 border border-dashed border-gray-200 rounded-lg bg-gray-50/50 my-4 animate-pulse">
@@ -153,7 +149,7 @@ export function NobetciEczane() {
             style={isLoading ? { position: 'absolute', opacity: 0, pointerEvents: 'none', height: 0 } : {}}
           />
           <p className="text-xs text-muted-foreground mt-3 text-center">
-            Veri kaynağı: Eczaneleri.NET – Saatlik olarak güncellenir.
+            Kaynak: Eczaneleri.NET. Güncel bilgileri Isparta Eczacılar Odası'ndan doğrulayın.
           </p>
         </div>
       </div>
@@ -163,7 +159,7 @@ export function NobetciEczane() {
         <div className="max-w-3xl mx-auto">
           <h2 className="mb-4">Resmi Nöbetçi Eczane Listesi</h2>
           <p className="text-muted-foreground mb-8">
-            Isparta ili merkez ve ilçelerindeki güncel nöbetçi eczane listesi için
+            Isparta'daki güncel nöbetçi eczane listesi için
             aşağıdaki butona tıklayarak Isparta Eczacılar Odası resmi web sitesini ziyaret edebilirsiniz.
           </p>
 
@@ -203,9 +199,9 @@ export function NobetciEczane() {
           <div className="bg-[#00A6D6] w-16 h-16 flex items-center justify-center text-white mx-auto mb-4">
             <MapPin size={32} />
           </div>
-          <h3 className="mb-2">Tüm İlçeler</h3>
+          <h3 className="mb-2">Isparta Merkez</h3>
           <p className="text-muted-foreground m-0">
-            Merkez ve tüm ilçelerin nöbetçi eczaneleri
+            Isparta Merkez nöbetçi eczaneleri
           </p>
         </div>
 
@@ -225,7 +221,7 @@ export function NobetciEczane() {
           </div>
           <h3 className="mb-2">Resmi Kaynak</h3>
           <p className="text-muted-foreground m-0">
-            Isparta Eczacılar Odası onaylı
+            Isparta Eczacılar Odası'ndan kontrol edin
           </p>
         </div>
       </div>
