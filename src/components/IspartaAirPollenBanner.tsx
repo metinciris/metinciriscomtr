@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Leaf, MapPin, Wind } from 'lucide-react';
 
 // Yalnizca Isparta Merkez. Gercek istasyon olcumu degil, CAMS model tahmini.
@@ -6,9 +6,10 @@ import { Leaf, MapPin, Wind } from 'lucide-react';
 const AIR_URL = 'https://air-quality-api.open-meteo.com/v1/air-quality?' + new URLSearchParams({
   latitude: '37.7606',
   longitude: '30.5566',
-  current: 'european_aqi,pm2_5,grass_pollen,olive_pollen,ragweed_pollen,mugwort_pollen,birch_pollen,alder_pollen',
-  hourly: 'european_aqi',
-  forecast_days: '2',
+  current: 'european_aqi,grass_pollen,pm2_5,carbon_monoxide',
+  hourly: 'european_aqi,grass_pollen,pm2_5,carbon_monoxide',
+  past_days: '3',
+  forecast_days: '4',
   timezone: 'Europe/Istanbul',
 }).toString();
 
@@ -18,20 +19,24 @@ const ECHARTS_SCRIPT = 'https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.
 interface AirCurrent {
   time?: string;
   european_aqi?: number | null;
-  pm2_5?: number | null;
   grass_pollen?: number | null;
-  olive_pollen?: number | null;
-  ragweed_pollen?: number | null;
-  mugwort_pollen?: number | null;
-  birch_pollen?: number | null;
-  alder_pollen?: number | null;
+  pm2_5?: number | null;
+  carbon_monoxide?: number | null;
 }
 
 interface AirResponse {
   current?: AirCurrent;
+  current_units?: {
+    carbon_monoxide?: string;
+    grass_pollen?: string;
+    pm2_5?: string;
+  };
   hourly?: {
     time?: string[];
     european_aqi?: (number | null)[];
+    grass_pollen?: (number | null)[];
+    pm2_5?: (number | null)[];
+    carbon_monoxide?: (number | null)[];
   };
   error?: boolean;
 }
@@ -84,16 +89,162 @@ function loadECharts(): Promise<EChartsLibrary | null> {
 const valid = (value: unknown): value is number =>
   typeof value === 'number' && Number.isFinite(value) && value >= 0;
 
-// Bitki turleri kendi baslarina gosterilir; birlestirilmis bir "alerji riski"
-// veya kaynaktan gelmeyen bir polen endeksi uretilmez.
-const POLLEN_TYPES = [
-  { key: 'grass_pollen', label: 'Çimen' },
-  { key: 'olive_pollen', label: 'Zeytin' },
-  { key: 'mugwort_pollen', label: 'Pelin' },
-  { key: 'birch_pollen', label: 'Huş' },
-  { key: 'alder_pollen', label: 'Kızılağaç' },
-  { key: 'ragweed_pollen', label: 'Yabani ot' },
-] as const;
+// Ayrı birimlerdeki metrikler ayni eksende karsilastirilmaz.
+// Her satirin kendi y-olcegi olan 7 gunluk mini grafigi bulunur.
+type DatedValue = { day: string; value: number | null };
+
+function dailyAverage(times: string[] | undefined, readings: (number | null)[] | undefined): DatedValue[] {
+  if (!times?.length) return [];
+  const buckets = new Map<string, { total: number; count: number }>();
+  times.forEach((time, index) => {
+    const day = time.slice(0, 10);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return;
+    const bucket = buckets.get(day) ?? { total: 0, count: 0 };
+    const reading = readings?.[index];
+    if (valid(reading)) {
+      bucket.total += reading;
+      bucket.count += 1;
+    }
+    buckets.set(day, bucket);
+  });
+  return [...buckets].map(([day, bucket]) => ({
+    day,
+    value: bucket.count ? Math.round(bucket.total / bucket.count * 10) / 10 : null,
+  }));
+}
+
+function shortDay(isoDay: string): string {
+  const date = new Date(isoDay + 'T12:00:00+03:00');
+  return Number.isFinite(date.getTime())
+    ? date.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', timeZone: 'Europe/Istanbul' })
+    : isoDay;
+}
+
+function sevenDayAirOption(
+  times: string[] | undefined,
+  readings: (number | null)[] | undefined,
+  currentTime: string | undefined,
+  animate: boolean,
+): Record<string, unknown> | null {
+  if (!times?.length || !readings?.some(valid)) return null;
+  const currentIndex = currentTime ? times.findIndex(t => t >= currentTime) : -1;
+  const nowHour = currentIndex >= 0 ? times[currentIndex] : null;
+  const nowValue = currentIndex >= 0 ? readings[currentIndex] : null;
+  return {
+    animation: animate,
+    animationDuration: 650,
+    animationEasing: 'cubicOut',
+    grid: { left: 6, right: 9, top: 29, bottom: 26 },
+    tooltip: {
+      trigger: 'axis',
+      confine: true,
+      valueFormatter: (value: unknown) => valid(value) ? Math.round(value) + ' AQI' : 'Veri yok',
+    },
+    xAxis: {
+      type: 'category',
+      boundaryGap: false,
+      data: times,
+      axisLine: { show: false },
+      axisTick: { show: false },
+      axisLabel: {
+        color: '#64748B',
+        fontSize: 10,
+        interval: 0,
+        hideOverlap: true,
+        formatter: (time: string) => time.endsWith('T00:00') ? shortDay(time.slice(0, 10)) : '',
+      },
+    },
+    yAxis: {
+      type: 'value',
+      min: 0,
+      minInterval: 10,
+      axisLine: { show: false },
+      axisTick: { show: false },
+      axisLabel: { show: false },
+      splitLine: { lineStyle: { color: 'rgba(23,162,184,0.13)', type: 'dashed' } },
+    },
+    series: [{
+      name: 'Avrupa AQI',
+      type: 'line',
+      smooth: 0.3,
+      showSymbol: false,
+      connectNulls: false,
+      data: readings.map(value => valid(value) ? value : null),
+      lineStyle: { color: TEAL, width: 2.5 },
+      itemStyle: { color: TEAL },
+      areaStyle: {
+        color: {
+          type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
+          colorStops: [
+            { offset: 0, color: 'rgba(23,162,184,0.28)' },
+            { offset: 1, color: 'rgba(23,162,184,0.02)' },
+          ],
+        },
+      },
+      markLine: nowHour ? {
+        silent: true,
+        animation: false,
+        symbol: ['none', 'none'],
+        lineStyle: { color: '#E16D45', width: 1.6, type: 'dashed' },
+        label: {
+          show: true, color: '#B65330', fontSize: 11, fontWeight: 'bold',
+          formatter: 'Şimdi', position: 'end', distance: 3,
+        },
+        data: [{ xAxis: nowHour }],
+      } : undefined,
+      markPoint: nowHour && valid(nowValue) ? {
+        symbol: 'circle',
+        symbolSize: 10,
+        label: { show: false },
+        itemStyle: { color: '#E16D45', borderColor: '#FFFFFF', borderWidth: 2 },
+        data: [{ coord: [nowHour, nowValue], name: 'Şimdi' }],
+      } : undefined,
+    }],
+  };
+}
+
+function sevenDayMiniOption(
+  days: DatedValue[],
+  today: string | undefined,
+  unit: string,
+  animate: boolean,
+): Record<string, unknown> | null {
+  const present = days.filter(item => valid(item.value));
+  // Tamami sifir olan bir polen serisini buyuk grafik olarak gostermeyelim.
+  if (present.length < 2 || present.every(item => item.value === 0)) return null;
+  const dates = days.map(item => item.day);
+  const todayDay = today?.slice(0, 10);
+  return {
+    animation: animate,
+    animationDuration: 550,
+    animationEasing: 'cubicOut',
+    grid: { left: 2, right: 3, top: 8, bottom: 6 },
+    tooltip: {
+      trigger: 'axis', confine: true,
+      valueFormatter: (value: unknown) =>
+        valid(value) ? value.toLocaleString('tr-TR', { maximumFractionDigits: 1 }) + ' ' + unit : 'Veri yok',
+    },
+    xAxis: { type: 'category', boundaryGap: false, data: dates, show: false },
+    yAxis: { type: 'value', min: 0, show: false, scale: false },
+    series: [{
+      name: '7 günlük değişim',
+      type: 'line',
+      smooth: true,
+      showSymbol: false,
+      connectNulls: false,
+      data: days.map(item => valid(item.value) ? item.value : null),
+      lineStyle: { color: TEAL, width: 2 },
+      itemStyle: { color: TEAL },
+      areaStyle: { color: 'rgba(23,162,184,0.10)' },
+      markLine: todayDay && dates.includes(todayDay) ? {
+        silent: true, animation: false, symbol: ['none', 'none'],
+        label: { show: false },
+        lineStyle: { color: '#E16D45', type: 'dashed', width: 1 },
+        data: [{ xAxis: todayDay }],
+      } : undefined,
+    }],
+  };
+}
 
 function aqiCategory(value: number | null) {
   if (value === null) return { name: 'Veri yok', color: '#64748B' };
@@ -213,122 +364,55 @@ export function IspartaAirPollenBanner() {
 
   const current = data?.current;
   const aqi = valid(current?.european_aqi) ? current.european_aqi : null;
-  const pm25 = valid(current?.pm2_5) ? current.pm2_5 : null;
   const status = aqiCategory(aqi);
-
-  // React Compiler: memoization bagimliliklari callback'in kullandigi
-  // alanlarla birebir ayni olmali. Tum data nesnesini bagimlilik yapma.
-  const hourlyTimes = data?.hourly?.time;
-  const hourlyAqi = data?.hourly?.european_aqi;
-  const modelTime = data?.current?.time;
-  const trend = useMemo(() => {
-    const hours = hourlyTimes ?? [];
-    const values = hourlyAqi ?? [];
-    if (!modelTime || !hours.length) return [];
-    const start = hours.findIndex(hour => hour >= modelTime);
-    if (start === -1) return [];
-    return hours.slice(start, start + 12).map((time, i) => ({
-      label: time.slice(11, 16),
-      value: values[start + i],
-    })).filter(({ value }) => valid(value));
-  }, [hourlyTimes, hourlyAqi, modelTime]);
-
-  const pollen = useMemo(() => POLLEN_TYPES
-    .flatMap(type => {
-      const value = current?.[type.key];
-      return valid(value) ? [{ label: type.label, value }] : [];
-    })
-    .sort((a, b) => b.value - a.value)
-    .slice(0, 4), [current]);
-
+  const currentTime = current?.time;
+  const days = data?.hourly?.time;
   const animate = typeof window !== 'undefined'
     ? !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
     : true;
 
-  const airOption = useMemo<Record<string, unknown> | null>(() => {
-    if (trend.length < 2) return null;
-    return {
-      animation: animate,
-      animationDuration: 600,
-      animationEasing: 'cubicOut',
-      grid: { left: 5, right: 7, top: 12, bottom: 20 },
-      tooltip: {
-        trigger: 'axis',
-        confine: true,
-        valueFormatter: (value: unknown) => typeof value === 'number' ? Math.round(value) + ' AQI' : '—',
-      },
-      xAxis: {
-        type: 'category', boundaryGap: false,
-        data: trend.map(item => item.label),
-        axisTick: { show: false }, axisLine: { show: false },
-        axisLabel: { color: '#64748B', fontSize: 10, interval: 2 },
-      },
-      yAxis: {
-        type: 'value', min: 0, minInterval: 10, axisLine: { show: false },
-        axisTick: { show: false }, axisLabel: { show: false },
-        splitLine: { lineStyle: { color: 'rgba(23,162,184,0.12)', type: 'dashed' } },
-      },
-      series: [{
-        name: 'Avrupa AQI',
-        type: 'line', smooth: true, showSymbol: false,
-        symbol: 'circle', symbolSize: 5,
-        data: trend.map(item => item.value),
-        lineStyle: { color: TEAL, width: 3 },
-        itemStyle: { color: TEAL },
-        areaStyle: {
-          color: {
-            type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
-            colorStops: [
-              { offset: 0, color: 'rgba(23,162,184,0.30)' },
-              { offset: 1, color: 'rgba(23,162,184,0.02)' },
-            ],
-          },
-        },
-      }],
-    };
-  }, [trend, animate]);
+  // CAMS 3 geride + bugün + 3 ileride = toplam 7 takvim günü.
+  // Null degerler korunur, eksik olcumler asla 0'a donusturulmez.
+  const airOption = sevenDayAirOption(days, data?.hourly?.european_aqi, currentTime, animate);
+  const grass = valid(current?.grass_pollen) ? current.grass_pollen : null;
+  const pm25 = valid(current?.pm2_5) ? current.pm2_5 : null;
+  const co = valid(current?.carbon_monoxide) ? current.carbon_monoxide : null;
 
-  const pollenOption = useMemo<Record<string, unknown> | null>(() => {
-    if (!pollen.length) return null;
-    // Siralama ECharts'in yukaridan asagi bar yerlesimi icin ters cevrilir.
-    const rows = [...pollen].reverse();
-    return {
-      animation: animate,
-      animationDuration: 550,
-      animationEasing: 'cubicOut',
-      grid: { left: 74, right: 50, top: 4, bottom: 5 },
-      tooltip: {
-        trigger: 'axis', axisPointer: { type: 'shadow' }, confine: true,
-        valueFormatter: (value: unknown) =>
-          typeof value === 'number' ? value.toLocaleString('tr-TR', { maximumFractionDigits: 1 }) + ' tane/m³' : '—',
-      },
-      xAxis: { type: 'value', min: 0, show: false },
-      yAxis: {
-        type: 'category',
-        data: rows.map(row => row.label),
-        axisTick: { show: false }, axisLine: { show: false },
-        axisLabel: { color: '#475569', fontSize: 11 },
-      },
-      series: [{
-        name: 'Polen',
-        type: 'bar',
-        data: rows.map(row => row.value),
-        barWidth: 12,
-        showBackground: true,
-        backgroundStyle: { color: 'rgba(23,162,184,0.09)', borderRadius: 8 },
-        itemStyle: { color: TEAL, borderRadius: [0, 8, 8, 0] },
-        label: {
-          show: true, position: 'right', color: '#0F6F7E', fontSize: 11,
-          formatter: (info: { value: number }) =>
-            info.value.toLocaleString('tr-TR', { maximumFractionDigits: 1 }),
-        },
-      }],
-    };
-  }, [pollen, animate]);
+  const metrics = [
+    {
+      key: 'grass',
+      label: 'Çim poleni',
+      currentValue: grass,
+      display: grass === null ? 'Veri yok' : grass === 0
+        ? 'Çok düşük' : grass.toLocaleString('tr-TR', { maximumFractionDigits: 1 }),
+      unit: grass === 0 ? '' : 'tane/m³',
+      points: dailyAverage(days, data?.hourly?.grass_pollen),
+    },
+    {
+      key: 'pm25',
+      label: 'PM2.5',
+      currentValue: pm25,
+      display: pm25 === null ? 'Veri yok' : pm25.toLocaleString('tr-TR', { maximumFractionDigits: 1 }),
+      unit: 'µg/m³',
+      points: dailyAverage(days, data?.hourly?.pm2_5),
+    },
+    {
+      key: 'co',
+      label: 'Karbon monoksit (CO)',
+      currentValue: co,
+      display: co === null ? 'Veri yok' : co.toLocaleString('tr-TR', { maximumFractionDigits: 1 }),
+      unit: 'µg/m³',
+      points: dailyAverage(days, data?.hourly?.carbon_monoxide),
+    },
+  ];
+
+  const currentLabel = loading ? 'Yükleniyor…'
+    : failed ? 'Güncel veri alınamadı'
+    : currentTime?.slice(11, 16) + ' TSİ · Model tahmini';
 
   return (
     <section
-      aria-label="Isparta Merkez polen ve hava kalitesi tahmini"
+      aria-label="Isparta Merkez hava kalitesi, polen ve hava kirleticileri tahmini"
       className="mx-auto mb-8 max-w-5xl overflow-hidden rounded-2xl border bg-white shadow-sm"
       style={{ borderColor: 'rgba(23,162,184,0.28)' }}
     >
@@ -338,11 +422,9 @@ export function IspartaAirPollenBanner() {
           <MapPin size={17} aria-hidden="true" />
           <span>Isparta Merkez</span>
           <span className="text-white/60">·</span>
-          <span>Alerji ve Hava Kalitesi</span>
+          <span>Polen ve Hava Kalitesi</span>
         </div>
-        <span className="text-xs text-white/90">
-          {loading ? 'Yükleniyor…' : failed ? 'Güncel veri alınamadı' : current?.time?.slice(11, 16) + ' TSİ · Tahmin'}
-        </span>
+        <span className="text-xs text-white/90">{currentLabel}</span>
       </div>
 
       <div className="grid gap-3 p-3 md:grid-cols-2 sm:p-4">
@@ -362,51 +444,76 @@ export function IspartaAirPollenBanner() {
           </div>
           <div className="mt-3">
             {airOption ? (
-              <EChartMini option={airOption} label="Gelecek 12 saat için Avrupa hava kalitesi endeksi grafiği" />
+              <EChartMini
+                option={airOption}
+                label="Isparta Merkez 7 günlük hava kalitesi değişimi; turuncu kesikli Şimdi çizgisi"
+                height={158}
+              />
             ) : (
-              <div className="flex h-28 items-center justify-center rounded-lg bg-white/80 px-3 text-center text-sm text-slate-500">
-                {loading ? 'Hava kalitesi grafiği hazırlanıyor…' : failed ? 'Hava kalitesi tahmini alınamadı.' : 'Saatlik hava kalitesi eğilimi mevcut değil.'}
+              <div className="flex h-40 items-center justify-center rounded-lg bg-white/80 px-3 text-center text-sm text-slate-500">
+                {loading ? '7 günlük hava kalitesi grafiği hazırlanıyor…'
+                  : failed ? 'Hava kalitesi tahmini alınamadı.'
+                  : '7 günlük hava kalitesi verisi mevcut değil.'}
               </div>
             )}
           </div>
-          <div className="mt-2 border-t border-[#D3ECEF] pt-2 text-xs text-slate-600">
-            PM2.5: <strong className="text-slate-800">
-              {pm25 === null ? '—' : pm25.toLocaleString('tr-TR', { maximumFractionDigits: 1 })}
-            </strong> µg/m³
-            <span className="float-right text-slate-500">12 saatlik eğilim</span>
+          <div className="mt-2 flex flex-wrap items-center justify-between gap-2 border-t border-[#D3ECEF] pt-2 text-[11px] text-slate-600">
+            <span>3 gün geçmiş · bugün · 3 gün tahmin</span>
+            <span className="inline-flex items-center gap-1 font-semibold text-[#B65330]">
+              <span className="inline-block h-3 border-l-2 border-dashed border-[#E16D45]" aria-hidden="true" />
+              Şimdi
+            </span>
           </div>
         </article>
 
         <article className="min-w-0 rounded-xl border border-[#D3ECEF] bg-[#F7FCFD] p-4">
           <div className="flex items-center gap-2">
             <Leaf size={19} color={TEAL} aria-hidden="true" />
-            <h2 className="m-0 text-base font-semibold text-slate-800">Polen</h2>
-            <span className="ml-auto text-[11px] text-slate-500">Alerji · Bitki polenleri</span>
+            <h2 className="m-0 text-base font-semibold text-slate-800">Polen ve Hava Etkenleri</h2>
+            <span className="ml-auto text-[11px] text-slate-500">7 gün</span>
           </div>
           <p className="mb-0 mt-2 text-xs text-slate-500">
-            Bitki türlerine göre tahmini yoğunluk (tane/m³)
+            Çim poleni, ince partikül ve karbon monoksit
           </p>
-          <div className="mt-2">
-            {pollenOption ? (
-              <EChartMini option={pollenOption} label="Isparta Merkez bitki polen yoğunlukları; yatay sütun grafik" height={142} />
-            ) : (
-              <div className="flex h-36 items-center justify-center rounded-lg border border-dashed border-[#C6E6EA] bg-white px-3 text-center text-sm leading-relaxed text-slate-500">
-                {loading ? 'Polen tahmini yükleniyor…'
-                  : failed ? 'Polen verisi şu anda alınamadı.'
-                  : 'Isparta için şu anda polen tahmini bulunmuyor. Bu durum mevsim veya bölgesel veri kapsamından kaynaklanabilir.'}
-              </div>
-            )}
+          <div className="mt-2 space-y-2">
+            {metrics.map(metric => {
+              const miniature = sevenDayMiniOption(metric.points, currentTime, metric.unit || 'tane/m³', animate);
+              return (
+                <div key={metric.key} className="grid grid-cols-[minmax(0,1fr)_minmax(96px,42%)] items-center gap-2 rounded-lg bg-white/80 px-3 py-2">
+                  <div className="min-w-0">
+                    <div className="text-xs font-semibold text-slate-700">{metric.label}</div>
+                    <div className="mt-1 flex flex-wrap items-baseline gap-1">
+                      <span className="text-sm font-bold tabular-nums text-[#0F6F7E]">
+                        {loading ? '…' : metric.display}
+                      </span>
+                      {metric.currentValue !== null && metric.unit && (
+                        <span className="text-[11px] text-slate-500">{metric.unit}</span>
+                      )}
+                    </div>
+                  </div>
+                  {miniature ? (
+                    <EChartMini
+                      option={miniature}
+                      label={metric.label + ' için yedi günlük ayrı ölçekli eğilim'}
+                      height={43}
+                    />
+                  ) : (
+                    <div className="flex h-11 items-center justify-center text-right text-[11px] text-slate-400">
+                      {loading ? 'Yükleniyor…' : metric.currentValue === 0 ? 'Çok düşük' : '7 günlük veri yok'}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
-          {pollenOption && (
-            <p className="mb-0 mt-1 text-[11px] text-slate-500">
-              Tür bazında model tahmini; kişisel alerji riski puanı değildir.
-            </p>
-          )}
+          <p className="mb-0 mt-2 text-[11px] text-slate-500">
+            Her gösterge ayrı ölçekte; CO ve PM2.5 kirleticidir, polen değildir. İstasyon ölçümü değildir.
+          </p>
         </article>
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[#E0F0F2] px-4 py-2.5 text-[11px] text-slate-500 sm:px-5">
-        <span>İstasyon ölçümü değil, Open-Meteo / CAMS model tahminidir.</span>
+        <span>Open-Meteo / CAMS tahmini · Geçmiş günler arşivlenmiş model verisidir.</span>
         <a href="https://open-meteo.com/en/docs/air-quality-api" target="_blank" rel="noopener noreferrer"
           className="font-medium underline underline-offset-2 hover:text-[#0F6F7E]"
           style={{ color: '#0F6F7E' }}>
