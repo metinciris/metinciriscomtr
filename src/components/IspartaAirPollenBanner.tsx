@@ -141,7 +141,7 @@ function sevenDayAirOption(
       splitLine: { lineStyle: { color: 'rgba(53,83,100,0.26)', type: 'dashed' } },
     },
     series: [{
-      name: 'ABD AQI',
+      name: 'Hava Kalitesi Endeksi',
       type: 'line',
       smooth: 0.3,
       showSymbol: false,
@@ -480,7 +480,7 @@ export function IspartaAirPollenBanner() {
           <div className="flex items-center gap-2">
             <Wind size={19} color={status?.ink ?? TEAL} aria-hidden="true" />
             <h2 className="m-0 text-base font-semibold text-slate-800">Hava Kalitesi</h2>
-            <span className="ml-auto text-[11px] text-slate-500">ABD AQI</span>
+            <span className="ml-auto text-[11px] text-slate-500" title="Değerler ve renkler ABD AQI sınıflandırmasına göredir. AQI bir ölçüm birimi değil, hava kalitesi endeksidir.">Hava Kalitesi İndeksi</span>
           </div>
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <span className="text-[56px] font-extrabold leading-none tabular-nums sm:text-[64px]"
@@ -522,7 +522,7 @@ export function IspartaAirPollenBanner() {
             )}
           </div>
           <div className="mt-2 flex flex-wrap items-center justify-between gap-2 border-t border-[#D3ECEF] pt-2">
-            <div className="flex flex-wrap items-center gap-1" aria-label="ABD AQI renkli durum simgeleri">
+            <div className="flex flex-wrap items-center gap-1" aria-label="Hava kalitesi endeksinin altı renkli durum simgesi">
               {AQI_STAGES.map(stage => (
                 <span key={stage.icon} className="rounded-md p-0.5"
                   style={{
