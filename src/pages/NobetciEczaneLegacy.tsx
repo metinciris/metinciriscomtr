@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { PageContainer } from '../components/PageContainer';
+import { IspartaAirPollenBanner } from '../components/IspartaAirPollenBanner';
 import { Building2, Phone, Clock, AlertCircle, ExternalLink, MapPin } from 'lucide-react';
 
 const ECZANELERI_IFRAME_SRC = 'https://eczaneleri.net/asset/eczane/js/iframe/iframe.js';
@@ -153,6 +154,9 @@ export function NobetciEczane() {
           </p>
         </div>
       </div>
+
+      {/* Isparta Merkez icin kompakt hava kalitesi ve polen tahmini */}
+      <IspartaAirPollenBanner />
 
       {/* Ana Yönlendirme Kartı */}
       <div className="bg-white p-12 mb-8 text-center">
