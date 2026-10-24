@@ -145,10 +145,6 @@ export function NobetciEczane() {
       {/* Nöbetçi Eczane Widget'ı */}
       <div className="bg-white p-8 mb-8">
         <div className="max-w-3xl mx-auto">
-          <h2 className="mb-3">Bugünkü Nöbetçi Eczaneler (Isparta)</h2>
-          <p className="text-muted-foreground mb-4">
-            Aşağıdaki nöbetçi eczaneler otomatik alınmaktadır:
-          </p>
           {isLoading && (
             <div role="status" aria-live="polite" className="my-4 flex items-center justify-center gap-3 rounded-lg border border-gray-200 bg-gray-50 px-4 py-6">
               <div className="h-6 w-6 animate-spin rounded-full border-2 border-t-transparent border-[#990000]" />
@@ -174,12 +170,9 @@ export function NobetciEczane() {
               onClick={() => setMode('legacy')}
               className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
-              Önceki gömülü görünümü aç
+              Eski versiyona geç
             </button>
           </div>
-          <p className="mt-3 text-center text-xs text-muted-foreground">
-            Veri: Eczane Adresi (bağımsız servis). Widget'ın kaynak atıf satırı görünür bırakılır.
-          </p>
         </div>
       </div>
 
