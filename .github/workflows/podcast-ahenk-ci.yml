@@ -148,6 +148,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "Metadata-only Git clone and upload regression failed" }
           & python.exe .\windows\podcast-ahenk\test_gunluk_otomatik.py
           if ($LASTEXITCODE -ne 0) { throw "Daily automatic Ahenk regression failed" }
+          & .\windows\podcast-ahenk\test_gorev_kur.ps1
+          if (-not $?) { throw "12:30 interactive GUI scheduler dry-run failed" }
           foreach ($path in @(
             ".\windows\podcast-ahenk\gorev_kur.ps1",
             ".\windows\podcast-ahenk\gorev_kaldir.ps1",

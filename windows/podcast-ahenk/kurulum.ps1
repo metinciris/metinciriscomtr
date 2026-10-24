@@ -5,7 +5,8 @@ param(
     [string]$Target = "$env:LOCALAPPDATA\PodcastAhenk",
     [ValidateSet("Auto", "3.11", "3.12", "3.13")]
     [string]$PythonVersion = "Auto",
-    [switch]$CheckPythonOnly
+    [switch]$CheckPythonOnly,
+    [switch]$NoDailyTask
 )
 
 $ErrorActionPreference = "Stop"
@@ -211,4 +212,24 @@ if ($Desktop -and (Test-Path -LiteralPath $Desktop)) {
 Write-Host "Kurulum tamam. Uygulama klasoru: $Repo" -ForegroundColor Green
 Write-Host "FFmpeg eksikse: winget install -e --id Gyan.FFmpeg"
 Write-Host "Eksik ses motoru bilesenleri program acilisinda otomatik kurulur."
+
+# The previous installer created a desktop shortcut but did not REGISTER the
+# promised 12:30 task. Install/update it automatically alongside the GUI.
+# A scheduler failure never removes, resets, or changes existing audio.
+if (-not $NoDailyTask) {
+    $Scheduler = Join-Path $Repo "windows\podcast-ahenk\gorev_kur.ps1"
+    if (Test-Path -LiteralPath $Scheduler -PathType Leaf) {
+        try {
+            & $Scheduler -Target $Target
+            if (-not $?) { throw "Windows gunluk gorevi kaydedilemedi." }
+        } catch {
+            Write-Warning ("Gunluk 12:30 gorevi kurulamadı: " + $_.Exception.Message)
+            Write-Host "Daha sonra gorev_kur.ps1 dosyasini calistirarak tekrar deneyebilirsiniz." -ForegroundColor Yellow
+        }
+    } else {
+        Write-Warning "Gorev kurulum dosyasi bulunamadi: $Scheduler"
+    }
+} else {
+    Write-Host "NoDailyTask: 12:30 gorev kaydi degistirilmedi."
+}
 Start-Process -FilePath $Launcher

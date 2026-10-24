@@ -1,20 +1,22 @@
-# Remove only the installed scheduled task; never touch sound files.
+# Remove ONLY the Podcast Ahenk daily task; never delete user's MP3s.
 [CmdletBinding()]
-param()
+param([string]$Target = "$env:LOCALAPPDATA\PodcastAhenk")
 $ErrorActionPreference = "Stop"
 $Name = "PodcastAhenk_GunlukSes_1230"
-$Expected = Join-Path $env:LOCALAPPDATA "PodcastAhenk\venv\Scripts\pythonw.exe"
+$Expected = Join-Path $Target "venv\Scripts\pythonw.exe"
 $Task = Get-ScheduledTask -TaskName $Name -ErrorAction SilentlyContinue
 if (-not $Task) {
-    Write-Host "Podcast Ahenk gunluk gorevi zaten kurulu degil."
+    Write-Host "Podcast Ahenk gunluk gorevi kurulu degil."
     return
 }
-$Owns = @($Task.Actions | Where-Object {
+$Actions = @($Task.Actions)
+$Owns = @($Actions | Where-Object {
     [string]::Equals($_.Execute, $Expected, [StringComparison]::OrdinalIgnoreCase) -and
-    $_.Arguments.Contains("gunluk_otomatik.py")
+    ($_.Arguments.Contains("gunluk_otomatik.py") -or
+     $_.Arguments.Contains("two_step_manager.py"))
 })
-if ($Owns.Count -ne 1 -or @($Task.Actions).Count -ne 1) {
-    throw "Gorev baska bir programa ait olabilir. Silinmedi."
+if ($Actions.Count -ne 1 -or $Owns.Count -ne 1) {
+    throw "Bu gorev baska bir programa ait olabilir; silinmedi."
 }
 Unregister-ScheduledTask -TaskName $Name -Confirm:$false
-Write-Host "Gunluk otomatik gorev kaldirildi. Yerel MP3'ler ve GitHub sesleri korunuyor." -ForegroundColor Green
+Write-Host "Gorev kaldirildi. Yerel MP3'ler ve GitHub kayitlari degistirilmedi." -ForegroundColor Green
