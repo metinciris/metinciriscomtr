@@ -92,13 +92,15 @@ class DailyPodcastJobTests(unittest.TestCase):
         local = {"version": 1, "entries": {}}
         rendered = []
 
-        def fake_generate(plan, *, tts, preserve_local):
+        def fake_generate(plan, *, tts, preserve_local, on_prepared=None):
             self.assertTrue(preserve_local)
             self.assertLessEqual(len(plan["selected"]), 8)
             rendered.extend(plan["selected"])
             for key in plan["selected"]:
                 (self.audio / (key + ".mp3")).write_bytes(b"ID3" + b"A" * 1800)
                 local["entries"][key] = dict(self.catalog[key])
+                if on_prepared:
+                    on_prepared(key, self.catalog[key])
 
         with patch.object(daily.online_audio, "fetch_manifest",
                           return_value=self.manifest(80)), \
@@ -179,6 +181,66 @@ class DailyPodcastJobTests(unittest.TestCase):
         )
         self.assertEqual(approved, [])
         self.assertEqual(skipped, [key])
+
+    def test_progress_events_cover_each_title_and_safe_single_push(self):
+        """The visible GUI can display per-title work without extra Git pushes."""
+        local = {"version": 1, "entries": {}}
+        received = []
+
+        def fake_generate(plan, *, tts, preserve_local, on_prepared=None):
+            self.assertTrue(preserve_local)
+            for key in plan["selected"]:
+                (self.audio / (key + ".mp3")).write_bytes(b"ID3" + b"Q" * 1800)
+                local["entries"][key] = dict(self.catalog[key])
+                if on_prepared:
+                    on_prepared(key, self.catalog[key])
+
+        with patch.object(daily.online_audio, "fetch_manifest",
+                          return_value=self.manifest(110)), \
+             patch.object(engine, "load_sheet", return_value=self.articles), \
+             patch.object(daily.git_sync, "sync"), \
+             patch.object(daily.git_sync, "remote_manifest",
+                          return_value=self.manifest(110)), \
+             patch.object(engine, "load_manifest", return_value=local), \
+             patch.object(daily.audio_runtime, "ensure_runtime"), \
+             patch.object(engine, "create_tts", return_value=object()), \
+             patch.object(engine, "execute_plan", side_effect=fake_generate), \
+             patch.object(daily.git_sync, "publish_selected_local_voices",
+                          return_value="uploaded") as publisher:
+            result = daily.run_once(progress=received.append)
+        self.assertEqual(result["generated"], 10)
+        self.assertEqual(result["uploaded"], 10)
+        self.assertEqual(result["status"], "uploaded_waiting_for_deploy")
+        self.assertEqual(publisher.call_count, 1)
+        self.assertEqual(result["uploaded_keys"], self.keys[110:])
+        phases = [event["phase"] for event in received]
+        self.assertEqual(phases.count("generating"), 12)
+        self.assertIn("checking", phases)
+        self.assertIn("uploading", phases)
+        self.assertIn("uploaded", phases)
+        self.assertTrue(any("Makale" not in event.get("message", "")
+                            for event in received))
+
+    def test_stop_before_batch_keeps_local_audio_and_does_not_call_tts(self):
+        from threading import Event
+        stopping = Event()
+        stopping.set()
+        with patch.object(daily.online_audio, "fetch_manifest",
+                          return_value=self.manifest(118)), \
+             patch.object(engine, "load_sheet", return_value=self.articles), \
+             patch.object(daily.git_sync, "sync"), \
+             patch.object(daily.git_sync, "remote_manifest",
+                          return_value=self.manifest(118)), \
+             patch.object(engine, "load_manifest",
+                          return_value={"version": 1, "entries": {}}), \
+             patch.object(daily.audio_runtime, "ensure_runtime",
+                          side_effect=AssertionError("Must not load TTS")), \
+             patch.object(daily.git_sync, "publish_selected_local_voices",
+                          side_effect=AssertionError("Must not upload")):
+            result = daily.run_once(stopping=stopping)
+        self.assertTrue(result["stopped"])
+        self.assertEqual(result["generated"], 0)
+        self.assertEqual(result["uploaded"], 0)
 
     def test_registered_pc_clip_uploads_without_model(self):
         key = self.keys[-1]

@@ -10,6 +10,7 @@ from datetime import datetime, timezone
 import json
 import os
 from pathlib import Path
+import tempfile
 import shutil
 import subprocess
 import sys
@@ -29,6 +30,7 @@ import git_sync
 import audio_playback
 import preview_library
 import audio_runtime
+import gunluk_otomatik as daily_worker
 import selected_web_audio
 from scripts import render_podcast_audio as engine
 
@@ -38,6 +40,31 @@ ROOT = base.ROOT
 CACHE = base.CACHE
 ERROR_LOG = base.ERROR_LOG
 BATCH = 8
+AUTO_SETTINGS = "acilis_otomatik.json"
+
+
+def read_auto_setting(home):
+    try:
+        data = json.loads((Path(home) / AUTO_SETTINGS).read_text(encoding="utf-8-sig"))
+    except (OSError, ValueError, TypeError):
+        return True
+    return data.get("enabled", True) is not False if isinstance(data, dict) else True
+
+
+def write_auto_setting(home, enabled):
+    path = Path(home) / AUTO_SETTINGS
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, temp = tempfile.mkstemp(dir=path.parent, prefix=".ahenk-auto-", suffix=".json")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as stream:
+            json.dump({"version": 1, "enabled": bool(enabled)}, stream)
+            stream.write("\n")
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temp, path)
+    finally:
+        if os.path.exists(temp):
+            os.unlink(temp)
 
 
 class TwoStepManager(base.AhenkManager):
@@ -56,6 +83,8 @@ class TwoStepManager(base.AhenkManager):
         self._tts_lock = threading.Lock()
         self._engine_ready = False
         self._engine_error = None
+        self._auto_start_requested = False
+        self._auto_running = False
         super().__init__(root)
         root.protocol("WM_DELETE_WINDOW", self._close_window)
         root.after(450, self._start_engine_automatically)
@@ -85,7 +114,7 @@ class TwoStepManager(base.AhenkManager):
         tk.Label(header, text="PODCAST AHENK  ·  WEB SESLERİ",
                  bg="#1b344f", fg="white",
                  font=("Segoe UI Semibold", 17)).pack(anchor="w")
-        tk.Label(header, text="İki adım: Önce eksikleri hazırla, sonra yükle. WEB'deki mevcut sesler değiştirilmez.",
+        tk.Label(header, text="Açılışta otomatik hazırla + gönder · WEB'deki mevcut sesler korunur.",
                  bg="#1b344f", fg="#d9e5ef",
                  font=("Segoe UI", 10)).pack(anchor="w", pady=(2, 0))
 
@@ -104,12 +133,30 @@ class TwoStepManager(base.AhenkManager):
         )
         self.step_two.grid(row=0, column=1, sticky="ew", padx=(7, 0))
 
+        auto_controls = ttk.Frame(self.root, padding=(12, 0))
+        auto_controls.pack(fill="x")
+        self.auto_start_enabled = tk.BooleanVar(value=read_auto_setting(HOME))
+        ttk.Checkbutton(
+            auto_controls,
+            text="Program açılınca WEB'deki eksikleri otomatik hazırla ve gönder",
+            variable=self.auto_start_enabled,
+            command=self._auto_setting_changed,
+        ).pack(side="left")
+        self.btn_auto_run = ttk.Button(
+            auto_controls, text="↻ Şimdi otomatik tamamla",
+            command=self.run_automatic_workflow,
+        )
+        self.btn_auto_run.pack(side="right")
+        self.auto_state = tk.StringVar(value="Otomatik mod: hazır.")
+        ttk.Label(auto_controls, textvariable=self.auto_state,
+                  foreground="#346781").pack(side="right", padx=(0, 14))
+
         status_box = ttk.Frame(self.root, padding=(13, 4))
         status_box.pack(fill="x")
         self.stage_description = tk.StringVar(value="Hazır. Web'deki eksikleri denetlemek için 1. adıma basın.")
         self.stage_counters = tk.StringVar(value="Hazırlama: —    |    GitHub: —    |    WEB yayını: —")
         ttk.Label(status_box, textvariable=self.stage_description,
-                  font=("Segoe UI Semibold", 10)).pack(anchor="w")
+                  font=("Segoe UI Semibold", 10), wraplength=1100).pack(anchor="w")
         ttk.Label(status_box, textvariable=self.stage_counters,
                   font=("Segoe UI", 9)).pack(anchor="w", pady=(4, 5))
         bars = ttk.Frame(status_box)
@@ -126,6 +173,19 @@ class TwoStepManager(base.AhenkManager):
         self.web_progress_bar.grid(row=1, column=1, sticky="ew", padx=(13, 0), pady=(4, 0))
         self.stage_bar["value"] = 0
         self.web_progress_bar["value"] = 0
+
+        event_row = ttk.Frame(status_box)
+        event_row.pack(fill="x", pady=(2, 5))
+        self.auto_events = tk.Text(
+            event_row, height=3, wrap="word", background="#f3f8fb",
+            foreground="#324d63", relief="flat", font=("Segoe UI", 9),
+            padx=8, pady=4, state="disabled",
+        )
+        self.auto_events.pack(side="left", fill="x", expand=True)
+        event_scroll = ttk.Scrollbar(event_row, command=self.auto_events.yview)
+        event_scroll.pack(side="right", fill="y")
+        self.auto_events.configure(yscrollcommand=event_scroll.set)
+        self._append_auto_event("Otomatik mod hazır. Mevcut sesler korunacak.")
 
         summary = ttk.Frame(self.root, padding=(12, 2))
         summary.pack(fill="x")
@@ -169,7 +229,7 @@ class TwoStepManager(base.AhenkManager):
         ]:
             ttk.Button(toolbar, text=label, command=method).pack(side="left", padx=(0, 6))
         ttk.Button(toolbar, text="Durdur (parti sonrası)",
-                   command=self.stopping.set).pack(side="right")
+                   command=self._request_stop).pack(side="right")
         self.engine_display = tk.StringVar(value="Ses motoru: açılışta kontrol ediliyor…")
         ttk.Label(toolbar, textvariable=self.engine_display,
                   foreground="#3b6477").pack(side="right", padx=(0, 12))
@@ -404,6 +464,200 @@ class TwoStepManager(base.AhenkManager):
         self.progress.pack(side="left", padx=(0, 10))
         ttk.Label(bottom, textvariable=self.status).pack(side="left", fill="x", expand=True)
 
+    def _append_auto_event(self, message):
+        """UI-thread-only event log with a visible rolling history."""
+        stamp = datetime.now().strftime("%H:%M:%S")
+        self.auto_events.configure(state="normal")
+        self.auto_events.insert("end", f"{stamp}  {message}\n")
+        lines = int(self.auto_events.index("end-1c").split(".")[0])
+        if lines > 100:
+            self.auto_events.delete("1.0", f"{lines - 85}.0")
+        self.auto_events.see("end")
+        self.auto_events.configure(state="disabled")
+
+    def _auto_setting_changed(self):
+        enabled = self.auto_start_enabled.get()
+        try:
+            write_auto_setting(HOME, enabled)
+        except OSError as exc:
+            self._note("Otomatik açılış tercihi kaydedilemedi: " + str(exc))
+            self._append_auto_event("Ayar kaydedilemedi: " + str(exc))
+            return
+        if not enabled:
+            self._auto_start_requested = False
+        self.auto_state.set("Açılışta otomatik açık." if enabled else "Açılışta otomatik kapalı.")
+        self._append_auto_event(
+            "Sonraki açılışta otomatik işlem " +
+            ("açık." if enabled else "kapalı.")
+        )
+
+    def _request_stop(self):
+        self.stopping.set()
+        self._append_auto_event("Durdurma istendi; işlem sekizli partiden sonra duracak.")
+
+    def enable_startup_autorun(self):
+        """Called only by main() so UI unit tests stay fully manual."""
+        if not self.auto_start_enabled.get():
+            self.auto_state.set("Otomatik açılış kapalı. İstenirse elle başlatın.")
+            return
+        self._auto_start_requested = True
+        self.auto_state.set("Açılışta otomatik kontrol başlayacak.")
+        self.root.after(950, self._try_launch_autorun)
+
+    def _startup(self):
+        if self._auto_start_requested:
+            self._note("Otomatik WEB ve makale kontrolü başlayacak.")
+            return
+        return super()._startup()
+
+    def _try_launch_autorun(self):
+        if not self._auto_start_requested or not self.auto_start_enabled.get():
+            return
+        if self.busy:
+            self.root.after(1100, self._try_launch_autorun)
+            return
+        self._auto_start_requested = False
+        self.run_automatic_workflow()
+
+    def _auto_progress(self, event):
+        phase = event.get("phase", "")
+        current = int(event.get("current") or 0)
+        total = int(event.get("total") or 0)
+        message = str(event.get("message") or "")
+        previous = float(self.stage_bar["value"])
+        if phase == "generating":
+            percent = 16 + 64 * current / max(1, total)
+        elif phase == "engine":
+            percent = 14
+        elif phase == "planned":
+            percent = 12
+        elif phase == "sync":
+            percent = 84 if previous >= 20 else 8
+        elif phase == "uploading":
+            percent = 88
+        elif phase in ("uploaded", "complete", "waiting"):
+            percent = 100
+        elif phase == "stopping":
+            percent = min(83, previous)
+        else:
+            percent = 5
+        counter = None
+        if phase in ("generating", "engine", "stopping"):
+            counter = f"Yeni MP3: {current}/{total} · GitHub yüklemesi sırada"
+        elif phase == "uploading":
+            counter = f"GitHub'a gönderiliyor: {total} MP3 · WEB yayını sonra doğrulanacak"
+        self._stage("OTOMATİK · " + message, percent, counter)
+        self.auto_state.set("Çalışıyor · " + phase)
+        self._append_auto_event(message)
+
+    def run_automatic_workflow(self):
+        """Complete only genuinely missing audio, with one GitHub push."""
+        if self.busy or self._auto_running:
+            self._append_auto_event("Başka işlem sürüyor; ikinci iş başlatılmadı.")
+            return
+        self._auto_running = True
+        self.btn_auto_run.configure(state="disabled")
+        self.web_progress_bar["value"] = 0
+        self._stage("OTOMATİK · WEB ve GitHub sesleri kontrol ediliyor…", 0,
+                    "Eksik yoksa Ahenk modeli yüklenmeyecek.")
+        self._append_auto_event("Eksik sesleri hazırlama ve WEB'e gönderme başladı.")
+        self.auto_state.set("Otomatik işlem çalışıyor.")
+
+        def on_progress(event):
+            # Worker may only emit events, never interact with Tk directly.
+            self.events.put(("done", event, self._auto_progress))
+
+        def work():
+            try:
+                return True, daily_worker.run_once(
+                    progress=on_progress, stopping=self.stopping
+                )
+            except Exception as exc:
+                return False, (str(exc), traceback.format_exc())
+
+        def done(payload):
+            self._auto_running = False
+            self.btn_auto_run.configure(state="normal")
+            ok, data = payload
+            if not ok:
+                error, stack = data
+                with ERROR_LOG.open("a", encoding="utf-8") as file:
+                    file.write("\n" + datetime.now().isoformat() + "\n" + stack + "\n")
+                self.auto_state.set("İşlem başarısız · Log / Hata")
+                self._stage("OTOMATİK HATA · " + error[:160], None,
+                            "Yerel MP3'ler korundu · Tekrar deneyebilirsiniz")
+                self._append_auto_event("HATA: " + error)
+                self._note("Otomatik işlem tamamlanamadı: " + error)
+                return
+            self._auto_completed(data)
+
+        self._task("WEB'deki eksikler otomatik tamamlanıyor...", work, done)
+
+    def _auto_completed(self, result):
+        articles = result.get("_articles")
+        live = result.get("_website")
+        if isinstance(articles, list):
+            self.articles = articles
+            CACHE.parent.mkdir(parents=True, exist_ok=True)
+            fd, temp = tempfile.mkstemp(prefix=".ahenk-auto-articles-", dir=CACHE.parent)
+            try:
+                with os.fdopen(fd, "w", encoding="utf-8") as file:
+                    json.dump(articles, file, ensure_ascii=False)
+                    file.flush()
+                    os.fsync(file.fileno())
+                os.replace(temp, CACHE)
+            finally:
+                if os.path.exists(temp):
+                    os.unlink(temp)
+        if isinstance(live, dict):
+            self.web_manifest = live
+            self.web_confirmed = True
+            online_audio.cache_manifest(HOME, live)
+        self._rebuild()
+        produced = int(result.get("generated", 0))
+        uploaded = int(result.get("uploaded", 0))
+        skipped = len(result.get("skipped", []))
+        phase = result.get("status", "")
+        self.auto_state.set("Tamamlandı" if phase == "complete" else "İşlem sonucu hazır")
+        summary = (
+            f"{produced} yeni MP3 · GitHub'a {uploaded} gönderildi · "
+            f"Kontrol gereken: {skipped} · "
+            f"WEB'de mevcut: {result.get('listed', 0) - result.get('web_missing', 0)}"
+        )
+        if result.get("stopped"):
+            summary = "DURDURULDU · " + summary
+        self._stage("OTOMATİK SONUÇ · " + summary, 100,
+                    f"Yeni: {produced} | GitHub: {uploaded} | Kontrol: {skipped}")
+        self._append_auto_event("SONUÇ: " + summary)
+        self._note(summary)
+
+        keys = result.get("uploaded_keys", [])
+        if keys:
+            local_entries = engine.load_manifest().get("entries", {})
+            expected = {key: local_entries[key] for key in keys if key in local_entries}
+            if len(expected) != len(keys):
+                self._append_auto_event(
+                    "Yükleme kontrolü: Yerel kayıt sayısı farklı; dosyaları gözden geçirin."
+                )
+                return
+            state = flow.new_progress(keys)
+            state["github_sent"] = list(keys)
+            state["expected"] = expected
+            state["website_confirmed"] = flow.verified_on_web(state, self.web_manifest)
+            state["phase"] = (
+                "tamamlandi" if len(state["website_confirmed"]) == len(keys)
+                else "site_yayini_bekleniyor"
+            )
+            flow.save_progress(HOME, state)
+            self.publish_progress = state
+            self._set_progress(state)
+            if state["phase"] != "tamamlandi":
+                self._append_auto_event("GitHub tamamlandı · WEB yayını izleniyor.")
+                self._start_watch()
+        elif phase == "waiting_for_deploy":
+            self._append_auto_event("GitHub hazır; WEB dağıtımı bekleniyor.")
+            self._resume_watch()
+
     def _ensure_engine_dependencies(self):
         """Run exactly one setup job even if first TTS click overlaps startup."""
         with self._engine_lock:
@@ -425,6 +679,9 @@ class TwoStepManager(base.AhenkManager):
         Playing existing MP3s and publishing ready audio still work during
         first-time setup. No system-wide pip or administrator rights needed.
         """
+        if self._auto_start_requested:
+            self.engine_display.set("Ahenk: yalnız eksik ses varsa hazırlanacak.")
+            return
         self.engine_display.set("Ses motoru: eksikler otomatik denetleniyor…")
 
         def work():
@@ -519,6 +776,13 @@ class TwoStepManager(base.AhenkManager):
         ).pack(anchor="e", pady=(8, 0))
 
     def _close_window(self):
+        if self._auto_running:
+            messagebox.showinfo(
+                "Otomatik işlem sürüyor",
+                "Sesleri korumak için işlem sırasında kapanış engellendi. "
+                "Önce Durdur (parti sonrası) düğmesini kullanın."
+            )
+            return
         self._play_seq += 1
         try:
             self.fast_player.stop()
@@ -1491,6 +1755,8 @@ class TwoStepManager(base.AhenkManager):
             )
 
     def _resume_watch(self):
+        if self._auto_start_requested or self._auto_running:
+            return
         progress = flow.read_progress(HOME)
         if progress and progress.get("phase") == "site_yayini_bekleniyor" and (
             len(progress.get("website_confirmed", [])) <
@@ -1598,7 +1864,8 @@ def main():
             return
         root = tk.Tk()
         try:
-            TwoStepManager(root)
+            manager = TwoStepManager(root)
+            manager.enable_startup_autorun()
         except Exception as exc:
             with ERROR_LOG.open("a", encoding="utf-8") as handle:
                 handle.write(datetime.now().isoformat() + "\n" +
