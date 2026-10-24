@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-10-24T10:16:20.670354+00:00",
+  "generated_at": "2026-10-24T10:16:27.920141+00:00",
   "entries": {
     "7d9cd522d0f2d5752ca6a105": {
       "title": "MAP2K1 mutasyonlu melanositik tümörler: 114 olgu üzerinden yapılan bir çalışmaya dayanarak histolojik özelliklerin moleküler fonksiyonel sınıflarıyla ilişkisi.",
@@ -1409,6 +1409,70 @@
       "fingerprint": "unknown-recovered",
       "file": "268444b4dd734886da7d3034.mp3",
       "generated_at": "2026-10-24T07:53:57.495312+00:00"
+    },
+    "9030c5971c8d2c5393191865": {
+      "title": "BAP1 mutasyonlu ccRCC'nin klinikopatolojik spektrumunun genişletilmesi: Çok merkezli kohortta 84 vakanın incelenmesi.",
+      "journal": "Human Pathology",
+      "pmid": "42822734",
+      "fingerprint": "unknown-recovered",
+      "file": "9030c5971c8d2c5393191865.mp3",
+      "generated_at": "2026-10-24T07:54:01.771626+00:00"
+    },
+    "21394a448c6f8f9ad00b6529": {
+      "title": "Gastroözofageal adenokarsinomalarda Claudin 18.2 immünohistokimyası: Gastrointestinal patologlar arasında gözlemciler arası değişkenliğin incelenmesi.",
+      "journal": "Human Pathology",
+      "pmid": "42822733",
+      "fingerprint": "unknown-recovered",
+      "file": "21394a448c6f8f9ad00b6529.mp3",
+      "generated_at": "2026-10-24T07:54:27.866218+00:00"
+    },
+    "bc13536bc1181d0386ea468c": {
+      "title": "İntrasinüzoidal büyüme gösteren nodüler büyük B hücreli lenfoma: İntravasküler büyük B hücreli lenfoma ile tanısal örtüşme gösteren ayırt edici bir paternin klinikopatolojik incelemesi.",
+      "journal": "Human Pathology",
+      "pmid": "42822732",
+      "fingerprint": "unknown-recovered",
+      "file": "bc13536bc1181d0386ea468c.mp3",
+      "generated_at": "2026-10-24T07:54:46.488042+00:00"
+    },
+    "ef64bab4cdb428545a01b849": {
+      "title": "Ergenlik çağındaki bir hastada primer over küçük hücreli olmayan nöroendokrin karsinomu: Bugüne kadar bildirilen en genç vaka.",
+      "journal": "Pathology - Research and Practice",
+      "pmid": "42659772",
+      "fingerprint": "unknown-recovered",
+      "file": "ef64bab4cdb428545a01b849.mp3",
+      "generated_at": "2026-10-24T07:54:55.244678+00:00"
+    },
+    "3c0e5f3ca312f691958ae309": {
+      "title": "Golvatinib (E7050), ABCG2 taşıyıcısını inhibe ederek çoklu ilaç direncine sahip kanser hücrelerinde kemoterapiye duyarlılığı geri kazandırır.",
+      "journal": "Pathology - Research and Practice",
+      "pmid": "42641327",
+      "fingerprint": "unknown-recovered",
+      "file": "3c0e5f3ca312f691958ae309.mp3",
+      "generated_at": "2026-10-24T07:54:59.312643+00:00"
+    },
+    "d52440431e6c1ef1b73af930": {
+      "title": "Hepatocellüler karsinomda R-loop skoru ile tanımlanan konsensus alt tipleri ve genelleştirilebilir bir prognostik imza: Çoklu omik analizler, KIF2A pozitif proliferatif tümör hücrelerini belirliyor.",
+      "journal": "Pathology - Research and Practice",
+      "pmid": "42636674",
+      "fingerprint": "unknown-recovered",
+      "file": "d52440431e6c1ef1b73af930.mp3",
+      "generated_at": "2026-10-24T07:55:03.984218+00:00"
+    },
+    "2d74c7c0d0e4798227c56b1b": {
+      "title": "Meme bezinin solid papiller karsinomu: Alışılmadık immünohistokimyasal ve genetik özelliklere vurgu yapan klinikopatolojik bir çalışma.",
+      "journal": "Pathology - Research and Practice",
+      "pmid": "42636673",
+      "fingerprint": "unknown-recovered",
+      "file": "2d74c7c0d0e4798227c56b1b.mp3",
+      "generated_at": "2026-10-24T07:55:07.586984+00:00"
+    },
+    "4077c01243124095e529562c": {
+      "title": "Akkermansia muciniphila, kolorektal kanserde anti-PD-1 tedavisini destekler: Bütiratla ilişkili metabolik değişiklikler ve CD8⁺ T hücre yanıtları.",
+      "journal": "Pathology - Research and Practice",
+      "pmid": "42632257",
+      "fingerprint": "unknown-recovered",
+      "file": "4077c01243124095e529562c.mp3",
+      "generated_at": "2026-10-24T07:55:16.894712+00:00"
     }
   }
 }
