@@ -1,7 +1,13 @@
 {
-  "date": "25.10.2026",
-  "items": [],
-  "kcal": null,
+  "date": "26.10.2026",
+  "items": [
+    "TEL ŞEHRİYE ÇORBASI",
+    "ZEYTİNYAĞLI BAMYA",
+    "ERİŞTE GÜVEÇ",
+    "KASE YOĞURT",
+    "TEL ŞEHRİYE ÇORBASI"
+  ],
+  "kcal": "950",
   "source": "https://w3.sdu.edu.tr/aylik-yemek-listesi?dosya=yemekler_ogle&tur=2",
-  "updatedAt": "2026-10-25T12:39:27.854Z"
+  "updatedAt": "2026-10-26T10:24:30.473Z"
 }
