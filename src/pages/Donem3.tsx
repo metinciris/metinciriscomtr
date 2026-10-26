@@ -11,7 +11,7 @@ export function Donem3() {
         {
           name: 'Hemodinamik bozuklukların patolojisi (1 ve 2)',
           links: [
-            'https://www.dropbox.com/scl/fo/ux2nae6xf2vc09m63jwwj/APQr4p1OeAim7lcwT4Ncruc/T%C4%B1p%203/2.%20kurul?dl=0&preview=1.+Patolojiye+Giri%C5%9F.ppt&rlkey=4z1tpnwnam9pxt0vo2no8t8v6&subfolder_nav_tracking=1'
+            'https://www.dropbox.com/scl/fo/8lxnd9r791325pqzufgfb/AN43K8jGTVsFdZYSQCm2fdQ?rlkey=vfiekz4e2f6eckiggaj1g4kkk&st=hxsdswjz&dl=0'
           ]
         },
         {
