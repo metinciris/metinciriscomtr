@@ -1,20 +1,5 @@
 [
   {
-    "id": "football-CL-575344",
-    "sport": "football",
-    "competition": "UEFA Champions League",
-    "season": "2025/26",
-    "homeTeam": "Galatasaray SK",
-    "awayTeam": "FC Barcelona",
-    "startTimeUTC": "2026-10-13T19:00:00Z",
-    "startTimeLocal": "2026-10-13T22:00:00+03:00",
-    "status": "finished",
-    "scoreHome": 1,
-    "scoreAway": 4,
-    "source": "football-data",
-    "lastFetchedAt": "2026-10-27T11:53:36.149Z"
-  },
-  {
     "id": "football-CL-575355",
     "sport": "football",
     "competition": "UEFA Champions League",
@@ -27,7 +12,7 @@
     "scoreHome": 6,
     "scoreAway": 0,
     "source": "football-data",
-    "lastFetchedAt": "2026-10-27T11:53:36.150Z"
+    "lastFetchedAt": "2026-10-27T21:59:52.109Z"
   },
   {
     "id": "football-CL-575360",
@@ -42,7 +27,7 @@
     "scoreHome": 2,
     "scoreAway": 2,
     "source": "football-data",
-    "lastFetchedAt": "2026-10-27T11:53:36.150Z"
+    "lastFetchedAt": "2026-10-27T21:59:52.109Z"
   },
   {
     "id": "football-CL-575369",
@@ -57,7 +42,7 @@
     "scoreHome": 2,
     "scoreAway": 4,
     "source": "football-data",
-    "lastFetchedAt": "2026-10-27T11:53:36.150Z"
+    "lastFetchedAt": "2026-10-27T21:59:52.109Z"
   },
   {
     "id": "football-CL-575378",
@@ -72,7 +57,7 @@
     "scoreHome": null,
     "scoreAway": null,
     "source": "football-data",
-    "lastFetchedAt": "2026-10-27T11:53:36.150Z"
+    "lastFetchedAt": "2026-10-27T21:59:52.109Z"
   },
   {
     "id": "football-CL-575387",
@@ -87,6 +72,6 @@
     "scoreHome": null,
     "scoreAway": null,
     "source": "football-data",
-    "lastFetchedAt": "2026-10-27T11:53:36.150Z"
+    "lastFetchedAt": "2026-10-27T21:59:52.109Z"
   }
 ]
