@@ -1,7 +1,13 @@
 {
-  "date": "01.11.2026",
-  "items": [],
-  "kcal": null,
+  "date": "02.11.2026",
+  "items": [
+    "MERCİMEK ÇORBASI",
+    "BAHÇIVAN KEBABI",
+    "ARPA ŞEHRİYELİ PİRİNÇ PİLAVI",
+    "KASE YOĞURT",
+    "MERCİMEK ÇORBASI"
+  ],
+  "kcal": "1000",
   "source": "https://w3.sdu.edu.tr/aylik-yemek-listesi?dosya=yemekler_ogle&tur=2",
-  "updatedAt": "2026-11-01T14:23:09.593Z"
+  "updatedAt": "2026-11-02T12:47:19.179Z"
 }
