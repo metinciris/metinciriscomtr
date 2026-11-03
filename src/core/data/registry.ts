@@ -441,18 +441,6 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         navGroup: 'egitim',
         load: () => import('@/pages/OnlineTestAnaliz').then(m => ({ default: m.OnlineTestAnaliz as unknown as React.ComponentType<Record<string, unknown>> })),
     },
-    'euro-maclar': {
-        slug: 'euro-maclar',
-        title: 'Avrupa Kupaları Maç Takibi | Prof Dr Metin Çiriş',
-        description: 'Basketbol EuroLeague, EuroCup ve Voleybol CEV Şampiyonlar Ligi sonuçları. Temsilcilerimizin Avrupa sahnesindeki maç programı ve canlı skorları.',
-        keywords: 'avrupa kupaları, euroleague, basketbol, voleybol, türk takımları, maç takibi, fenerbahçe, anadolu efes, vakıfbank',
-        lastmod: '2026-07-16',
-        priority: 0.6,
-        changefreq: 'daily',
-        navLabel: 'Euro Maçlar',
-        navGroup: 'araclar',
-        load: () => import('@/pages/EuroMaclar').then(m => ({ default: m.EuroMaclar as unknown as React.ComponentType<Record<string, unknown>> })),
-    },
     konsensus: {
         slug: 'konsensus',
         title: 'Patoloji Konsensus Toplantı Takibi | Prof Dr Metin Çiriş',
