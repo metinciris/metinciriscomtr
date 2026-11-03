@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { PageContainer } from '../components/PageContainer';
 import { MetroTile } from '../components/MetroTile';
-import { FileBarChart, Activity, FileText, AlertCircle, Microscope, Box, BookOpen, Calculator, TrendingUp, Trophy, Users, Facebook, Github, Search, Briefcase, Calendar, Image, Globe, Timer, Shield, Dna, Layers } from 'lucide-react';
+import { FileBarChart, Activity, FileText, AlertCircle, Microscope, Box, BookOpen, Calculator, TrendingUp, Users, Facebook, Github, Search, Briefcase, Calendar, Image, Globe, Timer, Shield, Dna, Layers } from 'lucide-react';
 
 
 interface DigerCalismalarProps {
@@ -182,14 +182,6 @@ export function DigerCalismalar({ onNavigate }: DigerCalismalarProps) {
             style: { backgroundColor: '#1e293b' },
             page: 'online-test-analiz',
             category: 'patoloji'
-        },
-        {
-            title: "Euro Maçlar",
-            subtitle: "Türk takımları fikstürü",
-            icon: <Trophy size={40} />,
-            style: { backgroundColor: '#e67e22' },
-            page: 'euro-maclar',
-            category: 'diger'
         },
         {
             title: "Facebook",
