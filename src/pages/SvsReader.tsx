@@ -78,7 +78,7 @@ export function SvsReader() {
     const loadScripts = async () => {
       try {
         await loadScript(
-          'https://cdnjs.cloudflare.com/ajax/libs/openseadragon/4.1.0/openseadragon.min.js',
+          'https://cdn.jsdelivr.net/npm/openseadragon@4.1.0/build/openseadragon/openseadragon.min.js',
           'openseadragon-script'
         );
         await loadScript(
@@ -257,7 +257,7 @@ export function SvsReader() {
 
       viewerInstance.current = window.OpenSeadragon({
         element: viewerRef.current,
-        prefixUrl: 'https://cdnjs.cloudflare.com/ajax/libs/openseadragon/4.1.0/images/',
+        prefixUrl: 'https://cdn.jsdelivr.net/npm/openseadragon@4.1.0/build/openseadragon/images/',
         showNavigator: true,
         navigatorPosition: 'BOTTOM_RIGHT',
         navigatorSizeRatio: 0.15,
