@@ -1012,4 +1012,828 @@ export const PITFALLS: Pitfall[] = [
         references: [],
         updatedAt: "2025-12-16",
     },
+    // Blog arşivindeki gerçek Issues'a dayanan, önceki 26 rehberden farklı 16 tanı tuzağı.
+    {
+        "id": "renal-tfe3-bap1-false-translocation",
+        "titleTR": "Böbrek: TFE3 pozitifliği her zaman translokasyon değildir",
+        "titleEN": "Native TFE3 expression vs TFE3-rearranged RCC",
+        "organSystem": "Üriner",
+        "category": "IHC Tuzakları",
+        "modality": "IHC",
+        "specimenType": "Rezeksiyon",
+        "difficulty": "Zor",
+        "tags": [
+            "renal",
+            "TFE3",
+            "BAP1",
+            "GPNMB",
+            "MiT",
+            "translocation RCC"
+        ],
+        "teaser": "Yüksek dereceli şeffaf hücreli renal hücreli karsinomda, özellikle BAP1 kaybıyla birlikte nükleer TFE3 görülebilir; bu bulgu tek başına TFE3 füzyonu kanıtı değildir.",
+        "whyItTricks": [
+            "Nükleer TFE3 boyanması gen yeniden düzenlenmesiyle kolayca eşitlenir.",
+            "Eozinofilik veya rabdoid yüksek dereceli alanlar MiT ailesi renal tümörleri taklit edebilir.",
+            "İHK pozitifliği ile moleküler testin ölçtüğü olay aynı değildir."
+        ],
+        "keyClues": [
+            "Klasik şeffaf hücreli karsinom alanlarını ve BAP1 kaybını iç kontrol eşliğinde yeniden değerlendirin.",
+            "GPNMB boyanması destekleyici bağlam sağlar; negatifliği TFE3 füzyonunu tek başına dışlamaz.",
+            "Gerçek TFE3 yeniden düzenlenmesi kuşkusunda morfoloji ve klinik verileri birlikte yorumlayın."
+        ],
+        "minimalWorkup": [
+            "Temsil edici yüksek dereceli alanları, BAP1 iç kontrolünü ve TFE3 nükleer boyanma paternini gözden geçirin.",
+            "Gerektiğinde TFE3 için valide break-apart FISH veya uygun RNA füzyon analizi yapın."
+        ],
+        "reportingTips": [
+            "TFE3 İHK pozitifliğini “TFE3 yeniden düzenlenmesi” olarak kesinleştirmeyin.",
+            "Doğrulama yapılmadıysa moleküler alt tipin belirsizliğini açıkça yazın."
+        ],
+        "checklist": [
+            "Klasik şeffaf hücreli morfoloji var mı?",
+            "BAP1 iç kontrolü geçerli mi?",
+            "GPNMB ve TFE3 sonuçları birlikte değerlendirildi mi?",
+            "Genetik yeniden düzenlenme kanıtlandı mı?"
+        ],
+        "references": [
+            {
+                "label": "Blog arşivi: GitHub Issue #995",
+                "url": "https://github.com/metinciris/metinciriscomtr/issues/995"
+            },
+            {
+                "label": "PubMed PMID: 42925968",
+                "url": "https://pubmed.ncbi.nlm.nih.gov/42925968/"
+            }
+        ],
+        "updatedAt": "2026-11-14"
+    },
+    {
+        "id": "renal-tfeb-ihc-vs-alteration",
+        "titleTR": "Böbrek: TFEB İHK pozitifliği, yeniden düzenlenme veya amplifikasyon değildir",
+        "titleEN": "TFEB-associated renal neoplasia: immunophenotype vs genomic alteration",
+        "organSystem": "Üriner",
+        "category": "IHC Tuzakları",
+        "modality": "Moleküler",
+        "specimenType": "Rezeksiyon",
+        "difficulty": "Zor",
+        "tags": [
+            "renal",
+            "TFEB",
+            "RNA-ISH",
+            "GPNMB",
+            "cathepsin K",
+            "amplification"
+        ],
+        "teaser": "TFEB proteini, Katepsin K veya GPNMB pozitifliği TFEB genindeki değişikliğin türünü belirlemez; yeniden düzenlenme ve amplifikasyon ayrı ayrı doğrulanmalıdır.",
+        "whyItTricks": [
+            "TFEB antikor klonu ve teknik koşullar boyanmayı etkileyebilir.",
+            "Katepsin K ve GPNMB farklı renal tümörlerde de pozitif olabilir.",
+            "TFEB ile TFE3 ilişkili tümörler fenotipik olarak örtüşebilir."
+        ],
+        "keyClues": [
+            "TFEB yeniden düzenlenmesi ile TFEB amplifikasyonunun farklı genetik olaylar olduğunu koruyun.",
+            "İHK sonucu ile RNA-ISH/genetik analiz sonuçları birbiri yerine geçmez.",
+            "Klinik, morfoloji ve yaygın renal tümör tiplerinin dışlanması önemlidir."
+        ],
+        "minimalWorkup": [
+            "TFEB, Katepsin K ve GPNMB bulgularını uygun kontrol ve valide protokolle değerlendirin.",
+            "Endikasyona göre TFEB FISH veya valide moleküler/RNA yöntemleriyle doğrulama planlayın."
+        ],
+        "reportingTips": [
+            "“TFEB-ilişkili tümör şüphesi” ile “TFEB yeniden düzenlenmesi doğrulanmıştır” ifadelerini ayırın."
+        ],
+        "checklist": [
+            "İHK klonu ve kontrol uygun mu?",
+            "TFEB amplifikasyonu ile füzyonu ayrıştırıldı mı?",
+            "Moleküler doğrulama var mı?"
+        ],
+        "references": [
+            {
+                "label": "PubMed PMID: 42947507",
+                "url": "https://pubmed.ncbi.nlm.nih.gov/42947507/"
+            },
+            {
+                "label": "Blog arşivi: GitHub Issue #1013",
+                "url": "https://github.com/metinciris/metinciriscomtr/issues/1013"
+            }
+        ],
+        "updatedAt": "2026-11-14"
+    },
+    {
+        "id": "renal-oncocytic-gpnmb-lot-evt",
+        "titleTR": "Onkositik böbrek tümörlerinde GPNMB: LOT, EVT ve kromofob RHK ayrımı",
+        "titleEN": "Oncocytic renal neoplasms: GPNMB and integrated differential diagnosis",
+        "organSystem": "Üriner",
+        "category": "IHC Tuzakları",
+        "modality": "IHC",
+        "specimenType": "Rezeksiyon",
+        "difficulty": "Zor",
+        "tags": [
+            "renal",
+            "GPNMB",
+            "LOT",
+            "EVT",
+            "CK7",
+            "CD117",
+            "chromophobe"
+        ],
+        "teaser": "GPNMB pozitifliği LOT veya başka bir onkositik renal tümör için destek olabilir, ancak tanıyı tek başına belirlemez.",
+        "whyItTricks": [
+            "LOT, EVT, onkositom ve kromofob RHK morfolojik olarak örtüşebilir.",
+            "GPNMB, mTOR yolak değişiklikleri ve başka renal neoplazilerde de ekspresse olabilir."
+        ],
+        "keyClues": [
+            "CK7 ve CD117 dağılımını morfolojiyle birlikte değerlendirin.",
+            "LOT lehine yaygın CK7 ve çoğunlukla CD117 negatifliği önemlidir; tek marker ile sınıflama yapmayın.",
+            "Sınırda olgularda tümörün tamamı ve klinik bağlam değerlidir."
+        ],
+        "minimalWorkup": [
+            "Morfolojik inceleme + CK7 ve CD117 ile başlayın.",
+            "Seçilmiş olguda GPNMB, GATA3 ve/veya L1CAM gibi destekleyicileri kullanın; moleküler test kararı bütünleşik veriye dayansın."
+        ],
+        "reportingTips": [
+            "Moleküler olarak tanımlı antite izlenimi verecek kesin ifadelerden, destek yetersizse kaçının."
+        ],
+        "checklist": [
+            "CK7/CD117 paterni nedir?",
+            "GPNMB sonucu özgül sanıldı mı?",
+            "Morfoloji ve klinik uyumlu mu?"
+        ],
+        "references": [
+            {
+                "label": "Blog arşivi: GitHub Issue #1021",
+                "url": "https://github.com/metinciris/metinciriscomtr/issues/1021"
+            },
+            {
+                "label": "PubMed PMID: 35072947",
+                "url": "https://pubmed.ncbi.nlm.nih.gov/35072947/"
+            }
+        ],
+        "updatedAt": "2026-11-14"
+    },
+    {
+        "id": "urothelial-lateral-spread-vs-cis",
+        "titleTR": "Papiller ürotelyal karsinom komşuluğunda düz atipi: lateral yayılım mı CIS mi?",
+        "titleEN": "Urothelial lateral spread versus separate carcinoma in situ",
+        "organSystem": "Üriner",
+        "category": "Mimik",
+        "modality": "H&E",
+        "specimenType": "Rezeksiyon",
+        "difficulty": "Zor",
+        "tags": [
+            "urothelial",
+            "papillary",
+            "lateral spread",
+            "CIS",
+            "CK20",
+            "p53"
+        ],
+        "teaser": "Papiller tümöre bitişik düz ürotelyumda neoplastik atipi, bağımsız carcinoma in situ (CIS) odağı yerine tümörün lateral yayılımını temsil edebilir.",
+        "whyItTricks": [
+            "Düz epiteldeki atipi ayrı CIS odağı olarak aşırı sınıflandırılabilir.",
+            "Anormal CK20 veya p53 boyanması bağımsız CIS varlığını ispatlamaz."
+        ],
+        "keyClues": [
+            "Papiller tümör ve düz epitel arasındaki histolojik sürekliliği araştırın.",
+            "Atipinin düz epitelde gerçek CIS morfolojik kriterlerini karşılayıp karşılamadığını sorgulayın.",
+            "Boyanma paternini bağımsız histolojik kanıtın yerine koymayın."
+        ],
+        "minimalWorkup": [
+            "Papiller tümör-düz ürotelyum geçişini içeren ek kesitler.",
+            "Gerekiyorsa CK20/p53 ile destek; karar H&E ve anatomik devamlılığa dayansın."
+        ],
+        "reportingTips": [
+            "Ayrı CIS tanısı destekleniyorsa raporlayın; aksi durumda lateral uzanımı betimleyin ve belirsizliği koruyun."
+        ],
+        "checklist": [
+            "Atipi papiller tümöre devamlı mı?",
+            "Bağımsız CIS kriterleri var mı?",
+            "CK20/p53 aşırı yorumlandı mı?"
+        ],
+        "references": [
+            {
+                "label": "PubMed PMID: 42958923",
+                "url": "https://pubmed.ncbi.nlm.nih.gov/42958923/"
+            },
+            {
+                "label": "Blog arşivi: GitHub Issue #1027",
+                "url": "https://github.com/metinciris/metinciriscomtr/issues/1027"
+            }
+        ],
+        "updatedAt": "2026-11-14"
+    },
+    {
+        "id": "urothelial-focal-high-grade-percent",
+        "titleTR": "Papiller ürotelyal karsinomda fokal yüksek derece: yüzde eşiği tuzağı",
+        "titleEN": "Focal high-grade component in papillary urothelial carcinoma",
+        "organSystem": "Üriner",
+        "category": "Grading/Staging",
+        "modality": "H&E",
+        "specimenType": "Rezeksiyon",
+        "difficulty": "Orta",
+        "tags": [
+            "urothelial",
+            "papillary",
+            "grade",
+            "high grade",
+            "low grade",
+            "5 percent"
+        ],
+        "teaser": "Sınırlı yüksek dereceli alanın varlığı ve oranı, yalnız tek bir yüzde eşiğine indirgenmeden güncel derecelendirme yaklaşımı ve örnekleme ile değerlendirilmelidir.",
+        "whyItTricks": [
+            "Küçük yüksek dereceli odaklar kesitler arasında değişken görünebilir.",
+            "Ölçüm yöntemi tanımlanmayan yaklaşık yüzde ifadesi yalancı kesinlik yaratır."
+        ],
+        "keyClues": [
+            "Gerçek yüksek dereceli nükleer ve mimari özellikleri dejeneratif atipiden ayırın.",
+            "Yüksek dereceli alanın oranını, yaygınlığını ve örnekleme sınırını birlikte belirtin."
+        ],
+        "minimalWorkup": [
+            "Temsil edici tümör alanlarının tamamında derecelendirmeyi gözden geçirin.",
+            "Gerekli durumda ek seviye ve ikinci patolog değerlendirmesi."
+        ],
+        "reportingTips": [
+            "Kullanılan WHO/ISUP derecelendirme şeması ve yerel raporlama protokolüne göre dereceyi verin.",
+            "Fokal yüksek dereceli komponenti uygun olguda ayrıca belirtin; tek başına %5’i evrensel biyolojik eşik gibi sunmayın."
+        ],
+        "checklist": [
+            "Gerçek yüksek dereceli morfoloji var mı?",
+            "Oran temsil edici mi?",
+            "Hangi kılavuz/protokol uygulandı?"
+        ],
+        "references": [
+            {
+                "label": "Blog arşivi: GitHub Issue #851",
+                "url": "https://github.com/metinciris/metinciriscomtr/issues/851"
+            },
+            {
+                "label": "PubMed PMID: 41456876",
+                "url": "https://pubmed.ncbi.nlm.nih.gov/41456876/"
+            }
+        ],
+        "updatedAt": "2026-11-14"
+    },
+    {
+        "id": "soft-tissue-stat6-sft-vs-ddlps",
+        "titleTR": "Retroperitonda STAT6 pozitif iğsi hücreli tümör: SFT mi DDLPS mi?",
+        "titleEN": "STAT6-positive retroperitoneal spindle cell tumor: SFT vs DDLPS",
+        "organSystem": "Yumuşak Doku",
+        "category": "IHC Tuzakları",
+        "modality": "IHC",
+        "specimenType": "Biyopsi",
+        "difficulty": "Zor",
+        "tags": [
+            "STAT6",
+            "SFT",
+            "DDLPS",
+            "MDM2",
+            "CDK4",
+            "retroperitoneum"
+        ],
+        "teaser": "Nükleer STAT6, solitary fibrous tumor için güçlü destek olsa da bazı dediferansiye liposarkomlar da STAT6 ekspresse edebilir.",
+        "whyItTricks": [
+            "12q bölgesi amplifikasyonu DDLPS’de STAT6 ekspresyonu oluşturabilir.",
+            "Yağ dokusu içermeyen iğsi hücreli biyopsi SFT görünümü verebilir."
+        ],
+        "keyClues": [
+            "Retroperitoneal/perirenal anatomik yerleşim, radyolojik yağlı komponent ve heterojen morfoloji önemlidir.",
+            "MDM2/CDK4 İHK destekleyicidir; MDM2 amplifikasyonu ayrı bir genetik bulgudur."
+        ],
+        "minimalWorkup": [
+            "STAT6 ve CD34’ü patern düzeyinde yorumlayın; MDM2/CDK4 desteği ekleyin.",
+            "DDLPS olasılığında MDM2 amplifikasyonunu FISH veya valide eşdeğer yöntemle doğrulayın."
+        ],
+        "reportingTips": [
+            "Sadece STAT6 boyanmasına dayanarak SFT tanısı koymayın.",
+            "Moleküler veri ve radyolojik korelasyon eksikliğini gerekçeli yazın."
+        ],
+        "checklist": [
+            "Retroperitoneal yerleşim var mı?",
+            "MDM2 amplifikasyonu değerlendirildi mi?",
+            "STAT6 pozitifliği tek kanıt mı?"
+        ],
+        "references": [
+            {
+                "label": "Blog arşivi: GitHub Issue #1039",
+                "url": "https://github.com/metinciris/metinciriscomtr/issues/1039"
+            },
+            {
+                "label": "PubMed PMID: 24457460",
+                "url": "https://pubmed.ncbi.nlm.nih.gov/24457460/"
+            }
+        ],
+        "updatedAt": "2026-11-14"
+    },
+    {
+        "id": "soft-tissue-ddlps-no-fat-core",
+        "titleTR": "Yağ içermeyen biyopside dediferansiye liposarkomu kaçırma",
+        "titleEN": "Dedifferentiated liposarcoma without adipocytic component in core biopsy",
+        "organSystem": "Yumuşak Doku",
+        "category": "Örnekleme",
+        "modality": "H&E",
+        "specimenType": "Biyopsi",
+        "difficulty": "Zor",
+        "tags": [
+            "DDLPS",
+            "MDM2",
+            "CDK4",
+            "biopsy",
+            "retroperitoneum",
+            "liposarcoma"
+        ],
+        "teaser": "Dediferansiye liposarkomun küçük biyopsisinde lipomatöz komponent hiç görünmeyebilir; bu durumda tanı radyoloji ve uygun moleküler doğrulamayla yakalanır.",
+        "whyItTricks": [
+            "Yalnız nonlipogenik iğsi/pleomorfik alan örneklenmiş olabilir.",
+            "MDM2 İHK sonucu gen amplifikasyonuyla özdeş değildir."
+        ],
+        "keyClues": [
+            "Retroperitoneal büyük kitlenin görüntülemesinde iyi diferansiye yağlı alan olup olmadığını araştırın.",
+            "Farklı diferansiyasyon paternlerinde DDLPS olasılığını dışlamayın."
+        ],
+        "minimalWorkup": [
+            "Radyoloji-patoloji korelasyonu ve uygun ek blok örnekleme.",
+            "MDM2 amplifikasyonunun FISH/valide eşdeğer testle araştırılması; bölgeye göre diğer MDM2-amplifiye neoplazileri ayırın."
+        ],
+        "reportingTips": [
+            "Sadece yağ komponenti görülmedi diye DDLPS’yi dışlamayın; raporda biyopsi sınırlılığını belirtin."
+        ],
+        "checklist": [
+            "Görüntüleme incelendi mi?",
+            "MDM2 amplifikasyonu var mı?",
+            "Başka MDM2-amplifiye tümörler dışlandı mı?"
+        ],
+        "references": [
+            {
+                "label": "Blog arşivi: GitHub Issue #722",
+                "url": "https://github.com/metinciris/metinciriscomtr/issues/722"
+            },
+            {
+                "label": "Blog arşivi: GitHub Issue #1039",
+                "url": "https://github.com/metinciris/metinciriscomtr/issues/1039"
+            },
+            {
+                "label": "PubMed PMID: 40540926",
+                "url": "https://pubmed.ncbi.nlm.nih.gov/40540926/"
+            }
+        ],
+        "updatedAt": "2026-11-14"
+    },
+    {
+        "id": "soft-tissue-pantrk-negative-ntrk-fusion",
+        "titleTR": "Pan-TRK negatifliği NTRK füzyonunu kesin dışlamaz",
+        "titleEN": "False-negative pan-TRK immunohistochemistry in NTRK-fusion tumors",
+        "organSystem": "Yumuşak Doku",
+        "category": "IHC Tuzakları",
+        "modality": "Moleküler",
+        "specimenType": "Biyopsi",
+        "difficulty": "Orta",
+        "tags": [
+            "NTRK",
+            "pan-TRK",
+            "fusion",
+            "RNA-NGS",
+            "spindle cell"
+        ],
+        "teaser": "Pan-TRK İHK tarama testidir; negatif sonuç özellikle NTRK3 ilişkili füzyonları dışlamak için yeterli olmayabilir.",
+        "whyItTricks": [
+            "Ekspresyon seviyesi, füzyon partneri, preanalitik etkenler ve antikor klonu duyarlılığı etkiler.",
+            "Negatif İHK, ekspresse bir füzyonun bulunmadığının kesin kanıtı sanılabilir."
+        ],
+        "keyClues": [
+            "Morfoloji ve yaş/yerleşim NTRK ilişkili bir tümörü güçlü düşündürüyorsa İHK negatifliğine rağmen kuşku korunur.",
+            "Moleküler testin füzyon kapsamı ve RNA kalitesi bilinmelidir."
+        ],
+        "minimalWorkup": [
+            "Uygun morfolojik endikasyonda valide RNA füzyon paneli; alternatif test yöntemi ihtiyacını değerlendirin."
+        ],
+        "reportingTips": [
+            "“Pan-TRK negatif” ile “NTRK füzyonu yok” ifadelerini eşitlemeyin.",
+            "RNA sonucu başarısızsa negatif değil, teknik olarak değerlendirilemedi yazın."
+        ],
+        "checklist": [
+            "Klinik/morfolojik kuşku yüksek mi?",
+            "Pan-TRK boyasının kontrolü uygun mu?",
+            "RNA kalite ve panel kapsamı yeterli mi?"
+        ],
+        "references": [
+            {
+                "label": "Blog arşivi: GitHub Issue #1038",
+                "url": "https://github.com/metinciris/metinciriscomtr/issues/1038"
+            },
+            {
+                "label": "PubMed PMID: 35933886",
+                "url": "https://pubmed.ncbi.nlm.nih.gov/35933886/"
+            }
+        ],
+        "updatedAt": "2026-11-14"
+    },
+    {
+        "id": "bone-chondroblastoma-k36m-vs-giantcell",
+        "titleTR": "Epifizyal dev hücreli lezyon: Chondroblastoma mı giant cell tumour mü?",
+        "titleEN": "Chondroblastoma versus giant cell tumor: H3 K36M and H3 G34W",
+        "organSystem": "Kemik",
+        "category": "Mimik",
+        "modality": "IHC",
+        "specimenType": "Biyopsi",
+        "difficulty": "Orta",
+        "tags": [
+            "chondroblastoma",
+            "H3 K36M",
+            "H3 G34W",
+            "giant cell tumour",
+            "epiphysis"
+        ],
+        "teaser": "Dev hücrelerin ve sekonder anevrizmal değişikliğin baskın olduğu küçük örnekte Chondroblastoma, giant cell tumour veya kistik lezyon sanılabilir.",
+        "whyItTricks": [
+            "Sekonder anevrizmal kemik kisti alttaki solid tümörü örtebilir.",
+            "Reaktif dev hücreler neoplastik mononükleer popülasyonla karıştırılabilir."
+        ],
+        "keyClues": [
+            "Yaş, epifiz/apofiz yerleşimi ve matriks bulgularını değerlendirin.",
+            "H3.3 K36M pozitifliği chondroblastoma neoplastik mononükleer hücrelerinde nükleer olmalıdır.",
+            "Giant cell tumour için H3 G34W (varyant sınırlılıklarıyla) ayrı destekleyici kanıttır."
+        ],
+        "minimalWorkup": [
+            "Radyolojiyle birlikte solid mononükleer alanlardan kesit ve H3.3 K36M; uygun olguda H3 G34W."
+        ],
+        "reportingTips": [
+            "Antikor negatifliğini tanıyı mutlak dışlayan sonuç olarak sunmayın; teknik ve mutasyon varyantlarını değerlendirin."
+        ],
+        "checklist": [
+            "Epifizyal yerleşim var mı?",
+            "Solid tümör alanı örneklendi mi?",
+            "Mononükleer hücre boyanması değerlendirildi mi?"
+        ],
+        "references": [
+            {
+                "label": "PubMed PMID: 24162739",
+                "url": "https://pubmed.ncbi.nlm.nih.gov/24162739/"
+            },
+            {
+                "label": "Blog arşivi: GitHub Issue #848",
+                "url": "https://github.com/metinciris/metinciriscomtr/issues/848"
+            }
+        ],
+        "updatedAt": "2026-11-14"
+    },
+    {
+        "id": "bone-mesenchymal-chondrosarcoma-ncoa2-fish",
+        "titleTR": "Mezenkimal kondrosarkomda NCOA2 FISH negatifliği: yanlış dışlama tuzağı",
+        "titleEN": "Mesenchymal chondrosarcoma: NCOA2 FISH negative despite fusion",
+        "organSystem": "Kemik",
+        "category": "Diğer",
+        "modality": "Moleküler",
+        "specimenType": "Biyopsi",
+        "difficulty": "Zor",
+        "tags": [
+            "mesenchymal chondrosarcoma",
+            "HEY1::NCOA2",
+            "NCOA2",
+            "FISH",
+            "RNA-NGS"
+        ],
+        "teaser": "Bifazik morfoloji güçlü biçimde mezenkimal kondrosarkomu düşündürüyorsa negatif NCOA2 break-apart FISH, HEY1::NCOA2 füzyonunu kesin dışlamaz.",
+        "whyItTricks": [
+            "Probe tasarımı, kırılma noktası veya teknik kalite nedeniyle FISH negatif olabilir.",
+            "Break-apart FISH füzyon partnerini doğrudan tanımlamaz."
+        ],
+        "keyClues": [
+            "İlkel küçük yuvarlak hücreler ile iyi diferansiye hiyalin kıkırdak adalarının birlikteliğini arayın.",
+            "Morfoloji-test uyumsuzluğunda alternatif RNA füzyon yöntemi düşünün."
+        ],
+        "minimalWorkup": [
+            "FISH kalitesi ve analiz edilebilir tümör oranını gözden geçirin.",
+            "Gerektiğinde HEY1::NCOA2 ve ilişkili füzyonları kapsayan RNA-NGS yöntemi kullanın."
+        ],
+        "reportingTips": [
+            "Negatif FISH’i negatif füzyon taraması gibi raporlamayın; yöntem sınırlılığını belirtin."
+        ],
+        "checklist": [
+            "Bifazik morfoloji var mı?",
+            "FISH kontrolü ve tümör oranı uygun mu?",
+            "RNA bazlı doğrulama mümkün mü?"
+        ],
+        "references": [
+            {
+                "label": "Blog arşivi: GitHub Issue #1047",
+                "url": "https://github.com/metinciris/metinciriscomtr/issues/1047"
+            },
+            {
+                "label": "PubMed PMID: 42967628",
+                "url": "https://pubmed.ncbi.nlm.nih.gov/42967628/"
+            }
+        ],
+        "updatedAt": "2026-11-14"
+    },
+    {
+        "id": "bone-bnct-vs-chordoma",
+        "titleTR": "Benign notokordal hücreli tümör mü chordoma mı? İHK tek başına yetmez",
+        "titleEN": "Benign notochordal cell tumor versus chordoma",
+        "organSystem": "Kemik",
+        "category": "Benign vs Malign",
+        "modality": "H&E",
+        "specimenType": "Biyopsi",
+        "difficulty": "Zor",
+        "tags": [
+            "BNCT",
+            "chordoma",
+            "brachyury",
+            "axial skeleton",
+            "destruction"
+        ],
+        "teaser": "Brachyury ve keratin pozitifliği hem benign notokordal hücreli tümörde hem chordoma’da bulunabilir; kritik ayrım destrüksiyon, matriks ve radyolojidir.",
+        "whyItTricks": [
+            "Notokordal fenotip maligniteyle eş tutulabilir.",
+            "Küçük biyopsi destrüktif invazyonu ve belirgin myxoid lobülleri kaçırabilir."
+        ],
+        "keyClues": [
+            "Kemik destrüksiyonu ve yumuşak doku kitlesi chordoma lehine güçlü bağlam sağlar.",
+            "BNCT genellikle intramedüller, iyi sınırlı ve belirgin destrüksiyon göstermeyen bir lezyondur."
+        ],
+        "minimalWorkup": [
+            "BT/MR görüntüleme-patoloji korelasyonu.",
+            "Keratin, EMA, brachyury soy doğrulaması için; benign-malign ayrımını sadece bu boyalarla yapmayın."
+        ],
+        "reportingTips": [
+            "Sınırlı örnekte chordoma dışlanamıyorsa tanısal sınırlılığı ve ek örnekleme gereğini açıkça ifade edin."
+        ],
+        "checklist": [
+            "Radyolojik destrüksiyon var mı?",
+            "Myxoid-lobüler gelişim görülüyor mu?",
+            "İHK sonucu gereğinden fazla yorumlandı mı?"
+        ],
+        "references": [
+            {
+                "label": "PubMed PMID: 15166667",
+                "url": "https://pubmed.ncbi.nlm.nih.gov/15166667/"
+            },
+            {
+                "label": "Blog arşivi: GitHub Issue #950",
+                "url": "https://github.com/metinciris/metinciriscomtr/issues/950"
+            },
+            {
+                "label": "Blog arşivi: GitHub Issue #954",
+                "url": "https://github.com/metinciris/metinciriscomtr/issues/954"
+            }
+        ],
+        "updatedAt": "2026-11-14"
+    },
+    {
+        "id": "gi-barrett-basal-crypt-dysplasia-p53",
+        "titleTR": "Barrett özofagusta bazal kript displazisi: p53 aşırı yorumlama tuzağı",
+        "titleEN": "Basal crypt dysplasia in Barrett esophagus: p53 pitfalls",
+        "organSystem": "GİS",
+        "category": "Benign vs Malign",
+        "modality": "IHC",
+        "specimenType": "Biyopsi",
+        "difficulty": "Zor",
+        "tags": [
+            "Barrett",
+            "basal crypt dysplasia",
+            "p53",
+            "reactive atypia",
+            "IND"
+        ],
+        "teaser": "Bazal kripte sınırlı sitolojik atipi reaktif değişikliklerle karışabilir; aberrant p53 destekleyicidir ancak tek başına displazi derecesini belirlemez.",
+        "whyItTricks": [
+            "Yüzey maturasyonu sürerken bazal kriptte displazi gözden kaçabilir.",
+            "p53 aşırı ekspresyonu ya da null patern morfolojik kanıt olmadan otomatik displazi sayılabilir."
+        ],
+        "keyClues": [
+            "Atipinin kript-yüzey dağılımını, inflamasyon ve erozyonla ilişkisini inceleyin.",
+            "Wild-type p53 paterni displaziyi dışlamaz.",
+            "Null p53 için korunmuş internal kontrol gereklidir."
+        ],
+        "minimalWorkup": [
+            "Derin seviyeler, H&E-p53 anatomik eşleştirmesi.",
+            "Belirsiz displazide deneyimli gastrointestinal patolog konsültasyonu."
+        ],
+        "reportingTips": [
+            "Displazi için belirsiz (IND) kategori gerektiğinde kullanılmalı; tek başına p53 ile derece yükseltilmemeli."
+        ],
+        "checklist": [
+            "Bazal kriptler dikkatle incelendi mi?",
+            "p53 iç kontrolü doğru mu?",
+            "Reaktif atipi yeterince değerlendirildi mi?"
+        ],
+        "references": [
+            {
+                "label": "PubMed PMID: 42935139",
+                "url": "https://pubmed.ncbi.nlm.nih.gov/42935139/"
+            },
+            {
+                "label": "Blog arşivi: GitHub Issue #935",
+                "url": "https://github.com/metinciris/metinciriscomtr/issues/935"
+            },
+            {
+                "label": "Blog arşivi: GitHub Issue #821",
+                "url": "https://github.com/metinciris/metinciriscomtr/issues/821"
+            }
+        ],
+        "updatedAt": "2026-11-14"
+    },
+    {
+        "id": "gi-gastroblastoma-gli1-biphasic",
+        "titleTR": "Mide bifazik tümöründe gastroblastoma: GLI1 füzyonu ve taklitçiler",
+        "titleEN": "Gastroblastoma: biphasic gastric tumor and GLI1 fusion",
+        "organSystem": "GİS",
+        "category": "Mimik",
+        "modality": "Moleküler",
+        "specimenType": "Biyopsi",
+        "difficulty": "Zor",
+        "tags": [
+            "gastroblastoma",
+            "GLI1",
+            "MALAT1::GLI1",
+            "GIST",
+            "gastric",
+            "biphasic"
+        ],
+        "teaser": "Bifazik epitelyal-mezenkimal mide tümöründe gastroblastoma düşünülür; GLI1 ile ilişkili değişiklikler tek başına bu histolojik tanıya özgül değildir.",
+        "whyItTricks": [
+            "Örnekleme yalnız bir komponenti yakalayabilir.",
+            "GLI1 füzyonu ile GLI1 amplifikasyonu biyolojik olarak aynı olay değildir.",
+            "Farklı mezenkimal ve epitelyal mide tümörleri benzer paternler gösterebilir."
+        ],
+        "keyClues": [
+            "Epitelyal ve iğsi hücreli iki komponenti araştırın.",
+            "GIST ve diğer bifazik/mezankimal tümörler için morfoloji ve sınırlı İHK kullanın."
+        ],
+        "minimalWorkup": [
+            "İki komponenti temsil eden bloklar ve hedefli İHK.",
+            "Gerekiyorsa GLI1 ilişkili füzyonları kapsayan RNA paneli; amplifikasyonu ayrıca değerlendirin."
+        ],
+        "reportingTips": [
+            "Moleküler değişikliği tanıyla özdeşleştirmeyin; negatif panelin kapsam sınırını belirtin."
+        ],
+        "checklist": [
+            "İki komponent örneklendi mi?",
+            "GIST ayırıcı tanısı çalışıldı mı?",
+            "Füzyon ile amplifikasyon ayrıldı mı?"
+        ],
+        "references": [
+            {
+                "label": "Blog arşivi: GitHub Issue #1037",
+                "url": "https://github.com/metinciris/metinciriscomtr/issues/1037"
+            },
+            {
+                "label": "PubMed PMID: 28731043",
+                "url": "https://pubmed.ncbi.nlm.nih.gov/28731043/"
+            }
+        ],
+        "updatedAt": "2026-11-14"
+    },
+    {
+        "id": "molecular-mtap-loss-ihc-vs-ngs",
+        "titleTR": "MTAP kaybı: İHK ile NGS uyumsuzluğunda yorum tuzağı",
+        "titleEN": "MTAP protein loss versus genomic deletion: discordant testing",
+        "organSystem": "Genel",
+        "category": "IHC Tuzakları",
+        "modality": "Moleküler",
+        "specimenType": "Biyopsi",
+        "difficulty": "Orta",
+        "tags": [
+            "MTAP",
+            "IHC",
+            "NGS",
+            "copy number",
+            "CDKN2A",
+            "tumor purity"
+        ],
+        "teaser": "İHK’de MTAP protein kaybı ile NGS’de homozigot delesyon değerlendirmesi yüksek oranda uyum gösterebilse de heterojenite ve düşük tümör oranı yanıltıcı sonuç doğurabilir.",
+        "whyItTricks": [
+            "İç kontrolü olmayan negatif boyanma gerçek kayıpla karıştırılabilir.",
+            "Düşük tümör saflığı NGS kopya sayısı tespitini güçleştirebilir.",
+            "Subklonal kayıp ve doku heterojenitesi yöntemler arasında fark oluşturabilir."
+        ],
+        "keyClues": [
+            "İHK’de korunmuş stromal/inflamatuvar iç kontrol ve tümör odaklarını birlikte değerlendirin.",
+            "NGS tümör oranı, CNV eşiği ve analitik sınırlılıkları kontrol edin."
+        ],
+        "minimalWorkup": [
+            "H&E üzerinde tümör oranı ve alan eşleştirmesi; İHK iç kontrolünün doğrulanması.",
+            "Uyumsuz ve klinik önemi yüksek örnekte ek kesit/alternatif yöntem düşünün."
+        ],
+        "reportingTips": [
+            "Protein kaybını otomatik olarak gen delesyonu veya tedavi uygunluğu saymayın."
+        ],
+        "checklist": [
+            "İHK iç kontrolü var mı?",
+            "NGS tümör oranı yeterli mi?",
+            "Heterojenite değerlendirildi mi?"
+        ],
+        "references": [
+            {
+                "label": "Blog arşivi: GitHub Issue #843",
+                "url": "https://github.com/metinciris/metinciriscomtr/issues/843"
+            },
+            {
+                "label": "PubMed PMID: 42833292",
+                "url": "https://pubmed.ncbi.nlm.nih.gov/42833292/"
+            }
+        ],
+        "updatedAt": "2026-11-14"
+    },
+    {
+        "id": "molecular-erbb3-tumor-only-germline",
+        "titleTR": "Tümör-only NGS: ERBB3 varyantı somatik mi, germline mı?",
+        "titleEN": "ERBB3 tumor-only NGS: somatic variant versus germline polymorphism",
+        "organSystem": "Genel",
+        "category": "Raporlama",
+        "modality": "Moleküler",
+        "specimenType": "Genel",
+        "difficulty": "Zor",
+        "tags": [
+            "ERBB3",
+            "HER3",
+            "tumor only",
+            "somatic",
+            "germline",
+            "VUS"
+        ],
+        "teaser": "Tümör-only panelde ERBB3 varyantı saptanması, bu değişikliğin somatik, onkojenik veya tedavi hedefi olduğu anlamına gelmez.",
+        "whyItTricks": [
+            "Germline polimorfizmler somatik varyant olarak yanlış sınıflandırılabilir.",
+            "ERBB3 varyantı, amplifikasyon ve HER3 protein ekspresyonu birbiriyle eşitlenebilir."
+        ],
+        "keyClues": [
+            "Varyantın popülasyon sıklığı, bilinen patojenitesi ve tümör saflığı/VAF bağlamını ayrı ayrı inceleyin.",
+            "Varyantın onkojenisitesi bilinmiyorsa Unknown statüsünü açıkça koruyun."
+        ],
+        "minimalWorkup": [
+            "Güncel popülasyon veritabanı ve somatik onkojenisite kaynağı kontrolü.",
+            "Klinik gereksinimde eşleşmiş normal örnekle doğrulama/genetik danışmanlık değerlendirmesi."
+        ],
+        "reportingTips": [
+            "Somatik köken kesin doğrulanmadıysa bu sınırlılığı yazın; Unknown varyantı sessizce kaldırmayın.",
+            "Varyant varlığından tek başına HER3 hedefli tedavi endikasyonu çıkarmayın."
+        ],
+        "checklist": [
+            "Germline olasılığı değerlendirildi mi?",
+            "Oncogenicity sınıflaması aynen korundu mu?",
+            "Tedavi çıkarımı ayrı gerekçelendirildi mi?"
+        ],
+        "references": [
+            {
+                "label": "PubMed PMID: 42970860",
+                "url": "https://pubmed.ncbi.nlm.nih.gov/42970860/"
+            },
+            {
+                "label": "Blog arşivi: GitHub Issue #1051",
+                "url": "https://github.com/metinciris/metinciriscomtr/issues/1051"
+            }
+        ],
+        "updatedAt": "2026-11-14"
+    },
+    {
+        "id": "molecular-pancreas-eus-dna-rna-qc",
+        "titleTR": "Pankreas EUS biyopsisinde DNA yeterli, RNA yetersiz: yanlış negatif füzyon tuzağı",
+        "titleEN": "Pancreatic EUS biopsy: discordant DNA and RNA sequencing adequacy",
+        "organSystem": "GİS",
+        "category": "Örnekleme",
+        "modality": "Moleküler",
+        "specimenType": "Biyopsi",
+        "difficulty": "Orta",
+        "tags": [
+            "pancreas",
+            "EUS",
+            "DNA",
+            "RNA",
+            "NGS",
+            "fusion",
+            "QC"
+        ],
+        "teaser": "Aynı küçük biyopside DNA-NGS çalışabilirken RNA füzyon analizi kalite kontrolünden geçmeyebilir; teknik başarısızlık gerçek negatiflik değildir.",
+        "whyItTricks": [
+            "Tümör yüzdesinin yeterli olması, RNA bütünlüğünün yeterli olduğu anlamına gelmez.",
+            "DNA analizi tamamlandığında bütün moleküler testler tamamlandı sanılabilir."
+        ],
+        "keyClues": [
+            "DNA ve RNA kalite kontrol raporlarını ayrı inceleyin.",
+            "FFPE fiksasyon, nekroz, düşük hücre sayısı ve panel kapsamını değerlendirin."
+        ],
+        "minimalWorkup": [
+            "H&E üzerinde tümör oranı ve doku rezervi kontrolü.",
+            "RNA yetersizse kalan doku, alternatif blok veya yeniden örnekleme seçeneğini klinik ekiple değerlendirin."
+        ],
+        "reportingTips": [
+            "“Füzyon saptanmadı” yerine, geçersiz analizde “RNA füzyon analizi teknik nedenlerle değerlendirilemedi” deyin."
+        ],
+        "checklist": [
+            "RNA QC gerçekten başarılı mı?",
+            "Füzyon panel kapsamı uygun mu?",
+            "Alternatif materyal var mı?"
+        ],
+        "references": [
+            {
+                "label": "Blog arşivi: GitHub Issue #1088",
+                "url": "https://github.com/metinciris/metinciriscomtr/issues/1088"
+            },
+            {
+                "label": "PubMed PMID: 43006245",
+                "url": "https://pubmed.ncbi.nlm.nih.gov/43006245/"
+            }
+        ],
+        "updatedAt": "2026-11-14"
+    },
 ];
