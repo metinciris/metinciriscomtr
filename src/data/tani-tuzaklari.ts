@@ -1012,4 +1012,394 @@ export const PITFALLS: Pitfall[] = [
         references: [],
         updatedAt: "2025-12-16",
     },
+
+  // Blog arşivinden doğrudan doğrulanan yeni ayırıcı tanı tuzakları.
+  {
+    "id": "renal-tfe3-not-fusion",
+    "titleTR": "TFE3 pozitifliği: BAP1 kayıplı şeffaf hücreli RHK mi, TFE3 füzyonlu RHK mi?",
+    "organSystem": "Üriner",
+    "category": "IHC Tuzakları",
+    "modality": "Moleküler",
+    "specimenType": "Biyopsi",
+    "difficulty": "Zor",
+    "tags": [
+      "TFE3",
+      "BAP1",
+      "GPNMB"
+    ],
+    "teaser": "BAP1 kaybı olan yüksek dereceli şeffaf hücreli RHK'de nükleer TFE3 pozitifliği, yeniden düzenlenme göstermeden oluşabilir.",
+    "whyItTricks": [
+      "TFE3 boyanması tek başına füzyon kanıtı değildir.",
+      "Tek bir immün veya moleküler sonuç, morfolojiyle karşılaştırılmadığında aşırı sınıflamaya yol açabilir."
+    ],
+    "keyClues": [
+      "BAP1 negatifliğini sağlam iç kontrol ile doğrulayın; özgül olmayan GPNMB bulgularını tümör morfolojisiyle karşılaştırın.",
+      "Klinik, radyolojik ve örnekleme bağlamıyla korelasyon kurun."
+    ],
+    "minimalWorkup": [
+      "Sınıflama için gerekli olguda FISH ya da doğrulanmış RNA füzyon analizi.",
+      "Boyanmanın doğru tümör hücrelerinde ve uygun iç kontrolle değerlendirildiğinden emin olun."
+    ],
+    "reportingTips": [
+      "TFE3 immünreaktivitesi ile gen yeniden düzenlenmesini farklı raporlayın.",
+      "Sınırlı veya doğrulanmamış bulguları raporda açıkça belirtin."
+    ],
+    "checklist": [
+      "Ayırıcı tanıyı yönlendiren morfolojik özellikler gösterildi mi?",
+      "BAP1 negatifliğini sağlam iç kontrol ile doğrulayın; özgül olmayan GPNMB bulgularını tümör morfolojisiyle karşılaştırın.",
+      "Sınıflama için gerekli olguda FISH ya da doğrulanmış RNA füzyon analizi.",
+      "Tanı kesinliğinin sınırları rapora yansıtıldı mı?"
+    ],
+    "references": [
+      {
+        "label": "Kaynak blog: GitHub Issue #995",
+        "url": "https://github.com/metinciris/metinciriscomtr/issues/995"
+      },
+      {
+        "label": "PubMed PMID: 42925968",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/42925968/"
+      }
+    ],
+    "updatedAt": "2026-11-14"
+  },
+  {
+    "id": "renal-tfeb-test-discordance",
+    "titleTR": "TFEB pozitif renal tümör: yeniden düzenlenme mi, amplifikasyon mu?",
+    "organSystem": "Üriner",
+    "category": "IHC Tuzakları",
+    "modality": "Moleküler",
+    "specimenType": "Biyopsi",
+    "difficulty": "Zor",
+    "tags": [
+      "TFEB",
+      "GPNMB",
+      "RNA-ISH"
+    ],
+    "teaser": "TFEB İHK, katepsin K veya RNA-ISH pozitifliği, hangi genetik değişikliğin bulunduğunu tek başına belirlemez.",
+    "whyItTricks": [
+      "Füzyon ve amplifikasyon ayrı moleküler kategorilerdir.",
+      "Tek bir immün veya moleküler sonuç, morfolojiyle karşılaştırılmadığında aşırı sınıflamaya yol açabilir."
+    ],
+    "keyClues": [
+      "Antikor klonunu ve TFEB RNA-ISH sonucunun ifade ettiği ekspresyonu ayırın.",
+      "Klinik, radyolojik ve örnekleme bağlamıyla korelasyon kurun."
+    ],
+    "minimalWorkup": [
+      "Gerektiğinde doğrulanmış FISH veya moleküler kopya sayısı/füzyon analizi.",
+      "Boyanmanın doğru tümör hücrelerinde ve uygun iç kontrolle değerlendirildiğinden emin olun."
+    ],
+    "reportingTips": [
+      "Protein veya RNA ekspresyonunu doğrulanmış füzyon olarak raporlamayın.",
+      "Sınırlı veya doğrulanmamış bulguları raporda açıkça belirtin."
+    ],
+    "checklist": [
+      "Ayırıcı tanıyı yönlendiren morfolojik özellikler gösterildi mi?",
+      "Antikor klonunu ve TFEB RNA-ISH sonucunun ifade ettiği ekspresyonu ayırın.",
+      "Gerektiğinde doğrulanmış FISH veya moleküler kopya sayısı/füzyon analizi.",
+      "Tanı kesinliğinin sınırları rapora yansıtıldı mı?"
+    ],
+    "references": [
+      {
+        "label": "Kaynak blog: GitHub Issue #1013",
+        "url": "https://github.com/metinciris/metinciriscomtr/issues/1013"
+      },
+      {
+        "label": "PubMed PMID: 42947507",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/42947507/"
+      }
+    ],
+    "updatedAt": "2026-11-14"
+  },
+  {
+    "id": "renal-pt3a-stage-trap",
+    "titleTR": "Renal hücreli karsinomda pT3a: tümör çıkıntısı mı, gerçek sinüs/yağ invazyonu mu?",
+    "organSystem": "Üriner",
+    "category": "Grading/Staging",
+    "modality": "H&E",
+    "specimenType": "Rezeksiyon",
+    "difficulty": "Zor",
+    "tags": [
+      "pT3a",
+      "renal sinüs",
+      "yağ invazyonu"
+    ],
+    "teaser": "Düzgün tümör çıkıntısı otomatik sinüs veya perirenal yağ invazyonu değildir.",
+    "whyItTricks": [
+      "Anatomik kompartımanlara özgü evreleme kriterleri vardır.",
+      "Tek bir immün veya moleküler sonuç, morfolojiyle karşılaştırılmadığında aşırı sınıflamaya yol açabilir."
+    ],
+    "keyClues": [
+      "Sinüs yağını, renal ven dallarını ve perirenal yağ ilişkisini ayrı örnekleyin.",
+      "Klinik, radyolojik ve örnekleme bağlamıyla korelasyon kurun."
+    ],
+    "minimalWorkup": [
+      "Şüpheli alanlarda ek kesit ve gerektiğinde endotelyal belirteçlerle doğrulama.",
+      "Boyanmanın doğru tümör hücrelerinde ve uygun iç kontrolle değerlendirildiğinden emin olun."
+    ],
+    "reportingTips": [
+      "Evreyi değiştiren yapıyı ve bulguyu açıkça belirtin.",
+      "Sınırlı veya doğrulanmamış bulguları raporda açıkça belirtin."
+    ],
+    "checklist": [
+      "Ayırıcı tanıyı yönlendiren morfolojik özellikler gösterildi mi?",
+      "Sinüs yağını, renal ven dallarını ve perirenal yağ ilişkisini ayrı örnekleyin.",
+      "Şüpheli alanlarda ek kesit ve gerektiğinde endotelyal belirteçlerle doğrulama.",
+      "Tanı kesinliğinin sınırları rapora yansıtıldı mı?"
+    ],
+    "references": [
+      {
+        "label": "Kaynak blog: GitHub Issue #1022",
+        "url": "https://github.com/metinciris/metinciriscomtr/issues/1022"
+      },
+      {
+        "label": "PubMed PMID: 29878933",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/29878933/"
+      }
+    ],
+    "updatedAt": "2026-11-14"
+  },
+  {
+    "id": "renal-oncocytic-gpnmb",
+    "titleTR": "GPNMB pozitif onkositik böbrek tümörü: LOT mu, EVT mi, kromofob RHK mi?",
+    "organSystem": "Üriner",
+    "category": "IHC Tuzakları",
+    "modality": "IHC",
+    "specimenType": "Rezeksiyon",
+    "difficulty": "Zor",
+    "tags": [
+      "GPNMB",
+      "LOT",
+      "EVT",
+      "onkositom"
+    ],
+    "teaser": "GPNMB tek başına LOT veya başka bir onkositik renal tümör için özgül değildir.",
+    "whyItTricks": [
+      "CK7/CD117 ve morfolojinin farklı kombinasyonları örtüşebilir.",
+      "Tek bir immün veya moleküler sonuç, morfolojiyle karşılaştırılmadığında aşırı sınıflamaya yol açabilir."
+    ],
+    "keyClues": [
+      "Vakuoller, CK7/CD117 ve multifokalite bulgularını birlikte inceleyin.",
+      "Klinik, radyolojik ve örnekleme bağlamıyla korelasyon kurun."
+    ],
+    "minimalWorkup": [
+      "Seçilmiş panel: CK7, CD117, gerektiğinde GPNMB, GATA3, katepsin K.",
+      "Boyanmanın doğru tümör hücrelerinde ve uygun iç kontrolle değerlendirildiğinden emin olun."
+    ],
+    "reportingTips": [
+      "GPNMB pozitifliği temel alınarak kesin alt tip atamayın.",
+      "Sınırlı veya doğrulanmamış bulguları raporda açıkça belirtin."
+    ],
+    "checklist": [
+      "Ayırıcı tanıyı yönlendiren morfolojik özellikler gösterildi mi?",
+      "Vakuoller, CK7/CD117 ve multifokalite bulgularını birlikte inceleyin.",
+      "Seçilmiş panel: CK7, CD117, gerektiğinde GPNMB, GATA3, katepsin K.",
+      "Tanı kesinliğinin sınırları rapora yansıtıldı mı?"
+    ],
+    "references": [
+      {
+        "label": "Kaynak blog: GitHub Issue #1021",
+        "url": "https://github.com/metinciris/metinciriscomtr/issues/1021"
+      },
+      {
+        "label": "PubMed PMID: 35072947",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/35072947/"
+      }
+    ],
+    "updatedAt": "2026-11-14"
+  },
+  {
+    "id": "stat6-sft-vs-ddlps",
+    "titleTR": "STAT6 pozitif retroperitoneal tümör: SFT mi, dediferansiye liposarkom mu?",
+    "organSystem": "Yumuşak Doku",
+    "category": "Mimik",
+    "modality": "IHC",
+    "specimenType": "Biyopsi",
+    "difficulty": "Zor",
+    "tags": [
+      "STAT6",
+      "SFT",
+      "MDM2",
+      "DDLPS"
+    ],
+    "teaser": "Retroperitoneal dediferansiye liposarkom STAT6 pozitif olabilir.",
+    "whyItTricks": [
+      "İğsi hücreli DDLPS'nin nonlipojenik alanı SFT'ye benzeyebilir.",
+      "Tek bir immün veya moleküler sonuç, morfolojiyle karşılaştırılmadığında aşırı sınıflamaya yol açabilir."
+    ],
+    "keyClues": [
+      "Radyolojik yağlı komponenti ve SFT benzeri damar paternini değerlendirin.",
+      "Klinik, radyolojik ve örnekleme bağlamıyla korelasyon kurun."
+    ],
+    "minimalWorkup": [
+      "Uygun olguda MDM2 amplifikasyonunu doğrulanmış yöntemle araştırın.",
+      "Boyanmanın doğru tümör hücrelerinde ve uygun iç kontrolle değerlendirildiğinden emin olun."
+    ],
+    "reportingTips": [
+      "STAT6 pozitifliğini NAB2::STAT6 füzyonu gibi sunmayın.",
+      "Sınırlı veya doğrulanmamış bulguları raporda açıkça belirtin."
+    ],
+    "checklist": [
+      "Ayırıcı tanıyı yönlendiren morfolojik özellikler gösterildi mi?",
+      "Radyolojik yağlı komponenti ve SFT benzeri damar paternini değerlendirin.",
+      "Uygun olguda MDM2 amplifikasyonunu doğrulanmış yöntemle araştırın.",
+      "Tanı kesinliğinin sınırları rapora yansıtıldı mı?"
+    ],
+    "references": [
+      {
+        "label": "Kaynak blog: GitHub Issue #1039",
+        "url": "https://github.com/metinciris/metinciriscomtr/issues/1039"
+      },
+      {
+        "label": "PubMed PMID: 24457460",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/24457460/"
+      }
+    ],
+    "updatedAt": "2026-11-14"
+  },
+  {
+    "id": "pulmonary-ehe-keratin",
+    "titleTR": "Akciğerde keratin pozitif epiteloid lezyon: karsinom mu, EHE mi?",
+    "organSystem": "Akciğer",
+    "category": "Mimik",
+    "modality": "IHC",
+    "specimenType": "Biyopsi",
+    "difficulty": "Zor",
+    "tags": [
+      "EHE",
+      "keratin",
+      "CAMTA1",
+      "CD31"
+    ],
+    "teaser": "Fokal keratin pozitif EHE, metastatik karsinom sanılabilir.",
+    "whyItTricks": [
+      "Miksohiyalin stromada intrastoplazmik lümen/vakuol vasküler farklılaşma ipucudur.",
+      "Tek bir immün veya moleküler sonuç, morfolojiyle karşılaştırılmadığında aşırı sınıflamaya yol açabilir."
+    ],
+    "keyClues": [
+      "CD31 ve ERG'yi tümör hücrelerinde; CAMTA1'i nükleer paternde değerlendirin.",
+      "Klinik, radyolojik ve örnekleme bağlamıyla korelasyon kurun."
+    ],
+    "minimalWorkup": [
+      "Gerektiğinde uygun füzyon analizi ile doğrulayın.",
+      "Boyanmanın doğru tümör hücrelerinde ve uygun iç kontrolle değerlendirildiğinden emin olun."
+    ],
+    "reportingTips": [
+      "CAMTA1 immünboyasını WWTR1::CAMTA1 füzyon sonucu olarak ifade etmeyin.",
+      "Sınırlı veya doğrulanmamış bulguları raporda açıkça belirtin."
+    ],
+    "checklist": [
+      "Ayırıcı tanıyı yönlendiren morfolojik özellikler gösterildi mi?",
+      "CD31 ve ERG'yi tümör hücrelerinde; CAMTA1'i nükleer paternde değerlendirin.",
+      "Gerektiğinde uygun füzyon analizi ile doğrulayın.",
+      "Tanı kesinliğinin sınırları rapora yansıtıldı mı?"
+    ],
+    "references": [
+      {
+        "label": "Kaynak blog: GitHub Issue #1035",
+        "url": "https://github.com/metinciris/metinciriscomtr/issues/1035"
+      },
+      {
+        "label": "PubMed PMID: 34090171",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/34090171/"
+      }
+    ],
+    "updatedAt": "2026-11-14"
+  },
+  {
+    "id": "alknegative-imt-fusions",
+    "titleTR": "ALK negatif İMT: reaktif lezyon mu, ROS1/NTRK füzyonlu tümör mü?",
+    "organSystem": "Yumuşak Doku",
+    "category": "Mimik",
+    "modality": "Moleküler",
+    "specimenType": "Biyopsi",
+    "difficulty": "Zor",
+    "tags": [
+      "İMT",
+      "ALK",
+      "ROS1",
+      "NTRK3"
+    ],
+    "teaser": "ALK negatifliği morfolojik olarak olası inflamatuar miyofibroblastik tümörü dışlamaz.",
+    "whyItTricks": [
+      "İnflamasyon reaktif ve neoplastik iğsi hücrelerin ayrımını maskeleyebilir.",
+      "Tek bir immün veya moleküler sonuç, morfolojiyle karşılaştırılmadığında aşırı sınıflamaya yol açabilir."
+    ],
+    "keyClues": [
+      "Miyofibroblastik morfoloji ve inflamasyonun dağılımını inceleyin.",
+      "Klinik, radyolojik ve örnekleme bağlamıyla korelasyon kurun."
+    ],
+    "minimalWorkup": [
+      "ALK, SMA/desmin ve gerekli olguda ROS1, pan-TRK ile RNA füzyon analizi.",
+      "Boyanmanın doğru tümör hücrelerinde ve uygun iç kontrolle değerlendirildiğinden emin olun."
+    ],
+    "reportingTips": [
+      "Negatif tarama boyası ile moleküler füzyon yokluğunu eşitlemeyin.",
+      "Sınırlı veya doğrulanmamış bulguları raporda açıkça belirtin."
+    ],
+    "checklist": [
+      "Ayırıcı tanıyı yönlendiren morfolojik özellikler gösterildi mi?",
+      "Miyofibroblastik morfoloji ve inflamasyonun dağılımını inceleyin.",
+      "ALK, SMA/desmin ve gerekli olguda ROS1, pan-TRK ile RNA füzyon analizi.",
+      "Tanı kesinliğinin sınırları rapora yansıtıldı mı?"
+    ],
+    "references": [
+      {
+        "label": "Kaynak blog: GitHub Issue #1032",
+        "url": "https://github.com/metinciris/metinciriscomtr/issues/1032"
+      },
+      {
+        "label": "PubMed PMID: 40282503",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/40282503/"
+      }
+    ],
+    "updatedAt": "2026-11-14"
+  },
+  {
+    "id": "pantrk-negative-ntrk",
+    "titleTR": "Pan-TRK negatif boyanma NTRK füzyonunu dışlar mı?",
+    "organSystem": "Yumuşak Doku",
+    "category": "IHC Tuzakları",
+    "modality": "Moleküler",
+    "specimenType": "Biyopsi",
+    "difficulty": "Zor",
+    "tags": [
+      "Pan-TRK",
+      "NTRK3",
+      "RNA-NGS"
+    ],
+    "teaser": "Pan-TRK immünohistokimya negatifliği, özellikle NTRK3 füzyonunu tamamen dışlamaz.",
+    "whyItTricks": [
+      "Antikor klonu, doku kalitesi ve ekspresyon düzeyi yanlış negatiflik oluşturabilir.",
+      "Tek bir immün veya moleküler sonuç, morfolojiyle karşılaştırılmadığında aşırı sınıflamaya yol açabilir."
+    ],
+    "keyClues": [
+      "Morfolojinin ve hücre soyunun NTRK ilişkili tümörü düşündürüp düşündürmediğine bakın.",
+      "Klinik, radyolojik ve örnekleme bağlamıyla korelasyon kurun."
+    ],
+    "minimalWorkup": [
+      "Güçlü şüphede kapsaması uygun RNA tabanlı füzyon analizi.",
+      "Boyanmanın doğru tümör hücrelerinde ve uygun iç kontrolle değerlendirildiğinden emin olun."
+    ],
+    "reportingTips": [
+      "Boyayı moleküler füzyon analiziyle eşdeğer göstermeyin.",
+      "Sınırlı veya doğrulanmamış bulguları raporda açıkça belirtin."
+    ],
+    "checklist": [
+      "Ayırıcı tanıyı yönlendiren morfolojik özellikler gösterildi mi?",
+      "Morfolojinin ve hücre soyunun NTRK ilişkili tümörü düşündürüp düşündürmediğine bakın.",
+      "Güçlü şüphede kapsaması uygun RNA tabanlı füzyon analizi.",
+      "Tanı kesinliğinin sınırları rapora yansıtıldı mı?"
+    ],
+    "references": [
+      {
+        "label": "Kaynak blog: GitHub Issue #1038",
+        "url": "https://github.com/metinciris/metinciriscomtr/issues/1038"
+      },
+      {
+        "label": "PubMed PMID: 35933886",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/35933886/"
+      }
+    ],
+    "updatedAt": "2026-11-14"
+  },
 ];
