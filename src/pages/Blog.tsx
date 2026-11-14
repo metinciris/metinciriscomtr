@@ -604,16 +604,18 @@ function BlogList({
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [clientPage, setClientPage] = useState(initialPage);
 
-  const filterTags = ['Patoloji Radarı', 'Vaka Notları', 'Tanısal Yaklaşım', 'Güncellemeler'];
+  const filterTags = ['Patoloji Radarı', 'Vaka Notları', 'Tanısal Yaklaşım', 'Güncellemeler', 'Tanı Tuzakları'];
 
   const normalizedSearch = searchTerm.trim().toLocaleLowerCase('tr-TR');
   const filteredPosts = useMemo(() => {
     let result = posts;
 
     if (selectedTag) {
-      result = result.filter((post) =>
-        post.labels.includes(selectedTag),
-      );
+      result = result.filter((post) => (
+        selectedTag === 'Tanı Tuzakları'
+          ? relatedPitfallIdsForPost(post, 1).length > 0
+          : post.labels.includes(selectedTag)
+      ));
     }
 
     if (!normalizedSearch) return result;
