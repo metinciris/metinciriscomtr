@@ -18,7 +18,6 @@ export function KonsensusToplanti() {
   const [meeting, setMeeting] = useState<Meeting | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const now = useMemo(() => new Date(), []);
 
   const meetingId = useMemo(() => {
     const match = window.location.pathname.match(/^\/konsensus\/toplanti\/([^/]+)\/?$/);
@@ -200,7 +199,7 @@ export function KonsensusToplanti() {
 
               <div className="flex flex-wrap gap-2">
                 <button
-                  onClick={() => window.open(buildGoogleCalendarUrl(meeting, now), '_blank')}
+                  onClick={() => window.open(buildGoogleCalendarUrl(meeting, new Date()), '_blank')}
                   className="inline-flex items-center gap-2 px-4 py-3 rounded-2xl bg-blue-50 text-blue-800 hover:bg-blue-100 text-sm font-black transition border border-blue-100"
                 >
                   <ExternalLink className="w-4 h-4" />
@@ -208,7 +207,7 @@ export function KonsensusToplanti() {
                 </button>
 
                 <button
-                  onClick={() => downloadIcs(meeting, now)}
+                  onClick={() => downloadIcs(meeting, new Date())}
                   className="inline-flex items-center gap-2 px-4 py-3 rounded-2xl bg-indigo-50 text-indigo-800 hover:bg-indigo-100 text-sm font-black transition border border-indigo-100"
                 >
                   <Download className="w-4 h-4" />
