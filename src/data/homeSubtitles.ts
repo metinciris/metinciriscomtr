@@ -88,10 +88,10 @@ export const BLOG_SUBTITLES = [
   'Literatür notları ve güncellemeler',
 ];
 
-export const KONSENSUS_SUBTITLES = [
-  'Patoloji konsensus toplantıları',
-  'Toplantı takvimi',
-  'Güncel kılavuzlar',
+export const TANI_TUZAKLARI_SUBTITLES = [
+  'Sık yapılan tanı hataları',
+  'Ayırıcı tanıda kritik ipuçları',
+  'Organ sistemlerine göre tuzaklar',
 ];
 
 export const UNIVERSITE_SUBTITLES = [
