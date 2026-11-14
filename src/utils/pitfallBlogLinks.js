@@ -30,6 +30,22 @@ export const PITFALL_BLOG_TOPICS = [
   { id: 'thyroid-parathyroid-mimic', terms: ['intratiroidal paratiroid', 'intrathyroidal parathyroid', 'paratiroid', 'parathyroid'] },
   { id: 'thyroid-capsular-invasion', terms: ['kapsul invazyonu', 'capsular invasion', 'folikuler tiroid karsinomu', 'thyroid follicular carcinoma'] },
   { id: 'thyroid-oncocytic-features', terms: ['onkositik tiroid', 'oncocytic thyroid', 'hurthle', 'hurtle', 'onkositik nodul'] },
+  { id: 'renal-tfe3-bap1-false-translocation', terms: ['tfe3 pozitifligi translokasyon', 'bap1 kayipli seffaf hucreli', 'tfe3 pozitif renal', 'native tfe3 expression'] },
+  { id: 'renal-tfeb-ihc-vs-alteration', terms: ['tfeb degisikligi tasiyan', 'tfeb iliskili bobrek', 'tfeb rearranged renal', 'tfeb amplifikasyonu'] },
+  { id: 'renal-oncocytic-gpnmb-lot-evt', terms: ['gpnmb onkositik', 'onkositik bobrek tumorleri', 'low grade oncocytic tumour', 'eosinophilic vacuolated tumor', 'lot evt'] },
+  { id: 'urothelial-lateral-spread-vs-cis', terms: ['papiller urotelyal karsinomda lateral', 'lateral yayilim cis', 'lateral spread urothelial'] },
+  { id: 'urothelial-focal-high-grade-percent', terms: ['papiller urotelyal karsinomda 5 yuksek', 'fokal yuksek derece urotelyal', 'urothelial focal high grade'] },
+  { id: 'soft-tissue-stat6-sft-vs-ddlps', terms: ['stat6 pozitif retroperitoneal', 'stat6 pozitif ddlps', 'stat6 amplified liposarcoma', 'stat6 pozitif sft'] },
+  { id: 'soft-tissue-ddlps-no-fat-core', terms: ['dedifferentiated liposarcoma', 'dediferansiye liposarkom', 'yag icermeyen biyopside', 'ddlps'] },
+  { id: 'soft-tissue-pantrk-negative-ntrk-fusion', terms: ['pan trk negatifligi', 'pan trk negativity', 'ntrk fuzyonunu dislar', 'ntrk fusion immunohistochemistry'] },
+  { id: 'bone-chondroblastoma-k36m-vs-giantcell', terms: ['chondroblastoma', 'k36m pozitifligi', 'h3 k36m'] },
+  { id: 'bone-mesenchymal-chondrosarcoma-ncoa2-fish', terms: ['mezenkimal kondrosarkomda ncoa2', 'ncoa2 fish negatifligi', 'hey1 ncoa2 fusion'] },
+  { id: 'bone-bnct-vs-chordoma', terms: ['benign notochordal cell tumour', 'bnct ile kordoma', 'benign notokordal', 'chordoma ayrimini ihk'] },
+  { id: 'gi-barrett-basal-crypt-dysplasia-p53', terms: ['barrett ozofagusunda bazal kript', 'barrett biyopsisinde p53', 'bazal kript displazisi', 'barrett dysplasia p53'] },
+  { id: 'gi-gastroblastoma-gli1-biphasic', terms: ['gastroblastom', 'gastroblastoma', 'bifazik mide tumorunde gli1'] },
+  { id: 'molecular-mtap-loss-ihc-vs-ngs', terms: ['mtap kaybinda ihk', 'mtap loss ihc ngs', 'mtap homozigot delesyon'] },
+  { id: 'molecular-erbb3-tumor-only-germline', terms: ['tumor only ngs de erbb3', 'erbb3 mutasyonu somatik', 'erbb3 germline polimorfizm'] },
+  { id: 'molecular-pancreas-eus-dna-rna-qc', terms: ['pankreas eus biyopsisinde ngs', 'rna yetersiz olabilir', 'pankreas biyopsisinde dna rna', 'pancreatic eus ngs'] },
 ];
 
 /** URL'de kaynak veri ID'si kullanilir: kisa, kalici ve yeniden adlandirmadan etkilenmez. */
