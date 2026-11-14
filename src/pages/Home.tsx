@@ -9,7 +9,6 @@ import {
   GraduationCap,
   Briefcase,
   BookMarked,
-  Users,
   Building2,
   FolderOpen,
   Phone,
@@ -34,7 +33,6 @@ import {
   YAYIN_SUBTITLES,
   PORTFOLYO_SUBTITLES,
   DIGER_SUBTITLES,
-  KONSENSUS_SUBTITLES,
   NGS_SUBTITLES,
   BLOG_SUBTITLES,
   BIYOPSI_SUBTITLES,
@@ -86,7 +84,6 @@ export function Home({ onNavigate }: HomeProps) {
   const yayinSubtitle      = useRotatingText(YAYIN_SUBTITLES, 4000);
   const portfolyoSubtitle  = useRotatingText(PORTFOLYO_SUBTITLES, 4000);
   const blogSubtitle       = useRotatingText(BLOG_SUBTITLES, 4000);
-  const konsensusSubtitle  = useRotatingText(KONSENSUS_SUBTITLES, 4000);
   const universiteSubtitle = useRotatingText(UNIVERSITE_SUBTITLES, 4000);
   const digerSubtitle      = useRotatingText(DIGER_SUBTITLES, 4000);
 
@@ -405,17 +402,6 @@ export function Home({ onNavigate }: HomeProps) {
                 size="medium"
                 href="/blog/"
                 onClick={() => onNavigate('blog')}
-              />
-
-              {/* Patoloji Konsensus */}
-              <MetroTile
-                title="Patoloji Konsensus"
-                subtitle={konsensusSubtitle}
-                icon={<Users size={38} />}
-                color="tile-acad-konsensus"
-                size="medium"
-                href="/konsensus/"
-                onClick={() => onNavigate('konsensus')}
               />
 
               {/* SDÜ ve Üniversite */}

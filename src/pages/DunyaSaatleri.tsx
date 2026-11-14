@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { PageContainer } from '../components/PageContainer';
-import { RelatedPages } from '../components/RelatedPages';
 import { Globe, Clock, Sun, Moon, Plus, X, Calendar, Users, Check, Share2, Search } from 'lucide-react';
 
 // ─── Intl helpers (replaces moment-timezone, saves ~793KB) ───────────
@@ -766,17 +765,7 @@ export function DunyaSaatleri() {
                 </div>
             </div>
 
-            <RelatedPages
-                pages={[
-                    {
-                        title: "Konsensus Takip",
-                        subtitle: "Patoloji toplantı takvimi",
-                        page: "konsensus",
-                        color: "bg-blue-600",
-                        icon: Users
-                    }
-                ]}
-            />
+
         </PageContainer>
     );
 }

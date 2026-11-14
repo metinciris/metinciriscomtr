@@ -797,12 +797,6 @@ export function KonsensusYonetim() {
       <RelatedPages
         pages={[
           {
-            title: "Konsensüs Toplantıları",
-            subtitle: "Halka açık duyuru ve katılım takvimi",
-            page: "konsensus",
-            color: "bg-blue-600"
-          },
-          {
             title: "Dünya Saatleri",
             subtitle: "Zaman dilimi ve toplantı planlayıcı",
             page: "dunya-saatleri",

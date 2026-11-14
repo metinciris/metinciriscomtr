@@ -18,7 +18,14 @@ export function useRecentPages(currentPage?: string): {
   const [recentPages, setRecentPages] = useState<RecentPageItem[]>(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
-      return stored ? JSON.parse(stored) : [];
+      const items: unknown = stored ? JSON.parse(stored) : [];
+      if (!Array.isArray(items)) return [];
+      // Eski ziyaretlerden kalmış, artık herkese kapalı olan sayfaları gösterme.
+      return items.filter((item): item is RecentPageItem =>
+        Boolean(item && typeof item === 'object' && 'id' in item &&
+          typeof item.id === 'string' && PAGE_REGISTRY[item.id] &&
+          !PAGE_REGISTRY[item.id].noindex)
+      );
     } catch {
       return [];
     }

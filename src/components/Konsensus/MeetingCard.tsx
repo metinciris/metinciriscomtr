@@ -92,8 +92,6 @@ export function MeetingCard({
         return { dayStr: day, monthStr: month };
     }, [meeting.date]);
 
-    const detailUrl = `/konsensus/toplanti/${encodeURIComponent(String(meeting.id))}`;
-
     return (
         <div
             className={`relative overflow-hidden border-4 rounded-2xl p-5 transition-all ${isActuallyPast
@@ -213,17 +211,6 @@ export function MeetingCard({
                                         TSİ
                                     </span>
                                 </div>
-                                <a
-                                    href={detailUrl}
-                                    className={`inline-flex items-center px-3 py-2 rounded-xl text-sm font-black border transition ${
-                                        isActuallyPast
-                                            ? 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
-                                            : 'bg-violet-50 border-violet-100 text-violet-800 hover:bg-violet-100 shadow-sm'
-                                    }`}
-                                >
-                                    <ExternalLink className="w-4 h-4 mr-2" />
-                                    Toplantı Detayı
-                                </a>
                             </div>
 
                             {meeting.description && (

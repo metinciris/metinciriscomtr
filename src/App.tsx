@@ -7,6 +7,7 @@ import { SEO } from './components/SEO';
 import { PAGE_REGISTRY, validPages, getNavLabel } from './core/data/registry';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { trackPageView } from './utils/analytics';
+import { isRetiredConsensusRoute } from './utils/privateRoutes';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type LazyComponent = React.LazyExoticComponent<React.ComponentType<any>>;
@@ -26,13 +27,6 @@ const notFoundLazy: LazyComponent = React.lazy(() =>
 
 function getLazy(pageId: string): LazyComponent {
   if (!lazyCache[pageId]) {
-    if (pageId === 'konsensus-toplanti') {
-      lazyCache[pageId] = React.lazy(() =>
-        import('./pages/KonsensusToplanti').then(m => ({ default: m.KonsensusToplanti }))
-      );
-      return lazyCache[pageId];
-    }
-
     const meta = PAGE_REGISTRY[pageId];
     if (meta?.load) {
       lazyCache[pageId] = React.lazy(meta.load);
@@ -49,7 +43,7 @@ export default function App() {
 
   // Sayfa değiştikçe analytics gönder, odağı <main> öğesine taşı ve ekran okuyucuya bildir
   React.useEffect(() => {
-    const registryPage = currentPage === 'konsensus-toplanti' ? 'konsensus' : currentPage;
+    const registryPage = currentPage;
     trackPageView(registryPage);
 
     const pageLabel = getNavLabel(registryPage);
@@ -72,9 +66,10 @@ export default function App() {
       return 'blog';
     }
 
-    // Konsensus toplantı detay sayfası: /konsensus/toplanti/:id
-    if (/^konsensus\/toplanti\/[^/]+$/.test(path)) {
-      return 'konsensus-toplanti';
+    // Halka açık konsensus ve eski toplantı detay adresleri bilinçli olarak kapalı.
+    // Çalışan özel /konsensus-yonetim/ adresini etkilemez.
+    if (isRetiredConsensusRoute(pathname)) {
+      return '404';
     }
 
     return validPages.includes(path) ? path : '404';
@@ -112,7 +107,7 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
-  const registryPage = currentPage === 'konsensus-toplanti' ? 'konsensus' : currentPage;
+  const registryPage = currentPage;
   const pageMeta = PAGE_REGISTRY[registryPage];
 
   // getLazy her zaman aynı React.lazy referansını döndürür — cache sayesinde

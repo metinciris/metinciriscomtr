@@ -23,7 +23,6 @@ export const getStructuredData = (pageId: string) => {
         { name: "Tanı Tuzakları", url: `${BASE_URL}/tani-tuzaklari/` },
         { name: "Ayın Vakası", url: `${BASE_URL}/ayin-vakasi/` },
         { name: "SVS Mikroskopi", url: `${BASE_URL}/svs-reader/` },
-        { name: "Konsensus", url: `${BASE_URL}/konsensus/` },
         { name: "Diğer Çalışmalar", url: `${BASE_URL}/diger-calismalar/` }
     ];
 
