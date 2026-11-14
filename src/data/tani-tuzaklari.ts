@@ -1402,4 +1402,348 @@ export const PITFALLS: Pitfall[] = [
     ],
     "updatedAt": "2026-11-14"
   },
+    {
+      "id": "urothelial-cis-vs-lateral-spread",
+      "titleTR": "Papiller ürotelyal karsinomda düz atipi: CIS mi, lateral yayılım mı?",
+      "organSystem": "Üriner",
+      "category": "Mimik",
+      "modality": "H&E",
+      "specimenType": "Rezeksiyon",
+      "difficulty": "Zor",
+      "tags": [
+        "ayırıcı tanı",
+        "1027"
+      ],
+      "teaser": "Papiller tümörün komşu düz epitelde devamı ayrı CIS odağıyla karışabilir.",
+      "whyItTricks": [
+        "Papiller tümörün komşu düz epitelde devamı ayrı CIS odağıyla karışabilir.",
+        "Sınırlı örneklem tek bulguya aşırı güven yaratabilir."
+      ],
+      "keyClues": [
+        "CK20/p53 anormalliği ayrı CIS varlığını tek başına göstermez.",
+        "Klinik ve anatomik bağlamı sorgulayın."
+      ],
+      "minimalWorkup": [
+        "Papiller tümör ile düz alan arasında H&E devamlılığını ve yeterli örneklemeyi araştırın.",
+        "Gerekirse ek kesit veya uzman konsültasyonu alın."
+      ],
+      "reportingTips": [
+        "Morfoloji ile test sonucunun uyumunu açıklayın.",
+        "Tanısal sınırlılığı açık belirtin."
+      ],
+      "checklist": [
+        "Şüpheli odağın morfolojik karşılığı var mı?",
+        "CK20/p53 anormalliği ayrı CIS varlığını tek başına göstermez.",
+        "Papiller tümör ile düz alan arasında H&E devamlılığını ve yeterli örneklemeyi araştırın.",
+        "Raporun kesinliği kullanılan yöntemle uyumlu mu?"
+      ],
+      "references": [
+        {
+          "label": "Kaynak blog yazısı #1027",
+          "url": "https://github.com/metinciris/metinciriscomtr/issues/1027"
+        }
+      ],
+      "updatedAt": "2026-11-14"
+    },
+    {
+      "id": "barrett-basal-crypt-dysplasia",
+      "titleTR": "Barrett özofagusunda bazal kript displazisi: p53 ve reaktif atipi",
+      "organSystem": "GİS",
+      "category": "Benign vs Malign",
+      "modality": "IHC",
+      "specimenType": "Biyopsi",
+      "difficulty": "Zor",
+      "tags": [
+        "ayırıcı tanı",
+        "935"
+      ],
+      "teaser": "Yüzey olgunlaşması bazal kript displazisini dışlamaz.",
+      "whyItTricks": [
+        "Yüzey olgunlaşması bazal kript displazisini dışlamaz.",
+        "Sınırlı örneklem tek bulguya aşırı güven yaratabilir."
+      ],
+      "keyClues": [
+        "Anormal p53 tek başına displazi tanısı değildir; wild-type p53 displaziyi dışlamaz.",
+        "Klinik ve anatomik bağlamı sorgulayın."
+      ],
+      "minimalWorkup": [
+        "H&E'de bazal kriptleri ve p53 paternini karşılaştırın; belirsiz olguda konsültasyon düşünün.",
+        "Gerekirse ek kesit veya uzman konsültasyonu alın."
+      ],
+      "reportingTips": [
+        "Morfoloji ile test sonucunun uyumunu açıklayın.",
+        "Tanısal sınırlılığı açık belirtin."
+      ],
+      "checklist": [
+        "Şüpheli odağın morfolojik karşılığı var mı?",
+        "Anormal p53 tek başına displazi tanısı değildir; wild-type p53 displaziyi dışlamaz.",
+        "H&E'de bazal kriptleri ve p53 paternini karşılaştırın; belirsiz olguda konsültasyon düşünün.",
+        "Raporun kesinliği kullanılan yöntemle uyumlu mu?"
+      ],
+      "references": [
+        {
+          "label": "Kaynak blog yazısı #935",
+          "url": "https://github.com/metinciris/metinciriscomtr/issues/935"
+        }
+      ],
+      "updatedAt": "2026-11-14"
+    },
+    {
+      "id": "gastric-netg3-vs-minen",
+      "titleTR": "Mide NET G3 mü, MiNEN mi? Glandüler mimari tuzağı",
+      "organSystem": "GİS",
+      "category": "Mimik",
+      "modality": "IHC",
+      "specimenType": "Biyopsi",
+      "difficulty": "Zor",
+      "tags": [
+        "ayırıcı tanı",
+        "1015"
+      ],
+      "teaser": "Gland benzeri yapı ayrı adenokarsinom komponenti olduğunu kanıtlamaz.",
+      "whyItTricks": [
+        "Gland benzeri yapı ayrı adenokarsinom komponenti olduğunu kanıtlamaz.",
+        "Sınırlı örneklem tek bulguya aşırı güven yaratabilir."
+      ],
+      "keyClues": [
+        "Ki-67 proliferasyonu NET G3 ve NEC ayrımı için tek başına yeterli değildir.",
+        "Klinik ve anatomik bağlamı sorgulayın."
+      ],
+      "minimalWorkup": [
+        "Ayrı non-nöroendokrin hücre komponentini ve nöroendokrin diferansiyasyonu morfolojide araştırın.",
+        "Gerekirse ek kesit veya uzman konsültasyonu alın."
+      ],
+      "reportingTips": [
+        "Morfoloji ile test sonucunun uyumunu açıklayın.",
+        "Tanısal sınırlılığı açık belirtin."
+      ],
+      "checklist": [
+        "Şüpheli odağın morfolojik karşılığı var mı?",
+        "Ki-67 proliferasyonu NET G3 ve NEC ayrımı için tek başına yeterli değildir.",
+        "Ayrı non-nöroendokrin hücre komponentini ve nöroendokrin diferansiyasyonu morfolojide araştırın.",
+        "Raporun kesinliği kullanılan yöntemle uyumlu mu?"
+      ],
+      "references": [
+        {
+          "label": "Kaynak blog yazısı #1015",
+          "url": "https://github.com/metinciris/metinciriscomtr/issues/1015"
+        }
+      ],
+      "updatedAt": "2026-11-14"
+    },
+    {
+      "id": "bone-telangiectatic-vs-abc",
+      "titleTR": "Kanlı kemik lezyonu: anevrizmal kemik kisti mi, telenjiektatik osteosarkom mu?",
+      "organSystem": "Kemik",
+      "category": "Benign vs Malign",
+      "modality": "H&E",
+      "specimenType": "Biyopsi",
+      "difficulty": "Zor",
+      "tags": [
+        "ayırıcı tanı",
+        "870"
+      ],
+      "teaser": "Sıvı-sıvı seviyesi ve kistik boşluk her iki tümörde bulunabilir.",
+      "whyItTricks": [
+        "Sıvı-sıvı seviyesi ve kistik boşluk her iki tümörde bulunabilir.",
+        "Sınırlı örneklem tek bulguya aşırı güven yaratabilir."
+      ],
+      "keyClues": [
+        "Kalın septalardaki malign hücreler ve neoplastik osteoid esas ayırıcı ipucudur.",
+        "Klinik ve anatomik bağlamı sorgulayın."
+      ],
+      "minimalWorkup": [
+        "Görüntüleme ile solid septaları hedefleyin; gerektiğinde USP6 araştırın.",
+        "Gerekirse ek kesit veya uzman konsültasyonu alın."
+      ],
+      "reportingTips": [
+        "Morfoloji ile test sonucunun uyumunu açıklayın.",
+        "Tanısal sınırlılığı açık belirtin."
+      ],
+      "checklist": [
+        "Şüpheli odağın morfolojik karşılığı var mı?",
+        "Kalın septalardaki malign hücreler ve neoplastik osteoid esas ayırıcı ipucudur.",
+        "Görüntüleme ile solid septaları hedefleyin; gerektiğinde USP6 araştırın.",
+        "Raporun kesinliği kullanılan yöntemle uyumlu mu?"
+      ],
+      "references": [
+        {
+          "label": "Kaynak blog yazısı #870",
+          "url": "https://github.com/metinciris/metinciriscomtr/issues/870"
+        }
+      ],
+      "updatedAt": "2026-11-14"
+    },
+    {
+      "id": "bone-gctb-vs-chondroblastoma",
+      "titleTR": "Epifizde dev hücreli lezyon: GCTB mi, kondroblastom mu?",
+      "organSystem": "Kemik",
+      "category": "Mimik",
+      "modality": "IHC",
+      "specimenType": "Biyopsi",
+      "difficulty": "Zor",
+      "tags": [
+        "ayırıcı tanı",
+        "850"
+      ],
+      "teaser": "Osteoklast tipi dev hücreler her iki lezyonda da izlenebilir.",
+      "whyItTricks": [
+        "Osteoklast tipi dev hücreler her iki lezyonda da izlenebilir.",
+        "Sınırlı örneklem tek bulguya aşırı güven yaratabilir."
+      ],
+      "keyClues": [
+        "G34W ve K36M boyanması uygun mononükleer neoplastik hücrelerde değerlendirilmelidir.",
+        "Klinik ve anatomik bağlamı sorgulayın."
+      ],
+      "minimalWorkup": [
+        "H&E ve radyolojik yerleşimle birlikte H3 mutasyon-spesifik İHK'yi yorumlayın.",
+        "Gerekirse ek kesit veya uzman konsültasyonu alın."
+      ],
+      "reportingTips": [
+        "Morfoloji ile test sonucunun uyumunu açıklayın.",
+        "Tanısal sınırlılığı açık belirtin."
+      ],
+      "checklist": [
+        "Şüpheli odağın morfolojik karşılığı var mı?",
+        "G34W ve K36M boyanması uygun mononükleer neoplastik hücrelerde değerlendirilmelidir.",
+        "H&E ve radyolojik yerleşimle birlikte H3 mutasyon-spesifik İHK'yi yorumlayın.",
+        "Raporun kesinliği kullanılan yöntemle uyumlu mu?"
+      ],
+      "references": [
+        {
+          "label": "Kaynak blog yazısı #850",
+          "url": "https://github.com/metinciris/metinciriscomtr/issues/850"
+        }
+      ],
+      "updatedAt": "2026-11-14"
+    },
+    {
+      "id": "soft-mdm2-stain-vs-amplification",
+      "titleTR": "MDM2 pozitif adipositik lezyon: liposarkom mu, anisometrik hücreli lipom mu?",
+      "organSystem": "Yumuşak Doku",
+      "category": "IHC Tuzakları",
+      "modality": "Moleküler",
+      "specimenType": "Biyopsi",
+      "difficulty": "Zor",
+      "tags": [
+        "ayırıcı tanı",
+        "999"
+      ],
+      "teaser": "Anisometrik hücreli lipom, MDM2 gen amplifikasyonu olmadan MDM2 boyanması gösterebilir.",
+      "whyItTricks": [
+        "Anisometrik hücreli lipom, MDM2 gen amplifikasyonu olmadan MDM2 boyanması gösterebilir.",
+        "Sınırlı örneklem tek bulguya aşırı güven yaratabilir."
+      ],
+      "keyClues": [
+        "Protein ekspresyonunu moleküler amplifikasyonla eşitlemeyin.",
+        "Klinik ve anatomik bağlamı sorgulayın."
+      ],
+      "minimalWorkup": [
+        "Morfoloji, RB1 ve şüpheli olguda valide MDM2 amplifikasyon testini değerlendirin.",
+        "Gerekirse ek kesit veya uzman konsültasyonu alın."
+      ],
+      "reportingTips": [
+        "Morfoloji ile test sonucunun uyumunu açıklayın.",
+        "Tanısal sınırlılığı açık belirtin."
+      ],
+      "checklist": [
+        "Şüpheli odağın morfolojik karşılığı var mı?",
+        "Protein ekspresyonunu moleküler amplifikasyonla eşitlemeyin.",
+        "Morfoloji, RB1 ve şüpheli olguda valide MDM2 amplifikasyon testini değerlendirin.",
+        "Raporun kesinliği kullanılan yöntemle uyumlu mu?"
+      ],
+      "references": [
+        {
+          "label": "Kaynak blog yazısı #999",
+          "url": "https://github.com/metinciris/metinciriscomtr/issues/999"
+        }
+      ],
+      "updatedAt": "2026-11-14"
+    },
+    {
+      "id": "lung-kras-g12c-vs-g12y",
+      "titleTR": "KRAS G12C PCR sonucunda G12Y çapraz reaksiyon tuzağı",
+      "organSystem": "Akciğer",
+      "category": "IHC Tuzakları",
+      "modality": "Moleküler",
+      "specimenType": "Biyopsi",
+      "difficulty": "Zor",
+      "tags": [
+        "ayırıcı tanı",
+        "1054"
+      ],
+      "teaser": "Bazı PCR testleri KRAS G12Y varyantını G12C olarak yanlış çağırabilir.",
+      "whyItTricks": [
+        "Bazı PCR testleri KRAS G12Y varyantını G12C olarak yanlış çağırabilir.",
+        "Sınırlı örneklem tek bulguya aşırı güven yaratabilir."
+      ],
+      "keyClues": [
+        "Aynı yöntem tekrarında aynı sistematik çapraz reaksiyon sürebilir.",
+        "Klinik ve anatomik bağlamı sorgulayın."
+      ],
+      "minimalWorkup": [
+        "Tedavi kararını değiştirecek uyumsuzluğu ortogonal valide moleküler yöntemle doğrulayın.",
+        "Gerekirse ek kesit veya uzman konsültasyonu alın."
+      ],
+      "reportingTips": [
+        "Morfoloji ile test sonucunun uyumunu açıklayın.",
+        "Tanısal sınırlılığı açık belirtin."
+      ],
+      "checklist": [
+        "Şüpheli odağın morfolojik karşılığı var mı?",
+        "Aynı yöntem tekrarında aynı sistematik çapraz reaksiyon sürebilir.",
+        "Tedavi kararını değiştirecek uyumsuzluğu ortogonal valide moleküler yöntemle doğrulayın.",
+        "Raporun kesinliği kullanılan yöntemle uyumlu mu?"
+      ],
+      "references": [
+        {
+          "label": "Kaynak blog yazısı #1054",
+          "url": "https://github.com/metinciris/metinciriscomtr/issues/1054"
+        }
+      ],
+      "updatedAt": "2026-11-14"
+    },
+    {
+      "id": "effusion-trps1-vs-mullerian",
+      "titleTR": "Seröz efüzyonda TRPS1 pozitifliği: meme mi, Müllerian karsinom mu?",
+      "organSystem": "Gyn",
+      "category": "Mimik",
+      "modality": "IHC",
+      "specimenType": "Sitoloji",
+      "difficulty": "Zor",
+      "tags": [
+        "ayırıcı tanı",
+        "779"
+      ],
+      "teaser": "TRPS1 pozitifliği yalnız başına meme kökenini kanıtlamaz.",
+      "whyItTricks": [
+        "TRPS1 pozitifliği yalnız başına meme kökenini kanıtlamaz.",
+        "Sınırlı örneklem tek bulguya aşırı güven yaratabilir."
+      ],
+      "keyClues": [
+        "Seröz Müllerian karsinomlarda da TRPS1 boyanması olabilir.",
+        "Klinik ve anatomik bağlamı sorgulayın."
+      ],
+      "minimalWorkup": [
+        "SOX17, PAX8, WT1 ve GATA3 paneli ile morfolojiyi birlikte yorumlayın.",
+        "Gerekirse ek kesit veya uzman konsültasyonu alın."
+      ],
+      "reportingTips": [
+        "Morfoloji ile test sonucunun uyumunu açıklayın.",
+        "Tanısal sınırlılığı açık belirtin."
+      ],
+      "checklist": [
+        "Şüpheli odağın morfolojik karşılığı var mı?",
+        "Seröz Müllerian karsinomlarda da TRPS1 boyanması olabilir.",
+        "SOX17, PAX8, WT1 ve GATA3 paneli ile morfolojiyi birlikte yorumlayın.",
+        "Raporun kesinliği kullanılan yöntemle uyumlu mu?"
+      ],
+      "references": [
+        {
+          "label": "Kaynak blog yazısı #779",
+          "url": "https://github.com/metinciris/metinciriscomtr/issues/779"
+        }
+      ],
+      "updatedAt": "2026-11-14"
+    },
 ];
