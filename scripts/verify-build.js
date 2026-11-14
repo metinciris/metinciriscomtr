@@ -5,6 +5,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { PITFALL_BLOG_TOPICS, pitfallUrl } from '../src/utils/pitfallBlogLinks.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, '..');
@@ -79,12 +80,23 @@ check('Tanı tuzağı sayfasında blog yazıları bölümü var',
   pitfallHtml !== null && pitfallHtml.includes('Konuyla İlgili Blog Yazıları'));
 const legacyHtml = readSafe(join(dist, 'tani-tuzaklari', 'index.html'));
 check('Tanı tuzakları liste sayfası duruyor', legacyHtml !== null);
+
+const missingPitfallPages = PITFALL_BLOG_TOPICS
+  .map((topic) => ({ id: topic.id, url: pitfallUrl(topic.id) }))
+  .filter((topic) => !existsSync(join(dist, 'tani-tuzaklari', topic.id, 'index.html')));
+check('En az 42 tanı tuzağı için eşleştirme kuralı mevcut', PITFALL_BLOG_TOPICS.length >= 42);
+check('Bütün tanı tuzakları ayrı statik HTML olarak üretildi', missingPitfallPages.length === 0);
+if (missingPitfallPages.length > 0) {
+  console.error('  Eksik tanı tuzakları:', missingPitfallPages.map((p) => p.id).join(', '));
+}
+
 check('sitemap.xml is not empty', sitemap !== null && sitemap.trim().length > 100);
 
 if (sitemap) {
   check('sitemap.xml contains homepage', sitemap.includes('https://metinciris.com.tr/'));
   check('sitemap.xml contains blog', sitemap.includes('/blog/'));
   check('sitemap.xml contains individual diagnostic pitfalls', sitemap.includes('/tani-tuzaklari/thyroid-capsular-invasion/'));
+  check('Bütün tanı tuzakları sitemap içinde', PITFALL_BLOG_TOPICS.every((topic) => sitemap.includes(pitfallUrl(topic.id))));
 }
 
 // Check for BlogPosting JSON-LD in at least one blog post page
