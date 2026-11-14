@@ -12,10 +12,11 @@ export const SEO = ({ currentPage }: SEOProps) => {
     // Bu kontrol olmazsa genel /blog metadatası yazıya özel başlığı ve canonical URL'yi ezer.
     if (currentPage === 'blog') return;
 
+    const isNotFound = currentPage === '404';
     const meta = PAGE_REGISTRY[currentPage] || PAGE_REGISTRY.home;
-    const canonicalUrl = getCanonicalUrl(meta.slug);
+    const canonicalUrl = isNotFound ? `${window.location.origin}${window.location.pathname}` : getCanonicalUrl(meta.slug);
 
-    document.title = meta.title;
+    document.title = isNotFound ? 'Sayfa bulunamadı | Metin Çiriş' : meta.title;
 
     let metaDescription = document.querySelector<HTMLMetaElement>(
       'meta[name="description"]',
@@ -25,7 +26,7 @@ export const SEO = ({ currentPage }: SEOProps) => {
       metaDescription.setAttribute('name', 'description');
       document.head.appendChild(metaDescription);
     }
-    metaDescription.setAttribute('content', meta.description);
+    metaDescription.setAttribute('content', isNotFound ? 'Aradığınız sayfa bulunamadı.' : meta.description);
 
     let metaKeywords = document.querySelector<HTMLMetaElement>(
       'meta[name="keywords"]',
@@ -61,9 +62,11 @@ export const SEO = ({ currentPage }: SEOProps) => {
     }
     robotsMeta.setAttribute(
       'content',
-      meta.noindex
-        ? 'noindex, follow'
-        : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1',
+      isNotFound
+        ? 'noindex, nofollow'
+        : meta.noindex
+          ? 'noindex, follow'
+          : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1',
     );
 
     const setMeta = (

@@ -441,18 +441,6 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         navGroup: 'egitim',
         load: () => import('@/pages/OnlineTestAnaliz').then(m => ({ default: m.OnlineTestAnaliz as unknown as React.ComponentType<Record<string, unknown>> })),
     },
-    konsensus: {
-        slug: 'konsensus',
-        title: 'Patoloji Konsensus Toplantı Takibi | Prof Dr Metin Çiriş',
-        description: 'Tıbbi patoloji konsensus toplantılarını canlı takip edin. Toplantı takvimi, Zoom ve Teams katılım bağlantıları ile vaka tartışma arşivi.',
-        keywords: 'patoloji konsensus, toplantı takibi, patoloji eğitim, online toplantı, patoloji vakaları',
-        lastmod: '2026-07-16',
-        priority: 0.7,
-        changefreq: 'daily',
-        navLabel: 'Konsensüs',
-        navGroup: 'akademik',
-        load: () => import('@/pages/Konsensus').then(m => ({ default: m.Konsensus as unknown as React.ComponentType<Record<string, unknown>> })),
-    },
     'konsensus-yonetim': {
         slug: 'konsensus-yonetim',
         title: 'Patoloji Konsensus Yönetim Paneli | Prof Dr Metin Çiriş',

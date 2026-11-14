@@ -497,13 +497,6 @@ export function Yayinlar() {
             icon: GraduationCap
           },
           {
-            title: "Konsensus",
-            subtitle: "Patoloji konsensus toplantı takibi",
-            page: "konsensus",
-            color: "bg-blue-600",
-            icon: Users
-          },
-          {
             title: "Makale Özetleri",
             subtitle: "Günlük PubMed makale özetleri",
             page: "makale",
