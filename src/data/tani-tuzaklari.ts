@@ -1109,6 +1109,10 @@ export const PITFALLS: Pitfall[] = [
         ],
         "references": [
             {
+                "label": "PubMed PMID: 42947507",
+                "url": "https://pubmed.ncbi.nlm.nih.gov/42947507/"
+            },
+            {
                 "label": "Blog arşivi: GitHub Issue #1013",
                 "url": "https://github.com/metinciris/metinciriscomtr/issues/1013"
             }
@@ -1207,6 +1211,10 @@ export const PITFALLS: Pitfall[] = [
             "CK20/p53 aşırı yorumlandı mı?"
         ],
         "references": [
+            {
+                "label": "PubMed PMID: 42958923",
+                "url": "https://pubmed.ncbi.nlm.nih.gov/42958923/"
+            },
             {
                 "label": "Blog arşivi: GitHub Issue #1027",
                 "url": "https://github.com/metinciris/metinciriscomtr/issues/1027"
@@ -1458,6 +1466,10 @@ export const PITFALLS: Pitfall[] = [
         ],
         "references": [
             {
+                "label": "PubMed PMID: 24162739",
+                "url": "https://pubmed.ncbi.nlm.nih.gov/24162739/"
+            },
+            {
                 "label": "Blog arşivi: GitHub Issue #848",
                 "url": "https://github.com/metinciris/metinciriscomtr/issues/848"
             }
@@ -1552,6 +1564,10 @@ export const PITFALLS: Pitfall[] = [
         ],
         "references": [
             {
+                "label": "PubMed PMID: 15166667",
+                "url": "https://pubmed.ncbi.nlm.nih.gov/15166667/"
+            },
+            {
                 "label": "Blog arşivi: GitHub Issue #950",
                 "url": "https://github.com/metinciris/metinciriscomtr/issues/950"
             },
@@ -1601,6 +1617,10 @@ export const PITFALLS: Pitfall[] = [
             "Reaktif atipi yeterince değerlendirildi mi?"
         ],
         "references": [
+            {
+                "label": "PubMed PMID: 42935139",
+                "url": "https://pubmed.ncbi.nlm.nih.gov/42935139/"
+            },
             {
                 "label": "Blog arşivi: GitHub Issue #935",
                 "url": "https://github.com/metinciris/metinciriscomtr/issues/935"
@@ -1754,6 +1774,10 @@ export const PITFALLS: Pitfall[] = [
             "Tedavi çıkarımı ayrı gerekçelendirildi mi?"
         ],
         "references": [
+            {
+                "label": "PubMed PMID: 42970860",
+                "url": "https://pubmed.ncbi.nlm.nih.gov/42970860/"
+            },
             {
                 "label": "Blog arşivi: GitHub Issue #1051",
                 "url": "https://github.com/metinciris/metinciriscomtr/issues/1051"
