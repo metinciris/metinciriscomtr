@@ -66,6 +66,12 @@ export default function App() {
       return 'blog';
     }
 
+    // Ayrı ve paylaşılabilir tanı tuzağı yolları aynı liste bileşenini kullanır.
+    // /tani-tuzaklari/:id/ doğrudan yüklendiğinde 404 yerine konu sayfası açılır.
+    if (path.startsWith('tani-tuzaklari/')) {
+      return 'tani-tuzaklari';
+    }
+
     // Halka açık konsensus ve eski toplantı detay adresleri bilinçli olarak kapalı.
     // Çalışan özel /konsensus-yonetim/ adresini etkilemez.
     if (isRetiredConsensusRoute(pathname)) {

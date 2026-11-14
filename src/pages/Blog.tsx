@@ -17,6 +17,8 @@ import DOMPurify from 'dompurify';
 import { PageContainer } from '../components/PageContainer';
 import { Input } from '../components/ui/input';
 import './Blog.css';
+import { PITFALLS } from '../data/tani-tuzaklari';
+import { pitfallUrl, relatedPitfallIdsForPost } from '../utils/pitfallBlogLinks.js';
 
 const SITE_URL = 'https://metinciris.com.tr';
 const DEFAULT_POSTS_PER_PAGE = 9;
@@ -826,6 +828,10 @@ function BlogPostDetail({ post, posts }: { post: BlogPost; posts: BlogPost[] }) 
     [post.body],
   );
   const description = post.excerpt || makeExcerpt(post.bodyText, 155) || BLOG_DESCRIPTION;
+  // Basliga gore editoryal eslesme; blog Issues metni degistirilmez.
+  const linkedPitfalls = useMemo(() => relatedPitfallIdsForPost(post, 4)
+    .map((id) => PITFALLS.find((p) => p.id === id))
+    .filter((p): p is (typeof PITFALLS)[number] => Boolean(p)), [post.title]);
 
   useEffect(() => {
     setPageSeo({
@@ -936,6 +942,33 @@ function BlogPostDetail({ post, posts }: { post: BlogPost; posts: BlogPost[] }) 
           </ReactMarkdown>
         </div>
       </article>
+
+      <aside className="mt-6 rounded-2xl border border-indigo-200 bg-indigo-50 p-5 md:p-7"
+        aria-label="Tanı tuzakları için ilgili rehberler">
+        <h2 className="text-xl font-bold text-slate-900 mb-2">
+          Tanı Tuzakları ile Bağlantılı Pratik Rehberler
+        </h2>
+        <p className="text-slate-700 mb-4">
+          Bu blog yazısını tanısal kararlara ilişkin kısa kontrol listeleriyle birlikte değerlendirebilirsiniz.
+        </p>
+        {linkedPitfalls.length > 0 && (
+          <ul className="grid gap-3 md:grid-cols-2 mb-4">
+            {linkedPitfalls.map((pitfall) => (
+              <li key={pitfall.id}>
+                <a className="flex items-start justify-between gap-3 rounded-xl border border-indigo-100 bg-white p-4 text-indigo-800 hover:bg-indigo-100"
+                  href={pitfallUrl(pitfall.id)}>
+                  <span><strong className="block mb-1">{pitfall.titleTR}</strong>
+                    <span className="text-sm">{pitfall.organSystem} · {pitfall.category}</span></span>
+                  <ArrowRight size={18} className="shrink-0 mt-1" aria-hidden="true" />
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
+        <a href="/tani-tuzaklari/" className="inline-flex items-center gap-2 font-semibold text-indigo-800 underline">
+          Tüm tanı tuzaklarını ve ayırıcı tanı rehberlerini incele <ArrowRight size={17} aria-hidden="true" />
+        </a>
+      </aside>
 
       <p className="mt-5 text-sm text-gray-500">
         Bu yazı bireysel yorum ve eğitim amaçlıdır; tanı veya raporlama amacıyla kullanılamaz.
