@@ -15,7 +15,7 @@ export const SEO = ({ currentPage }: SEOProps) => {
     if (currentPage === 'blog') return;
 
     const requestedId = currentPage === 'tani-tuzaklari'
-      ? window.location.pathname.replace(/^\\/+|\\/+$/g, '').split('/').slice(1).join('/')
+      ? window.location.pathname.replace(/^\/+|\/+$/g, '').split('/').slice(1).join('/')
       : '';
     const detail = requestedId ? PITFALLS.find((p) => p.id === decodeURIComponent(requestedId)) : undefined;
     const isMissingDetail = Boolean(requestedId && !detail);

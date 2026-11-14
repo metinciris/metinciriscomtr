@@ -73,11 +73,18 @@ check('dist/blog/posts.json exists', existsSync(postsJson));
 const sitemapPath = join(dist, 'sitemap.xml');
 const sitemap = readSafe(sitemapPath);
 check('dist/sitemap.xml exists', sitemap !== null);
+const pitfallHtml = readSafe(join(dist, 'tani-tuzaklari', 'thyroid-capsular-invasion', 'index.html'));
+check('Tanı tuzağı detay sayfası statik HTML üretildi', pitfallHtml !== null && pitfallHtml.includes('Kapsül İnvazyonu'));
+check('Tanı tuzağı sayfasında blog yazıları bölümü var',
+  pitfallHtml !== null && pitfallHtml.includes('Konuyla İlgili Blog Yazıları'));
+const legacyHtml = readSafe(join(dist, 'tani-tuzaklari', 'index.html'));
+check('Tanı tuzakları liste sayfası duruyor', legacyHtml !== null);
 check('sitemap.xml is not empty', sitemap !== null && sitemap.trim().length > 100);
 
 if (sitemap) {
   check('sitemap.xml contains homepage', sitemap.includes('https://metinciris.com.tr/'));
   check('sitemap.xml contains blog', sitemap.includes('/blog/'));
+  check('sitemap.xml contains individual diagnostic pitfalls', sitemap.includes('/tani-tuzaklari/thyroid-capsular-invasion/'));
 }
 
 // Check for BlogPosting JSON-LD in at least one blog post page
