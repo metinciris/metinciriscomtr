@@ -30,6 +30,14 @@ export const PITFALL_BLOG_TOPICS = [
   { id: 'thyroid-parathyroid-mimic', terms: ['intratiroidal paratiroid', 'intrathyroidal parathyroid', 'paratiroid', 'parathyroid'] },
   { id: 'thyroid-capsular-invasion', terms: ['kapsul invazyonu', 'capsular invasion', 'folikuler tiroid karsinomu', 'thyroid follicular carcinoma'] },
   { id: 'thyroid-oncocytic-features', terms: ['onkositik tiroid', 'oncocytic thyroid', 'hurthle', 'hurtle', 'onkositik nodul'] },
+  { id: 'renal-tfe3-not-fusion', issues: [995], terms: ['tfe3 pozitifligi translokasyon', 'bap1 kayipli seffaf hucreli'] },
+  { id: 'renal-tfeb-test-discordance', issues: [1013], terms: ['tfeb degisikligi tasiyan bobrek'] },
+  { id: 'renal-pt3a-stage-trap', issues: [1022], terms: ['renal hucreli karsinomda pt3a'] },
+  { id: 'renal-oncocytic-gpnmb', issues: [1021], terms: ['gpnmb onkositik bobrek'] },
+  { id: 'stat6-sft-vs-ddlps', issues: [1039], terms: ['stat6 pozitif retroperitoneal'] },
+  { id: 'pulmonary-ehe-keratin', issues: [1035, 877], terms: ['pulmoner epiteloid hemanjioendotelyoma'] },
+  { id: 'alknegative-imt-fusions', issues: [1032], terms: ['alk negatif inflamatuar miyofibroblastik'] },
+  { id: 'pantrk-negative-ntrk', issues: [1038], terms: ['pan trk negatifligi ntrk'] },
 ];
 
 /** URL'de kaynak veri ID'si kullanilir: kisa, kalici ve yeniden adlandirmadan etkilenmez. */
@@ -62,8 +70,12 @@ export function matchesPitfallTopic(title, terms) {
 export function relatedPitfallIdsForPost(post, limit = 4) {
   const title = typeof post === 'string' ? post : post?.title || '';
   if (!title) return [];
+  const issueNumber = typeof post === 'object' && post !== null
+    ? Number(post.number) : NaN;
   return PITFALL_BLOG_TOPICS
-    .filter((item) => matchesPitfallTopic(title, item.terms))
+    .filter((item) => (
+      Array.isArray(item.issues) && item.issues.includes(issueNumber)
+    ) || matchesPitfallTopic(title, item.terms))
     .slice(0, limit)
     .map((item) => item.id);
 }
@@ -76,6 +88,7 @@ export function relatedPostsForPitfall(pitfallId, posts, limit = 6) {
     .filter((post) => post && typeof post.title === 'string' &&
       typeof post.path === 'string' &&
       post.path.startsWith('/blog/') &&
-      matchesPitfallTopic(post.title, topic.terms))
+      ((Array.isArray(topic.issues) && topic.issues.includes(Number(post.number))) ||
+        matchesPitfallTopic(post.title, topic.terms)))
     .slice(0, limit);
 }

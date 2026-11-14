@@ -8,10 +8,23 @@ import {
 } from './pitfallBlogLinks.js';
 
 describe('Tanı tuzağı ve blog arası konu bağlantıları', () => {
-  it('26 tanı tuzağı için benzersiz eşleştirme kuralı sağlar', () => {
+  it('tüm tanı tuzakları için benzersiz eşleştirme kuralı sağlar', () => {
     expect(PITFALL_BLOG_TOPICS.map((rule) => rule.id).sort()).toEqual(
       PITFALLS.map((p) => p.id).sort(),
     );
+  });
+
+  it('kaynak Issue ile başlık değişse bile bağlantı kurar', () => {
+    expect(relatedPitfallIdsForPost({ number: 995, title: 'Yeni üropatoloji başlığı' }))
+      .toContain('renal-tfe3-not-fusion');
+    expect(relatedPostsForPitfall('renal-tfe3-not-fusion', [
+      { number: 995, title: 'Başlığı güncellendi', path: '/blog/yeni-baslik-995/' },
+    ])).toHaveLength(1);
+  });
+
+  it('İlgisiz NGS haberini böbrek veya yumuşak doku tuzağına bağlamaz', () => {
+    expect(relatedPitfallIdsForPost({ number: 543, title: 'Yeni NGS laboratuvar güncellemesi' }))
+      .toEqual([]);
   });
 
   it('tiroid kapsül invazyonu yazısını doğru konuya bağlar', () => {

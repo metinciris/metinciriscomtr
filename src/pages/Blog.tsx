@@ -602,6 +602,7 @@ function BlogList({
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [onlyPitfalls, setOnlyPitfalls] = useState(false);
   const [clientPage, setClientPage] = useState(initialPage);
 
   const filterTags = ['Patoloji Radarı', 'Vaka Notları', 'Tanısal Yaklaşım', 'Güncellemeler'];
@@ -616,6 +617,10 @@ function BlogList({
       );
     }
 
+    if (onlyPitfalls) {
+      result = result.filter((post) => relatedPitfallIdsForPost(post).length > 0);
+    }
+
     if (!normalizedSearch) return result;
 
     return result.filter((post) => {
@@ -624,11 +629,11 @@ function BlogList({
         .toLocaleLowerCase('tr-TR');
       return haystack.includes(normalizedSearch);
     });
-  }, [normalizedSearch, posts, selectedTag]);
+  }, [normalizedSearch, onlyPitfalls, posts, selectedTag]);
 
   useEffect(() => {
-    setClientPage(normalizedSearch || selectedTag ? 1 : initialPage);
-  }, [initialPage, normalizedSearch, selectedTag]);
+    setClientPage(normalizedSearch || selectedTag || onlyPitfalls ? 1 : initialPage);
+  }, [initialPage, normalizedSearch, onlyPitfalls, selectedTag]);
 
   const totalPages = Math.max(1, Math.ceil(filteredPosts.length / postsPerPage));
   const currentPage = Math.min(Math.max(clientPage, 1), totalPages);
@@ -711,6 +716,10 @@ function BlogList({
         </div>
 
         <div className="flex flex-wrap gap-2">
+          <button type="button" aria-pressed={onlyPitfalls} onClick={() => setOnlyPitfalls(!onlyPitfalls)}
+            className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full border text-sm font-semibold transition-colors ${onlyPitfalls ? 'bg-indigo-700 text-white border-indigo-700' : 'bg-indigo-50 text-indigo-800 border-indigo-200 hover:bg-indigo-100'}`}>
+            <BookOpen size={14} aria-hidden="true" /> Tanı tuzağı içeren yazılar
+          </button>
           {filterTags.map((tag) => (
             <button
               key={tag}
