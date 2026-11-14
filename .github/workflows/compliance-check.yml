@@ -1,0 +1,47 @@
+name: Compliance Change Verification
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'src/**'
+      - 'supabase/**'
+      - 'docs/KONSENSUS_RLS_REVIEW_20261114.md'
+      - '.github/workflows/compliance-check.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install
+        run: npm ci
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint
+      - name: Unit tests
+        run: npm run test
+      - name: Build
+        run: npm run build
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SITE_URL: https://metinciris.com.tr
+          BLOG_REPO_OWNER: metinciris
+          BLOG_REPO_NAME: metinciriscomtr
+          BLOG_LABEL: Blog
+          BLOG_POSTS_PER_PAGE: 9
+      - name: Verify generated site
+        run: npm run verify:build

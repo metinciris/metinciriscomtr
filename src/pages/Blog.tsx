@@ -910,6 +910,13 @@ function BlogPostDetail({ post, posts }: { post: BlogPost; posts: BlogPost[] }) 
           {post.title}
         </h1>
 
+        <div className="mb-4 text-sm text-white/95">
+          <p className="m-0">Bilimsel içerik sorumlusu: Prof. Dr. İbrahim Metin Çiriş</p>
+          <p className="m-0">İlk yayın: <time dateTime={post.createdAt}>{formatDate(post.createdAt)}</time>
+            {' · '}Son güncelleme: <time dateTime={post.updatedAt}>{formatDate(post.updatedAt)}</time>
+            {' · '}<a href="/iletisim/" className="underline text-white hover:text-white/80">Editöre ulaşın</a>
+          </p>
+        </div>
         <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-white/90">
           <span className="inline-flex items-center gap-1.5">
             <Calendar size={16} aria-hidden="true" />
