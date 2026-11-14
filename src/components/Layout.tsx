@@ -14,6 +14,8 @@ import {
   Search,
 } from 'lucide-react';
 import { SearchModal } from './SearchModal';
+import { CookieConsent } from './CookieConsent';
+import { openCookiePreferences } from '../utils/cookieConsent';
 import { PAGE_REGISTRY, getPagesByGroup, getNavLabel, type NavGroup } from '../core/data/registry';
 
 interface LayoutProps {
@@ -503,11 +505,22 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
               >
                 Gizlilik Politikası
               </a>
+              <span aria-hidden="true"> · </span>
+              <a href="/cerez-politikasi/" onClick={(e) => { e.preventDefault(); onNavigate('cerez-politikasi'); }}
+                className="text-gray-300 hover:text-white transition-colors no-underline">
+                Çerez Politikası
+              </a>
+              <span aria-hidden="true"> · </span>
+              <button type="button" onClick={openCookiePreferences}
+                className="text-gray-300 hover:text-white transition-colors underline underline-offset-2">
+                Çerez Tercihleri
+              </button>
             </div>
           </div>
         </div>
       </footer>
 
+      <CookieConsent />
       <SearchModal
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}

@@ -17,9 +17,6 @@ import {
   dateKeyInTz,
   parseYMD,
   getMeetingStatus,
-  canShowZoomInfo,
-  canShowPoster,
-  getEffectiveZoomLink,
 } from '../components/Konsensus/utils';
 
 import { MeetingCard } from '../components/Konsensus/MeetingCard';
@@ -72,38 +69,10 @@ export function Konsensus() {
     try {
       const { data: rpcData, error: rpcError } = await supabase.rpc('get_public_meetings');
 
-      if (!rpcError && rpcData) {
-        setMeetings(rpcData as Meeting[]);
-      } else {
-        const { data, error } = await supabase
-          .from('meetings')
-          .select('id, title, organizer, date, time, duration, description, poster_url, zoom_link, zoom_id, zoom_password')
-          .order('date', { ascending: true })
-          .order('time', { ascending: true });
-
-        if (!error && data) {
-          const currentTime = new Date();
-          const sanitized = (data as Meeting[]).map((m) => {
-            const zoomVisible = canShowZoomInfo(m, currentTime);
-            const posterVisible = canShowPoster(m, currentTime);
-            const has_zoom_info = Boolean(
-              getEffectiveZoomLink(m) ||
-              (m.zoom_id && m.zoom_id.trim()) ||
-              (m.zoom_password && m.zoom_password.trim())
-            );
-
-            return {
-              ...m,
-              has_zoom_info,
-              zoom_link: zoomVisible ? m.zoom_link : null,
-              zoom_id: zoomVisible ? m.zoom_id : null,
-              zoom_password: zoomVisible ? m.zoom_password : null,
-              poster_url: posterVisible ? m.poster_url : null,
-            };
-          });
-          setMeetings(sanitized);
-        }
-      }
+      if (rpcError) throw rpcError;
+      if (!rpcData) throw new Error('Toplantı bilgileri henüz alınamadı.');
+      // Katılım bağlantıları ve şifreleri yalnızca sunucu tarafında 120 dk kuralıyla açıklanır.
+      setMeetings(rpcData as Meeting[]);
     } catch (err) {
       console.error('Fetch public meetings error:', err);
     } finally {

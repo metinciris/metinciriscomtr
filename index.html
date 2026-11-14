@@ -5,24 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Scripts (Delayed for performance) -->
-  <script>
-    window.addEventListener('load', () => {
-      setTimeout(() => {
-        const script = document.createElement('script');
-        script.src = 'https://www.googletagmanager.com/gtag/js?id=G-VPRW46LHZ7';
-        script.async = true;
-        document.head.appendChild(script);
-
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        window.gtag = gtag;
-        gtag('js', new Date());
-        gtag('config', 'G-VPRW46LHZ7');
-      }, 2000);
-    });
-  </script>
-
+  <!-- Analytics code is loaded only after explicit consent in src/utils/analytics.ts -->
 
   <!-- Başlık -->
   <title>Prof. Dr. İbrahim Metin Çiriş | Tıbbi Patoloji Uzmanı</title>
