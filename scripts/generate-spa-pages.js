@@ -819,6 +819,15 @@ async function main() {
   const globalJsonLdTag = `<script type="application/ld+json">\n${safeJsonForHtml(globalSiteGraph)}\n</script>`;
   indexContent = indexContent.replace(/<\/head>/i, `${globalJsonLdTag}\n</head>`);
 
+  // Eski halka acik konsensus URL'si indekslenmeyen kapali sayfaya donusur.
+  // Yönetim sayfasi mevcut /konsensus-yonetim/ yolunda kalir.
+  writeRoute('konsensus', injectMetadata(indexContent, {
+    title: 'Sayfa bulunamadı | Prof. Dr. İbrahim Metin Çiriş',
+    description: 'Bu sayfa erişime kapatılmıştır.',
+    canonicalPath: '/konsensus/',
+    noindex: true,
+  }));
+
   for (const [id, meta] of Object.entries(registry)) {
     if (!meta.slug && id !== 'home') continue;
     const canonicalPath = meta.slug ? `/${meta.slug}/` : '/';
@@ -966,7 +975,13 @@ async function main() {
     `User-agent: *\nAllow: /\n\nSitemap: ${SITE_URL}/sitemap.xml\n`,
     'utf8',
   );
-  writeFileSync(join(distDir, '404.html'), indexContent, 'utf8');
+  // GitHub Pages eski toplanti detay adreslerini 404.html'e dondurur.
+  // Arama botlarinin bu URL'leri indekslememesi icin robots meta eklenir.
+  writeFileSync(
+    join(distDir, '404.html'),
+    indexContent.replace(/<\/head>/i, '<meta name="robots" content="noindex, nofollow">\n</head>'),
+    'utf8',
+  );
   updateServiceWorkerVersion();
 
   // --- Search Index Generation ---

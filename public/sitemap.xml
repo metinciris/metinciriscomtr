@@ -196,12 +196,6 @@
     <priority>0.7</priority>
   </url>
 <url>
-    <loc>https://metinciris.com.tr/konsensus/</loc>
-    <lastmod>2026-02-17</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://metinciris.com.tr/pubmed-makale-takip/</loc>
     <lastmod>2026-02-17</lastmod>
     <changefreq>daily</changefreq>

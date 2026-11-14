@@ -7,6 +7,7 @@ import { SEO } from './components/SEO';
 import { PAGE_REGISTRY, validPages, getNavLabel } from './core/data/registry';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { trackPageView } from './utils/analytics';
+import { isRetiredConsensusRoute } from './utils/privateRoutes';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type LazyComponent = React.LazyExoticComponent<React.ComponentType<any>>;
@@ -67,7 +68,7 @@ export default function App() {
 
     // Halka açık konsensus ve eski toplantı detay adresleri bilinçli olarak kapalı.
     // Çalışan özel /konsensus-yonetim/ adresini etkilemez.
-    if (path === 'konsensus' || path.startsWith('konsensus/')) {
+    if (isRetiredConsensusRoute(pathname)) {
       return '404';
     }
 
