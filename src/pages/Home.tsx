@@ -5,6 +5,7 @@ import {
   MessageSquare,
   FileText,
   BookOpen,
+  Lightbulb,
   Utensils,
   GraduationCap,
   Briefcase,
@@ -35,6 +36,7 @@ import {
   DIGER_SUBTITLES,
   NGS_SUBTITLES,
   BLOG_SUBTITLES,
+  TANI_TUZAKLARI_SUBTITLES,
   BIYOPSI_SUBTITLES,
   SOZLUK_SSS_SUBTITLES,
   BAKTIGIM_SUBTITLES,
@@ -84,6 +86,7 @@ export function Home({ onNavigate }: HomeProps) {
   const yayinSubtitle      = useRotatingText(YAYIN_SUBTITLES, 4000);
   const portfolyoSubtitle  = useRotatingText(PORTFOLYO_SUBTITLES, 4000);
   const blogSubtitle       = useRotatingText(BLOG_SUBTITLES, 4000);
+  const taniTuzaklariSubtitle = useRotatingText(TANI_TUZAKLARI_SUBTITLES, 4000);
   const universiteSubtitle = useRotatingText(UNIVERSITE_SUBTITLES, 4000);
   const digerSubtitle      = useRotatingText(DIGER_SUBTITLES, 4000);
 
@@ -402,6 +405,17 @@ export function Home({ onNavigate }: HomeProps) {
                 size="medium"
                 href="/blog/"
                 onClick={() => onNavigate('blog')}
+              />
+
+              {/* Tanı Tuzakları */}
+              <MetroTile
+                title="Tanı Tuzakları"
+                subtitle={taniTuzaklariSubtitle}
+                icon={<Lightbulb size={38} />}
+                color="tile-acad-pitfalls"
+                size="medium"
+                href="/tani-tuzaklari/"
+                onClick={() => onNavigate('tani-tuzaklari')}
               />
 
               {/* SDÜ ve Üniversite */}
