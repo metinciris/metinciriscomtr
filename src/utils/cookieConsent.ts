@@ -11,6 +11,7 @@ export function getAnalyticsConsent(): AnalyticsConsent {
   try {
     const value = window.localStorage.getItem(COOKIE_CONSENT_KEY);
     if (value === 'accepted' || value === 'rejected') return value;
+    return null;
   } catch {
     // Bazi tarayicilarda depolama kapali olabilir.
   }

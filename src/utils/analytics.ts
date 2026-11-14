@@ -1,5 +1,5 @@
 /** Google Analytics yalnizca acik onaydan sonra yuklenir. */
-import { COOKIE_CONSENT_CHANGED, getAnalyticsConsent } from './cookieConsent';
+import { COOKIE_CONSENT_CHANGED, COOKIE_CONSENT_KEY, getAnalyticsConsent } from './cookieConsent';
 
 const GA_ID = 'G-VPRW46LHZ7';
 let started = false;
@@ -34,7 +34,7 @@ function applyConsent(userChanged = false): void {
   if (!accepted) {
     window.gtag?.('consent', 'update', { analytics_storage: 'denied', ad_storage: 'denied',
       ad_user_data: 'denied', ad_personalization: 'denied' });
-    if (loaded) deleteGACookies();
+    deleteGACookies();
     return;
   }
   if (!window.gtag) {
@@ -68,6 +68,9 @@ export function initializeAnalytics(): void {
   started = true;
   applyConsent();
   window.addEventListener(COOKIE_CONSENT_CHANGED, () => applyConsent(true));
+  window.addEventListener('storage', (event: StorageEvent) => {
+    if (event.key === COOKIE_CONSENT_KEY || event.key === null) applyConsent();
+  });
 }
 
 export function trackEvent(eventName: string, params: Record<string, string | number | boolean> = {}): void {
