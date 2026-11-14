@@ -52,6 +52,18 @@ export function KonsensusToplanti() {
     };
 
     fetchMeeting();
+    // Açık kalan toplantı sayfasında sunucu verisini 60 saniyede bir yenile.
+    const interval = window.setInterval(() => {
+      if (document.visibilityState === 'visible') void fetchMeeting();
+    }, 60_000);
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') void fetchMeeting();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      window.clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
   }, [meetingId]);
 
   if (loading) {
