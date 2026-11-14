@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { EditorialNotice } from '../components/EditorialNotice';
 import { PageContainer } from '../components/PageContainer';
 import { Search, Book, HelpCircle, AlertTriangle, ArrowRight, Microscope, Info, ExternalLink, Hash, CheckCircle2, ShieldCheck, Wand2 } from 'lucide-react';
 import { TERMS, FAQS, type Term, type FAQ } from '../data/patolojiSozluguData';
@@ -311,6 +312,7 @@ export function PatolojiSozlugu({ onNavigate }: PatolojiSozluguProps) {
                     <ArrowRight className="text-gray-300 group-hover:text-[#0078D4] group-hover:translate-x-1 transition-all" />
                 </a>
             </div>
+            <EditorialNotice className="mt-10" />
         </PageContainer>
     );
 }

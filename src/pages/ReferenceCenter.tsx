@@ -1,4 +1,5 @@
 import React from 'react';
+import { EditorialNotice } from '../components/EditorialNotice';
 import { BookOpen, Stethoscope, Dna, ArrowRight, Microscope } from 'lucide-react';
 
 interface ReferenceCenterProps {
@@ -107,6 +108,7 @@ export function ReferenceCenter({ onNavigate }: ReferenceCenterProps) {
         ))}
       </div>
       
+      <EditorialNotice className="mt-10" />
       <div className="mt-12 text-center text-gray-500 text-sm">
         Sürekli güncellenen ve bağımsız kaynaklar içeren bir kılavuzdur. İçerikler profesyoneller ve öğrenciler içindir.
       </div>
