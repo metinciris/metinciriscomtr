@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
 import { PAGE_REGISTRY } from '../core/data/registry';
 import { getCanonicalUrl, getStructuredData } from '../core/seo/seo-utils';
+import { PITFALLS } from '../data/tani-tuzaklari';
+import { pitfallUrl } from '../utils/pitfallBlogLinks.js';
 
 interface SEOProps {
   currentPage: string;
@@ -12,9 +14,21 @@ export const SEO = ({ currentPage }: SEOProps) => {
     // Bu kontrol olmazsa genel /blog metadatası yazıya özel başlığı ve canonical URL'yi ezer.
     if (currentPage === 'blog') return;
 
-    const isNotFound = currentPage === '404';
-    const meta = PAGE_REGISTRY[currentPage] || PAGE_REGISTRY.home;
-    const canonicalUrl = isNotFound ? `${window.location.origin}${window.location.pathname}` : getCanonicalUrl(meta.slug);
+    const requestedId = currentPage === 'tani-tuzaklari'
+      ? window.location.pathname.replace(/^\/+|\/+$/g, '').split('/').slice(1).join('/')
+      : '';
+    const detail = requestedId ? PITFALLS.find((p) => p.id === decodeURIComponent(requestedId)) : undefined;
+    const isMissingDetail = Boolean(requestedId && !detail);
+    const isNotFound = currentPage === '404' || isMissingDetail;
+    const baseMeta = PAGE_REGISTRY[currentPage] || PAGE_REGISTRY.home;
+    const meta = detail ? {
+      ...baseMeta,
+      title: `${detail.titleTR} | Tanı Tuzakları | Prof Dr Metin Çiriş`,
+      description: detail.teaser,
+      keywords: detail.tags.join(', '),
+    } : baseMeta;
+    const canonicalUrl = isNotFound ? `${window.location.origin}${window.location.pathname}`
+      : detail ? getCanonicalUrl(pitfallUrl(detail.id)) : getCanonicalUrl(meta.slug);
 
     document.title = isNotFound ? 'Sayfa bulunamadı | Metin Çiriş' : meta.title;
 
@@ -120,7 +134,17 @@ export const SEO = ({ currentPage }: SEOProps) => {
       jsonLdScript.setAttribute('type', 'application/ld+json');
       document.head.appendChild(jsonLdScript);
     }
-    jsonLdScript.textContent = JSON.stringify(getStructuredData(currentPage));
+    jsonLdScript.textContent = JSON.stringify(detail ? {
+      '@context': 'https://schema.org',
+      '@type': 'Article',
+      headline: detail.titleTR,
+      description: detail.teaser,
+      url: canonicalUrl,
+      dateModified: detail.updatedAt,
+      author: { '@type': 'Person', name: 'Prof. Dr. İbrahim Metin Çiriş' },
+      publisher: { '@type': 'Person', name: 'Prof. Dr. İbrahim Metin Çiriş' },
+      isPartOf: { '@type': 'CollectionPage', name: 'Patoloji Tanı Tuzakları', url: 'https://metinciris.com.tr/tani-tuzaklari/' },
+    } : getStructuredData(currentPage));
 
     const setAlternate = (hreflang: string) => {
       let link = document.querySelector<HTMLLinkElement>(

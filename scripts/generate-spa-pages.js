@@ -17,6 +17,8 @@ import {
 } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import ts from 'typescript';
+import { PITFALL_BLOG_TOPICS, pitfallUrl, relatedPitfallIdsForPost, relatedPostsForPitfall } from '../src/utils/pitfallBlogLinks.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -593,7 +595,7 @@ function renderStaticList(posts, currentPage, totalPages) {
 </main>`;
 }
 
-function renderStaticArticle(post, olderPost, newerPost) {
+function renderStaticArticle(post, olderPost, newerPost, pitfallsById) {
   const visibleLabels = post.labels.filter(
     (label) => label.toLocaleLowerCase('tr-TR') !== 'blog',
   );
@@ -646,10 +648,98 @@ function renderStaticArticle(post, olderPost, newerPost) {
   <article class="bg-white rounded-xl border border-gray-100 shadow-sm p-6 md:p-10">
     <div class="blog-content-markdown max-w-none">${post.bodyHtml}</div>
   </article>
+  ${renderPitfallBlogLinks(post, pitfallsById)}
   <p class="mt-5 text-sm text-gray-500">Bu yazı bireysel yorum ve eğitim amaçlıdır; tanı veya raporlama amacıyla kullanılamaz.</p>
   <nav class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4" aria-label="Blog yazıları arasında gezinme">${older}${newer}</nav>
   <div class="mt-8 flex justify-center"><a href="/blog/" class="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-5 py-3 text-sm font-medium text-gray-700 shadow-sm">← Tüm blog yazıları</a></div>
 </main>`;
+}
+
+
+function renderPitfallBlogLinks(post, pitfallsById) {
+  const related = relatedPitfallIdsForPost(post, 4)
+    .map((id) => pitfallsById.get(id)).filter(Boolean);
+  const cards = related.map((pitfall) => `<li class="rounded-xl border border-indigo-100 bg-white">
+    <a href="${escapeHtml(pitfallUrl(pitfall.id))}" class="block p-4 font-semibold text-indigo-800">
+      ${escapeHtml(pitfall.titleTR)}
+      <span class="block mt-1 text-xs text-slate-600">${escapeHtml(pitfall.organSystem)} · ${escapeHtml(pitfall.category)}</span>
+    </a></li>`).join('\n');
+  return `<aside class="mt-6 rounded-2xl border border-indigo-200 bg-indigo-50 p-5 md:p-7">
+    <h2 class="text-xl font-bold text-slate-900 mb-2">Tanı Tuzakları ile Bağlantılı Pratik Rehberler</h2>
+    <p class="text-slate-700 mb-4">Bu yazıyı tanısal kararlar için kısa kontrol listeleriyle birlikte değerlendirebilirsiniz.</p>
+    ${cards ? `<ul class="grid gap-3 md:grid-cols-2 mb-4">${cards}</ul>` : ''}
+    <a href="/tani-tuzaklari/" class="font-semibold text-indigo-800 underline">Tüm tanı tuzaklarını ve ayırıcı tanı rehberlerini incele →</a>
+  </aside>`;
+}
+
+async function loadPitfallDataForStaticPages() {
+  // Var olan TS kaynağını bir kez derler: yeni veri kopyası ve bağımsız JSON tutmayız.
+  const filePath = join(rootDir, 'src', 'data', 'tani-tuzaklari.ts');
+  const source = readFileSync(filePath, 'utf8');
+  const output = ts.transpileModule(source, {
+    compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 },
+  }).outputText;
+  const url = 'data:text/javascript;base64,' + Buffer.from(output).toString('base64');
+  const module = await import(url);
+  if (!Array.isArray(module.PITFALLS) || module.PITFALLS.length === 0) {
+    throw new Error('Tanı tuzakları verisi derlemede boş geldi.');
+  }
+  const ids = module.PITFALLS.map((item) => item.id);
+  if (ids.length !== new Set(ids).size) throw new Error('Tekrarlayan tanı tuzağı ID.');
+  const topicIds = new Set(PITFALL_BLOG_TOPICS.map((item) => item.id));
+  if (ids.some((id) => !topicIds.has(id))) throw new Error('Blog bağlantı kuralı eksik tanı tuzağı.');
+  return module.PITFALLS;
+}
+
+function pitfallStaticSection(title, items) {
+  if (!items?.length) return '';
+  return `<section class="rounded-2xl border border-slate-200 bg-white p-5 md:p-6 shadow-sm">
+    <h2 class="mb-4 text-xl font-bold text-slate-900">${escapeHtml(title)}</h2>
+    <ul class="space-y-3 pl-5 list-disc text-slate-700 leading-relaxed">
+      ${items.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}
+    </ul>
+  </section>`;
+}
+
+function renderStaticPitfall(p, posts, allPitfalls) {
+  const linked = relatedPostsForPitfall(p.id, posts, 8);
+  const postCards = linked.map((post) => `<li>
+    <a class="block rounded-xl border border-indigo-100 bg-white p-4 text-indigo-800 font-semibold"
+       href="${escapeHtml(post.path)}">${escapeHtml(post.title)} →</a>
+  </li>`).join('');
+  const related = allPitfalls.filter((item) => item.id !== p.id && item.organSystem === p.organSystem).slice(0, 5);
+  const otherCards = related.map((item) =>
+    `<li><a class="block rounded-xl p-3 text-indigo-800" href="${escapeHtml(pitfallUrl(item.id))}">${escapeHtml(item.titleTR)} →</a></li>`).join('');
+  return `<main class="container mx-auto max-w-5xl px-4 py-8">
+    <nav class="text-sm text-slate-600 mb-5" aria-label="İçerik yolu"><a href="/">Ana Sayfa</a> /
+      <a href="/tani-tuzaklari/">Tanı Tuzakları</a> / ${escapeHtml(p.titleTR)}</nav>
+    <header class="rounded-3xl bg-slate-900 p-7 md:p-10 text-white mb-6">
+      <p class="text-white/70 mb-3">${escapeHtml(p.organSystem)} · ${escapeHtml(p.category)} · ${escapeHtml(p.modality)}</p>
+      <h1 class="text-white text-3xl md:text-4xl font-bold mb-3">${escapeHtml(p.titleTR)}</h1>
+      ${p.titleEN ? `<p class="text-white/80 italic">${escapeHtml(p.titleEN)}</p>` : ''}
+      <p class="text-white/90 text-lg leading-relaxed">${escapeHtml(p.teaser)}</p>
+      <p class="text-sm text-white/70">Bilimsel içerik sorumlusu: Prof. Dr. İbrahim Metin Çiriş ·
+        Son güncelleme: <time datetime="${escapeHtml(p.updatedAt)}">${escapeHtml(p.updatedAt)}</time></p>
+    </header>
+    <div class="grid gap-5 md:grid-cols-2">
+      ${pitfallStaticSection('Neden Yanıltır?', p.whyItTricks)}
+      ${pitfallStaticSection('Ayırıcı Tanı İpuçları', p.keyClues)}
+      ${pitfallStaticSection('Minimal Çalışma', p.minimalWorkup)}
+      ${pitfallStaticSection('Raporlama Yaklaşımı', p.reportingTips)}
+    </div>
+    <div class="mt-5">${pitfallStaticSection('Olgu Başı Hızlı Kontrol Listesi', p.checklist)}</div>
+    <section class="mt-6 rounded-2xl border border-indigo-200 bg-indigo-50 p-5 md:p-7">
+      <h2 class="text-xl font-bold mb-4">Konuyla İlgili Blog Yazıları</h2>
+      ${postCards ? `<ul class="grid gap-3 md:grid-cols-2">${postCards}</ul>` :
+        '<p>Bu başlıkla doğrudan eşleşen blog yazısı henüz bulunamadı.</p>'}
+      <a href="/blog/" class="inline-block mt-4 font-semibold text-indigo-800 underline">Tüm patoloji blog yazıları →</a>
+    </section>
+    ${otherCards ? `<section class="mt-6 bg-white rounded-2xl p-5">
+      <h2 class="text-xl font-bold mb-4">Aynı Alanın Diğer Tanı Tuzakları</h2>
+      <ul class="grid md:grid-cols-2">${otherCards}</ul></section>` : ''}
+    <div class="mt-7"><a href="/tani-tuzaklari/" class="text-indigo-800 underline font-semibold">← Tüm Tanı Tuzakları</a></div>
+    <p class="mt-7 text-sm text-slate-500">Eğitim amaçlıdır. Güncel sınıflama ve olguya özgü değerlendirme gerekir.</p>
+  </main>`;
 }
 
 function blogListStructuredData(posts, canonicalPath) {
@@ -750,6 +840,8 @@ function updateServiceWorkerVersion() {
 
 async function main() {
   ensureBuildExists();
+  const pitfalls = await loadPitfallDataForStaticPages();
+  const pitfallsById = new Map(pitfalls.map((p) => [p.id, p]));
   const rawIndexContent = readFileSync(indexPath, 'utf8');
   const registry = parseRegistry(readFileSync(registryPath, 'utf8'));
   const sitemapEntries = new Map();
@@ -963,11 +1055,31 @@ async function main() {
     });
     const articleHtml = injectRoot(
       metadataHtml,
-      renderStaticArticle(post, olderPost, newerPost),
+      renderStaticArticle(post, olderPost, newerPost, pitfallsById),
     );
     writeRoute(post.path, articleHtml);
     addSitemapEntry(sitemapEntries, post.path, post.updatedAt, 'monthly', 0.7);
   });
+
+  // Her tanı tuzağı kendi indekslenebilir ve içerik dolu statik HTML sayfasını alır.
+  for (const p of pitfalls) {
+    const path = pitfallUrl(p.id);
+    const data = {
+      '@context': 'https://schema.org', '@type': 'Article',
+      headline: p.titleTR, description: p.teaser,
+      url: `${SITE_URL}${path}`, dateModified: p.updatedAt,
+      author: { '@type': 'Person', name: 'Prof. Dr. İbrahim Metin Çiriş' },
+      publisher: { '@type': 'Person', name: 'Prof. Dr. İbrahim Metin Çiriş' },
+    };
+    const html = injectRoot(injectMetadata(indexContent, {
+      title: `${p.titleTR} | Tanı Tuzakları | Prof Dr Metin Çiriş`,
+      description: p.teaser, canonicalPath: path,
+      type: 'article', updatedAt: p.updatedAt,
+      structuredData: data,
+    }), renderStaticPitfall(p, posts, pitfalls));
+    writeRoute(path, html);
+    addSitemapEntry(sitemapEntries, path, p.updatedAt, 'monthly', 0.6);
+  }
 
   writeSitemap(sitemapEntries);
   writeFileSync(
@@ -986,6 +1098,14 @@ async function main() {
 
   // --- Search Index Generation ---
   const searchIndex = [];
+  for (const p of pitfalls) {
+    searchIndex.push({
+      title: p.titleTR,
+      description: p.teaser,
+      path: pitfallUrl(p.id),
+      type: 'Tanı Tuzağı',
+    });
+  }
   
   for (const [id, meta] of Object.entries(registry)) {
     if (meta.noindex) continue;
