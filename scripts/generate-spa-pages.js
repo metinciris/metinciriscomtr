@@ -659,17 +659,17 @@ function renderStaticArticle(post, olderPost, newerPost, pitfallsById) {
 function renderPitfallBlogLinks(post, pitfallsById) {
   const related = relatedPitfallIdsForPost(post, 4)
     .map((id) => pitfallsById.get(id)).filter(Boolean);
-  const cards = related.map((pitfall) => \`<li class="rounded-xl border border-indigo-100 bg-white">
-    <a href="\${escapeHtml(pitfallUrl(pitfall.id))}" class="block p-4 font-semibold text-indigo-800">
-      \${escapeHtml(pitfall.titleTR)}
-      <span class="block mt-1 text-xs text-slate-600">\${escapeHtml(pitfall.organSystem)} · \${escapeHtml(pitfall.category)}</span>
-    </a></li>\`).join('\\n');
-  return \`<aside class="mt-6 rounded-2xl border border-indigo-200 bg-indigo-50 p-5 md:p-7">
+  const cards = related.map((pitfall) => `<li class="rounded-xl border border-indigo-100 bg-white">
+    <a href="${escapeHtml(pitfallUrl(pitfall.id))}" class="block p-4 font-semibold text-indigo-800">
+      ${escapeHtml(pitfall.titleTR)}
+      <span class="block mt-1 text-xs text-slate-600">${escapeHtml(pitfall.organSystem)} · ${escapeHtml(pitfall.category)}</span>
+    </a></li>`).join('\n');
+  return `<aside class="mt-6 rounded-2xl border border-indigo-200 bg-indigo-50 p-5 md:p-7">
     <h2 class="text-xl font-bold text-slate-900 mb-2">Tanı Tuzakları ile Bağlantılı Pratik Rehberler</h2>
     <p class="text-slate-700 mb-4">Bu yazıyı tanısal kararlar için kısa kontrol listeleriyle birlikte değerlendirebilirsiniz.</p>
-    \${cards ? \`<ul class="grid gap-3 md:grid-cols-2 mb-4">\${cards}</ul>\` : ''}
+    ${cards ? `<ul class="grid gap-3 md:grid-cols-2 mb-4">${cards}</ul>` : ''}
     <a href="/tani-tuzaklari/" class="font-semibold text-indigo-800 underline">Tüm tanı tuzaklarını ve ayırıcı tanı rehberlerini incele →</a>
-  </aside>\`;
+  </aside>`;
 }
 
 async function loadPitfallDataForStaticPages() {
@@ -693,53 +693,53 @@ async function loadPitfallDataForStaticPages() {
 
 function pitfallStaticSection(title, items) {
   if (!items?.length) return '';
-  return \`<section class="rounded-2xl border border-slate-200 bg-white p-5 md:p-6 shadow-sm">
-    <h2 class="mb-4 text-xl font-bold text-slate-900">\${escapeHtml(title)}</h2>
+  return `<section class="rounded-2xl border border-slate-200 bg-white p-5 md:p-6 shadow-sm">
+    <h2 class="mb-4 text-xl font-bold text-slate-900">${escapeHtml(title)}</h2>
     <ul class="space-y-3 pl-5 list-disc text-slate-700 leading-relaxed">
-      \${items.map((item) => \`<li>\${escapeHtml(item)}</li>\`).join('')}
+      ${items.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}
     </ul>
-  </section>\`;
+  </section>`;
 }
 
 function renderStaticPitfall(p, posts, allPitfalls) {
   const linked = relatedPostsForPitfall(p.id, posts, 8);
-  const postCards = linked.map((post) => \`<li>
+  const postCards = linked.map((post) => `<li>
     <a class="block rounded-xl border border-indigo-100 bg-white p-4 text-indigo-800 font-semibold"
-       href="\${escapeHtml(post.path)}">\${escapeHtml(post.title)} →</a>
-  </li>\`).join('');
+       href="${escapeHtml(post.path)}">${escapeHtml(post.title)} →</a>
+  </li>`).join('');
   const related = allPitfalls.filter((item) => item.id !== p.id && item.organSystem === p.organSystem).slice(0, 5);
   const otherCards = related.map((item) =>
-    \`<li><a class="block rounded-xl p-3 text-indigo-800" href="\${escapeHtml(pitfallUrl(item.id))}">\${escapeHtml(item.titleTR)} →</a></li>\`).join('');
-  return \`<main class="container mx-auto max-w-5xl px-4 py-8">
+    `<li><a class="block rounded-xl p-3 text-indigo-800" href="${escapeHtml(pitfallUrl(item.id))}">${escapeHtml(item.titleTR)} →</a></li>`).join('');
+  return `<main class="container mx-auto max-w-5xl px-4 py-8">
     <nav class="text-sm text-slate-600 mb-5" aria-label="İçerik yolu"><a href="/">Ana Sayfa</a> /
-      <a href="/tani-tuzaklari/">Tanı Tuzakları</a> / \${escapeHtml(p.titleTR)}</nav>
+      <a href="/tani-tuzaklari/">Tanı Tuzakları</a> / ${escapeHtml(p.titleTR)}</nav>
     <header class="rounded-3xl bg-slate-900 p-7 md:p-10 text-white mb-6">
-      <p class="text-white/70 mb-3">\${escapeHtml(p.organSystem)} · \${escapeHtml(p.category)} · \${escapeHtml(p.modality)}</p>
-      <h1 class="text-white text-3xl md:text-4xl font-bold mb-3">\${escapeHtml(p.titleTR)}</h1>
-      \${p.titleEN ? \`<p class="text-white/80 italic">\${escapeHtml(p.titleEN)}</p>\` : ''}
-      <p class="text-white/90 text-lg leading-relaxed">\${escapeHtml(p.teaser)}</p>
+      <p class="text-white/70 mb-3">${escapeHtml(p.organSystem)} · ${escapeHtml(p.category)} · ${escapeHtml(p.modality)}</p>
+      <h1 class="text-white text-3xl md:text-4xl font-bold mb-3">${escapeHtml(p.titleTR)}</h1>
+      ${p.titleEN ? `<p class="text-white/80 italic">${escapeHtml(p.titleEN)}</p>` : ''}
+      <p class="text-white/90 text-lg leading-relaxed">${escapeHtml(p.teaser)}</p>
       <p class="text-sm text-white/70">Bilimsel içerik sorumlusu: Prof. Dr. İbrahim Metin Çiriş ·
-        Son güncelleme: <time datetime="\${escapeHtml(p.updatedAt)}">\${escapeHtml(p.updatedAt)}</time></p>
+        Son güncelleme: <time datetime="${escapeHtml(p.updatedAt)}">${escapeHtml(p.updatedAt)}</time></p>
     </header>
     <div class="grid gap-5 md:grid-cols-2">
-      \${pitfallStaticSection('Neden Yanıltır?', p.whyItTricks)}
-      \${pitfallStaticSection('Ayırıcı Tanı İpuçları', p.keyClues)}
-      \${pitfallStaticSection('Minimal Çalışma', p.minimalWorkup)}
-      \${pitfallStaticSection('Raporlama Yaklaşımı', p.reportingTips)}
+      ${pitfallStaticSection('Neden Yanıltır?', p.whyItTricks)}
+      ${pitfallStaticSection('Ayırıcı Tanı İpuçları', p.keyClues)}
+      ${pitfallStaticSection('Minimal Çalışma', p.minimalWorkup)}
+      ${pitfallStaticSection('Raporlama Yaklaşımı', p.reportingTips)}
     </div>
-    <div class="mt-5">\${pitfallStaticSection('Olgu Başı Hızlı Kontrol Listesi', p.checklist)}</div>
+    <div class="mt-5">${pitfallStaticSection('Olgu Başı Hızlı Kontrol Listesi', p.checklist)}</div>
     <section class="mt-6 rounded-2xl border border-indigo-200 bg-indigo-50 p-5 md:p-7">
       <h2 class="text-xl font-bold mb-4">Konuyla İlgili Blog Yazıları</h2>
-      \${postCards ? \`<ul class="grid gap-3 md:grid-cols-2">\${postCards}</ul>\` :
+      ${postCards ? `<ul class="grid gap-3 md:grid-cols-2">${postCards}</ul>` :
         '<p>Bu başlıkla doğrudan eşleşen blog yazısı henüz bulunamadı.</p>'}
       <a href="/blog/" class="inline-block mt-4 font-semibold text-indigo-800 underline">Tüm patoloji blog yazıları →</a>
     </section>
-    \${otherCards ? \`<section class="mt-6 bg-white rounded-2xl p-5">
+    ${otherCards ? `<section class="mt-6 bg-white rounded-2xl p-5">
       <h2 class="text-xl font-bold mb-4">Aynı Alanın Diğer Tanı Tuzakları</h2>
-      <ul class="grid md:grid-cols-2">\${otherCards}</ul></section>\` : ''}
+      <ul class="grid md:grid-cols-2">${otherCards}</ul></section>` : ''}
     <div class="mt-7"><a href="/tani-tuzaklari/" class="text-indigo-800 underline font-semibold">← Tüm Tanı Tuzakları</a></div>
     <p class="mt-7 text-sm text-slate-500">Eğitim amaçlıdır. Güncel sınıflama ve olguya özgü değerlendirme gerekir.</p>
-  </main>\`;
+  </main>`;
 }
 
 function blogListStructuredData(posts, canonicalPath) {
