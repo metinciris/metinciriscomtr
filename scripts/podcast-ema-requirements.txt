@@ -1,0 +1,6 @@
+# GitHub Actions daily EMA Lightning CPU renderer.
+# PyTorch CPU is installed separately to avoid large CUDA dependency downloads.
+ema-lightning==1.1.2
+numpy>=1.26,<3
+soundfile>=0.12,<1
+huggingface_hub>=0.20,<2

@@ -176,6 +176,65 @@ class IncrementalCacheTests(unittest.TestCase):
         self.assertTrue(all((self.dir / e["file"]).exists()
                             for e in old["entries"].values()))
 
+    def test_ema_daily_batch_is_limited_to_24_and_changes_fingerprint(self):
+        old = self.seed(120)
+        plan = generator.plan_updates(
+            self.articles, old, self.now, engine=generator.EMA_ENGINE, batch_size=24
+        )
+        self.assertEqual(plan["engine"], generator.EMA_ENGINE)
+        self.assertEqual(plan["batch_size"], 24)
+        self.assertEqual(len(plan["selected"]), 24)
+        self.assertEqual(plan["ready"], 120)
+        self.assertEqual(plan["refresh"], 120)
+        key = plan["selected"][0]
+        self.assertNotEqual(plan["candidates"][key]["fingerprint"],
+                            old["entries"][key]["fingerprint"])
+        self.assertEqual(plan["candidates"][key]["engine"], generator.EMA_ENGINE)
+
+    def test_ema_generation_preserves_unselected_existing_audio(self):
+        old = self.seed(120)
+        plan = generator.plan_updates(
+            self.articles, old, self.now, engine=generator.EMA_ENGINE, batch_size=24
+        )
+        original_bytes = {
+            key: (self.dir / value["file"]).read_bytes()
+            for key, value in old["entries"].items()
+        }
+        with patch.object(generator, "create_tts", return_value=object()) as create, \
+             patch.object(generator, "render_clip", side_effect=self.fake_render):
+            generator.execute_plan(plan)
+        create.assert_called_once_with(engine=generator.EMA_ENGINE)
+        updated = generator.load_manifest()
+        self.assertEqual(len(updated["entries"]), 120)
+        for key, original in old["entries"].items():
+            if key not in plan["selected"]:
+                self.assertEqual(updated["entries"][key], original)
+                self.assertEqual((self.dir / original["file"]).read_bytes(),
+                                 original_bytes[key])
+
+    def test_reject_oversize_or_tampered_ema_batch(self):
+        old = self.seed()
+        with self.assertRaisesRegex(ValueError, "Batch size"):
+            generator.plan_updates(self.articles, old, self.now,
+                                   engine=generator.EMA_ENGINE, batch_size=33)
+        plan = generator.plan_updates(
+            self.articles, old, self.now, engine=generator.EMA_ENGINE, batch_size=24
+        )
+        plan["batch_size"] = 1
+        with self.assertRaisesRegex(RuntimeError, "Unsafe batch"):
+            generator.execute_plan(plan, tts=object())
+
+    def test_ema_adapter_maps_speech_to_shared_renderer(self):
+        from types import SimpleNamespace
+        from unittest.mock import MagicMock
+        voice = generator.EMALightningVoice.__new__(generator.EMALightningVoice)
+        voice.model = MagicMock()
+        voice.model.say.return_value = SimpleNamespace(audio=[0.1, 0.2], sample_rate=48000)
+        samples, rate = voice.say("Patoloji p53", speed=0.9, seed=0)
+        self.assertEqual(samples, [0.1, 0.2])
+        self.assertEqual(rate, 48000)
+        voice.model.say.assert_called_once_with("Patoloji p53", speed=0.9, seed=0)
+
     def test_partial_sheet_is_rejected_before_cleanup(self):
         old = self.seed()
         with self.assertRaisesRegex(RuntimeError, "Only"):
