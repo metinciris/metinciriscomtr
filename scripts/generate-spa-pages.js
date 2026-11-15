@@ -1097,7 +1097,27 @@ async function main() {
   updateServiceWorkerVersion();
 
   // --- Smart Search Index (statik, ücretsiz, klinik karar üretmez) ---
+  // Sözlükteki her terimi doğrudan kendi filtrelenmiş görünümüne bağla.
+  const glossarySource = readFileSync(join(rootDir, 'src', 'data', 'patolojiSozluguData.ts'), 'utf8');
+  const glossaryCompiled = ts.transpileModule(glossarySource, {
+    compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 },
+  }).outputText;
+  const glossaryModule = await import(
+    'data:text/javascript;base64,' + Buffer.from(glossaryCompiled).toString('base64')
+  );
+  const glossaryTerms = Array.isArray(glossaryModule.TERMS) ? glossaryModule.TERMS : [];
+
   const searchIndex = [];
+  for (const term of glossaryTerms) {
+    if (typeof term.word !== 'string' || typeof term.definition !== 'string') continue;
+    searchIndex.push({
+      title: term.word,
+      description: term.definition,
+      path: `/patoloji-sozlugu/?q=${encodeURIComponent(term.word)}`,
+      type: 'Sözlük',
+      keywords: term.category || '',
+    });
+  }
   for (const p of pitfalls) {
     searchIndex.push({
       title: p.titleTR,
