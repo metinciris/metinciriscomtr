@@ -63,6 +63,18 @@ export const PAGE_REGISTRY: Record<string, PageMetadata> = {
         navGroup: 'hastalar',
         load: () => import('@/pages/Iletisim').then(m => ({ default: m.Iletisim as unknown as React.ComponentType<Record<string, unknown>> })),
     },
+    kartvizit: {
+        slug: 'kartvizit',
+        title: 'Dijital Akademik Kartvizit | Prof. Dr. İbrahim Metin Çiriş',
+        description: 'Prof. Dr. İbrahim Metin Çiriş dijital akademik kartviziti. QR kod ile paylaşın, rehbere kaydedin; yayınlar, ORCID, Google Scholar ve patoloji çalışmalarına ulaşın.',
+        keywords: 'Metin Çiriş dijital kartvizit, akademik kartvizit, ORCID, patoloji, QR kod',
+        lastmod: '2026-11-16',
+        priority: 0.7,
+        changefreq: 'monthly',
+        navLabel: 'Dijital Kartvizit',
+        navGroup: 'akademik',
+        load: () => import('@/pages/Kartvizit').then(m => ({ default: m.Kartvizit as unknown as React.ComponentType<Record<string, unknown>> })),
+    },
     'biyopsi-sonucu': {
         slug: 'biyopsi-sonucu',
         title: 'Biyopsi Sonucu Sorgulama | Prof Dr Metin Çiriş',

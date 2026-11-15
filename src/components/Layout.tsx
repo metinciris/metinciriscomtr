@@ -430,6 +430,16 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
                   İletişim
                 </a>
                 <a
+                  href="/kartvizit/"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onNavigate('kartvizit');
+                  }}
+                  className="text-gray-200 hover:text-white transition-colors no-underline"
+                >
+                  Dijital Kartvizit
+                </a>
+                <a
                   href="/yayinlar/"
                   onClick={(e) => {
                     e.preventDefault();

@@ -17,6 +17,7 @@ export const getStructuredData = (pageId: string) => {
         { name: "Ana Sayfa", url: `${BASE_URL}/` },
         { name: "Biyopsi Sonucu", url: `${BASE_URL}/biyopsi-sonucu/` },
         { name: "İletişim", url: `${BASE_URL}/iletisim/` },
+        { name: "Dijital Kartvizit", url: `${BASE_URL}/kartvizit/` },
         { name: "Ders Notları", url: `${BASE_URL}/ders-notlari/` },
         { name: "Yayınlar", url: `${BASE_URL}/yayinlar/` },
         { name: "Blog", url: `${BASE_URL}/blog/` },
@@ -67,7 +68,7 @@ export const getStructuredData = (pageId: string) => {
     };
 
     const webPageEntity = {
-        "@type": isHome ? "ProfilePage" : "WebPage",
+        "@type": isHome || pageId === "kartvizit" ? "ProfilePage" : "WebPage",
         "@id": canonical,
         "url": canonical,
         "name": page.title,
@@ -76,7 +77,7 @@ export const getStructuredData = (pageId: string) => {
             "@id": `${BASE_URL}/#website`
         },
         "inLanguage": "tr-TR",
-        ...(isHome ? { "mainEntity": { "@id": `${BASE_URL}/#person` } } : {})
+        ...(isHome || pageId === "kartvizit" ? { "mainEntity": { "@id": `${BASE_URL}/#person` } } : {})
     };
 
     const navigationEntity = {
