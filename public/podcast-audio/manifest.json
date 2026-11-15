@@ -1,14 +1,15 @@
 {
   "version": 1,
-  "generated_at": "2026-11-13T13:18:48.841139+00:00",
+  "generated_at": "2026-11-15T20:46:27.992982+00:00",
   "entries": {
     "1efb34885452a199aff1a46e": {
       "title": "Yüzeyel Ewing Sarkomu ve Nörokristik FET::ETS Tümörleri: Tanısal Gri Bölgenin Tanımlanması.",
       "journal": "Modern Pathology",
       "pmid": "43003232",
-      "fingerprint": "7e83838549bb22ae4029a37492458d44d0d759f8630dabc1ccc8dbbcbaf6b623",
+      "fingerprint": "a072217b6106d1082b4492ea20c277283dc092e91eaaaa0ea6536bbdac5319fe",
+      "engine": "ema-lightning",
       "file": "1efb34885452a199aff1a46e.mp3",
-      "generated_at": "2026-11-11T09:30:30.967489+00:00"
+      "generated_at": "2026-11-15T20:46:27.992982+00:00"
     },
     "523ac350941268de782086b9": {
       "title": "Ekstraselüler Mukus Üretimi Gösteren İnvaziv Lobüler Karsinom: Meme Karsinomunun Nadir Bir Histolojik Varyantının İlk Tam Ekzom Dizilemesi.",
@@ -50,45 +51,14 @@
       "file": "7f46a80cae6430bdcec25e2b.mp3",
       "generated_at": "2026-10-25T10:55:40.297419+00:00"
     },
-    "5e2a38bec72f8cfe73673467": {
-      "title": "HNF4α pozitif TRU dışı akciğer adenokarsinomlarının mimari, radyolojik ve moleküler profillemesi.",
-      "journal": "Modern Pathology",
-      "pmid": "42918304",
-      "fingerprint": "849bbb687b137b1df45ee7ee5eb7e84b6b4a94047c7ce9206333de95e4b31bc9",
-      "file": "5e2a38bec72f8cfe73673467.mp3",
-      "generated_at": "2026-10-25T10:55:40.297419+00:00"
-    },
-    "7d9cd522d0f2d5752ca6a105": {
-      "title": "MAP2K1 mutasyonlu melanositik tümörler: 114 olgu üzerinden yapılan bir çalışmaya dayanarak histolojik özelliklerin moleküler fonksiyonel sınıflarıyla ilişkisi.",
-      "journal": "Modern Pathology",
-      "pmid": "42874744",
-      "fingerprint": "c54cefed2170c0ef524f0a0a2fe48fe36755a4b650c6168205fcfa4d84b16bd2",
-      "file": "7d9cd522d0f2d5752ca6a105.mp3",
-      "generated_at": "2026-10-18T18:47:09.322454+00:00"
-    },
-    "6ab8529e4426afcbc3ea2ce4": {
-      "title": "Adamantinoma Benzeri Ewing Sarkomu: Baş ve Boyun Bölgesinde Ewing Sarkomundan Farklı Klinikopatolojik Özelliklere Sahip, Yeterince Tanınmayan Bir Taklitçi.",
-      "journal": "Modern Pathology",
-      "pmid": "42874743",
-      "fingerprint": "655d708db812687d7468267414245aa8c8f195ec4a17db5b9d75f79bd585f573",
-      "file": "6ab8529e4426afcbc3ea2ce4.mp3",
-      "generated_at": "2026-11-09T05:56:19.100816+00:00"
-    },
-    "902fe33e7764d5dbb4a36566": {
-      "title": "Rutin H&E Histolojisi, Rezeke Edilmiş Pankreas Duktal Adenokarsinomunda Ameliyat Sonrası Risk Heterojenliğini Kodlar: TIGERS Çalışmasının Çoklu Kohort Değerlendirmesi.",
-      "journal": "Modern Pathology",
-      "pmid": "42874742",
-      "fingerprint": "33c872d7735f52d4d3c742bb0ef294f41bedd0a80fd5cb2f6673169b0a7ab758",
-      "file": "902fe33e7764d5dbb4a36566.mp3",
-      "generated_at": "2026-10-18T18:47:09.322454+00:00"
-    },
     "f23ad4cf4ec63cee1ce206e9": {
       "title": "MrgprD aracılığıyla gerçekleşen makrofaj polarizasyonu, farelerde kimyasal olarak indüklenen kolite yol açar.",
       "journal": "The Journal of Pathology",
       "pmid": "42816791",
-      "fingerprint": "d7efafda790b85e562f447fd1c43e441464e6dfa959c1b2b1cc583a3c4f39bf4",
+      "fingerprint": "6d6a04ac31128eb42aa82b7efc9a61257a1e3b9b899be3a62ba36fe9caecd02c",
+      "engine": "ema-lightning",
       "file": "f23ad4cf4ec63cee1ce206e9.mp3",
-      "generated_at": "2026-11-04T09:30:25.876258+00:00"
+      "generated_at": "2026-11-15T20:46:27.992982+00:00"
     },
     "9cf13ac839349b7a3b7b8859": {
       "title": "Geçiş bölgesinde zenginleştirilmiş WIF1(+) bazal hücre alt tipi, benign prostat hiperplazisi ile ilişkilidir.",
@@ -130,14 +100,6 @@
       "file": "4c497c4492b417cbda05c660.mp3",
       "generated_at": "2026-11-04T09:30:25.876258+00:00"
     },
-    "79bfacf3abf14f91822d658b": {
-      "title": "DUCK-Net: Fare karaciğer hasarında duktüler reaksiyonların otomatik derin öğrenme tabanlı segmentasyonu, H&E morfolojisinden çok hücreli niş dinamiklerini yakalar.",
-      "journal": "The Journal of Pathology",
-      "pmid": "42711623",
-      "fingerprint": "02dd1cf6a4d41700ad4b245750a620ff31a92de7b30d8373ef9fa6fa104daf4f",
-      "file": "79bfacf3abf14f91822d658b.mp3",
-      "generated_at": "2026-11-04T09:30:25.876258+00:00"
-    },
     "21ac323f002b53fc0bf482bc": {
       "title": "Peutz-Jeghers sendromunda fibroblast heterojenliği: polip oluşumunu tetikleyen alt kümenin belirlenmesi(†).",
       "journal": "The Journal of Pathology",
@@ -154,21 +116,14 @@
       "file": "e2ccd187509d2c731653216c.mp3",
       "generated_at": "2026-11-04T09:30:54.376294+00:00"
     },
-    "9ee61eacbc039d0cffaab989": {
-      "title": "Pankreatik polipeptid, nöropeptid Y4 reseptörü ile etkileşime girerek hepatoselüler karsinomun ilerlemesini destekler.",
-      "journal": "The Journal of Pathology",
-      "pmid": "42615099",
-      "fingerprint": "243366dbf15914742702e6d43e20c64cbbafb95a16cf6a6dff04f060c9387a26",
-      "file": "9ee61eacbc039d0cffaab989.mp3",
-      "generated_at": "2026-11-07T11:06:49.392409+00:00"
-    },
     "4c9b72a6ba0953e15e190a43": {
       "title": "Genç Hastalarda Merkel Hücreli Karsinomun Klinikopatolojik Özellikleri: Retrospektif Bir Çalışma.",
       "journal": "American Journal of Surgical Pathology",
       "pmid": "42850753",
-      "fingerprint": "47652effb591768b0215413e1b64a8bc37e79421dc150806b5aa94304d06802f",
+      "fingerprint": "3525b10e3ea27d1fc3fdc3f6bd37fe18c54b0bc57743a338509cd27c555a87cd",
+      "engine": "ema-lightning",
       "file": "4c9b72a6ba0953e15e190a43.mp3",
-      "generated_at": "2026-11-12T09:30:27.548988+00:00"
+      "generated_at": "2026-11-15T20:46:27.992982+00:00"
     },
     "785664e7f9948169b1cbe918": {
       "title": "2026 Dünya Sağlık Örgütü Yumuşak Doku ve Kemik Tümörleri Sınıflandırması: 6. Baskı.",
@@ -238,9 +193,10 @@
       "title": "Mide gastrointestinal stromal tümöründe yeni bir ALK-EML4 füzyonu: ortaya çıkan tedavi seçeneklerine doğru.",
       "journal": "Histopathology",
       "pmid": "42850872",
-      "fingerprint": "f26b2c13ed0199a1e929c0b88d1c46274dc5068a4bd1a3d5b9475e28d1222ad2",
+      "fingerprint": "1c10da984ba932f888d7249b65323675702a848318c0684e649de27a42f20249",
+      "engine": "ema-lightning",
       "file": "89c5475230fe995b47d590e1.mp3",
-      "generated_at": "2026-11-05T08:55:59.340299+00:00"
+      "generated_at": "2026-11-15T20:46:27.992982+00:00"
     },
     "5d64af4388586897765b9820": {
       "title": "Yapay zekâ kullanılarak mide biyopsilerinde Güncellenmiş Sydney Sisteminin kapsamlı ve tekrarlanabilir derecelendirilmesi: çoklu patolog doğrulaması ve okuyucu çalışması.",
@@ -318,9 +274,10 @@
       "title": "Pankreatobiliyer Sistemin Mezenkimal Neoplazmaları.",
       "journal": "Archives of Pathology & Laboratory Medicine",
       "pmid": "42730539",
-      "fingerprint": "c3f339860a417bed8cc1a58eb6def142bae5d90fc9862b9b1fac5d9cfa79a0c8",
+      "fingerprint": "983bc553b735a4a44b2a53da8e4bcefc4b94f89f1951a13a9ebcfdb6b69e10db",
+      "engine": "ema-lightning",
       "file": "6ad0b86b93a6ef9484068f76.mp3",
-      "generated_at": "2026-10-26T11:13:21.969934+00:00"
+      "generated_at": "2026-11-15T20:46:27.992982+00:00"
     },
     "88ecb6ec3cc71cfe7cf742a9": {
       "title": "İltihaplı Yumuşak Doku Tümörleri: Koyun Postuna Bürünen Kurt.",
@@ -398,17 +355,19 @@
       "title": "Düzeltme: Erken evre kolorektal kanserde (intramukozal karsinomdan SM2'ye kadar) lenf nodu metastazı için klinikopatolojik özellikler ve risk sınıflandırması: Çin popülasyonuna dayalı geniş ölçekli retrospektif bir çalışma.",
       "journal": "Virchows Archiv",
       "pmid": "43007410",
-      "fingerprint": "93b402b3da2c001b1f3ba1aecbe1925b54168f77e0cc80831884900a4c8fb19f",
+      "fingerprint": "212f2285233b304d2e2c7d6fec090fe979664b141dd6622e91eda040e9a82097",
+      "engine": "ema-lightning",
       "file": "aff86698d7f9372b4737385e.mp3",
-      "generated_at": "2026-11-11T09:30:30.967489+00:00"
+      "generated_at": "2026-11-15T20:46:27.992982+00:00"
     },
     "a998dd67a230e928f45a876a": {
       "title": "Küçük tükürük bezlerinin karsinomu: bir referans laboratuvarının arşivlerinden elde edilen 640 vakanın patolojik, immünofenotipik ve moleküler karakterizasyonu.",
       "journal": "Virchows Archiv",
       "pmid": "43007409",
-      "fingerprint": "82bebe20b3ee081814492532c20914ec9fc5fd5bdd21056a6db052e70027886b",
+      "fingerprint": "7d16b5de89d8077862c86f2885f17624e748d361d47b187861eb7d72a3074c77",
+      "engine": "ema-lightning",
       "file": "a998dd67a230e928f45a876a.mp3",
-      "generated_at": "2026-11-11T09:30:30.967489+00:00"
+      "generated_at": "2026-11-15T20:46:27.992982+00:00"
     },
     "6096e794180ac224908ce857": {
       "title": "Oral plazmablastik lenfomalarda MYC, BCL2 ve BCL6 yeniden düzenlenmelerinin analizi.",
@@ -466,6 +425,23 @@
       "file": "8130080105748e95d0c6cb73.mp3",
       "generated_at": "2026-11-07T11:06:49.392409+00:00"
     },
+    "8ab258a4df684d416617a0dc": {
+      "title": "45 yaş ve üzeri kadınlarda Pap smear testinde iyi huylu görünen endometriyum hücreleri: büyük bir akademik kurumdan retrospektif bir çalışma ve karşılaştırılabilir kohortların meta-analizi.",
+      "journal": "American Journal of Clinical Pathology",
+      "pmid": "43017920",
+      "fingerprint": "d1611bc3101f5e3fc6b005def1602ad77ca1b2386e493b6b0e8fc64cc23534e6",
+      "engine": "ema-lightning",
+      "file": "8ab258a4df684d416617a0dc.mp3",
+      "generated_at": "2026-11-15T20:46:27.992982+00:00"
+    },
+    "cd22519544b18a337a126564": {
+      "title": "Tirozin kinaz gen füzyonlu miyeloid veya lenfoid neoplazmları nasıl teşhis ediyorum?",
+      "journal": "American Journal of Clinical Pathology",
+      "pmid": "43017919",
+      "fingerprint": "0a26a62072b0d102a02707ab469f6cb232ebaa3ebc4666655f6113a1c5b77f7a",
+      "file": "cd22519544b18a337a126564.mp3",
+      "generated_at": "2026-11-13T13:18:48.841139+00:00"
+    },
     "75b4d971f744b45f398e96e9": {
       "title": "C3 glomerülonefrit, yoğun birikim hastalığı ve bunların ara fenotiplerinde apolipoprotein E immünohistokimyasının tanısal faydası.",
       "journal": "American Journal of Clinical Pathology",
@@ -473,6 +449,14 @@
       "fingerprint": "ffcfae3adf81d2415a47cc27edaf394e45469c5d7d1dcb54f57433150512e504",
       "file": "75b4d971f744b45f398e96e9.mp3",
       "generated_at": "2026-11-12T09:30:44.803481+00:00"
+    },
+    "27d48cb4e487df99aa2aece3": {
+      "title": "Patolojide moleküler sınıflandırmanın (öngörülemeyen) sonuçları: merkezi sinir sistemi tümörlerinden çıkarılan dersler.",
+      "journal": "American Journal of Clinical Pathology",
+      "pmid": "43009320",
+      "fingerprint": "14da626d36bcf5f3966bfed95a3020f3e933e53086fcce15b52da0a2c24dd316",
+      "file": "27d48cb4e487df99aa2aece3.mp3",
+      "generated_at": "2026-11-13T13:18:48.841139+00:00"
     },
     "addc5405bec471efaf7c755d": {
       "title": "Evre 0 hematogonlar temelde CD9 ekspresyonundan yoksundur: hematogon alt grupları ve miyeloid blastların karşılaştırmalı immünofenotipik analizi.",
@@ -526,9 +510,10 @@
       "title": "MEF2D Yeniden Düzenlenmiş B Lenfoblastik Lösemide Füzyon Ortağına Bağlı İmmünofenotip, Kromoanagenez ve Prognoz.",
       "journal": "Human Pathology",
       "pmid": "42998687",
-      "fingerprint": "d02d7fd1db0596c421e75340fdd1df043c75a9ccf4b84f15b0e0791a660fe593",
+      "fingerprint": "c851bfd9a011cb895503b74fd0872c6d59eb3cdc18883dc38208229146c9ed88",
+      "engine": "ema-lightning",
       "file": "b94c62929d5228683a21e825.mp3",
-      "generated_at": "2026-11-09T05:56:19.100816+00:00"
+      "generated_at": "2026-11-15T20:46:27.992982+00:00"
     },
     "04b532e289cd324db7b5020f": {
       "title": "Primer duodenal adenokarsinomda tümör tomurcuklanmasının ve az diferansiye olmuş kümelerin prognostik önemi ve gözlemciler arası tekrarlanabilirliği.",
@@ -561,6 +546,14 @@
       "fingerprint": "b00beaa295d306381a7a53cdd25ceb2b247a8c0a0b9d64e52b8f32268f3cac40",
       "file": "60ce8ac511bdda00c508ecf6.mp3",
       "generated_at": "2026-11-11T09:30:30.967489+00:00"
+    },
+    "52a060da60711ff55cea9ce8": {
+      "title": "Radyolojik olarak teşhis edilen hepatik kavernöz hemanjiyomlar ile klinik tanısı belirsiz olduğu için biyopsi yapılanlar arasında klinik ve patolojik farklılıklar var mıdır?",
+      "journal": "Human Pathology",
+      "pmid": "42998682",
+      "fingerprint": "cd3c357e1a86605855ab92103eb5c1d36f0a64dfe5cdf28bab6a7f3ed5aeda83",
+      "file": "52a060da60711ff55cea9ce8.mp3",
+      "generated_at": "2026-11-13T13:18:48.841139+00:00"
     },
     "ef765f0a0b01e679d95bd25e": {
       "title": "Soliter fibröz tümörün alışılmadık morfolojik varyantları: 10 farklı histomorfolojiye sahip 17 vakalık bir vaka serisi.",
@@ -598,9 +591,10 @@
       "title": "Yüksek dereceli psödomiksomların düşük dereceli psödomiksomlara kıyasla bağışıklık profili düzensizliği.",
       "journal": "Pathology - Research and Practice",
       "pmid": "42933311",
-      "fingerprint": "d645f4196b0130f493571a1a406e2cb73bbd4def38f57f562327a9c790e43b87",
+      "fingerprint": "c05a004dee911641215128984aceb94f59c4e0d3cddeaed24c2da223caff4fc2",
+      "engine": "ema-lightning",
       "file": "a973f56f9a255ed0726a8e82.mp3",
-      "generated_at": "2026-11-02T06:06:41.934104+00:00"
+      "generated_at": "2026-11-15T20:46:27.992982+00:00"
     },
     "4a11be8eeea2bfd48090d14b": {
       "title": "Karaciğer allogreftlerinde belirsiz antikor aracılı reddin uzamsal transkriptomik profillemesi: Bir pilot çalışma.",
@@ -670,9 +664,10 @@
       "title": "Queensland eyaletinde genetik ve genomik testlerin gelişen manzarasını incelemek.",
       "journal": "Pathology",
       "pmid": "42881003",
-      "fingerprint": "950df2b063e62ae7e98be48b8e9a837903cf890e322a32a9d5811ecfde509a27",
+      "fingerprint": "9f468322e2525ab60722a5ca57d9326528300690d8b3920b2b797a1816f69b17",
+      "engine": "ema-lightning",
       "file": "887422f2b1e5a584a79169ac.mp3",
-      "generated_at": "2026-11-06T09:30:45.001674+00:00"
+      "generated_at": "2026-11-15T20:46:27.992982+00:00"
     },
     "2fb0bbb7526bdb4131058802": {
       "title": "Modern tanısal cerrahi patoloji pratiğinde genomik testlerin rolü.",
@@ -770,13 +765,13 @@
       "file": "3b676a48998a570333438332.mp3",
       "generated_at": "2026-10-24T10:14:11.975400+00:00"
     },
-    "f2e3e7b3add2b5d6b71a82ce": {
-      "title": "LDHA ekspresyonu, Pan-Kla düzeyi ve H3K18la düzeyi, laringeal skuamöz hücreli karsinomun klinik ilerlemesiyle ilişkilidir.",
+    "a287b3c1eb74f47ae74c66fc": {
+      "title": "Derin öğrenme destekli sanal eozin bazlı elastik lif çerçevesi görüntüleme, akciğer adenokarsinomunun objektif derecelendirilmesini ve prognostik sınıflandırılmasını iyileştiriyor.",
       "journal": "Diagnostic Pathology",
-      "pmid": "42665803",
-      "fingerprint": "127e4b9dea79960bf63e0b104b07c4c87255b81b91d8609b7f5108dc941b463e",
-      "file": "f2e3e7b3add2b5d6b71a82ce.mp3",
-      "generated_at": "2026-11-09T14:00:24.025842+00:00"
+      "pmid": "43015879",
+      "fingerprint": "d4634cd67c312313782ff3f991d1b96c58a41fa465916ed88e9ed02ca053e88f",
+      "file": "a287b3c1eb74f47ae74c66fc.mp3",
+      "generated_at": "2026-11-13T13:18:48.841139+00:00"
     },
     "69433a9ecf47648dc408d1c0": {
       "title": "Yeni ex vivo spinal menenjiomların etiketleme gerektirmeyen dinamik hücre görüntülemesi: Örnek düzeyinde H&E referanslarıyla dokuz olgu üzerinden optik-patolojik korelasyon çalışması.",
@@ -794,14 +789,6 @@
       "file": "c7310dec67d0e11873cf859b.mp3",
       "generated_at": "2026-11-10T09:30:24.128518+00:00"
     },
-    "dca2e0ef6497c6806a9dd687": {
-      "title": "Meme kanserinde HER2 düşük ekspresyonunu tahmin etmek için H&E boyalı görüntüleri kullanan derin öğrenme modeli.",
-      "journal": "Diagnostic Pathology",
-      "pmid": "42989275",
-      "fingerprint": "0ea1667aa9e83b14c459c1b99b3d92606da22ce820ad9e9d60e89f732d36faf6",
-      "file": "dca2e0ef6497c6806a9dd687.mp3",
-      "generated_at": "2026-11-07T11:06:49.392409+00:00"
-    },
     "f6974fffec06f417b7ef9ed8": {
       "title": "Morfoloji bir füzyonu düşündürdüğünde: Histoloji ve immünohistokimyadan RNA dizilemesine kadar patoloji merkezli bir aşamalı yaklaşım çerçevesi.",
       "journal": "Annals of Diagnostic Pathology",
@@ -809,14 +796,6 @@
       "fingerprint": "28f7f75e03a4b35479c5d696e2e102f85aa199c7f22d86b41bb4f789107f64e2",
       "file": "f6974fffec06f417b7ef9ed8.mp3",
       "generated_at": "2026-10-24T10:14:28.267929+00:00"
-    },
-    "7f4b315a7a9e93677c5bea1a": {
-      "title": "SMARCA4 eksikliği olan 110 adet geleneksel küçük hücreli olmayan akciğer kanseri vakasının klinikopatolojik analizi.",
-      "journal": "Annals of Diagnostic Pathology",
-      "pmid": "42664756",
-      "fingerprint": "ed3b9b1d4b4925a127e3411838b742910e7d2590a4e14a6e473e33f1a0f56f7c",
-      "file": "7f4b315a7a9e93677c5bea1a.mp3",
-      "generated_at": "2026-11-06T13:00:52.392454+00:00"
     },
     "a20b7e54b5be9b4ef57442ea": {
       "title": "Akut megakaryoblastik lösemi ve miyeloid sarkomda ERG ve CD31 ekspresyonu: Tanısal bir tuzak.",
@@ -882,69 +861,122 @@
       "file": "8cf1613128c395bd079b146b.mp3",
       "generated_at": "2026-10-24T10:14:43.830171+00:00"
     },
-    "8ab258a4df684d416617a0dc": {
-      "title": "45 yaş ve üzeri kadınlarda Pap smear testinde iyi huylu görünen endometriyum hücreleri: büyük bir akademik kurumdan retrospektif bir çalışma ve karşılaştırılabilir kohortların meta-analizi.",
-      "journal": "American Journal of Clinical Pathology",
-      "pmid": "43017920",
-      "fingerprint": "84fd364d5671630d2d0c7bcd5942691307145530df41d6d30079a0c6473f01fe",
-      "file": "8ab258a4df684d416617a0dc.mp3",
-      "generated_at": "2026-11-13T13:18:48.841139+00:00"
+    "cb184b9528eefa9334663a6a": {
+      "title": "İyi Huylu ve Kötü Huylu Perineuriomların Çözümlenmesi: Hibrit ve Kötü Huylu Periferik Sinir Tümörleri ile Karşılaştırmalı Epigenomik ve Genomik Bir Çalışma.",
+      "journal": "Modern Pathology",
+      "pmid": "43020433",
+      "fingerprint": "87d868b7cd684694a70412f6de2c4ded820a60340e9e6b71ee0730ed4d25d565",
+      "engine": "ema-lightning",
+      "file": "cb184b9528eefa9334663a6a.mp3",
+      "generated_at": "2026-11-15T20:46:27.992982+00:00"
     },
-    "cd22519544b18a337a126564": {
-      "title": "Tirozin kinaz gen füzyonlu miyeloid veya lenfoid neoplazmları nasıl teşhis ediyorum?",
-      "journal": "American Journal of Clinical Pathology",
-      "pmid": "43017919",
-      "fingerprint": "0a26a62072b0d102a02707ab469f6cb232ebaa3ebc4666655f6113a1c5b77f7a",
-      "file": "cd22519544b18a337a126564.mp3",
-      "generated_at": "2026-11-13T13:18:48.841139+00:00"
+    "467813fe25aa196ba734bf41": {
+      "title": "Çocukluk Çağı Tipi Foliküler Lenfoma, Kazanılmış N-glikozilasyon Bölgelerinin Yokluğuyla Benzersiz İmmünogenetik Özellikler Gösteriyor.",
+      "journal": "Modern Pathology",
+      "pmid": "43020432",
+      "fingerprint": "0617ffb748479bbfd104bd28f568764b96b0c0d62b2eee63ec5c1cae761e6341",
+      "engine": "ema-lightning",
+      "file": "467813fe25aa196ba734bf41.mp3",
+      "generated_at": "2026-11-15T20:46:27.992982+00:00"
     },
-    "a287b3c1eb74f47ae74c66fc": {
-      "title": "Derin öğrenme destekli sanal eozin bazlı elastik lif çerçevesi görüntüleme, akciğer adenokarsinomunun objektif derecelendirilmesini ve prognostik sınıflandırılmasını iyileştiriyor.",
+    "c5a013bc7075d17980632a59": {
+      "title": "Telepatoloji: Dijital inovasyon ve uzaktan işbirliği ile tanı yöntemlerinde ilerleme - Hindistan'ın bugüne kadarki ilerlemesi.",
       "journal": "Diagnostic Pathology",
-      "pmid": "43015879",
-      "fingerprint": "d4634cd67c312313782ff3f991d1b96c58a41fa465916ed88e9ed02ca053e88f",
-      "file": "a287b3c1eb74f47ae74c66fc.mp3",
-      "generated_at": "2026-11-13T13:18:48.841139+00:00"
+      "pmid": "43021371",
+      "fingerprint": "2c721b8fc71e2ed8a50f74520d0c2296e346ad621527af57441d38a1c45d39e6",
+      "engine": "ema-lightning",
+      "file": "c5a013bc7075d17980632a59.mp3",
+      "generated_at": "2026-11-15T20:46:27.992982+00:00"
     },
-    "532437e85cbad468500b4759": {
-      "title": "Böbreğin Erişkin Karma Epitel ve Stromal Tümörü, Tekrarlayan Tüm Kromozom 12 Kazanımı İçerir.",
+    "36710c5517ff616253e5dd15": {
+      "title": "Kadın Genital Sisteminde Pilomatriks Benzeri Yüksek Dereceli Endometrioid Karsinom: 15 Vakanın Tek Kurum Klinikopatolojik Analizi.",
+      "journal": "Modern Pathology",
+      "pmid": "43020431",
+      "fingerprint": "049f442e1c1f0c7a62caaac4a80d5e492609a175154a5d132f835e36384f5c12",
+      "engine": "ema-lightning",
+      "file": "36710c5517ff616253e5dd15.mp3",
+      "generated_at": "2026-11-15T20:46:27.992982+00:00"
+    },
+    "aa28379c4944f34ac9c4e481": {
+      "title": "DUCK-Net: Fare karaciğer hasarında kanal reaksiyonlarının otomatik derin öğrenme tabanlı segmentasyonu, H&E morfolojisinden çok hücreli niş dinamiklerini yakalar.",
+      "journal": "The Journal of Pathology",
+      "pmid": "42711623",
+      "fingerprint": "0cc07c76ea2648e478f705025a6eb3e5b591a339266ac002efddec8beb758fd1",
+      "engine": "ema-lightning",
+      "file": "aa28379c4944f34ac9c4e481.mp3",
+      "generated_at": "2026-11-15T20:46:27.992982+00:00"
+    },
+    "2f0f2494bc3383af2e6e0574": {
+      "title": "LDHA ekspresyonu, Pan-Kla düzeyi ve H3K18la'nın ekspresyonu, laringeal skuamöz hücreli karsinomun klinik ilerlemesiyle ilişkilidir.",
+      "journal": "Diagnostic Pathology",
+      "pmid": "42665803",
+      "fingerprint": "465f932289b78b2e3eae81de0f6ee6d0303bbc638c19fed6655835d0112d3162",
+      "engine": "ema-lightning",
+      "file": "2f0f2494bc3383af2e6e0574.mp3",
+      "generated_at": "2026-11-15T20:46:27.992982+00:00"
+    },
+    "883c9690525a49fcce4efa4b": {
+      "title": "Epigenetik Farklılaşma, Hiperkalsemik Tipteki Yumurtalık Küçük Hücreli Karsinomunun Moleküler ve Histolojik Olarak Farklı Alt Tiplerini Ayırt Eder.",
+      "journal": "Modern Pathology",
+      "pmid": "43020430",
+      "fingerprint": "e99f2f30ac1ac78e3d9a075cc8bae8b6bd340e38b04206180a0519b384333dcf",
+      "engine": "ema-lightning",
+      "file": "883c9690525a49fcce4efa4b.mp3",
+      "generated_at": "2026-11-15T20:46:27.992982+00:00"
+    },
+    "835614e89d635389ddd565b3": {
+      "title": "Pankreatik polipeptid, hepatoselüler karsinomun ilerlemesini desteklemek için nöropeptid Y4 reseptörü ile etkileşime girer.",
+      "journal": "The Journal of Pathology",
+      "pmid": "42615099",
+      "fingerprint": "8dfd269b5583faabd56ca9913bbae4a618c5e29bdfc8e84f469224bd0bce127a",
+      "engine": "ema-lightning",
+      "file": "835614e89d635389ddd565b3.mp3",
+      "generated_at": "2026-11-15T20:46:27.992982+00:00"
+    },
+    "5cf6dbcfc327429dbc3a5fbd": {
+      "title": "Böbreğin Erişkin Karma Epitelyal ve Stromal Tümörü, Tekrarlayan Tüm Kromozom 12 Kazanımı İçerir.",
       "journal": "American Journal of Surgical Pathology",
       "pmid": "42750419",
-      "fingerprint": "7e258b063485f501a7bd7c8b8c3dd2fbe825e585adc69395289076efafe8d230",
-      "file": "532437e85cbad468500b4759.mp3",
-      "generated_at": "2026-11-13T13:18:48.841139+00:00"
+      "fingerprint": "824386ff3112cdf5a6e45e51ad902dfbf1a47f21ea289b06ad44edbc7da168b4",
+      "engine": "ema-lightning",
+      "file": "5cf6dbcfc327429dbc3a5fbd.mp3",
+      "generated_at": "2026-11-15T20:46:27.992982+00:00"
     },
-    "27d48cb4e487df99aa2aece3": {
-      "title": "Patolojide moleküler sınıflandırmanın (öngörülemeyen) sonuçları: merkezi sinir sistemi tümörlerinden çıkarılan dersler.",
-      "journal": "American Journal of Clinical Pathology",
-      "pmid": "43009320",
-      "fingerprint": "14da626d36bcf5f3966bfed95a3020f3e933e53086fcce15b52da0a2c24dd316",
-      "file": "27d48cb4e487df99aa2aece3.mp3",
-      "generated_at": "2026-11-13T13:18:48.841139+00:00"
-    },
-    "52a060da60711ff55cea9ce8": {
-      "title": "Radyolojik olarak teşhis edilen hepatik kavernöz hemanjiyomlar ile klinik tanısı belirsiz olduğu için biyopsi yapılanlar arasında klinik ve patolojik farklılıklar var mıdır?",
-      "journal": "Human Pathology",
-      "pmid": "42998682",
-      "fingerprint": "cd3c357e1a86605855ab92103eb5c1d36f0a64dfe5cdf28bab6a7f3ed5aeda83",
-      "file": "52a060da60711ff55cea9ce8.mp3",
-      "generated_at": "2026-11-13T13:18:48.841139+00:00"
-    },
-    "93588ff535793c7434bf9105": {
-      "title": "Düşük doz radyoterapi, 5xFAD farelerinde Alzheimer benzeri patolojiyi iyileştirir ve HIF-1α ile ilişkili inflamatuar sinyalizasyonun aşağı regülasyonuyla ilişkilidir.",
+    "56a33791a3ab688026c91ee6": {
+      "title": "Düşük doz radyoterapi, 5xFAD farelerinde Alzheimer benzeri patolojiyi iyileştirir ve HIF-1α ile ilişkili inflamatuar sinyal iletiminin aşağı yönlü düzenlenmesiyle ilişkilidir.",
       "journal": "Pathology - Research and Practice",
       "pmid": "42887430",
-      "fingerprint": "30f103ca55ba2747cff1453742bda7797aae35429bc3ea12658353167973af6c",
-      "file": "93588ff535793c7434bf9105.mp3",
-      "generated_at": "2026-11-13T13:18:48.841139+00:00"
+      "fingerprint": "d4932a6600bbd7f5616d44f1beae3c64684cfe0c9d8f3ed053d4258081dda44a",
+      "engine": "ema-lightning",
+      "file": "56a33791a3ab688026c91ee6.mp3",
+      "generated_at": "2026-11-15T20:46:27.992982+00:00"
     },
-    "ecf901b2e723ffde3ac6f25b": {
-      "title": "Avustralya'da Kanseri Önleme: HIV ile yaşayan kişilerde anal kanseri önlemeye yönelik Avustralya tarama kılavuzları: patologların bakış açısı.",
+    "2d00eeac1b86278b0ae22983": {
+      "title": "Avustralya'da Kanser Önleme: HIV ile yaşayan kişilerde anal kanserin önlenmesine yönelik Avustralya tarama kılavuzları: patologların bakış açısı.",
       "journal": "Pathology",
       "pmid": "42888105",
-      "fingerprint": "29edf2571ac446335c475b106cc0216839ce0e80b48a9851219e40e601693ee8",
-      "file": "ecf901b2e723ffde3ac6f25b.mp3",
-      "generated_at": "2026-11-13T13:18:48.841139+00:00"
+      "fingerprint": "c99dd8786f8f495bcd19b42f602373f48e84940a1119c4cafbe26322c7c68467",
+      "engine": "ema-lightning",
+      "file": "2d00eeac1b86278b0ae22983.mp3",
+      "generated_at": "2026-11-15T20:46:27.992982+00:00"
+    },
+    "d921e99728eacfbf7092511c": {
+      "title": "Beyin pons açısının her iki beyincik yarımküresine uzanan tekrarlayan çoklu dev kistik-katı hemanjiyoblastomları: bir vaka raporu ve literatür incelemesi.",
+      "journal": "Diagnostic Pathology",
+      "pmid": "43015877",
+      "fingerprint": "f3101533f433ad80f7974baeba76eb3b915d9ec58a3270773bfa786062279870",
+      "engine": "ema-lightning",
+      "file": "d921e99728eacfbf7092511c.mp3",
+      "generated_at": "2026-11-15T20:46:27.992982+00:00"
+    },
+    "cfc53c202b2ffd4005f08d67": {
+      "title": "SMARCA4 eksikliği olan 110 adet konvansiyonel küçük hücreli olmayan akciğer kanseri vakasının klinikopatolojik analizi.",
+      "journal": "Annals of Diagnostic Pathology",
+      "pmid": "42664756",
+      "fingerprint": "b98a3231c91ad451256627900fc1fb343eb84d21035e7b07fbde44d170ad7f28",
+      "engine": "ema-lightning",
+      "file": "cfc53c202b2ffd4005f08d67.mp3",
+      "generated_at": "2026-11-15T20:46:27.992982+00:00"
     }
   }
 }
