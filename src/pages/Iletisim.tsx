@@ -92,15 +92,8 @@ export function Iletisim() {
                   <Phone size={24} />
                 </div>
                 <div>
-                  <h3 className="text-white mb-3">Telefon</h3>
+                  <h3 className="text-white mb-3">İş telefonu</h3>
                   <p className="text-white/90">
-                    <a
-                      href="tel:+905051590"
-                      onClick={() => trackClick('Phone: GSM')}
-                      className="hover:text-white transition-colors block mb-1"
-                    >
-                      Cep: 505 519 90**
-                    </a>
                     <a
                       href="tel:+902462119292"
                       onClick={() => trackClick('Phone: Office')}
