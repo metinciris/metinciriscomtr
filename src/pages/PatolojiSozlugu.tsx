@@ -9,7 +9,10 @@ interface PatolojiSozluguProps {
 }
 
 export function PatolojiSozlugu({ onNavigate }: PatolojiSozluguProps) {
-    const [searchQuery, setSearchQuery] = useState('');
+    // Akıllı aramadan sözlük maddesine doğrudan geçiş (?q=...).
+    const [searchQuery, setSearchQuery] = useState(() =>
+        new URLSearchParams(window.location.search).get('q')?.slice(0, 120) || ''
+    );
     const [reportText, setReportText] = useState('');
     const [matchedTerms, setMatchedTerms] = useState<Term[]>([]);
     const [hasAnalyzed, setHasAnalyzed] = useState(false);
