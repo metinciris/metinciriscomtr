@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, X, Loader2 } from 'lucide-react';
+import { getSearchNavigation } from '../utils/searchNavigation';
 
 interface SearchResult {
   title: string;
@@ -75,18 +76,6 @@ export function SearchModal({ isOpen, onClose, onNavigate }: SearchModalProps) {
 
   if (!isOpen) return null;
 
-  const handleNavigate = (path: string) => {
-    onClose();
-    let slug = path.replace(/^\/|\/$/g, '');
-    if (!slug) slug = 'home';
-    
-    if (slug.startsWith('blog/') && slug !== 'blog') {
-        window.location.href = path;
-    } else {
-        onNavigate(slug);
-    }
-  };
-
   return (
     <div className="fixed inset-0 z-[200] bg-[#1e1e1e]/80 backdrop-blur-sm flex justify-center items-start pt-[10vh] animate-fade-in px-4">
       <div 
@@ -128,8 +117,17 @@ export function SearchModal({ isOpen, onClose, onNavigate }: SearchModalProps) {
                   <a
                     href={result.path}
                     onClick={(e) => {
+                      // Sekme açma ve kısayol tuşları tarayıcının doğal davranışını korur.
+                      if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+
+                      const navigation = getSearchNavigation(result.path);
+                      // Blog ve tanı tuzağı gibi detay yollarını gerçek URL'den aç:
+                      // uygulama registry'sinde bu alt yollar ayrı sayfa kimliği değildir.
+                      if (navigation.mode === 'document') return;
+
                       e.preventDefault();
-                      handleNavigate(result.path);
+                      onClose();
+                      onNavigate(navigation.page);
                     }}
                     className="block p-4 hover:bg-blue-50/50 rounded-xl transition-colors group"
                   >
