@@ -1,5 +1,5 @@
 import { PageContainer } from '../components/PageContainer';
-import { Mail, Phone, Building2, ExternalLink, MapPin, MessageSquare, Linkedin } from 'lucide-react';
+import { Mail, Phone, Building2, ExternalLink, MapPin, MessageSquare, Linkedin, QrCode } from 'lucide-react';
 import { trackClick } from '../utils/analytics';
 
 
@@ -17,6 +17,21 @@ export function Iletisim() {
           Benimle iletişime geçmek için aşağıdaki bilgileri kullanabilirsiniz
         </p>
       </div>
+
+      {/* QR ve vCard ile tek dokunuşta paylaşılabilir akademik kartvizit */}
+      <a
+        href="/kartvizit/"
+        className="mb-8 flex items-center gap-4 rounded-2xl border border-cyan-200 bg-cyan-50 p-5 text-slate-900 no-underline shadow-sm transition-colors hover:border-cyan-400 hover:bg-cyan-100"
+      >
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-cyan-800 text-white">
+          <QrCode size={25} aria-hidden="true" />
+        </span>
+        <span className="flex-1">
+          <strong className="block text-lg">Dijital Akademik Kartvizit</strong>
+          <span className="block text-sm text-slate-700">QR kod, rehbere ekleme, yayınlar ve akademik profiller</span>
+        </span>
+        <ExternalLink size={19} className="shrink-0 text-cyan-900" aria-hidden="true" />
+      </a>
 
       {/* Ana Grid - Profil ve İletişim Kartları */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
