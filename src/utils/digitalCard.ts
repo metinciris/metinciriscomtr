@@ -1,6 +1,6 @@
 /**
  * Dijital akademik kartvizit için tekil, herkese açık iletişim verileri.
- * Cep telefonu numarası iletişim sayfasında maskelendiğinden vCard'a eklenmez.
+ * Kişisel cep telefonu hiçbir alana veya indirilen vCard'a eklenmez.
  */
 export const DIGITAL_CARD_URL = 'https://metinciris.com.tr/kartvizit/';
 
