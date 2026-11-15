@@ -1096,7 +1096,7 @@ async function main() {
   );
   updateServiceWorkerVersion();
 
-  // --- Search Index Generation ---
+  // --- Smart Search Index (statik, ücretsiz, klinik karar üretmez) ---
   const searchIndex = [];
   for (const p of pitfalls) {
     searchIndex.push({
@@ -1104,31 +1104,44 @@ async function main() {
       description: p.teaser,
       path: pitfallUrl(p.id),
       type: 'Tanı Tuzağı',
+      keywords: [p.titleEN || '', p.organSystem, p.category, p.modality, p.specimenType, ...p.tags].join(' '),
+      content: [
+        ...p.whyItTricks,
+        ...p.keyClues,
+        ...p.minimalWorkup,
+        ...p.reportingTips,
+        ...p.checklist,
+      ].join(' '),
     });
   }
-  
-  for (const [id, meta] of Object.entries(registry)) {
+
+  for (const [, meta] of Object.entries(registry)) {
     if (meta.noindex) continue;
     let type = 'Sayfa';
     if (meta.slug && (meta.slug.includes('raporlama') || meta.slug.includes('hesaplama') || meta.slug.includes('sayaci'))) type = 'Araç';
     else if (meta.slug === 'patoloji-sozlugu') type = 'Sözlük';
     else if (meta.slug === 'ngs') type = 'Moleküler';
     else if (meta.slug === 'makale' || meta.slug === 'makale-takip') type = 'Radar';
-    
+
     searchIndex.push({
       title: meta.title.replace(' | Prof Dr Metin Çiriş', '').replace(' | Prof. Dr. Metin Çiriş', '').trim(),
       description: meta.description,
       path: meta.slug ? `/${meta.slug}/` : '/',
-      type: type
+      type,
+      keywords: meta.keywords || '',
     });
   }
 
-  posts.forEach(post => {
+  posts.forEach((post) => {
     searchIndex.push({
       title: post.title,
       description: post.excerpt,
       path: post.path,
-      type: 'Blog'
+      type: 'Blog',
+      keywords: (post.labels || []).filter((label) => label.toLocaleLowerCase('tr-TR') !== 'blog').join(' '),
+      // Sadece özetle sınırlamamak için yazının tam metni taranabilir;
+      // Markdown/HTML temizliği blog beslemesini üreten normalizeIssue'da yapılır.
+      content: post.bodyText || '',
     });
   });
 
