@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Incrementally pre-render Ahenk Cep MP3s for all active podcast titles.
+"""Incrementally pre-render podcast MP3s with a selectable Turkish TTS engine.
 
 A standard-library-only preflight runs BEFORE installing any TTS dependencies.
-Each scheduled run renders at most eight missing/expired titles. Existing clips
-remain available and retired titles are deleted only after safe planning.
+GitHub Actions uses EMA Lightning in daily batches; existing Windows Ahenk Cep
+callers keep their original default. Old clips remain playable while refreshed.
 """
 import argparse
 from collections import OrderedDict, deque
@@ -28,13 +28,21 @@ SHEET_ID = "148p3M41R52gVVjtLSF2Qh8rJvBPEWJ7SV4lgSBQYwLc"
 GID = "1109640564"
 RANGE = "A1:F132"
 JOURNAL_ROWS = {0, 11, 22, 33, 44, 55, 66, 77, 88, 99, 110, 121}
-BATCH_SIZE = 8
+BATCH_SIZE = 8  # Keep the existing Windows manager default unchanged.
+MAX_BATCH_SIZE = 32  # GitHub daily batch cap.
+DEFAULT_ENGINE = "ahenk-cep"
+EMA_ENGINE = "ema-lightning"
 MIN_EXPECTED_ARTICLES = 20
 MP3_NAME = re.compile(r'[a-f0-9]{24}[.]mp3')
 MAX_AGE_DAYS = 150
 AUDIO_DIR = Path("public/podcast-audio")
 MANIFEST_PATH = AUDIO_DIR / "manifest.json"
 MODEL_REVISION = "ahenk-cep-tr-2026-10-18"
+EMA_MODEL_REVISION = "ema-lightning-1.1.2"
+MODEL_REVISIONS = {
+    DEFAULT_ENGINE: MODEL_REVISION,
+    EMA_ENGINE: EMA_MODEL_REVISION,
+}
 PRONUNCIATION_REVISION = "tr-v1"
 
 
@@ -56,9 +64,11 @@ def key_for(journal, title, pmid):
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:24]
 
 
-def fingerprint(text):
+def fingerprint(text, engine=DEFAULT_ENGINE):
+    """Model-specific fingerprint ensures a gradual, safe engine migration."""
+    revision = MODEL_REVISIONS[engine]
     return hashlib.sha256(
-        (MODEL_REVISION + "|" + PRONUNCIATION_REVISION + "|" + text).encode("utf-8")
+        (revision + "|" + PRONUNCIATION_REVISION + "|" + text).encode("utf-8")
     ).hexdigest()
 
 
@@ -103,7 +113,27 @@ def load_manifest():
     return data
 
 
-def create_tts():
+class EMALightningVoice:
+    """Small adapter that preserves the existing shared MP3 renderer API.
+
+    EMA returns a Speech object whereas Ahenk Cep returns (audio, sample_rate).
+    Ahenk-only style and steps are intentionally not forwarded to EMA.
+    """
+
+    def __init__(self):
+        from ema_lightning import EMA
+        self.model = EMA(device="cpu")  # GitHub ubuntu-latest is CPU only.
+
+    def say(self, text, *, style="neutral", steps=16, speed=1.0, seed=0):
+        speech = self.model.say(text, speed=speed, seed=seed)
+        return speech.audio, speech.sample_rate
+
+
+def create_tts(engine=DEFAULT_ENGINE):
+    if engine == EMA_ENGINE:
+        return EMALightningVoice()
+    if engine != DEFAULT_ENGINE:
+        raise ValueError("Unknown podcast TTS engine: " + str(engine))
     from huggingface_hub import snapshot_download
     import sys
     model_dir = snapshot_download(
@@ -141,7 +171,7 @@ def render_clip(tts, text, destination, speed=1.0):
         os.replace(mp3, destination)
 
 
-def catalog(articles):
+def catalog(articles, engine=DEFAULT_ENGINE):
     """Every currently listed title is eligible; preserve insertion order."""
     entries = OrderedDict()
     rules = pron.load()
@@ -154,7 +184,8 @@ def catalog(articles):
             "title": article["title"],
             "journal": article["journal"],
             "pmid": article["pmid"],
-            "fingerprint": fingerprint(pron.signature(speaking, speed)),
+            "fingerprint": fingerprint(pron.signature(speaking, speed), engine=engine),
+            "engine": engine,
             "file": key + ".mp3",
         }
     return entries
@@ -220,13 +251,17 @@ def round_robin_journals(entries, pending_keys, limit, starting_counts=None):
         counts[chosen] = counts.get(chosen, 0) + 1
     return selected
 
-def plan_updates(articles, manifest, now):
+def plan_updates(articles, manifest, now, engine=DEFAULT_ENGINE, batch_size=BATCH_SIZE):
+    if engine not in MODEL_REVISIONS:
+        raise ValueError("Unknown podcast TTS engine: " + str(engine))
+    if isinstance(batch_size, bool) or not isinstance(batch_size, int) or not 1 <= batch_size <= MAX_BATCH_SIZE:
+        raise ValueError(f"Batch size must be between 1 and {MAX_BATCH_SIZE}")
     if len(articles) < MIN_EXPECTED_ARTICLES:
         raise RuntimeError(
             f"Only {len(articles)} articles returned from Sheets; "
             "refusing to delete audio on potentially incomplete source data"
         )
-    entries = catalog(articles)
+    entries = catalog(articles, engine=engine)
     old = manifest["entries"]
     keys = set(entries)
     still_listed = len(set(old) & keys)
@@ -254,15 +289,15 @@ def plan_updates(articles, manifest, now):
             ready_by_journal[journal] = ready_by_journal.get(journal, 0) + 1
 
     selection = round_robin_journals(
-        entries, missing, BATCH_SIZE, ready_by_journal
+        entries, missing, batch_size, ready_by_journal
     )
-    if len(selection) < BATCH_SIZE:
+    if len(selection) < batch_size:
         pending_counts = dict(ready_by_journal)
         for key in selection:
             journal = entries[key]["journal"]
             pending_counts[journal] = pending_counts.get(journal, 0) + 1
         selection += round_robin_journals(
-            entries, due_for_refresh, BATCH_SIZE - len(selection), pending_counts
+            entries, due_for_refresh, batch_size - len(selection), pending_counts
         )
     removed = [key for key in old if key not in keys]
 
@@ -276,6 +311,8 @@ def plan_updates(articles, manifest, now):
     )
     return {
         "version": 1,
+        "engine": engine,
+        "batch_size": batch_size,
         "candidates": entries,
         "selected": selection,
         "removed": removed,
@@ -295,7 +332,14 @@ def execute_plan(plan, tts=None, on_prepared=None, preserve_local=False):
         raise RuntimeError("Unknown generation plan")
     selected = plan["selected"]
     candidates = plan["candidates"]
-    if (len(selected) > BATCH_SIZE or len(set(selected)) != len(selected)
+    engine = plan.get("engine", DEFAULT_ENGINE)
+    batch_size = plan.get("batch_size", BATCH_SIZE)
+    if engine not in MODEL_REVISIONS:
+        raise RuntimeError("Unknown podcast TTS engine in plan")
+    if (isinstance(batch_size, bool) or not isinstance(batch_size, int)
+            or not 1 <= batch_size <= MAX_BATCH_SIZE):
+        raise RuntimeError("Unsafe podcast batch size")
+    if (len(selected) > batch_size or len(set(selected)) != len(selected)
             or any(key not in candidates for key in selected)):
         raise RuntimeError("Unsafe batch or unknown audio key")
 
@@ -318,10 +362,11 @@ def execute_plan(plan, tts=None, on_prepared=None, preserve_local=False):
     for key in selected:
         item = candidates[key]
         speaking, speed = pron.speech(item, rules, spoken(item["title"]))
-        if fingerprint(pron.signature(speaking, speed)) != item["fingerprint"]:
+        if (item.get("engine", DEFAULT_ENGINE) != engine or
+                fingerprint(pron.signature(speaking, speed), engine=engine) != item["fingerprint"]):
             raise RuntimeError("Pronunciation rules changed since planning; regenerate the plan")
     if selected and tts is None:
-        tts = create_tts()
+        tts = create_tts(engine=engine)
     with tempfile.TemporaryDirectory(prefix=".podcast-staging-", dir=AUDIO_DIR) as staging:
         staged = []
         for key in selected:
@@ -372,6 +417,8 @@ def main():
     mode.add_argument("--execute", action="store_true")
     parser.add_argument("--plan-file", type=Path, required=True)
     parser.add_argument("--github-output")
+    parser.add_argument("--engine", choices=list(MODEL_REVISIONS), default=DEFAULT_ENGINE)
+    parser.add_argument("--batch-size", type=int, default=BATCH_SIZE)
     args = parser.parse_args()
 
     if args.plan:
@@ -379,7 +426,10 @@ def main():
         # A failed Google Sheets request must NOT change/delete old audio.
         articles = load_sheet()
         AUDIO_DIR.mkdir(parents=True, exist_ok=True)
-        plan = plan_updates(articles, load_manifest(), now)
+        plan = plan_updates(
+            articles, load_manifest(), now,
+            engine=args.engine, batch_size=args.batch_size,
+        )
         args.plan_file.write_text(
             json.dumps(plan, ensure_ascii=False, indent=2) + "\n",
             encoding="utf-8",
@@ -399,7 +449,7 @@ def main():
                 )
         if summary := os.environ.get("GITHUB_STEP_SUMMARY"):
             with open(summary, "a", encoding="utf-8") as f:
-                f.write("### Ahenk podcast hazır sesler\n\n" + line + "\n\n")
+                f.write(f"### Podcast hazır sesler ({plan['engine']})\n\n" + line + "\n\n")
                 f.write("Model yalnızca gerektiğinde kurulur; "
                         "hazır kayıtlar korunur.\n")
     else:
