@@ -202,25 +202,6 @@ export function Home({ onNavigate }: HomeProps) {
           </ul>
         </section>
 
-        {/* Mobilde öğrenci kaynakları üstte, tek bir açılır bölümde. */}
-        <details className="group mb-6 rounded-2xl border border-indigo-200 bg-white/90 shadow-sm lg:hidden">
-          <summary className="flex min-h-16 cursor-pointer list-none items-center gap-3 rounded-2xl px-4 py-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 [&::-webkit-details-marker]:hidden">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-100 text-indigo-700">
-              <GraduationCap size={22} aria-hidden="true" />
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block text-base font-bold text-slate-900">Öğrenci Kaynakları</span>
-              <span className="block text-xs text-slate-600">Ders notları, programlar ve yemek listesi</span>
-            </span>
-            <ChevronDown size={20} className="shrink-0 text-slate-600 transition-transform duration-200 group-open:rotate-180" aria-hidden="true" />
-          </summary>
-          <div className="border-t border-indigo-100 p-3">
-            <div className="grid grid-cols-2 gap-3">
-              {studentTiles}
-            </div>
-          </div>
-        </details>
-
         {/* ══════════ SON KULLANILAN ARAÇLAR (Hızlı Erişim) ══════════ */}
         {recentPages.length > 0 && (
           <section className="mb-8 p-4 bg-white/80 backdrop-blur-md rounded-2xl border border-slate-200/80 shadow-sm" aria-label="Son ziyaret edilenler">
@@ -334,6 +315,25 @@ export function Home({ onNavigate }: HomeProps) {
               </div>
 
             </div>
+
+            {/* Mobil: Hastalar bölümünün altında, bir karo gibi açılan öğrenci kaynakları. */}
+            <details className="group mt-4 overflow-hidden rounded-2xl border border-indigo-200 bg-white shadow-lg lg:hidden">
+              <summary className="relative flex h-40 cursor-pointer list-none flex-col justify-between bg-gradient-to-br from-indigo-600 to-blue-700 p-5 text-white transition-[filter] hover:brightness-110 focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-[-4px] focus-visible:outline-white [&::-webkit-details-marker]:hidden">
+                <span className="flex items-start justify-between">
+                  <GraduationCap size={38} aria-hidden="true" className="text-white/95" />
+                  <ChevronDown size={24} aria-hidden="true" className="text-white/90 transition-transform duration-200 group-open:rotate-180" />
+                </span>
+                <span>
+                  <span className="block text-lg font-bold leading-snug">Öğrenci Kaynakları</span>
+                  <span className="mt-1 block text-sm text-white/90">Ders notları, programlar ve yemek listesi</span>
+                </span>
+              </summary>
+              <div className="border-t border-indigo-100 bg-white p-3">
+                <div className="grid grid-cols-2 gap-3">
+                  {studentTiles}
+                </div>
+              </div>
+            </details>
           </div>
 
           {/* ══ PATOLOJİ VE EĞİTİM ══ */}
