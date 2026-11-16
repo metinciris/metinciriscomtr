@@ -1,7 +1,13 @@
 {
-  "date": "15.11.2026",
-  "items": [],
-  "kcal": null,
+  "date": "16.11.2026",
+  "items": [
+    "DOMATES ÇORBASI",
+    "TAS KEBABI",
+    "TEL ŞEHRİYELİ BULGUR PİLAVI",
+    "KASE YOĞURT",
+    "DOMATES ÇORBASI"
+  ],
+  "kcal": "1000",
   "source": "https://w3.sdu.edu.tr/aylik-yemek-listesi?dosya=yemekler_ogle&tur=2",
-  "updatedAt": "2026-11-15T14:52:18.057Z"
+  "updatedAt": "2026-11-16T13:03:36.688Z"
 }
