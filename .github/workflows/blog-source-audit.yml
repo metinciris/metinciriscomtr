@@ -1,0 +1,38 @@
+name: Blog PubMed kaynak dogrulama
+
+on:
+  workflow_dispatch:
+    inputs:
+      full_scan:
+        description: "Tum acik blog yazilarini tara (nadiren kullanin)"
+        type: boolean
+        required: false
+        default: false
+  schedule:
+    - cron: '13 7 * * 3'
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: blog-pubmed-source-audit
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Denetleyici birim testleri
+        run: node --test scripts/test-blog-references.mjs
+      - name: PubMed kaynak ve baglanti kontrolu
+        run: node scripts/check-blog-references.mjs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          FULL_SCAN: ${{ inputs.full_scan || 'false' }}
