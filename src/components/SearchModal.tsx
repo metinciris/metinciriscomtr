@@ -47,32 +47,46 @@ export function SearchModal({ isOpen, onClose, onNavigate }: SearchModalProps) {
   const [loadError, setLoadError] = useState(false);
   const [retryKey, setRetryKey] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
   const deferredQuery = useDeferredValue(query);
 
   useEffect(() => {
-    if (!isOpen) {
-      setQuery('');
-      setActiveTab('all');
-      return;
-    }
-
+    if (!isOpen) return;
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const oldOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     const timer = window.setTimeout(() => inputRef.current?.focus(), 60);
-
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onClose();
+      } else if (event.key === 'Tab') {
+        const items = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        ) ?? []).filter((item) => item.getClientRects().length > 0);
+        if (!items.length) {
+          event.preventDefault();
+          dialogRef.current?.focus();
+          return;
+        }
+        const first = items[0];
+        const last = items[items.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+    };
+    document.addEventListener('keydown', handleKey);
     return () => {
       window.clearTimeout(timer);
+      document.removeEventListener('keydown', handleKey);
       document.body.style.overflow = oldOverflow;
+      previousFocus?.focus({ preventScroll: true });
     };
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
   }, [isOpen, onClose]);
 
   useEffect(() => {
@@ -124,6 +138,8 @@ export function SearchModal({ isOpen, onClose, onNavigate }: SearchModalProps) {
     <div className="fixed inset-0 z-[200] bg-[#111827]/85 backdrop-blur-sm flex justify-center items-start pt-[6vh] md:pt-[10vh] px-3 md:px-4">
       <div
         className="bg-white w-full max-w-3xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[88vh] md:max-h-[80vh]"
+        ref={dialogRef}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-label="Akıllı patoloji ve site araması"

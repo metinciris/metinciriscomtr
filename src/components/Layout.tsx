@@ -13,7 +13,6 @@ import {
   X,
   Search,
 } from 'lucide-react';
-import { SearchModal } from './SearchModal';
 import { CookieConsent } from './CookieConsent';
 import { openCookiePreferences } from '../utils/cookieConsent';
 import { PAGE_REGISTRY, getPagesByGroup, getNavLabel, type NavGroup } from '../core/data/registry';
@@ -25,6 +24,10 @@ interface LayoutProps {
 }
 
 const BASE_URL = 'https://metinciris.com.tr';
+
+const LazySearchModal = React.lazy(() =>
+  import('./SearchModal').then((module) => ({ default: module.SearchModal }))
+);
 
 /** Nav item href helper */
 function navHref(path: string): string {
@@ -46,6 +49,10 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
   const [activeHub, setActiveHub] = React.useState<NavGroup | null>(null);
   const [showScrollTop, setShowScrollTop] = React.useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const closeSearch = React.useCallback(() => setIsSearchOpen(false), []);
+  const mobileOverlayRef = React.useRef<HTMLDivElement>(null);
+  const mobileCloseButtonRef = React.useRef<HTMLButtonElement>(null);
+  const mobileMenuButtonRef = React.useRef<HTMLButtonElement>(null);
   const currentYear = new Date().getFullYear();
 
   // Scroll-to-top butonu göster/gizle
@@ -78,6 +85,39 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
+
+  React.useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const oldOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    mobileCloseButtonRef.current?.focus({ preventScroll: true });
+    const handleMenuKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setMobileMenuOpen(false);
+        mobileMenuButtonRef.current?.focus({ preventScroll: true });
+      } else if (event.key === 'Tab') {
+        const items = Array.from(mobileOverlayRef.current?.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        ) ?? []).filter((item) => item.getClientRects().length > 0);
+        if (!items.length) return;
+        const first = items[0];
+        const last = items[items.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+    };
+    document.addEventListener('keydown', handleMenuKey);
+    return () => {
+      document.body.style.overflow = oldOverflow;
+      document.removeEventListener('keydown', handleMenuKey);
+    };
+  }, [mobileMenuOpen]);
 
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -194,7 +234,6 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
                     {isOpen && (
                       <div
                         className="absolute top-full left-0 mt-1 w-56 bg-[#1e1e1e]/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl py-2 z-[200] animate-fade-in"
-                        role="menu"
                       >
                         {hubPages.map((page) => (
                           <a
@@ -202,10 +241,9 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
                             href={navHref(page.id)}
                             onClick={(e) => { e.preventDefault(); handleNavClick(page.id); }}
                             aria-current={currentPage === page.id ? 'page' : undefined}
-                            role="menuitem"
                             className={`block px-4 py-2.5 text-sm transition-colors no-underline ${
                               currentPage === page.id
-                                ? 'text-[#0078D4] bg-blue-600/10'
+                                ? 'text-sky-200 bg-blue-600/10'
                                 : 'text-gray-100 hover:text-white hover:bg-white/10'
                             }`}
                           >
@@ -245,10 +283,12 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
               </button>
               <button
                 type="button"
-                className="p-2 hover:bg-white/10 rounded focus:outline-none"
+                className="p-2 hover:bg-white/10 rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+                ref={mobileMenuButtonRef}
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 aria-label={mobileMenuOpen ? 'Menüyü kapat' : 'Menüyü aç'}
                 aria-expanded={mobileMenuOpen}
+                aria-controls="mobile-navigation-panel"
               >
                 <Menu aria-hidden="true" size={24} />
               </button>
@@ -259,10 +299,11 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
 
       {/* Mobil Menü Overlay */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 z-[100] bg-[#1e1e1e]/95 backdrop-blur-xl flex flex-col pt-24 px-4 overflow-y-auto animate-fade-in">
+        <div id="mobile-navigation-panel" ref={mobileOverlayRef} role="dialog" aria-modal="true" aria-label="Mobil gezinme" className="fixed inset-0 z-[100] bg-[#1e1e1e]/95 backdrop-blur-xl flex flex-col pt-24 px-4 overflow-y-auto animate-fade-in">
           {/* Kapat butonu */}
           <button
-            onClick={() => setMobileMenuOpen(false)}
+            onClick={() => { setMobileMenuOpen(false); mobileMenuButtonRef.current?.focus(); }}
+            ref={mobileCloseButtonRef}
             className="absolute top-6 right-4 p-2 text-gray-100 hover:text-white bg-white/10 rounded-full"
             aria-label="Menüyü kapat"
           >
@@ -276,7 +317,7 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
               onClick={(e) => { e.preventDefault(); handleNavClick('home'); }}
               className={`flex items-center space-x-3 p-4 rounded-xl transition-all no-underline text-xl font-medium ${
                 currentPage === 'home'
-                  ? 'bg-blue-600/20 text-[#0078D4]'
+                  ? 'bg-blue-600/20 text-sky-200'
                   : 'text-gray-100 hover:text-white hover:bg-white/5'
               }`}
             >
@@ -294,9 +335,11 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
                 <div key={hub.id}>
                   <button
                     onClick={() => setOpenMobileHub(isOpen ? null : hub.id)}
+                    aria-expanded={isOpen}
+                    aria-controls={"mobile-hub-" + hub.id}
                     className={`w-full flex items-center justify-between p-4 rounded-xl transition-all text-xl font-medium focus:outline-none ${
                       currentGroup === hub.id
-                        ? 'bg-blue-600/20 text-[#0078D4]'
+                        ? 'bg-blue-600/20 text-sky-200'
                         : 'text-gray-100 hover:text-white hover:bg-white/5'
                     }`}
                   >
@@ -312,15 +355,16 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
 
                   {/* Accordion içeriği */}
                   {isOpen && (
-                    <div className="ml-4 mt-1 flex flex-col space-y-1">
+                    <div id={"mobile-hub-" + hub.id} className="ml-4 mt-1 flex flex-col space-y-1">
                       {hubPages.map((page) => (
                         <a
                           key={page.id}
                           href={navHref(page.id)}
                           onClick={(e) => { e.preventDefault(); handleNavClick(page.id); }}
+                          aria-current={currentPage === page.id ? "page" : undefined}
                           className={`block px-4 py-3 rounded-lg text-base transition-all no-underline ${
                             currentPage === page.id
-                              ? 'text-[#0078D4] bg-blue-600/10'
+                              ? 'text-sky-200 bg-blue-600/10'
                               : 'text-gray-200 hover:text-white hover:bg-white/5'
                           }`}
                         >
@@ -397,6 +441,8 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
       <button
         onClick={scrollToTop}
         aria-label="Sayfanın başına dön"
+        aria-hidden={!showScrollTop}
+        tabIndex={showScrollTop ? 0 : -1}
         className={`fixed bottom-6 right-6 z-40 p-3 rounded-full bg-[#1e1e1e] text-white shadow-lg hover:bg-[#333] hover:scale-110 active:scale-95 transition-all duration-300 ${
           showScrollTop
             ? 'opacity-100 translate-y-0'
@@ -531,11 +577,15 @@ export function Layout({ children, currentPage, onNavigate }: LayoutProps) {
       </footer>
 
       <CookieConsent />
-      <SearchModal
-        isOpen={isSearchOpen}
-        onClose={() => setIsSearchOpen(false)}
-        onNavigate={onNavigate}
-      />
+      {isSearchOpen && (
+        <React.Suspense fallback={<span className="sr-only" role="status">Arama yükleniyor…</span>}>
+          <LazySearchModal
+            isOpen={isSearchOpen}
+            onClose={closeSearch}
+            onNavigate={onNavigate}
+          />
+        </React.Suspense>
+      )}
     </div>
   );
 }
