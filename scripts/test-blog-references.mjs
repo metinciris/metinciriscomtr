@@ -55,10 +55,7 @@ test('Benzer olmayan baslik manuel incelemeye gider', () => {
 });
 
 test('Kod bloklari es gecilir', () => {
-  assert.equal(parseReferences('```
-PMID: 12345678
-```
-PMID: 87654321').length, 1);
+  assert.equal(parseReferences('```\nPMID: 12345678\n```\nPMID: 87654321').length, 1);
 });
 
 test('Haftalik denetim 10 yeni ve 25 rotasyonlu eski issue ile sinirli', () => {
