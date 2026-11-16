@@ -100,13 +100,65 @@ export function Home({ onNavigate }: HomeProps) {
   /* ── Son güncelleme etiketi ── */
   const weatherUpdated = weather.temp !== null ? 'Canlı veri' : 'Yükleniyor…';
 
-  /* Öğrenci kartlarını mobil açılır panelde ve masaüstündeki mevcut yerinde ortak kullan. */
+  /* Öğrenci kaynakları: mobilden açılır panel, masaüstünde aynı kartlar. */
   const studentTiles = (
     <>
-              {/* Öğrenci kartları masaüstünde mevcut yerinde kalır. */}
-              <div className="hidden lg:contents">
-                {studentTiles}
-              </div>
+              {/* Geniş: Tıp Fakültesi Ders Notları */}
+              <MetroTile
+                title="Tıp Fakültesi Patoloji Ders Notları"
+                subtitle={tipSubtitle}
+                icon={<BookMarked size={38} />}
+                color="tile-edu-primary"
+                size="wide"
+                href="/donem-3/"
+                onClick={() => onNavigate('donem-3')}
+              />
+
+              {/* Diş Hekimliği */}
+              <MetroTile
+                title="Diş Hekimliği Patoloji Ders Notları"
+                subtitle={disSubtitle}
+                icon={<FolderOpen size={38} />}
+                color="tile-edu-a"
+                size="medium"
+                href={DROPBOX_DIS}
+                target="_blank"
+                rel="noopener noreferrer"
+              />
+
+              {/* Eczacılık */}
+              <MetroTile
+                title="Eczacılık Patoloji Ders Notları"
+                subtitle={eczaSubtitle}
+                icon={<FolderOpen size={38} />}
+                color="tile-edu-b"
+                size="medium"
+                href={DROPBOX_ECZA}
+                target="_blank"
+                rel="noopener noreferrer"
+              />
+
+              {/* Öğrenci Yemek */}
+              <MetroTile
+                title="Öğrenci Yemek Listesi"
+                subtitle="SDÜ kampüs yemekhanesi"
+                icon={<Utensils size={38} />}
+                color="tile-edu-utility"
+                size="medium"
+                href="/ogrenci-yemek/"
+                onClick={() => onNavigate('ogrenci-yemek')}
+              />
+
+              {/* Ders Programları */}
+              <MetroTile
+                title="Patoloji Ders Programları"
+                subtitle="Güncel ders takvimi"
+                icon={<GraduationCap size={38} />}
+                color="tile-edu-c"
+                size="medium"
+                href="/ders-programi/"
+                onClick={() => onNavigate('ders-programi')}
+              />
     </>
   );
 
@@ -292,62 +344,10 @@ export function Home({ onNavigate }: HomeProps) {
             </p>
             <div className="grid grid-cols-2 gap-3">
 
-              {/* Geniş: Tıp Fakültesi Ders Notları */}
-              <MetroTile
-                title="Tıp Fakültesi Patoloji Ders Notları"
-                subtitle={tipSubtitle}
-                icon={<BookMarked size={38} />}
-                color="tile-edu-primary"
-                size="wide"
-                href="/donem-3/"
-                onClick={() => onNavigate('donem-3')}
-              />
-
-              {/* Diş Hekimliği */}
-              <MetroTile
-                title="Diş Hekimliği Patoloji Ders Notları"
-                subtitle={disSubtitle}
-                icon={<FolderOpen size={38} />}
-                color="tile-edu-a"
-                size="medium"
-                href={DROPBOX_DIS}
-                target="_blank"
-                rel="noopener noreferrer"
-              />
-
-              {/* Eczacılık */}
-              <MetroTile
-                title="Eczacılık Patoloji Ders Notları"
-                subtitle={eczaSubtitle}
-                icon={<FolderOpen size={38} />}
-                color="tile-edu-b"
-                size="medium"
-                href={DROPBOX_ECZA}
-                target="_blank"
-                rel="noopener noreferrer"
-              />
-
-              {/* Öğrenci Yemek */}
-              <MetroTile
-                title="Öğrenci Yemek Listesi"
-                subtitle="SDÜ kampüs yemekhanesi"
-                icon={<Utensils size={38} />}
-                color="tile-edu-utility"
-                size="medium"
-                href="/ogrenci-yemek/"
-                onClick={() => onNavigate('ogrenci-yemek')}
-              />
-
-              {/* Ders Programları */}
-              <MetroTile
-                title="Patoloji Ders Programları"
-                subtitle="Güncel ders takvimi"
-                icon={<GraduationCap size={38} />}
-                color="tile-edu-c"
-                size="medium"
-                href="/ders-programi/"
-                onClick={() => onNavigate('ders-programi')}
-              />
+              {/* Öğrenci kartları mobilde yukarıdaki panelde; masaüstünde burada. */}
+              <div className="hidden lg:contents">
+                {studentTiles}
+              </div>
 
               {/* Patoloji Radarı */}
               <MetroTile
