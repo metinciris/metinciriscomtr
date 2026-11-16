@@ -64,33 +64,29 @@
    TEMA RENK SINIFLARI (Metro karolar için)
    ══════════════════════════════════════════════ */
 
-/* HASTALAR — mavi / turkuaz / petrol ailesi */
-.tile-patient-primary   { background-color: #00A6D6; }   /* İletişim (geniş) */
-.tile-patient-a         { background-color: #1687C9; }   /* Biyopsi ve Patoloji */
-.tile-patient-b         { background-color: #00A0B8; }   /* Patoloji Sözlüğü & SSS */
-.tile-patient-c         { background-color: #0284C7; }   /* Baktığım Biyopsiler */
-.tile-accent-danger     { background-color: #D32F45; }   /* Nöbetçi Eczane */
-.tile-patient-utility   { background-color: #159B72; }   /* Hastane Yemek */
-/* Hava durumu: dinamik (JS'ten sınıf ile) */
-
-/* PATOLOJİ VE EĞİTİM — lacivert / indigo / mor ailesi */
-.tile-edu-primary       { background-color: #2563EB; }   /* Tıp Notları (geniş) */
-.tile-edu-a             { background-color: #4F46E5; }   /* Diş Hekimliği */
-.tile-edu-b             { background-color: #7C3AED; }   /* Eczacılık */
-.tile-edu-utility       { background-color: #E97817; }   /* Öğrenci Yemek (amber/turuncu) */
-.tile-edu-c             { background-color: #2878C8; }   /* Ders Programı */
-.tile-edu-radar         { background-color: #0D9488; }   /* Patoloji Radarı */
-.tile-edu-case          { background-color: #C0265E; }   /* Ayın Vakası (vişne-magenta) */
-.tile-edu-galeri        { background-color: #7C3AED; }   /* Sanal Mikroskop (mor/indigo) */
-
-/* AKADEMİK / PROFESYONEL — koyu lacivert / zümrüt / mürdüm */
-.tile-acad-primary      { background-color: #087EA4; }   /* NGS (geniş) */
-.tile-acad-pub          { background-color: #D12D55; }   /* Yayınlar */
-.tile-acad-cv           { background-color: #9333EA; }   /* Özgeçmiş */
-.tile-acad-blog         { background-color: #4F46E5; }   /* Blog */
-.tile-acad-pitfalls    { background-color: #B45309; }   /* Tanı Tuzakları */
-.tile-acad-uni          { background-color: #0072B8; }   /* SDÜ ve Üniversite */
-.tile-acad-other        { background-color: #16A065; }   /* Diğer Çalışmalar */
+/* Karo paleti — AA kontrastlı beyaz metin için koyu tonlar */
+.tile-patient-primary { background: linear-gradient(135deg, #075c78, #0C3F65); } /* İletişim */
+.tile-patient-a { background: linear-gradient(135deg, #16528a, #153765); } /* Biyopsi */
+.tile-patient-b { background: linear-gradient(135deg, #126579, #0B4258); } /* Patoloji sözlüğü */
+.tile-patient-c { background: linear-gradient(135deg, #24528b, #172D55); } /* Baktığım biyopsiler */
+.tile-accent-danger { background: linear-gradient(135deg, #9d2543, #6D1E3A); } /* Nöbetçi eczane */
+.tile-patient-utility { background: linear-gradient(135deg, #16674E, #104335); } /* Hastane yemek */
+.tile-edu-primary { background: linear-gradient(135deg, #2554A5, #1D3872); } /* Tıp */
+.tile-edu-a { background: linear-gradient(135deg, #4F3DAE, #312571); } /* Diş */
+.tile-edu-b { background: linear-gradient(135deg, #6C329C, #462275); } /* Eczacılık */
+.tile-edu-utility { background: linear-gradient(135deg, #965010, #68380E); } /* Öğrenci yemek */
+.tile-edu-c { background: linear-gradient(135deg, #165D89, #194169); } /* Ders programı */
+.tile-edu-radar { background: linear-gradient(135deg, #106B65, #0B474B); } /* Patoloji radarı */
+.tile-edu-case { background: linear-gradient(135deg, #A02755, #6B224D); } /* Ayın vakası */
+.tile-edu-galeri { background: linear-gradient(135deg, #683A9D, #422A70); } /* Sanal mikroskop */
+.tile-acad-primary { background: linear-gradient(135deg, #126485, #0B4569); } /* NGS */
+.tile-acad-pub { background: linear-gradient(135deg, #AA2B50, #74233F); } /* Yayınlar */
+.tile-acad-cv { background: linear-gradient(135deg, #76349F, #4B246A); } /* Özgeçmiş */
+.tile-acad-blog { background: linear-gradient(135deg, #4B4EAC, #2D3975); } /* Blog */
+.tile-acad-pitfalls { background: linear-gradient(135deg, #99500B, #703B14); } /* Tanı tuzakları */
+.tile-acad-uni { background: linear-gradient(135deg, #0E6388, #114268); } /* Üniversite */
+.tile-acad-other { background: linear-gradient(135deg, #136A4B, #0C4A3C); } /* Diğer */
+.tile-acad-podcast { background: linear-gradient(135deg, #106b55, #0a4a40); } /* Podcast */
 
 /* Gölgeler ve Hover Durumları */
 .tile-patient-primary,
@@ -113,7 +109,8 @@
 .tile-acad-blog,
 .tile-acad-pitfalls,
 .tile-acad-uni,
-.tile-acad-other {
+.tile-acad-other,
+.tile-acad-podcast {
   box-shadow: 0 4px 12px rgba(15, 23, 42, 0.14) !important;
 }
 
@@ -137,24 +134,10 @@
 .tile-acad-blog:hover,
 .tile-acad-pitfalls:hover,
 .tile-acad-uni:hover,
-.tile-acad-other:hover {
+.tile-acad-other:hover,
+.tile-acad-podcast:hover {
   box-shadow: 0 7px 18px rgba(15, 23, 42, 0.20) !important;
   filter: brightness(1.06);
-}
-
-/* Kontrast desteği gereken parlak kartların alt yazıları */
-.tile-patient-primary p,
-.tile-patient-b p,
-.tile-patient-utility p,
-.tile-edu-utility p,
-.tile-edu-radar p,
-.tile-acad-other p {
-  display: inline-block;
-  max-width: 100%;
-  padding: 0.18rem 0.45rem;
-  border-radius: 0.4rem;
-  background: rgba(15, 23, 42, 0.20);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.28);
 }
 
 /* ══════════════════════════════════════════════
@@ -196,7 +179,6 @@
 /* Gece (açık / hafif bulutlu) – hafif glow */
 .home-weather-night {
   background: radial-gradient(circle at 20% 0%, #1f2937, #020617);
-  animation: weather-night-glow 10s ease-in-out infinite;
 }
 
 /* Bulutlu (gündüz) */
@@ -211,19 +193,17 @@
 
 /* Kar */
 .home-weather-snow {
-  background: linear-gradient(145deg, #38bdf8, #1e3a8a);
+  background: linear-gradient(145deg, #075985, #1e3a8a);
 }
 
 /* Sis */
 .home-weather-fog {
-  background: linear-gradient(145deg, #6b7280, #111827);
-  animation: weather-fog-breathe 8s ease-in-out infinite;
+  background: linear-gradient(145deg, #4b5563, #111827);
 }
 
 /* Fırtına – şimşek efekti */
 .home-weather-storm {
   background: linear-gradient(145deg, #0f172a, #020617);
-  animation: weather-storm-flash 7s ease-in-out infinite;
 }
 
 /* Gece hafif ışık parlaması */
@@ -277,12 +257,12 @@
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  opacity: 0.85;
+  opacity: 1;
 }
 
 .home-weather-updated {
   font-size: 0.65rem;
-  opacity: 0.65;
+  opacity: 1;
   letter-spacing: 0.02em;
 }
 
@@ -301,7 +281,6 @@
   font-size: 3rem;
   line-height: 1;
   transform: translateY(-2px);
-  animation: weather-float 3.2s ease-in-out infinite;
 }
 
 /* Varsayılan sıcaklık animasyonu (hafif nefes) */
@@ -309,34 +288,28 @@
   font-size: 2rem;
   font-weight: 700;
   line-height: 1;
-  animation: weather-pulse 4s ease-in-out infinite;
 }
 
 /* ---- DURUMA ÖZEL SİMGE ANİMASYONLARI ---- */
 
 /* Yağmur – küçük damla hareketi */
 .home-weather-rain .home-weather-icon {
-  animation: weather-rain-drop 1.5s ease-in-out infinite;
 }
 
 /* Kar – yavaşça süzülen kar tanesi */
 .home-weather-snow .home-weather-icon {
-  animation: weather-snow-drift 3.4s ease-in-out infinite;
 }
 
 /* Sis – çok hafif sağa–sola kayma */
 .home-weather-fog .home-weather-icon {
-  animation: weather-fog-drift 3.8s ease-in-out infinite;
 }
 
 /* Fırtına – ikon hafif titrer */
 .home-weather-storm .home-weather-icon {
-  animation: weather-storm-icon 1.2s ease-in-out infinite;
 }
 
 /* Gece açık – biraz daha yavaş float */
 .home-weather-night .home-weather-icon {
-  animation: weather-float 4s ease-in-out infinite;
 }
 
 /* ---- GENEL ANİMASYON KEYFRAMES ---- */
@@ -395,4 +368,14 @@
   55%  { transform: translateY(0px) scale(0.9); }
   75%  { transform: translateY(-8px) scale(1.02); }
   100% { transform: translateY(-2px) scale(1); }
+}
+/* Kullanıcının azaltılmış hareket tercihini korur. */
+@media (prefers-reduced-motion: reduce) {
+  .metro-tile, .metro-tile *, .home-weather-tile, .home-weather-tile * {
+    animation: none !important;
+    transition: none !important;
+  }
+  .metro-tile:hover, .metro-tile:active, .home-weather-tile:active {
+    transform: none !important;
+  }
 }

@@ -35,22 +35,22 @@ export function MetroTile({
   textColor = 'text-white',
 }: MetroTileProps) {
   const sizeClasses = {
-    small: 'col-span-1 row-span-1 h-32',
-    medium: 'col-span-1 row-span-1 h-40',
-    large: 'col-span-2 row-span-2 h-80',
-    wide: 'col-span-2 row-span-1 h-40',
-    tall: 'col-span-1 row-span-2 h-80',
+    small: 'col-span-1 row-span-1 min-h-32',
+    medium: 'col-span-1 row-span-1 min-h-48',
+    large: 'col-span-2 row-span-2 min-h-80',
+    wide: 'col-span-2 row-span-1 min-h-40',
+    tall: 'col-span-1 row-span-2 min-h-80',
   };
 
-  const sharedClassName = `${sizeClasses[size]} ${color} ${className} rounded-2xl cursor-pointer overflow-hidden relative group shadow-lg hover:shadow-2xl hover:-translate-y-2 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 block no-underline`;
+  const sharedClassName = `${sizeClasses[size]} ${color} ${className} metro-tile rounded-2xl cursor-pointer overflow-hidden relative group shadow-lg hover:shadow-xl hover:-translate-y-1 hover:scale-[1.01] active:scale-[0.99] transition-all duration-300 flex flex-col no-underline focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2 focus-visible:outline-slate-900`;
 
   const inner = (
     <>
       {/* Glassmorphism overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none z-[1]" />
+      <div className="absolute inset-0 bg-gradient-to-br from-black/5 to-black/20 pointer-events-none z-[1]" />
 
-      <div className="w-full h-full p-6 flex flex-col justify-between relative z-10">
-        <div className="flex-1 flex items-center justify-between">
+      <div className="w-full flex-1 p-4 sm:p-5 md:p-6 flex flex-col justify-between gap-3 relative z-10">
+        <div className="flex-1 min-w-0 flex items-center justify-between">
           <div className="flex flex-col justify-between h-full">
             {icon && <div className={`${textColor} opacity-90 mb-auto transition-transform duration-300 group-hover:scale-110`}>{icon}</div>}
           </div>
@@ -58,8 +58,8 @@ export function MetroTile({
         </div>
         <div>
           <div>
-            <h3 className={`${textColor} m-0 font-semibold transition-transform duration-300 group-hover:translate-x-1`}>{title}</h3>
-            {subtitle && <p className={`${textColor}/80 mt-1 m-0 text-sm transition-all duration-300 group-hover:translate-x-1`}>{subtitle}</p>}
+            <h3 className={`${textColor} m-0 text-sm sm:text-base leading-snug break-words font-semibold transition-transform duration-300 group-hover:translate-x-1`}>{title}</h3>
+            {subtitle && <p className={`${textColor} mt-1 m-0 text-xs sm:text-sm leading-snug break-words transition-all duration-300 group-hover:translate-x-1`}>{subtitle}</p>}
           </div>
         </div>
       </div>
@@ -77,7 +77,7 @@ export function MetroTile({
         style={style}
         onClick={(e) => {
           // For external links (target=_blank), let browser handle normally
-          if (target === '_blank') return;
+          if (target === '_blank' || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
           // For internal SPA links, prevent default and use onClick handler
           if (onClick) {
             e.preventDefault();

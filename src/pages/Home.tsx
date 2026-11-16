@@ -21,7 +21,6 @@ import {
   Clock,
   ChevronDown,
 } from 'lucide-react';
-import { useRotatingText } from '../hooks/useRotatingText';
 import { useWeather } from '../hooks/useWeather';
 import { useRecentPages } from '../hooks/useRecentPages';
 import {
@@ -70,26 +69,26 @@ const DROPBOX_ECZA =
   'https://www.dropbox.com/scl/fo/ux2nae6xf2vc09m63jwwj/APcXz0YMCCY2ZVcsb62t80w/Eczac%C4%B1l%C4%B1k?dl=0&rlkey=4z1tpnwnam9pxt0vo2no8t8v6&subfolder_nav_tracking=1';
 
 export function Home({ onNavigate }: HomeProps) {
-  /* ── Dönen alt açıklamalar ── */
-  const iletisimSubtitle   = useRotatingText(ILETISIM_SUBTITLES, 4000);
-  const biyopsiSubtitle    = useRotatingText(BIYOPSI_SUBTITLES, 4000);
-  const sozlukSssSubtitle = useRotatingText(SOZLUK_SSS_SUBTITLES, 4000);
-  const baktigimSubtitle   = useRotatingText(BAKTIGIM_SUBTITLES, 4000);
-  const hastaneYemekSub    = useRotatingText(HASTANE_YEMEK_SUBTITLES, 4000);
+  /* ── Sabit alt açıklamalar: ekran okuyucu dostu, ek zamanlayıcı yok ── */
+  const iletisimSubtitle   = ILETISIM_SUBTITLES[0] ?? '';
+  const biyopsiSubtitle    = BIYOPSI_SUBTITLES[0] ?? '';
+  const sozlukSssSubtitle = SOZLUK_SSS_SUBTITLES[0] ?? '';
+  const baktigimSubtitle   = BAKTIGIM_SUBTITLES[0] ?? '';
+  const hastaneYemekSub    = HASTANE_YEMEK_SUBTITLES[0] ?? '';
 
-  const tipSubtitle        = useRotatingText(TIP_SUBTITLES, 4000);
-  const disSubtitle        = useRotatingText(DIS_SUBTITLES, 4000);
-  const eczaSubtitle       = useRotatingText(ECZA_SUBTITLES, 4000);
-  const makaleSubtitle     = useRotatingText(MAKALE_SUBTITLES, 4000);
-  const galeriSubtitle     = useRotatingText(GALERI_SUBTITLES, 4000);
+  const tipSubtitle        = TIP_SUBTITLES[0] ?? '';
+  const disSubtitle        = DIS_SUBTITLES[0] ?? '';
+  const eczaSubtitle       = ECZA_SUBTITLES[0] ?? '';
+  const makaleSubtitle     = MAKALE_SUBTITLES[0] ?? '';
+  const galeriSubtitle     = GALERI_SUBTITLES[0] ?? '';
 
-  const ngsSubtitle        = useRotatingText(NGS_SUBTITLES, 4000);
-  const yayinSubtitle      = useRotatingText(YAYIN_SUBTITLES, 4000);
-  const portfolyoSubtitle  = useRotatingText(PORTFOLYO_SUBTITLES, 4000);
-  const blogSubtitle       = useRotatingText(BLOG_SUBTITLES, 4000);
-  const taniTuzaklariSubtitle = useRotatingText(TANI_TUZAKLARI_SUBTITLES, 4000);
-  const universiteSubtitle = useRotatingText(UNIVERSITE_SUBTITLES, 4000);
-  const digerSubtitle      = useRotatingText(DIGER_SUBTITLES, 4000);
+  const ngsSubtitle        = NGS_SUBTITLES[0] ?? '';
+  const yayinSubtitle      = YAYIN_SUBTITLES[0] ?? '';
+  const portfolyoSubtitle  = PORTFOLYO_SUBTITLES[0] ?? '';
+  const blogSubtitle       = BLOG_SUBTITLES[0] ?? '';
+  const taniTuzaklariSubtitle = TANI_TUZAKLARI_SUBTITLES[0] ?? '';
+  const universiteSubtitle = UNIVERSITE_SUBTITLES[0] ?? '';
+  const digerSubtitle      = DIGER_SUBTITLES[0] ?? '';
 
   /* ── Hava durumu (Isparta) – Open-Meteo ── */
   const weather = useWeather();
@@ -420,7 +419,7 @@ export function Home({ onNavigate }: HomeProps) {
                 title="Patoloji Podcast"
                 subtitle="Sesli makale ve vaka özetleri"
                 icon={<MessageSquare size={38} />}
-                color="bg-[#10B981]"
+                color="tile-acad-podcast"
                 size="medium"
                 href="/podcast/"
                 onClick={() => onNavigate('podcast')}
