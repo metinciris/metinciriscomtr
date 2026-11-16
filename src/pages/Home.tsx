@@ -19,6 +19,7 @@ import {
   Dna,
   Camera,
   Clock,
+  ChevronDown,
 } from 'lucide-react';
 import { useRotatingText } from '../hooks/useRotatingText';
 import { useWeather } from '../hooks/useWeather';
@@ -99,6 +100,16 @@ export function Home({ onNavigate }: HomeProps) {
   /* ── Son güncelleme etiketi ── */
   const weatherUpdated = weather.temp !== null ? 'Canlı veri' : 'Yükleniyor…';
 
+  /* Öğrenci kartlarını mobil açılır panelde ve masaüstündeki mevcut yerinde ortak kullan. */
+  const studentTiles = (
+    <>
+              {/* Öğrenci kartları masaüstünde mevcut yerinde kalır. */}
+              <div className="hidden lg:contents">
+                {studentTiles}
+              </div>
+    </>
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 transition-colors duration-300">
       <PageContainer>
@@ -138,6 +149,25 @@ export function Home({ onNavigate }: HomeProps) {
             <li><a href="/iletisim/">İletişim</a></li>
           </ul>
         </section>
+
+        {/* Mobilde öğrenci kaynakları üstte, tek bir açılır bölümde. */}
+        <details className="group mb-6 rounded-2xl border border-indigo-200 bg-white/90 shadow-sm lg:hidden">
+          <summary className="flex min-h-16 cursor-pointer list-none items-center gap-3 rounded-2xl px-4 py-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 [&::-webkit-details-marker]:hidden">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-100 text-indigo-700">
+              <GraduationCap size={22} aria-hidden="true" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-base font-bold text-slate-900">Öğrenci Kaynakları</span>
+              <span className="block text-xs text-slate-600">Ders notları, programlar ve yemek listesi</span>
+            </span>
+            <ChevronDown size={20} className="shrink-0 text-slate-600 transition-transform duration-200 group-open:rotate-180" aria-hidden="true" />
+          </summary>
+          <div className="border-t border-indigo-100 p-3">
+            <div className="grid grid-cols-2 gap-3">
+              {studentTiles}
+            </div>
+          </div>
+        </details>
 
         {/* ══════════ SON KULLANILAN ARAÇLAR (Hızlı Erişim) ══════════ */}
         {recentPages.length > 0 && (
