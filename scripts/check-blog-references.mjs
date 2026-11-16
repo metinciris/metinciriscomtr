@@ -16,7 +16,13 @@ function cleanDoi(value) {
   if (!value) return '';
   let decoded = String(value);
   try { decoded = decodeURIComponent(decoded); } catch { /* malformed percent escapes */ }
-  return decoded.trim().replace(/[.,;:}\])]+$/g, '').toLowerCase();
+  let result = decoded.trim().replace(/[.,;:}\]]+$/g, '');
+  // Markdown linkleri ')' ile biter; DOI'nin kendi dengeli parantezlerini koru.
+  while (result.endsWith(')') &&
+    (result.match(/\)/g) || []).length > (result.match(/\(/g) || []).length) {
+    result = result.slice(0, -1);
+  }
+  return result.toLowerCase();
 }
 
 function titleTokens(value) {
@@ -45,8 +51,8 @@ export function parseReferences(body) {
     const linkIds = [...line.matchAll(/https?:\/\/(?:pubmed\.ncbi\.nlm\.nih\.gov|(?:www\.)?ncbi\.nlm\.nih\.gov\/pubmed)\/(\d{5,9})(?=[/?#)\]\s]|$)/gi)].map(m => m[1]);
     const textIds = [...line.matchAll(/\bPMID\s*:\s*(\d{5,9})\b/gi)].map(m => m[1]);
     const ids = [...new Set([...linkIds, ...textIds])];
-    const doiText = line.match(/\bDOI\s*:\s*(10\.\d{4,9}\/[^\s<>\])]+)/i)?.[1] || '';
-    const doiLink = line.match(/https?:\/\/(?:dx\.)?doi\.org\/(10\.\d{4,9}\/[^\s<>\])]+)/i)?.[1] || '';
+    const doiText = line.match(/\bDOI\s*:\s*(10\.\d{4,9}\/[^\s<>\]]+)/i)?.[1] || '';
+    const doiLink = line.match(/https?:\/\/(?:dx\.)?doi\.org\/(10\.\d{4,9}\/[^\s<>\]]+)/i)?.[1] || '';
     const citedTitle = line.match(/\*([^*]{15,260})\*/)?.[1] || '';
     result.push({ line: index + 1, raw: line, linkIds, textIds, ids,
       doiText: cleanDoi(doiText), doiLink: cleanDoi(doiLink), citedTitle });
