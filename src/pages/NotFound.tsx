@@ -104,6 +104,17 @@ export const NotFound: React.FC<NotFoundProps> = ({ onNavigate }) => {
                 <Home className="w-5 h-5 text-white" aria-hidden="true" />
                 <span className="text-white">Anasayfaya Dön</span>
             </button>
+
+            {/* Eski siteden küçük bir sürpriz: başka hiçbir menüde yer almaz. */}
+            <a
+                href="/sevgi/"
+                rel="nofollow"
+                aria-label="19 Şubat 2000 - küçük bir sürpriz"
+                className="mt-10 inline-flex items-center gap-2 text-xs text-slate-400 hover:text-rose-600 focus-visible:text-rose-600 focus-visible:outline-offset-4 transition-colors"
+            >
+                <span aria-hidden="true">♡</span>
+                <span>19.02.2000</span>
+            </a>
         </div>
     );
 };
