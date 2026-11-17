@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, AlertTriangle, ChevronRight, Search, FileText, Activity, Layers, Mail, MessageSquare, Utensils, Heart } from 'lucide-react';
+import { Home, AlertTriangle, ChevronRight, Search, FileText, Activity, Layers, Mail, MessageSquare, Utensils } from 'lucide-react';
 
 interface NotFoundProps {
     onNavigate?: (page: string) => void;
@@ -44,18 +44,6 @@ export const NotFound: React.FC<NotFoundProps> = ({ onNavigate }) => {
                 Üzgünüz, aradığınız sayfa taşınmış, silinmiş veya hiç var olmamış olabilir.
             </p>
 
-            {/* Küçük sürpriz: 404 ekranında kolay bulunur, ana menüye eklenmez. */}
-            <a
-                href="/mutluluklar/"
-                rel="nofollow"
-                aria-label="19 Şubat 2000 — Bir aşk hikâyesi"
-                className="mb-8 inline-flex items-center gap-3 rounded-full border border-rose-200 bg-rose-50 px-5 py-3 text-sm font-semibold text-rose-800 shadow-sm transition hover:border-rose-300 hover:bg-rose-100 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-rose-600"
-            >
-                <Heart className="h-4 w-4" aria-hidden="true" />
-                <span>Bir aşk hikâyesi · 19.02.2000</span>
-                <ChevronRight className="h-4 w-4" aria-hidden="true" />
-            </a>
-
             {/* Suggested Pages */}
             <div className="w-full max-w-4xl mb-8">
                 <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">
@@ -79,6 +67,23 @@ export const NotFound: React.FC<NotFoundProps> = ({ onNavigate }) => {
                             <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transform group-hover:translate-x-0.5 transition-all" aria-hidden="true" />
                         </button>
                     ))}
+
+                    {/* En sondaki kart: yalnızca 404 sayfasında görünen küçük sürpriz. */}
+                    <a
+                        href="/mutluluklar/"
+                        rel="nofollow"
+                        aria-label="Bir aşk hikâyesi sayfasına git"
+                        className="group flex items-center p-3 gap-3 bg-white rounded-xl shadow-sm border border-slate-100 hover:shadow-lg hover:border-slate-200 hover:scale-[1.02] transition-all duration-200 text-left active:scale-100"
+                    >
+                        <div
+                            className="p-2.5 rounded-lg bg-rose-700 text-white group-hover:scale-110 transition-transform shadow-md shrink-0"
+                            aria-hidden="true"
+                        >
+                            <span className="flex h-5 w-5 items-center justify-center text-lg leading-none">❤️</span>
+                        </div>
+                        <span className="font-medium text-slate-700 text-sm leading-tight flex-1">Bir aşk hikâyesi</span>
+                        <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transform group-hover:translate-x-0.5 transition-all" aria-hidden="true" />
+                    </a>
                 </div>
             </div>
 
