@@ -1,31 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { Home, AlertTriangle, ChevronRight, Search, FileText, Activity, Layers, Mail, MessageSquare, Utensils, Clock } from 'lucide-react';
+import React from 'react';
+import { Home, AlertTriangle, ChevronRight, Search, FileText, Activity, Layers, Mail, MessageSquare, Utensils, Heart } from 'lucide-react';
 
 interface NotFoundProps {
     onNavigate?: (page: string) => void;
 }
 
 export const NotFound: React.FC<NotFoundProps> = ({ onNavigate }) => {
-    const [countdown, setCountdown] = useState(30);
-
-    useEffect(() => {
-        const timer = setInterval(() => {
-            setCountdown(prev => {
-                if (prev <= 1) {
-                    clearInterval(timer);
-                    if (onNavigate) {
-                        onNavigate('home');
-                    } else {
-                        window.location.assign('/');
-                    }
-                    return 0;
-                }
-                return prev - 1;
-            });
-        }, 1000);
-        return () => clearInterval(timer);
-    }, [onNavigate]);
-
     const links = [
         { label: 'Anasayfa', icon: Home, target: 'home', color: '#00A6D6' },
         { label: 'Patoloji Tanı Tuzakları', icon: Search, target: 'tani-tuzaklari', color: '#f59e0b' },
@@ -64,11 +44,17 @@ export const NotFound: React.FC<NotFoundProps> = ({ onNavigate }) => {
                 Üzgünüz, aradığınız sayfa taşınmış, silinmiş veya hiç var olmamış olabilir.
             </p>
 
-            {/* Auto-redirect countdown */}
-            <div className="flex items-center gap-2 mb-8 px-4 py-2 bg-blue-50 text-blue-700 rounded-full text-sm font-medium border border-blue-200">
-                <Clock className="w-4 h-4 animate-spin" style={{ animationDuration: '3s' }} aria-hidden="true" />
-                <span>{countdown} saniye içinde anasayfaya yönlendirileceksiniz</span>
-            </div>
+            {/* Küçük sürpriz: 404 ekranında kolay bulunur, ana menüye eklenmez. */}
+            <a
+                href="/mutluluklar/"
+                rel="nofollow"
+                aria-label="19 Şubat 2000 — Bir aşk hikâyesi"
+                className="mb-8 inline-flex items-center gap-3 rounded-full border border-rose-200 bg-rose-50 px-5 py-3 text-sm font-semibold text-rose-800 shadow-sm transition hover:border-rose-300 hover:bg-rose-100 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-rose-600"
+            >
+                <Heart className="h-4 w-4" aria-hidden="true" />
+                <span>Bir aşk hikâyesi · 19.02.2000</span>
+                <ChevronRight className="h-4 w-4" aria-hidden="true" />
+            </a>
 
             {/* Suggested Pages */}
             <div className="w-full max-w-4xl mb-8">
@@ -105,16 +91,6 @@ export const NotFound: React.FC<NotFoundProps> = ({ onNavigate }) => {
                 <span className="text-white">Anasayfaya Dön</span>
             </button>
 
-            {/* Eski siteden küçük bir sürpriz: başka hiçbir menüde yer almaz. */}
-            <a
-                href="/sevgi/"
-                rel="nofollow"
-                aria-label="19 Şubat 2000 - küçük bir sürpriz"
-                className="mt-10 inline-flex items-center gap-2 text-xs text-slate-400 hover:text-rose-600 focus-visible:text-rose-600 focus-visible:outline-offset-4 transition-colors"
-            >
-                <span aria-hidden="true">♡</span>
-                <span>19.02.2000</span>
-            </a>
         </div>
     );
 };
