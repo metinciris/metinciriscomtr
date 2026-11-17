@@ -187,13 +187,20 @@
       font-size: .84rem;
       color: #e6d9eb;
     }
+    .wish-total {
+      margin: 24px 0 0;
+      color: #ffe4ee;
+      font-size: .98rem;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
     .wish-button {
       appearance: none;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 9px;
-      margin-top: 29px;
+      margin-top: 15px;
       padding: 13px 28px;
       min-height: 48px;
       border-radius: 999px;
@@ -286,7 +293,8 @@
       <p class="anniversary" id="anniversary"></p>
     </section>
 
-    <button class="wish-button" id="wish-button" type="button">Mutluluklar dile <span aria-hidden="true">♡</span></button>
+    <p class="wish-total" id="wish-total" role="status" aria-live="polite">Dilek sayısı yükleniyor…</p>
+    <button class="wish-button" id="wish-button" type="button" disabled>Mutluluklar dile <span aria-hidden="true">♡</span></button>
     <p class="wish-note" id="wish-note" role="status" aria-live="polite"></p>
     <p class="footnote">Nice güzel yıllara, el ele. ♡</p>
     <a class="back-link" href="/">← Ana sayfaya dön</a>
@@ -362,12 +370,47 @@
         if (!document.hidden) renderCounter();
       });
 
-      document.getElementById('wish-button').addEventListener('click', function () {
-        var button = this;
-        button.disabled = true;
-        button.textContent = 'İyi ki varsınız ♥';
-        document.getElementById('wish-note').textContent = 'Güzel dileğin için teşekkürler! 💕';
+      // Sayaç, mevcut Supabase projesine ait salt istemciye açık anon key ile çalışır.
+      // Service role key veya veritabanı parolası ASLA tarayıcıya gönderilmez.
+      var wishButton = document.getElementById('wish-button');
+      var wishTotal = document.getElementById('wish-total');
+      var wishNote = document.getElementById('wish-note');
+      var wishStoreKey = 'mutluluklar_dilek_token_v1';
+      var token = null;
+      var wishConfig = null;
+      var requestInFlight = false;
+      var wishReceived = false;
 
+      function readToken() {
+        try { return window.localStorage.getItem(wishStoreKey); }
+        catch (_) { return null; }
+      }
+
+      function makeToken() {
+        if (!window.crypto || typeof window.crypto.randomUUID !== 'function') return null;
+        return window.crypto.randomUUID();
+      }
+
+      function saveToken(value) {
+        try { window.localStorage.setItem(wishStoreKey, value); }
+        catch (_) { /* Gizli sekmede depolama kapalı olabilir. */ }
+      }
+
+      function showCount(count) {
+        if (typeof count !== 'number' || !Number.isSafeInteger(count) || count < 0) {
+          throw new Error('Sayaç yanıtı geçersiz.');
+        }
+        wishTotal.textContent = formatter.format(count) + ' mutluluk dileği ❤️';
+      }
+
+      function showWishReceived() {
+        wishReceived = true;
+        wishButton.disabled = true;
+        wishButton.textContent = 'İyi ki varsınız ♥';
+        wishNote.textContent = 'Güzel dileğin için teşekkürler! 💕';
+      }
+
+      function celebrate() {
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
         var container = document.getElementById('floating-hearts');
         for (var i = 0; i < 12; i++) {
@@ -380,7 +423,88 @@
           heart.addEventListener('animationend', function () { this.remove(); }, { once: true });
           container.appendChild(heart);
         }
+      }
+
+      async function rpc(name, params) {
+        if (!wishConfig) throw new Error('Sayaç bağlantısı hazır değil.');
+        var response = await fetch(wishConfig.url + '/rest/v1/rpc/' + name, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': wishConfig.anonKey,
+            'Authorization': 'Bearer ' + wishConfig.anonKey
+          },
+          body: JSON.stringify(params || {}),
+          cache: 'no-store'
+        });
+        if (!response.ok) throw new Error('Supabase RPC: HTTP ' + response.status);
+        var value = await response.json();
+        var count = typeof value === 'number' ? value : Number(value);
+        if (!Number.isSafeInteger(count) || count < 0) {
+          throw new Error('Geçersiz sayaç sonucu.');
+        }
+        return count;
+      }
+
+      async function loadWishes() {
+        try {
+          var response = await fetch('/mutluluklar/config.json', { cache: 'no-store' });
+          if (!response.ok) throw new Error('Yapılandırma bulunamadı.');
+          var config = await response.json();
+          if (
+            !config || typeof config.url !== 'string' ||
+            !/^https:\/\/[a-z0-9.-]+\.supabase\.co$/.test(config.url) ||
+            typeof config.anonKey !== 'string' || !config.anonKey
+          ) throw new Error('Supabase yapılandırması geçersiz.');
+          wishConfig = config;
+          var count = await rpc('mutluluklar_sayisi');
+          showCount(count);
+          token = readToken();
+          if (token) {
+            // Kalıcı token varsa bunun daha önce kaydedilip kaydedilmediğini
+            // yalnızca RPC üzerinden idempotent biçimde doğrularız.
+            var recordedCount = await rpc('mutluluk_dile', { p_token: token });
+            showCount(recordedCount);
+            showWishReceived();
+          } else {
+            wishButton.disabled = false;
+          }
+        } catch (_) {
+          wishTotal.textContent = 'Dilek sayısı şu anda görüntülenemiyor.';
+          wishNote.textContent = 'Sayaç etkinleştirildiğinde burada görünecek.';
+          wishButton.disabled = true;
+        }
+      }
+
+      wishButton.addEventListener('click', async function () {
+        if (requestInFlight || wishReceived || !wishConfig) return;
+        requestInFlight = true;
+        wishButton.disabled = true;
+        wishNote.textContent = 'Dileğiniz kaydediliyor…';
+        token = token || readToken() || makeToken();
+        if (!token) {
+          wishNote.textContent = 'Tarayıcı güvenli kimlik oluşturamıyor.';
+          requestInFlight = false;
+          wishButton.disabled = false;
+          return;
+        }
+        // Ağ yanıtı kaybolduğunda tekrar basışın ikinci kayıt olmaması için
+        // aynı token baştan saklanır.
+        saveToken(token);
+        try {
+          var updatedCount = await rpc('mutluluk_dile', { p_token: token });
+          showCount(updatedCount);
+          showWishReceived();
+          celebrate();
+        } catch (_) {
+          wishNote.textContent = 'Bağlantı kurulamadı. Tekrar deneyebilirsiniz.';
+          wishButton.disabled = false;
+        } finally {
+          requestInFlight = false;
+        }
       });
+
+      loadWishes();
     })();
   </script>
 </body>
