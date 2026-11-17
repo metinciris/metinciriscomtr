@@ -828,6 +828,22 @@ function writeSitemap(entries) {
   writeFileSync(join(distDir, 'sitemap.xml'), `${lines.join('\n')}\n`, 'utf8');
 }
 
+// Browser-safe Supabase URL/anon key: the existing deployment secrets are injected
+// only at build time into /mutluluklar/config.json (never service_role).
+function writeMutluluklarConfig() {
+  const url = (process.env.VITE_SUPABASE_URL || '').trim().replace(/\/+$/, '');
+  const anonKey = (process.env.VITE_SUPABASE_ANON_KEY || '').trim();
+  const directory = join(distDir, 'mutluluklar');
+  if (!existsSync(directory)) return;
+  const dest = join(directory, 'config.json');
+  if (!/^https:\/\/[a-z0-9.-]+\.supabase\.co$/.test(url) || !anonKey) {
+    console.warn('Mutluluklar: Supabase URL/anon key eksik; dilek sayacı etkin olmayacak.');
+    writeFileSync(dest, JSON.stringify({ url: '', anonKey: '' }), 'utf8');
+    return;
+  }
+  writeFileSync(dest, JSON.stringify({ url, anonKey }), 'utf8');
+}
+
 function updateServiceWorkerVersion() {
   const swPath = join(distDir, 'sw.js');
   if (!existsSync(swPath)) return;
@@ -1094,6 +1110,7 @@ async function main() {
     indexContent.replace(/<\/head>/i, '<meta name="robots" content="noindex, nofollow">\n</head>'),
     'utf8',
   );
+  writeMutluluklarConfig();
   updateServiceWorkerVersion();
 
   // --- Smart Search Index (statik, ücretsiz, klinik karar üretmez) ---
