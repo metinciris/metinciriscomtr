@@ -6,7 +6,7 @@ interface NotFoundProps {
 }
 
 export const NotFound: React.FC<NotFoundProps> = ({ onNavigate }) => {
-    const [countdown, setCountdown] = useState(15);
+    const [countdown, setCountdown] = useState(30);
 
     useEffect(() => {
         const timer = setInterval(() => {
@@ -16,7 +16,7 @@ export const NotFound: React.FC<NotFoundProps> = ({ onNavigate }) => {
                     if (onNavigate) {
                         onNavigate('home');
                     } else {
-                        window.location.hash = 'home';
+                        window.location.assign('/');
                     }
                     return 0;
                 }
@@ -41,7 +41,7 @@ export const NotFound: React.FC<NotFoundProps> = ({ onNavigate }) => {
         if (onNavigate) {
             onNavigate(target);
         } else {
-            window.location.hash = target;
+            window.location.assign(target === 'home' ? '/' : `/${target}/`);
         }
     };
 
