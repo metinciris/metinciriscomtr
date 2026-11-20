@@ -1039,6 +1039,86 @@
       "engine": "ema-lightning",
       "file": "a2025a5ba58ca8ebb8eec0c9.mp3",
       "generated_at": "2026-11-19T10:30:21.413519+00:00"
+    },
+    "60721010eb477b8a89b41b09": {
+      "title": "Hasta İçi Hücre Yüzeyi Reseptör Normalizasyonu, Hassas Onkoloji İçin TNBC Biyobelirteç Profilini İyileştiriyor.",
+      "journal": "Modern Pathology",
+      "pmid": "43051595",
+      "fingerprint": "1d9a22a88f5f87582b467c4b416437b88ff58059b0d2078590c48fdd5f74ca9a",
+      "file": "60721010eb477b8a89b41b09.mp3",
+      "generated_at": "2026-11-20T07:14:06.206590+00:00"
+    },
+    "36ccda2504773fd639b641ba": {
+      "title": "CD40 ekspresyonu, klasik Hodgkin lenfoması ile ALK-negatif anaplastik büyük hücreli lenfoma arasında ayrım yapmada son derece hassas ve spesifiktir.",
+      "journal": "Modern Pathology",
+      "pmid": "43051594",
+      "fingerprint": "8b5ece54aace78256f062ed2f1379e6e9ee30ecbafde3fa8e70d5d16ae116887",
+      "file": "36ccda2504773fd639b641ba.mp3",
+      "generated_at": "2026-11-20T07:14:06.206590+00:00"
+    },
+    "ef33bae05d477ba475bc2dcb": {
+      "title": "Düşük Riskli Tükürük Bezi Kanserleri İçin Birleşik İki Aşamalı Derecelendirme Şeması: Mitotik Aktivite ve Tümör Nekrozuna Dayalı Patolojik Derecelendirmeyi Basitleştirmeye Yönelik Bir Öneri.",
+      "journal": "Modern Pathology",
+      "pmid": "43051593",
+      "fingerprint": "ed723d5b130702b5fb02d3d8da1000d21ff2f63188194f615c432b687e76535a",
+      "file": "ef33bae05d477ba475bc2dcb.mp3",
+      "generated_at": "2026-11-20T07:14:06.206590+00:00"
+    },
+    "aa28379c4944f34ac9c4e481": {
+      "title": "DUCK-Net: Fare karaciğer hasarında kanal reaksiyonlarının otomatik derin öğrenme tabanlı segmentasyonu, H&E morfolojisinden çok hücreli niş dinamiklerini yakalar.",
+      "journal": "The Journal of Pathology",
+      "pmid": "42711623",
+      "fingerprint": "8c7a5b21857ad2b7e38a55c8c8f6824dee334f296dc61784d30216bc89a19ba1",
+      "file": "aa28379c4944f34ac9c4e481.mp3",
+      "generated_at": "2026-11-12T09:30:27.548988+00:00"
+    },
+    "5cf6dbcfc327429dbc3a5fbd": {
+      "title": "Böbreğin Erişkin Karma Epitelyal ve Stromal Tümörü, Tekrarlayan Tüm Kromozom 12 Kazanımı İçerir.",
+      "journal": "American Journal of Surgical Pathology",
+      "pmid": "42750419",
+      "fingerprint": "4c21cfefdf5074fb8d8ebd644678f316fd3721ce2b9696393dee93f362f44a05",
+      "file": "5cf6dbcfc327429dbc3a5fbd.mp3",
+      "generated_at": "2026-11-12T09:30:27.548988+00:00"
+    },
+    "025f4a653be0e18c919e5728": {
+      "title": "Yüksek dereceli tükürük bezi içi timus benzeri karsinom: kapsamlı histopatolojik ve moleküler karakterizasyon ve eleştirel değerlendirme.",
+      "journal": "Virchows Archiv",
+      "pmid": "43055757",
+      "fingerprint": "dee7f3308bfdc8369d2c4b13a527548e02f0263b0adbf3b11cb723b3bbdeef76",
+      "file": "025f4a653be0e18c919e5728.mp3",
+      "generated_at": "2026-11-20T07:14:06.206590+00:00"
+    },
+    "3455dbfc5bb198651fba01ec": {
+      "title": "Onikiparmak bağırsağı ve ampullanın ötesinde: ince bağırsak ve kalın bağırsak tümörlerinin sınıflandırılması ve tanısal zorluklarına değinmek.",
+      "journal": "Virchows Archiv",
+      "pmid": "43037676",
+      "fingerprint": "a95082e554f26e48398b9902614149f8dbf309711665dac33bcf869b53a5627b",
+      "file": "3455dbfc5bb198651fba01ec.mp3",
+      "generated_at": "2026-11-20T07:14:06.206590+00:00"
+    },
+    "70042e1f43e9f9abcb835188": {
+      "title": "CSF3R mutasyonlu AML dışı miyeloid neoplazmlar potansiyel olarak ayrı bir hastalık birimi olarak: 40 olgu çalışması.",
+      "journal": "Human Pathology",
+      "pmid": "43039112",
+      "fingerprint": "d9f538be9099dffeedc8cf1e67cc191fe16fe282c5d793c2d44173406bc7b860",
+      "file": "70042e1f43e9f9abcb835188.mp3",
+      "generated_at": "2026-11-20T07:14:06.206590+00:00"
+    },
+    "93588ff535793c7434bf9105": {
+      "title": "Düşük doz radyoterapi, 5xFAD farelerinde Alzheimer benzeri patolojiyi iyileştirir ve HIF-1α ile ilişkili inflamatuar sinyalizasyonun aşağı regülasyonuyla ilişkilidir.",
+      "journal": "Pathology - Research and Practice",
+      "pmid": "42887430",
+      "fingerprint": "30f103ca55ba2747cff1453742bda7797aae35429bc3ea12658353167973af6c",
+      "file": "93588ff535793c7434bf9105.mp3",
+      "generated_at": "2026-11-02T06:08:21.610784+00:00"
+    },
+    "4e7024f13cfb99f6c6dc5088": {
+      "title": "Yenilikçi patomik yaklaşım: Histopatolojik görüntüler kullanılarak meme kanseri sınıflandırması için radyomik ve CNN özelliklerinin entegrasyonu.",
+      "journal": "Diagnostic Pathology",
+      "pmid": "43053106",
+      "fingerprint": "8c2ca395aaaf1720ff5d15733734026b2b036b04f5631822d10e14fe70bd1014",
+      "file": "4e7024f13cfb99f6c6dc5088.mp3",
+      "generated_at": "2026-11-20T07:14:06.206590+00:00"
     }
   }
 }
