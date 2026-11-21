@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-11-20T10:11:41.073410+00:00",
+  "generated_at": "2026-11-21T09:58:01.679107+00:00",
   "entries": {
     "60721010eb477b8a89b41b09": {
       "title": "Hasta İçi Hücre Yüzeyi Reseptör Normalizasyonu, Hassas Onkoloji İçin TNBC Biyobelirteç Profilini İyileştiriyor.",
@@ -141,25 +141,28 @@
       "title": "DUCK-Net: Fare karaciğer hasarında kanal reaksiyonlarının otomatik derin öğrenme tabanlı segmentasyonu, H&E morfolojisinden çok hücreli niş dinamiklerini yakalar.",
       "journal": "The Journal of Pathology",
       "pmid": "42711623",
-      "fingerprint": "8c7a5b21857ad2b7e38a55c8c8f6824dee334f296dc61784d30216bc89a19ba1",
+      "fingerprint": "0cc07c76ea2648e478f705025a6eb3e5b591a339266ac002efddec8beb758fd1",
+      "engine": "ema-lightning",
       "file": "aa28379c4944f34ac9c4e481.mp3",
-      "generated_at": "2026-11-12T09:30:27.548988+00:00"
+      "generated_at": "2026-11-21T09:58:01.679107+00:00"
     },
     "21ac323f002b53fc0bf482bc": {
       "title": "Peutz-Jeghers sendromunda fibroblast heterojenliği: polip oluşumunu tetikleyen alt kümenin belirlenmesi(†).",
       "journal": "The Journal of Pathology",
       "pmid": "42615863",
-      "fingerprint": "7b605035f30939ca29947b3e8b9b94c415a923a0801995e4694f593c0ae81ca6",
+      "fingerprint": "6cbfec519730d7576f8bf5771a5d254de26942342d417e7228b2486af82eb8f2",
+      "engine": "ema-lightning",
       "file": "21ac323f002b53fc0bf482bc.mp3",
-      "generated_at": "2026-11-04T09:30:25.876258+00:00"
+      "generated_at": "2026-11-21T09:58:01.679107+00:00"
     },
     "e2ccd187509d2c731653216c": {
       "title": "Miyoid yumuşak doku tümörlerinde SRF füzyon genleri.",
       "journal": "The Journal of Pathology",
       "pmid": "42615114",
-      "fingerprint": "9ba19433d250fc1dc088e9da4f009a2e00b1442f1fa3445c49a6752ed9d27a18",
+      "fingerprint": "f8e55878c0c9e886bb972799c5e134dccaeecc579c7999f3c9c7a9b1d65e2335",
+      "engine": "ema-lightning",
       "file": "e2ccd187509d2c731653216c.mp3",
-      "generated_at": "2026-11-04T09:30:54.376294+00:00"
+      "generated_at": "2026-11-21T09:58:01.679107+00:00"
     },
     "835614e89d635389ddd565b3": {
       "title": "Pankreatik polipeptid, hepatoselüler karsinomun ilerlemesini desteklemek için nöropeptid Y4 reseptörü ile etkileşime girer.",
@@ -228,17 +231,19 @@
       "title": "Kronik Histiyositik İntervillositiste Plasental Enterovirüs Enfeksiyonu Belirgin Değildir.",
       "journal": "American Journal of Surgical Pathology",
       "pmid": "42745356",
-      "fingerprint": "e9d3ca6adbc3387178bb392543751e9e8910e7f39252571cb5171596b77f0563",
+      "fingerprint": "43648c02cb8a42d89f4a815bdd216490e8b9bb76ac011d0533066d7a4d369617",
+      "engine": "ema-lightning",
       "file": "113599c22172dca62d1cef06.mp3",
-      "generated_at": "2026-11-12T09:30:27.548988+00:00"
+      "generated_at": "2026-11-21T09:58:01.679107+00:00"
     },
     "5da21262f3f4785914c83bc8": {
       "title": "Odontojenik Miksomada Yaygın Heterozigotluk Kaybı ve Endoreduplikasyon: Gizemli Bir Odontojenik Neoplazmanın Klinikopatolojik Spektrumunun Genişletilmesi.",
       "journal": "American Journal of Surgical Pathology",
       "pmid": "42745350",
-      "fingerprint": "59dbbf8d48f0de5a00dac75f912f371537920f8af60d634c7d43d860ed1beb9a",
+      "fingerprint": "a198b77f6d8ef46b6f0897321b986b2ca63b09f1bb2bb4469219bd83a76a0a3c",
+      "engine": "ema-lightning",
       "file": "5da21262f3f4785914c83bc8.mp3",
-      "generated_at": "2026-11-12T09:30:44.803481+00:00"
+      "generated_at": "2026-11-21T09:58:01.679107+00:00"
     },
     "7d458cf27b5499d8aabe04e5": {
       "title": "Primer Uyumsuz Onarım Eksikliği Olan Prostat Kanserinin Klinikopatolojik Spektrumu ve Prostat İçi Heterojenitesi.",
@@ -314,17 +319,19 @@
       "title": "Neoadjuvan kemoterapi sonrası lenf nodu pozitif meme kanserinde tedavi etkisinin histolojik değerlendirmesi.",
       "journal": "Histopathology",
       "pmid": "42549549",
-      "fingerprint": "052ef0f5cb56888e74f448898c0dd856ccabdda2c476f7084467d8d4b4994ce9",
+      "fingerprint": "a48c549f9be59f172dad262c11e0b073d65547ac6dce4ff952c62832ae4c5860",
+      "engine": "ema-lightning",
       "file": "4e5443a985d2d955dced96f3.mp3",
-      "generated_at": "2026-11-05T08:55:59.340299+00:00"
+      "generated_at": "2026-11-21T09:58:01.679107+00:00"
     },
     "b055753b7635520546d90b42": {
       "title": "Primer aldosteronizmin CYP11B2 boyut oranı kullanılarak histopatolojik sınıflandırılması: klinik rutinde ilk değerlendirme.",
       "journal": "Histopathology",
       "pmid": "42549509",
-      "fingerprint": "b1c6a419465372b2d3c50d5c3a151c8ba4b0998d04e2f9843a184177a0215384",
+      "fingerprint": "f196e1fbba68c0b606ca6e24fda8e7020c9ec52bc2786a08eedd7ec04f02eaa9",
+      "engine": "ema-lightning",
       "file": "b055753b7635520546d90b42.mp3",
-      "generated_at": "2026-11-05T08:55:59.340299+00:00"
+      "generated_at": "2026-11-21T09:58:01.679107+00:00"
     },
     "75c5abe54614dcf25b25207d": {
       "title": "Ülseratif kolitli hastalarda apendiksin zamana bağlı histopatolojik yeniden şekillenmesi.",
@@ -495,24 +502,6 @@
       "file": "1c5dd13ba93439605cf36992.mp3",
       "generated_at": "2026-11-17T10:51:28.103654+00:00"
     },
-    "da6e8e358b004ee8268650c7": {
-      "title": "Patoloji raporlarındaki belirsizliğin iletilmesi - İsviçre'de çok merkezli ve çok dilli bir çalışma.",
-      "journal": "Virchows Archiv",
-      "pmid": "43033248",
-      "fingerprint": "633921ac30324ed486adee831f9847e074b91e9c16479fdb1048e9cdf0bba22b",
-      "engine": "ema-lightning",
-      "file": "da6e8e358b004ee8268650c7.mp3",
-      "generated_at": "2026-11-17T10:51:28.103654+00:00"
-    },
-    "41c009ac2af20b94ceef8147": {
-      "title": "Osteofibroz displazi, osteofibroz displazi benzeri adamantinoma ve klasik adamantinoma konusunda katılımcılar arası uyumun küresel çapta incelenmesi ve analizi.",
-      "journal": "Virchows Archiv",
-      "pmid": "43033247",
-      "fingerprint": "341a4059095d62b4dc1116d83eb2e142a50a16a7a66d78bc4135166316ee9e7e",
-      "engine": "ema-lightning",
-      "file": "41c009ac2af20b94ceef8147.mp3",
-      "generated_at": "2026-11-17T10:51:28.103654+00:00"
-    },
     "2b18fda3211a258f1431c5cd": {
       "title": "Sağlık hizmeti ağında trombosit ürünlerinin kullanım uygulamalarını ve israfını sorgulamak için süreç madenciliğinden yararlanma.",
       "journal": "American Journal of Clinical Pathology",
@@ -589,17 +578,19 @@
       "title": "Tuzlu çözelti pozitifliği, hasta alt grubu yerine zamanla değişen bir belirteç olarak ele alınmalıdır.",
       "journal": "American Journal of Clinical Pathology",
       "pmid": "42987086",
-      "fingerprint": "45c5513581cc9375ba73b3fed53776393e382a7958097a8cff2d1e6e16245548",
+      "fingerprint": "6b6060dfb6589a4aaaa4b6d170cfc5e30c4e840d375a499eede71aea186dcd6b",
+      "engine": "ema-lightning",
       "file": "9fdad7a445b2afdc543a33d5.mp3",
-      "generated_at": "2026-11-06T09:30:22.817884+00:00"
+      "generated_at": "2026-11-21T09:58:01.679107+00:00"
     },
     "b3971b4e4dc491be0233f388": {
       "title": "Yanıt olarak: Otoimmün heparin kaynaklı trombositopenide dinamik ve dereceli bir biyobelirteç olarak salin pozitifliği.",
       "journal": "American Journal of Clinical Pathology",
       "pmid": "42987085",
-      "fingerprint": "ab6f527ead02afa1411abc6d25e6399d6bbeefee35db1e45f5f974a04ea16309",
+      "fingerprint": "a69bc4c94ec4d5e4502aa3b56322d257d8d4a38f96c379a2aaeeb4f09edfeb26",
+      "engine": "ema-lightning",
       "file": "b3971b4e4dc491be0233f388.mp3",
-      "generated_at": "2026-11-06T09:30:22.817884+00:00"
+      "generated_at": "2026-11-21T09:58:01.679107+00:00"
     },
     "cde10894d676d5caa574eabc": {
       "title": "Prostat kanserinde bireysel biyopsi bölgelerindeki perinöral invazyonun (PNI) nicel olarak belirlenmesi, ameliyat sonrası risk sınıflandırmasını iyileştirir: Tek bir biyopsi bölgesindeki unifokal ve multifokal PNI'nin karşılaştırılması.",
@@ -668,25 +659,19 @@
       "title": "Meme ve gastroözofageal olmayan katı tümörlerde HER2 test uygulamaları ve HER2 immünohistokimyasının gerçek dünya performansı: Büyük bir ABD akademik kurumundaki deneyim.",
       "journal": "Human Pathology",
       "pmid": "42998683",
-      "fingerprint": "b00beaa295d306381a7a53cdd25ceb2b247a8c0a0b9d64e52b8f32268f3cac40",
+      "fingerprint": "7efcba9449d79b36f01c9b3694d5bc930e93f16560af9e7725bb21172546b585",
+      "engine": "ema-lightning",
       "file": "60ce8ac511bdda00c508ecf6.mp3",
-      "generated_at": "2026-11-11T09:30:30.967489+00:00"
+      "generated_at": "2026-11-21T09:58:01.679107+00:00"
     },
     "52a060da60711ff55cea9ce8": {
       "title": "Radyolojik olarak teşhis edilen hepatik kavernöz hemanjiyomlar ile klinik tanısı belirsiz olduğu için biyopsi yapılanlar arasında klinik ve patolojik farklılıklar var mıdır?",
       "journal": "Human Pathology",
       "pmid": "42998682",
-      "fingerprint": "cd3c357e1a86605855ab92103eb5c1d36f0a64dfe5cdf28bab6a7f3ed5aeda83",
+      "fingerprint": "c4a9a985c989a22162f444ed5f8c85285450ad3004395620d66936089cd9fc0c",
+      "engine": "ema-lightning",
       "file": "52a060da60711ff55cea9ce8.mp3",
-      "generated_at": "2026-11-13T13:18:48.841139+00:00"
-    },
-    "ef765f0a0b01e679d95bd25e": {
-      "title": "Soliter fibröz tümörün alışılmadık morfolojik varyantları: 10 farklı histomorfolojiye sahip 17 vakalık bir vaka serisi.",
-      "journal": "Human Pathology",
-      "pmid": "42998681",
-      "fingerprint": "8bfe6c6a5313b29d8d8c134ab2522aa3d65a0b06a1c0d32ef1707a13aa70abe2",
-      "file": "ef765f0a0b01e679d95bd25e.mp3",
-      "generated_at": "2026-11-12T09:30:44.803481+00:00"
+      "generated_at": "2026-11-21T09:58:01.679107+00:00"
     },
     "a973f56f9a255ed0726a8e82": {
       "title": "Yüksek dereceli psödomiksomların düşük dereceli psödomiksomlara kıyasla bağışıklık profili düzensizliği.",
@@ -728,17 +713,19 @@
       "title": "Akciğer adenokarsinomunda biyobelirteç rehberliğinde hedefe yönelik tedavi: Hassas onkoloji gelişmelerine, direnç mekanizmalarına ve ortaya çıkan stratejilere dair kısa bir inceleme.",
       "journal": "Pathology - Research and Practice",
       "pmid": "42913055",
-      "fingerprint": "6aaffd42d073dc24a6d28041b9ac4821fb806ad3ee10163b59134b5c4de8fdfe",
+      "fingerprint": "cee5100f11022d14597492efc14b8b91d42133b0d6e1bbabdb502fc6bcb541e0",
+      "engine": "ema-lightning",
       "file": "e594192ed569e64b3ef6a622.mp3",
-      "generated_at": "2026-11-02T06:06:41.934104+00:00"
+      "generated_at": "2026-11-21T09:58:01.679107+00:00"
     },
     "ed7f9c5131c9cbc2e183162b": {
       "title": "Gastrointestinal kanserlerin incelenmesi ve yönetimi için mikroakışkan çip teknolojilerindeki gelişmeler.",
       "journal": "Pathology - Research and Practice",
       "pmid": "42913054",
-      "fingerprint": "b338069025c573c0eca8da64f946eda30a54fc557c2a1e68324da9e3021771cb",
+      "fingerprint": "0f544c8c7baacaf78832a990dcbc339623d58d3dd2e153cc56e670d48f4f797f",
+      "engine": "ema-lightning",
       "file": "ed7f9c5131c9cbc2e183162b.mp3",
-      "generated_at": "2026-11-02T06:08:21.610784+00:00"
+      "generated_at": "2026-11-21T09:58:01.679107+00:00"
     },
     "74f3ce910d8f4d4e9efeac7f": {
       "title": "Sperm telomer uzunluğu: Genomik bütünlüğün ve erkek doğurganlığı üzerindeki çevresel etkilerin potansiyel bir yansıması.",
@@ -821,17 +808,19 @@
       "title": "MET gen füzyonlu Spitz tümörleri: Histomorfolojik ve genetik özellikleri belirlenebilen 17 olgu.",
       "journal": "Pathology",
       "pmid": "42869762",
-      "fingerprint": "35d45e61e3abef713debdbb2ce8e71267c2d5445f3dcdda784681acac997266c",
+      "fingerprint": "71d4b88e78bc2dabc524cd1bd5858794689020b096edbe9b93856fc4284cb9db",
+      "engine": "ema-lightning",
       "file": "a908de1c286c6a0f808a4a0e.mp3",
-      "generated_at": "2026-11-06T09:30:45.001674+00:00"
+      "generated_at": "2026-11-21T09:58:01.679107+00:00"
     },
     "f126cc14b397f900172324e1": {
       "title": "Tedbirli mi davranıyoruz yoksa savurgan mı? Kolorektal adenokarsinom rezeksiyonlarında aşırı blokaj.",
       "journal": "Pathology",
       "pmid": "42869761",
-      "fingerprint": "87985e0deb170ae1398cbedac644f90080bca96e8155617011dd83dba7a13e8a",
+      "fingerprint": "dd4ce89aed48955aeafe1173f235a5297ae79bb8ad137dc9a69c9f87fed46004",
+      "engine": "ema-lightning",
       "file": "f126cc14b397f900172324e1.mp3",
-      "generated_at": "2026-11-06T09:30:45.001674+00:00"
+      "generated_at": "2026-11-21T09:58:01.679107+00:00"
     },
     "48200b8ebfe2af6fb476d8b6": {
       "title": "Eş zamanlı peritümoral manto hücreli lösemik infiltrasyonlar içeren kutanöz skuamöz hücreli karsinom: bir vaka raporu ve literatür incelemesi.",
@@ -888,17 +877,19 @@
       "title": "Biyopsi verileriyle eğitilmiş yapay zeka algoritmasının, tesadüfen saptanan prostat adenokarsinomunun tespiti için TURP ve HoLEP örneklerine genelleştirilebilirliği.",
       "journal": "Diagnostic Pathology",
       "pmid": "42816888",
-      "fingerprint": "015a6c53617c0072559551483bc0f471c1ed073d38914d894f3a63807694478d",
+      "fingerprint": "6d1be5c543e75822450a98cffa5e85a9a5fc71b775ac2553e9f1c77dcc33710d",
+      "engine": "ema-lightning",
       "file": "3b676a48998a570333438332.mp3",
-      "generated_at": "2026-10-24T10:14:11.975400+00:00"
+      "generated_at": "2026-11-21T09:58:01.679107+00:00"
     },
     "4e7024f13cfb99f6c6dc5088": {
       "title": "Yenilikçi patomik yaklaşım: Histopatolojik görüntüler kullanılarak meme kanseri sınıflandırması için radyomik ve CNN özelliklerinin entegrasyonu.",
       "journal": "Diagnostic Pathology",
       "pmid": "43053106",
-      "fingerprint": "8c2ca395aaaf1720ff5d15733734026b2b036b04f5631822d10e14fe70bd1014",
+      "fingerprint": "3e71358cd598b6831e45e0f1ba9a8191ad0552b979735a4af548c5f115a11284",
+      "engine": "ema-lightning",
       "file": "4e7024f13cfb99f6c6dc5088.mp3",
-      "generated_at": "2026-11-20T07:14:06.206590+00:00"
+      "generated_at": "2026-11-21T09:58:01.679107+00:00"
     },
     "597d29eefdc803bc1e1385bd": {
       "title": "Lenfoid stroma içeren erken evre mide karsinomunun lenf düğümü metastaz riskinin düşük olması ve olumlu prognozla ilişkili olması: Çin popülasyonunda yapılan çok merkezli bir çalışma.",
@@ -925,15 +916,6 @@
       "fingerprint": "d4634cd67c312313782ff3f991d1b96c58a41fa465916ed88e9ed02ca053e88f",
       "file": "a287b3c1eb74f47ae74c66fc.mp3",
       "generated_at": "2026-11-13T13:18:48.841139+00:00"
-    },
-    "d921e99728eacfbf7092511c": {
-      "title": "Beyin pons açısının her iki beyincik yarımküresine uzanan tekrarlayan çoklu dev kistik-katı hemanjiyoblastomları: bir vaka raporu ve literatür incelemesi.",
-      "journal": "Diagnostic Pathology",
-      "pmid": "43015877",
-      "fingerprint": "f3101533f433ad80f7974baeba76eb3b915d9ec58a3270773bfa786062279870",
-      "engine": "ema-lightning",
-      "file": "d921e99728eacfbf7092511c.mp3",
-      "generated_at": "2026-11-15T20:46:27.992982+00:00"
     },
     "3d25e49c640c333c61dfd691": {
       "title": "Skuamöz astarlı kist ile ilişkili meme metaplastik skuamöz hücreli karsinomu: Potansiyel olarak ayrı bir klinikopatolojik alt grup.",
@@ -1025,32 +1007,68 @@
       "file": "a2025a5ba58ca8ebb8eec0c9.mp3",
       "generated_at": "2026-11-19T10:30:21.413519+00:00"
     },
-    "467813fe25aa196ba734bf41": {
-      "title": "Çocukluk Çağı Tipi Foliküler Lenfoma, Kazanılmış N-glikozilasyon Bölgelerinin Yokluğuyla Benzersiz İmmünogenetik Özellikler Gösteriyor.",
+    "0d58ac21008891bb4aae5367": {
+      "title": "MAP3K3 yeniden düzenlenmiş miksoid neoplazmlar: intramüsküler miksoma olarak sınıflandırmayı destekleyen epigenetik kanıtlar.",
+      "journal": "Virchows Archiv",
+      "pmid": "43062487",
+      "fingerprint": "3f908bfc2ad3eb83908cfef5645798fc952763e192691b6ff406a94cda6946f8",
+      "engine": "ema-lightning",
+      "file": "0d58ac21008891bb4aae5367.mp3",
+      "generated_at": "2026-11-21T09:58:01.679107+00:00"
+    },
+    "235f2102adaeb1d91d3d5a16": {
+      "title": "Penis skuamöz hücreli karsinomunda potansiyel tedavi hedefleri olarak Claudin-1 ve -4'ün analizi.",
+      "journal": "Diagnostic Pathology",
+      "pmid": "43058828",
+      "fingerprint": "4521d06f8a9f5b3d9b2f1ccbeb1bcd43f5a6d866b6f64fd50dcd1e90b43c80b7",
+      "engine": "ema-lightning",
+      "file": "235f2102adaeb1d91d3d5a16.mp3",
+      "generated_at": "2026-11-21T09:58:01.679107+00:00"
+    },
+    "9246eaddf6caacdc02a8485d": {
+      "title": "Çocukluk çağı tipindeki foliküler lenfoma, kazanılmış N-glikozilasyon bölgelerinin yokluğuyla benzersiz immünogenetik özellikler göstermektedir.",
       "journal": "Modern Pathology",
       "pmid": "43020432",
-      "fingerprint": "0617ffb748479bbfd104bd28f568764b96b0c0d62b2eee63ec5c1cae761e6341",
+      "fingerprint": "f8e5d707ea95d4724349c0badd4b95b8c8f25373558740cb98605171f539dc3a",
       "engine": "ema-lightning",
-      "file": "467813fe25aa196ba734bf41.mp3",
-      "generated_at": "2026-11-20T10:11:41.073410+00:00"
+      "file": "9246eaddf6caacdc02a8485d.mp3",
+      "generated_at": "2026-11-21T09:58:01.679107+00:00"
     },
-    "428657271eb2fdd98b3a65a4": {
-      "title": "Neoadjuvan Tedavi Sonrası Kalan Saf İntralenfatik Meme Karsinomu: Klinikopatolojik Analiz ve Yayınlanmış Çalışmalar Arasında Karşılaştırmalı Sonuçlar.",
+    "be3cc8141d250c6f0a40a00d": {
+      "title": "Neoadjuvan Tedavi Sonrası Kalan Saf İntralenfatik Meme Karsinomu: Klinikopatolojik Analiz ve Yayınlanmış Çalışmalar Arasındaki Karşılaştırmalı Sonuçlar.",
       "journal": "Archives of Pathology & Laboratory Medicine",
       "pmid": "43042959",
-      "fingerprint": "a2b953d385c206154138c8c7c2750e0a6b40dad21be05a8ed4d0572d1deb6111",
+      "fingerprint": "0d781a65b1a5acfb418bce14ffbd9d7f3b776a94cd7bcb13eb2f46bb14d62dee",
       "engine": "ema-lightning",
-      "file": "428657271eb2fdd98b3a65a4.mp3",
-      "generated_at": "2026-11-20T10:11:41.073410+00:00"
+      "file": "be3cc8141d250c6f0a40a00d.mp3",
+      "generated_at": "2026-11-21T09:58:01.679107+00:00"
     },
-    "2f0f2494bc3383af2e6e0574": {
-      "title": "LDHA ekspresyonu, Pan-Kla düzeyi ve H3K18la'nın ekspresyonu, laringeal skuamöz hücreli karsinomun klinik ilerlemesiyle ilişkilidir.",
+    "6d2ae8889501d808d29a063c": {
+      "title": "Sindirim sistemi tümörlerinde biyobelirteç testleri.",
+      "journal": "Virchows Archiv",
+      "pmid": "43058333",
+      "fingerprint": "213f8812a50b43052cb01385eb3571c58d756fc2a94f06e99d6155bb345f86ad",
+      "engine": "ema-lightning",
+      "file": "6d2ae8889501d808d29a063c.mp3",
+      "generated_at": "2026-11-21T09:58:01.679107+00:00"
+    },
+    "48de71f10b9e377160e0f488": {
+      "title": "EWSR1 Yeniden Düzenlenmiş Foliküler (Tiroid Benzeri) Böbrek Hücreli Karsinomunun İlk Bildirilen Vakasına Yeniden Bakış.",
+      "journal": "Human Pathology",
+      "pmid": "43057401",
+      "fingerprint": "0204a6bf17b3b7b7557985a624f540eef9231ac6d4b11436410f74c145d16f2b",
+      "engine": "ema-lightning",
+      "file": "48de71f10b9e377160e0f488.mp3",
+      "generated_at": "2026-11-21T09:58:01.679107+00:00"
+    },
+    "f2e3e7b3add2b5d6b71a82ce": {
+      "title": "LDHA ekspresyonu, Pan-Kla düzeyi ve H3K18la düzeyi, laringeal skuamöz hücreli karsinomun klinik ilerlemesiyle ilişkilidir.",
       "journal": "Diagnostic Pathology",
       "pmid": "42665803",
-      "fingerprint": "465f932289b78b2e3eae81de0f6ee6d0303bbc638c19fed6655835d0112d3162",
+      "fingerprint": "3ab72eaee2eaa4c079f422de323633ed3aec975be43b9e454ec625dedd2aa437",
       "engine": "ema-lightning",
-      "file": "2f0f2494bc3383af2e6e0574.mp3",
-      "generated_at": "2026-11-20T10:11:41.073410+00:00"
+      "file": "f2e3e7b3add2b5d6b71a82ce.mp3",
+      "generated_at": "2026-11-21T09:58:01.679107+00:00"
     }
   }
 }
