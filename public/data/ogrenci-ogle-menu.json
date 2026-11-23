@@ -1,7 +1,13 @@
 {
-  "date": "22.11.2026",
-  "items": [],
-  "kcal": null,
+  "date": "23.11.2026",
+  "items": [
+    "YAYLA ÇORBASI",
+    "ETLİ NOHUT",
+    "SADE BULGUR PİLAVI",
+    "KARIŞIK TURŞU",
+    "YAYLA ÇORBASI"
+  ],
+  "kcal": "950",
   "source": "https://w3.sdu.edu.tr/aylik-yemek-listesi?dosya=yemekler_ogle&tur=2",
-  "updatedAt": "2026-11-22T15:29:06.694Z"
+  "updatedAt": "2026-11-23T15:11:44.609Z"
 }
