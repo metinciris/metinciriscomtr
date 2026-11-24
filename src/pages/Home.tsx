@@ -223,15 +223,15 @@ export function Home({ onNavigate }: HomeProps) {
         )}
 
         {/* ══════════ KARO IZGARASI ══════════ */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-10">
+        <div className="home-sections grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-10">
 
           {/* ══ HASTALAR ══ */}
-          <div>
+          <div className="home-section home-section-patients">
             <h2 className="mb-1 text-xl font-bold">Hastalar</h2>
             <p className="mb-3 text-sm text-slate-600">
               Biyopsi sonuçları, patoloji raporları, iletişim ve günlük pratik bilgiler.
             </p>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="home-tile-grid grid grid-cols-2 gap-3">
 
               {/* Geniş: İletişim */}
               <MetroTile
@@ -336,12 +336,12 @@ export function Home({ onNavigate }: HomeProps) {
           </div>
 
           {/* ══ PATOLOJİ VE EĞİTİM ══ */}
-          <div>
+          <div className="home-section home-section-education">
             <h2 className="mb-1 text-xl font-bold">Patoloji ve Eğitim</h2>
             <p className="mb-3 text-sm text-slate-600">
               Patoloji eğitimi, ders notları, güncel vakalar ve mesleki kaynaklar.
             </p>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="home-tile-grid grid grid-cols-2 gap-3">
 
               {/* Öğrenci kartları mobilde yukarıdaki panelde; masaüstünde burada. */}
               <div className="hidden lg:contents">
@@ -374,12 +374,12 @@ export function Home({ onNavigate }: HomeProps) {
           </div>
 
           {/* ══ AKADEMİK / PROFESYONEL ══ */}
-          <div>
+          <div className="home-section home-section-academic">
             <h2 className="mb-1 text-xl font-bold">Akademik / Profesyonel</h2>
             <p className="mb-3 text-sm text-slate-600">
               Yayınlar, özgeçmiş, moleküler patoloji ve profesyonel çalışmalar.
             </p>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="home-tile-grid grid grid-cols-2 gap-3">
 
               {/* Yayınlar */}
               <MetroTile
