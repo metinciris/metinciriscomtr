@@ -11,12 +11,16 @@ import {
     YERLEŞIM_OPTS,
     SINIR_OPTS,
     ODAK_OPTS,
+    CAP_GIST_RISK_REFERENCE,
+    CAP_GIST_RISK_URL,
     GistData,
     formatNumber,
     toNumber,
+    toMitosisCount,
     pTFromSize,
     gradeFromMitotic,
     riskFrom,
+    riskAssessmentNote,
     generateGistReport
 } from "../core/calculators/gist";
 
@@ -52,11 +56,16 @@ export default function GistRaporlama() {
     const [copied, setCopied] = useState(false);
 
     // Calculations
-    const sizeNum = useMemo(() => toNumber(enBuyukCm), [enBuyukCm]);
-    const mitozNum = useMemo(() => toNumber(mitoz), [mitoz]);
+    const sizeNum = useMemo(() => {
+        const value = toNumber(enBuyukCm);
+        return value !== undefined && value >= 0 ? value : undefined;
+    }, [enBuyukCm]);
+    const mitozNum = useMemo(() => toMitosisCount(mitoz), [mitoz]);
     const pT = useMemo(() => pTFromSize(sizeNum, neoTedaviVar), [sizeNum, neoTedaviVar]);
     const grade = useMemo(() => gradeFromMitotic(mitozNum), [mitozNum]);
-    const risk = useMemo(() => riskFrom(sizeNum, mitozNum, yerlesim), [sizeNum, mitozNum, yerlesim]);
+    const risk = useMemo(() => riskFrom(sizeNum, mitozNum, yerlesim, neoTedaviVar === true), [sizeNum, mitozNum, yerlesim, neoTedaviVar]);
+    const riskCategory = risk.category;
+    const riskNote = riskAssessmentNote(risk);
 
     // Report Generation
     const rapor = useMemo(() => {
@@ -171,7 +180,7 @@ export default function GistRaporlama() {
                                 <h1 style={{ fontSize: '28px', fontWeight: '700', color: '#ffffff', marginBottom: '8px' }}>
                                     GİST Raporlama
                                 </h1>
-                                <p style={{ fontSize: '14px', color: '#94a3b8' }}>CAP GIST Protokolü (4.3.0.0) Uyumlu Akıllı Şablon</p>
+                                <p style={{ fontSize: '14px', color: '#94a3b8' }}>GİST rapor taslağı • Risk kaynağı: {CAP_GIST_RISK_REFERENCE}</p>
                             </div>
                             <div style={{
                                 backgroundColor: 'rgba(255,255,255,0.1)',
@@ -184,7 +193,7 @@ export default function GistRaporlama() {
                                 gap: '8px'
                             }}>
                                 <Info size={14} />
-                                <span>v2.3 Stable</span>
+                                <span>v2.4</span>
                             </div>
                         </div>
                     </div>
@@ -643,14 +652,17 @@ export default function GistRaporlama() {
                                 <div style={{
                                     ...cardStyle,
                                     border: '2px solid',
-                                    borderColor: risk === 'Yüksek' ? '#fca5a5' : risk === 'Orta' ? '#fdba74' : risk === 'Düşük' || risk === 'Çok düşük' ? '#86efac' : '#e2e8f0',
-                                    backgroundColor: risk === 'Yüksek' ? '#fef2f2' : risk === 'Orta' ? '#fff7ed' : risk === 'Düşük' || risk === 'Çok düşük' ? '#f0fdf4' : '#ffffff',
+                                    borderColor: riskCategory === 'Yüksek' ? '#fca5a5' : riskCategory === 'Orta' ? '#fdba74' : riskCategory === 'Düşük' || riskCategory === 'Çok düşük' ? '#86efac' : '#e2e8f0',
+                                    backgroundColor: riskCategory === 'Yüksek' ? '#fef2f2' : riskCategory === 'Orta' ? '#fff7ed' : riskCategory === 'Düşük' || riskCategory === 'Çok düşük' ? '#f0fdf4' : '#ffffff',
                                 }}>
                                     <div style={{ padding: '24px', textAlign: 'center' }}>
                                         <h3 style={{ fontSize: '11px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '1px', color: '#64748b', marginBottom: '24px' }}>Sonuç Paneli</h3>
                                         <div style={{ marginBottom: '16px', padding: '20px', backgroundColor: 'rgba(255,255,255,0.6)', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.05)' }}>
-                                            <div style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', color: '#64748b', marginBottom: '8px' }}>Risk</div>
-                                            <div style={{ fontSize: '24px', fontWeight: '900', color: '#0f172a' }}>{risk || '-'}</div>
+                                            <div style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', color: '#64748b', marginBottom: '8px' }}>Progresyon riski</div>
+                                            <div style={{ fontSize: '24px', fontWeight: '900', color: '#0f172a' }} aria-live="polite">{riskCategory ?? 'Hesaplanmadı'}</div>
+                                            {riskNote && <p style={{ fontSize: '12px', color: '#475569', marginTop: '8px' }}>{riskNote}</p>}
+                                            <p style={{ fontSize: '12px', color: '#475569', marginTop: '8px' }}>Primer rezeksiyon verilerine dayanır; SDH kayıplı GİST’te öngörü sınırlıdır.</p>
+                                            <a href={CAP_GIST_RISK_URL} target="_blank" rel="noopener noreferrer" style={{ fontSize: '12px', color: '#1d4ed8', textDecoration: 'underline' }}>{CAP_GIST_RISK_REFERENCE}</a>
                                         </div>
                                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                                             <div style={{ padding: '20px', backgroundColor: 'rgba(255,255,255,0.6)', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.05)' }}>

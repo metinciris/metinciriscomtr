@@ -1,56 +1,67 @@
 import { describe, it, expect } from 'vitest';
-import { generateGistReport, riskFrom, pTFromSize, gradeFromMitotic, type GistData } from '../gist';
+import { CAP_GIST_RISK_REFERENCE, generateGistReport, riskFrom, pTFromSize, gradeFromMitotic, toNumber, toMitosisCount, type GistData } from '../gist';
 
-/**
- * Referans: Miettinen & Lasota, Semin Diagn Pathol 2006 — mNIH risk tablosu
- * Yerleşim × Boyut × Mitoz kombinasyonlarından türetildi
- */
-describe('riskFrom', () => {
-  // --- Mide yerleşimi ---
-  it('Mide, ≤2cm, mitoz≤5 → Çok düşük', () => {
-    expect(riskFrom(1.5, 3, 'Mide')).toBe('Çok düşük');
+describe('CAP Not D, Tablo 1', () => {
+  // Her grupta sütunlar: Mide / Duodenum / Jejunum–İleum / Rektum.
+  // null, CAP tablosunda yerleşime özgü veri yetersiz demektir.
+  const rows = [
+    [5, 2, 'Yok', 'Yok', 'Yok', 'Yok'],
+    [5, 2.01, 'Çok düşük', 'Düşük', 'Düşük', 'Düşük'],
+    [5, 5, 'Çok düşük', 'Düşük', 'Düşük', 'Düşük'],
+    [5, 5.01, 'Düşük', null, 'Orta', null],
+    [5, 10, 'Düşük', null, 'Orta', null],
+    [5, 10.01, 'Orta', 'Yüksek', 'Yüksek', 'Yüksek'],
+    [6, 2, 'Yok', null, 'Yüksek', 'Yüksek'],
+    [6, 2.01, 'Orta', 'Yüksek', 'Yüksek', 'Yüksek'],
+    [6, 5, 'Orta', 'Yüksek', 'Yüksek', 'Yüksek'],
+    [6, 5.01, 'Yüksek', null, 'Yüksek', null],
+    [6, 10, 'Yüksek', null, 'Yüksek', null],
+    [6, 10.01, 'Yüksek', 'Yüksek', 'Yüksek', 'Yüksek'],
+  ] as const;
+  const sites = ['Mide', 'Duodenum', 'Jejunum/İleum', 'Rektum'] as const;
+
+  for (const [mitoses, size, ...expected] of rows) {
+    sites.forEach((site, index) => {
+      it(`${site}, ${size} cm, ${mitoses} mitoz`, () => {
+        const category = expected[index];
+        expect(riskFrom(size, mitoses, site)).toEqual({ kind: category === null ? 'insufficient' : 'direct', category });
+      });
+    });
+  }
+
+  it.each(['Kolon', 'Özofagus', 'Omentum', 'Mezenter', 'Retroperiton', 'Periton', 'Karaciğer', 'Pankreas'])(
+    '%s: doğrudan satır yoksa jejunum/ileum ölçütü açıkça ayırt edilir',
+    site => expect(riskFrom(7, 3, site)).toEqual({ kind: 'proxy', category: 'Orta' }),
+  );
+
+  it('eksik veya geçersiz veri ve neoadjuvan sonrası ölçümler kategori üretmez', () => {
+    expect(riskFrom(undefined, 3, 'Mide')).toEqual({ kind: 'missing', category: null });
+    expect(riskFrom(5, undefined, 'Mide')).toEqual({ kind: 'missing', category: null });
+    expect(riskFrom(5, 3, ' ')).toEqual({ kind: 'missing', category: null });
+    expect(riskFrom(5, 3, 'Bilinmiyor')).toEqual({ kind: 'invalid', category: null });
+    expect(riskFrom(0, 3, 'Mide')).toEqual({ kind: 'invalid', category: null });
+    expect(riskFrom(-2, 3, 'Mide')).toEqual({ kind: 'invalid', category: null });
+    expect(riskFrom(Infinity, 3, 'Mide')).toEqual({ kind: 'invalid', category: null });
+    expect(riskFrom(5, -1, 'Mide')).toEqual({ kind: 'invalid', category: null });
+    expect(riskFrom(5, 5.1, 'Mide')).toEqual({ kind: 'invalid', category: null });
+    expect(riskFrom(5, 0, 'Mide')).toEqual({ kind: 'direct', category: 'Çok düşük' });
+    expect(riskFrom(7, 3, 'Mide', true)).toEqual({ kind: 'postTreatment', category: null });
   });
 
-  it('Mide, 2-5cm, mitoz≤5 → Düşük', () => {
-    expect(riskFrom(3, 4, 'Mide')).toBe('Düşük');
+  it('önceki yerleşim yazımlarını doğru CAP satırına eşler', () => {
+    expect(riskFrom(7, 3, 'Duedonum')).toEqual({ kind: 'insufficient', category: null });
+    expect(riskFrom(7, 3, 'Jejenum/İleum')).toEqual({ kind: 'direct', category: 'Orta' });
   });
+});
 
-  it('Mide, 5-10cm, mitoz≤5 → Orta', () => {
-    expect(riskFrom(7, 2, 'Mide')).toBe('Orta');
-  });
-
-  it('Mide, >10cm, mitoz≤5 → Yüksek', () => {
-    expect(riskFrom(12, 3, 'Mide')).toBe('Yüksek');
-  });
-
-  it('Mide, ≤2cm, mitoz>5 → Orta', () => {
-    expect(riskFrom(1.5, 6, 'Mide')).toBe('Orta');
-  });
-
-  it('Mide, >2cm, mitoz>5 → Yüksek', () => {
-    expect(riskFrom(6, 10, 'Mide')).toBe('Yüksek');
-  });
-
-  // --- İnce bağırsak yerleşimi ---
-  it('Jejenum/İleum, ≤2cm, mitoz≤5 → Düşük', () => {
-    expect(riskFrom(1.5, 3, 'Jejenum/İleum')).toBe('Düşük');
-  });
-
-  it('Jejenum/İleum, herhangi boyut, mitoz>5 → Yüksek', () => {
-    expect(riskFrom(3, 7, 'Jejenum/İleum')).toBe('Yüksek');
-  });
-
-  // --- Eksik veri ---
-  it('Boyut tanımsız → Belirsiz', () => {
-    expect(riskFrom(undefined, 3, 'Mide')).toBe('Belirsiz');
-  });
-
-  it('Mitoz tanımsız → Belirsiz', () => {
-    expect(riskFrom(5, undefined, 'Mide')).toBe('Belirsiz');
-  });
-
-  it('Yerleşim boş → Belirsiz', () => {
-    expect(riskFrom(5, 3, '')).toBe('Belirsiz');
+describe('Risk girdileri', () => {
+  it('ondalık cm ve sıfır mitozu korur; birimli, kısmi veya kesirli girdi varsaymaz', () => {
+    expect(toNumber(' 5,01 ')).toBe(5.01);
+    expect(toNumber('7cm')).toBeUndefined();
+    expect(toNumber('3.2.1')).toBeUndefined();
+    expect(toMitosisCount('0')).toBe(0);
+    expect(toMitosisCount('5,1')).toBeUndefined();
+    expect(toMitosisCount('6abc')).toBeUndefined();
   });
 });
 
@@ -110,8 +121,33 @@ describe('generateGistReport', () => {
       'En büyük tümör boyutu: 3,0 cm', 'Tümör yerleşimi: Mide', 'Mitotik oran: 0 mitoz/5mm²',
       'Nekroz: Var (%5)', 'Neoadjuvan tedavi vardır. Canlı tümör yüzdesi: %0.',
       'Cerrahi sınırlar: Negatif.', 'Histolojik Grade: G1; low grade',
-      'Risk değerlendirmesi: Düşük', 'pT kategori: ypT2', 'SDHB: İntakt', 'Ki-67: %0',
+      `Risk değerlendirmesi (${CAP_GIST_RISK_REFERENCE}): Neoadjuvan tedavi sonrası ölçümlerden otomatik kategori atanmadı.`,
+      'pT kategori: ypT2', 'SDHB: İntakt', 'Ki-67: %0',
     ]);
+  });
+
+  it('mide 7 cm ve 11 cm örneklerini üst kategoriye çıkarmaz', () => {
+    const reports = [7, 11].map(enBuyukCm => generateGistReport({
+      ...emptyReportData, enBuyukCm, mitozNum: 3, yerlesim: 'Mide',
+    }));
+    expect(reports[0]).toContain(`Risk değerlendirmesi (${CAP_GIST_RISK_REFERENCE}): Düşük`);
+    expect(reports[1]).toContain(`Risk değerlendirmesi (${CAP_GIST_RISK_REFERENCE}): Orta`);
+  });
+
+  it('boyutu eşik ötesine yuvarlamadan bildirir, proxy sonucu ayrı etiketler', () => {
+    const report = generateGistReport({
+      ...emptyReportData, enBuyukCm: 5.01, mitozNum: 3, yerlesim: 'Kolon',
+    });
+    expect(report).toContain('En büyük tümör boyutu: 5,01 cm');
+    expect(report).toContain('Orta | Yerleşim tabloda yok; jejunum/ileum ölçütleri kullanıldı, yerleşime özgü sonuç değildir.');
+  });
+
+  it('yetersiz veri ve Yok kategorisi için ayrı klinik açıklamalar verir', () => {
+    const insufficient = generateGistReport({ ...emptyReportData, enBuyukCm: 7, mitozNum: 3, yerlesim: 'Rektum' });
+    const none = generateGistReport({ ...emptyReportData, enBuyukCm: 2, mitozNum: 3, yerlesim: 'Mide' });
+    expect(insufficient).toContain('tabloda veri yetersiz; otomatik kategori atanmadı');
+    expect(insufficient).not.toMatch(/: (Yok|Çok düşük|Düşük|Orta|Yüksek)(?:$| \|)/);
+    expect(none).toContain('Yok | Tablo kategorisidir; bireysel riskin sıfır olduğunu göstermez.');
   });
 
   it('boyut ve mitoz girilse de bilinmeyen yerleşim ve tedaviyi varsaymaz', () => {
