@@ -22,9 +22,9 @@ export interface GistData {
     odak: string;
     yerlesim: string;
     mitozNum: number | undefined;
-    nekrozVar: boolean;
+    nekrozVar: boolean | undefined;
     nekrozYuzde: number | undefined;
-    neoTedaviVar: boolean;
+    neoTedaviVar: boolean | undefined;
     canliTumorYuzde: number | undefined;
     cerrahiMetin: string;
     nodDurumu: string;
@@ -54,8 +54,8 @@ export function toNumber(n: any) {
     return Number.isNaN(v) ? undefined : v;
 }
 
-export function pTFromSize(cm: number | undefined, neoadjuvan: boolean) {
-    if (!cm && cm !== 0) return "";
+export function pTFromSize(cm: number | undefined, neoadjuvan: boolean | undefined) {
+    if ((!cm && cm !== 0) || neoadjuvan === undefined) return "";
     let cat = "";
     if (cm === 0) cat = "pT0";
     else if (cm <= 2) cat = "pT1";
@@ -86,7 +86,11 @@ export function riskFrom(sizeCm: number | undefined, mitos: number | undefined, 
 
 export function generateGistReport(data: GistData): string {
     const lines: string[] = [];
-    if (data.histoTip) lines.push(`Histolojik Tip: ${data.histoTip}`);
+    const addFinding = (label: string, value: string) => {
+        const trimmed = value.trim();
+        if (trimmed) lines.push(`${label}: ${trimmed}`);
+    };
+    addFinding("Histolojik Tip", data.histoTip);
 
     const ebc = formatNumber(data.enBuyukCm);
     if (ebc) lines.push(`En büyük tümör boyutu: ${ebc} cm`);
@@ -94,41 +98,50 @@ export function generateGistReport(data: GistData): string {
     const L = formatNumber(data.lx), W = formatNumber(data.wx), H = formatNumber(data.hx);
     if (L || W || H) lines.push(`Tümör boyutları: ${L || "?"} x ${W || "?"} x ${H || "?"} cm`);
 
-    if (data.sinir) lines.push(`Tümör sınırları: ${data.sinir}`);
-    if (data.odak) lines.push(`Tümör odağı: ${data.odak}`);
-    if (data.yerlesim) lines.push(`Tümör yerleşimi: ${data.yerlesim}`);
+    addFinding("Tümör sınırları", data.sinir);
+    addFinding("Tümör odağı", data.odak);
+    addFinding("Tümör yerleşimi", data.yerlesim);
 
     if (data.mitozNum !== undefined) lines.push(`Mitotik oran: ${formatNumber(data.mitozNum, 0)} mitoz/5mm²`);
 
-    lines.push(data.nekrozVar ? `Nekroz: Var${data.nekrozYuzde !== undefined ? ` (%${formatNumber(data.nekrozYuzde, 0)})` : ""}` : "Nekroz: Yok");
+    if (data.nekrozVar === true) {
+        lines.push(`Nekroz: Var${data.nekrozYuzde !== undefined ? ` (%${formatNumber(data.nekrozYuzde, 0)})` : ""}`);
+    } else if (data.nekrozVar === false) {
+        lines.push("Nekroz: Yok");
+    }
 
-    if (data.neoTedaviVar) lines.push(`Neoadjuvan tedavi vardır. Canlı tümör yüzdesi: ${data.canliTumorYuzde !== undefined ? `%${formatNumber(data.canliTumorYuzde, 0)}` : "belirtilmemiş"}.`);
+    if (data.neoTedaviVar === true) {
+        const percentage = data.canliTumorYuzde !== undefined
+            ? ` Canlı tümör yüzdesi: %${formatNumber(data.canliTumorYuzde, 0)}.`
+            : "";
+        lines.push(`Neoadjuvan tedavi vardır.${percentage}`);
+    } else if (data.neoTedaviVar === false) {
+        lines.push("Neoadjuvan tedavi: Yok");
+    }
 
-    if (data.cerrahiMetin) lines.push(`Cerrahi sınırlar: ${data.cerrahiMetin}`);
-    if (data.nodDurumu) lines.push(`Bölgesel lenf nodları durumu: ${data.nodDurumu}`);
+    addFinding("Cerrahi sınırlar", data.cerrahiMetin);
+    addFinding("Bölgesel lenf nodları durumu", data.nodDurumu);
 
     const grade = gradeFromMitotic(data.mitozNum);
     if (grade) lines.push(`Histolojik Grade: ${grade}`);
 
-    const risk = riskFrom(data.enBuyukCm, data.mitozNum, data.yerlesim);
-    if (risk) lines.push(`Risk değerlendirmesi: ${risk}`);
+    const risk = riskFrom(data.enBuyukCm, data.mitozNum, data.yerlesim.trim());
+    if (risk !== "Belirsiz") lines.push(`Risk değerlendirmesi: ${risk}`);
 
     const pT = pTFromSize(data.enBuyukCm, data.neoTedaviVar);
     if (pT) lines.push(`pT kategori: ${pT}`);
 
-    lines.push(
-        `C-KİT (CD117): ${data.cd117}`,
-        `DOG1 (ANO1): ${data.dog1}`,
-        `SDHA: ${data.sdha}`,
-        `SDHB: ${data.sdhb}`,
-        `BRAF: ${data.braf}`,
-        `CD34: ${data.cd34}`,
-        `SMA: ${data.sma}`,
-        `Desmin: ${data.desmin}`,
-        `S-100: ${data.s100}`
-    );
+    addFinding("C-KİT (CD117)", data.cd117);
+    addFinding("DOG1 (ANO1)", data.dog1);
+    addFinding("SDHA", data.sdha);
+    addFinding("SDHB", data.sdhb);
+    addFinding("BRAF", data.braf);
+    addFinding("CD34", data.cd34);
+    addFinding("SMA", data.sma);
+    addFinding("Desmin", data.desmin);
+    addFinding("S-100", data.s100);
 
-    if (data.ki67) lines.push(`Ki-67: %${data.ki67}`);
+    if (data.ki67.trim()) lines.push(`Ki-67: %${data.ki67.trim()}`);
 
     return lines.join("\n");
 }

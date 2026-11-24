@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { riskFrom, pTFromSize, gradeFromMitotic } from '../gist';
+import { generateGistReport, riskFrom, pTFromSize, gradeFromMitotic, type GistData } from '../gist';
 
 /**
  * Referans: Miettinen & Lasota, Semin Diagn Pathol 2006 — mNIH risk tablosu
@@ -62,6 +62,7 @@ describe('pTFromSize', () => {
   it('>10cm → pT4', () => expect(pTFromSize(15, false)).toBe('pT4'));
   it('neoadjuvan → ypT prefix', () => expect(pTFromSize(3, true)).toBe('ypT2'));
   it('tanımsız boyut → boş string', () => expect(pTFromSize(undefined, false)).toBe(''));
+  it('tanımsız tedavi durumu → evre öneki tahmin edilmez', () => expect(pTFromSize(3, undefined)).toBe(''));
 });
 
 describe('gradeFromMitotic', () => {
@@ -70,4 +71,51 @@ describe('gradeFromMitotic', () => {
   it('mitoz=6 → G2; high grade', () => expect(gradeFromMitotic(6)).toBe('G2; high grade'));
   it('mitoz=20 → G2; high grade', () => expect(gradeFromMitotic(20)).toBe('G2; high grade'));
   it('tanımsız → boş string', () => expect(gradeFromMitotic(undefined)).toBe(''));
+});
+
+const emptyReportData: GistData = {
+  histoTip: '', enBuyukCm: undefined, lx: undefined, wx: undefined, hx: undefined,
+  sinir: '', odak: '', yerlesim: '', mitozNum: undefined, nekrozVar: undefined,
+  nekrozYuzde: undefined, neoTedaviVar: undefined, canliTumorYuzde: undefined,
+  cerrahiMetin: '', nodDurumu: '', cd117: '', dog1: '', sdha: '', sdhb: '',
+  braf: '', cd34: '', sma: '', desmin: '', s100: '', ki67: '',
+};
+
+describe('generateGistReport', () => {
+  it('girilmemiş ve yalnızca boşluk içeren bulguları yazmaz', () => {
+    expect(generateGistReport({
+      ...emptyReportData, cerrahiMetin: ' \n ', nodDurumu: '  ', ki67: '  ', cd117: '  ',
+    })).toBe('');
+  });
+
+  it('seçilen tek boyayı yazar; diğer İHK veya klinik bulguları varsaymaz', () => {
+    expect(generateGistReport({ ...emptyReportData, dog1: 'Negatif' })).toBe('DOG1 (ANO1): Negatif');
+  });
+
+  it('açıkça seçilen olumsuz bulguları korur; gizli yüzdeleri raporlamaz', () => {
+    expect(generateGistReport({
+      ...emptyReportData, nekrozVar: false, nekrozYuzde: 15,
+      neoTedaviVar: false, canliTumorYuzde: 20, cd117: 'Negatif',
+    })).toBe('Nekroz: Yok\nNeoadjuvan tedavi: Yok\nC-KİT (CD117): Negatif');
+  });
+
+  it('açıkça girilen sıfırı ve seçilen bulguları korur', () => {
+    const report = generateGistReport({
+      ...emptyReportData, histoTip: 'Gastrointestinal Stromal Tümör, mikst',
+      enBuyukCm: 3, yerlesim: 'Mide', mitozNum: 0, nekrozVar: true, nekrozYuzde: 5,
+      neoTedaviVar: true, canliTumorYuzde: 0, cerrahiMetin: ' Negatif. ', sdhb: 'İntakt', ki67: '0',
+    });
+    expect(report.split('\n')).toEqual([
+      'Histolojik Tip: Gastrointestinal Stromal Tümör, mikst',
+      'En büyük tümör boyutu: 3,0 cm', 'Tümör yerleşimi: Mide', 'Mitotik oran: 0 mitoz/5mm²',
+      'Nekroz: Var (%5)', 'Neoadjuvan tedavi vardır. Canlı tümör yüzdesi: %0.',
+      'Cerrahi sınırlar: Negatif.', 'Histolojik Grade: G1; low grade',
+      'Risk değerlendirmesi: Düşük', 'pT kategori: ypT2', 'SDHB: İntakt', 'Ki-67: %0',
+    ]);
+  });
+
+  it('boyut ve mitoz girilse de bilinmeyen yerleşim ve tedaviyi varsaymaz', () => {
+    expect(generateGistReport({ ...emptyReportData, enBuyukCm: 3, mitozNum: 4 }))
+      .toBe('En büyük tümör boyutu: 3,0 cm\nMitotik oran: 4 mitoz/5mm²\nHistolojik Grade: G1; low grade');
+  });
 });
