@@ -25,41 +25,10 @@ export default defineConfig({
     target: 'esnext',
     outDir: 'dist',
     sourcemap: true,
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          if (id.includes('node_modules')) {
-            // Grafik kütüphaneleri — ağır d3/recharts
-            if (id.includes('recharts') || id.includes('d3-')) {
-              return 'vendor-charts';
-            }
-            // Markdown işleme — react-markdown + parse5 + micromark + unified
-            if (
-              id.includes('react-markdown') || id.includes('micromark') ||
-              id.includes('parse5') || id.includes('unified') ||
-              id.includes('remark') || id.includes('rehype') ||
-              id.includes('mdast-') || id.includes('hast-') ||
-              id.includes('unist-') || id.includes('vfile') ||
-              id.includes('property-information') || id.includes('entities/')
-            ) {
-              return 'vendor-markdown';
-            }
-            // Ağır görsel dönüştürücü
-            if (id.includes('heic2any') || id.includes('@jsquash')) {
-              return 'vendor-heic';
-            }
-            // Zipleme kütüphanesi
-            if (id.includes('jszip')) {
-              return 'vendor-zip';
-            }
-            // Supabase
-            if (id.includes('@supabase')) {
-              return 'vendor-supabase';
-            }
-          }
-        },
-      },
-    },
+    // Let Rollup preserve the route-level lazy import boundaries. Forcing
+    // unrelated vendor groups can pull shared React/helper modules into heavy
+    // charts, HEIC and Markdown chunks and preload them on every route.
+    manifest: true,
   },
   server: {
     port: 3000,
