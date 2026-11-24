@@ -92,6 +92,23 @@ export function Home({ onNavigate }: HomeProps) {
 
   /* ── Hava durumu (Isparta) – Open-Meteo ── */
   const weather = useWeather();
+  const weatherIconRef = React.useRef<HTMLSpanElement>(null);
+  const weatherBounceRef = React.useRef<Animation | null>(null);
+
+  const bounceWeatherIcon = () => {
+    const icon = weatherIconRef.current;
+    if (!icon || typeof icon.animate !== 'function' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    weatherBounceRef.current?.cancel();
+    weatherBounceRef.current = icon.animate([
+      { transform: 'translateY(-2px) scale(1)', offset: 0 },
+      { transform: 'translateY(-45px) scale(1.25)', offset: 0.25 },
+      { transform: 'translateY(0px) scale(0.9)', offset: 0.55 },
+      { transform: 'translateY(-8px) scale(1.02)', offset: 0.75 },
+      { transform: 'translateY(-2px) scale(1)', offset: 1 },
+    ], { duration: 1100, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' });
+  };
+
+  React.useEffect(() => () => weatherBounceRef.current?.cancel(), []);
 
   /* ── Son kullanılan araçlar ── */
   const { recentPages } = useRecentPages();
@@ -300,13 +317,13 @@ export function Home({ onNavigate }: HomeProps) {
               />
 
               {/* Hava Durumu */}
-              <div className={`home-weather-tile home-weather-${weather.variant}`}>
+              <div className={`home-weather-tile home-weather-${weather.variant}`} onClick={bounceWeatherIcon}>
                 <div className="home-weather-header">
                   <span className="home-weather-city">ISPARTA</span>
                   <span className="home-weather-updated">{weatherUpdated}</span>
                 </div>
                 <div className="home-weather-main">
-                  <span className="home-weather-icon">{weather.icon}</span>
+                  <span ref={weatherIconRef} className="home-weather-icon">{weather.icon}</span>
                   <span className="home-weather-temp">
                     {weather.temp !== null ? `${weather.temp}°` : '--'}
                   </span>
