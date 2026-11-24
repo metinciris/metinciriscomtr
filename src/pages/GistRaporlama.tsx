@@ -11,52 +11,61 @@ import {
     YERLEŞIM_OPTS,
     SINIR_OPTS,
     ODAK_OPTS,
+    CAP_GIST_RISK_REFERENCE,
+    CAP_GIST_RISK_URL,
     GistData,
     formatNumber,
     toNumber,
+    toMitosisCount,
     pTFromSize,
     gradeFromMitotic,
     riskFrom,
+    riskAssessmentNote,
     generateGistReport
 } from "../core/calculators/gist";
 
 export default function GistRaporlama() {
     // State
-    const [histoTip, setHistoTip] = useState(HISTO_TIP_OPTS[0]);
+    const [histoTip, setHistoTip] = useState("");
     const [enBuyukCm, setEnBuyukCm] = useState("");
     const [lx, setLx] = useState("");
     const [wx, setWx] = useState("");
     const [hx, setHx] = useState("");
-    const [sinir, setSinir] = useState("Ekspansil");
-    const [odak, setOdak] = useState("Unifokal");
-    const [yerlesim, setYerlesim] = useState("Mide");
+    const [sinir, setSinir] = useState("");
+    const [odak, setOdak] = useState("");
+    const [yerlesim, setYerlesim] = useState("");
     const [mitoz, setMitoz] = useState("");
-    const [nekrozVar, setNekrozVar] = useState(false);
+    const [nekrozVar, setNekrozVar] = useState<boolean | undefined>(undefined);
     const [nekrozYuzde, setNekrozYuzde] = useState("");
-    const [neoTedaviVar, setNeoTedaviVar] = useState(false);
+    const [neoTedaviVar, setNeoTedaviVar] = useState<boolean | undefined>(undefined);
     const [canliTumorYuzde, setCanliTumorYuzde] = useState("");
-    const [cerrahiMetin, setCerrahiMetin] = useState("Serozal yüzeye 0,3 cm mesafededir.");
-    const [nodDurumu, setNodDurumu] = useState("Bölgesel lenf nodlarında reaktif hiperplazi (0/)");
+    const [cerrahiMetin, setCerrahiMetin] = useState("");
+    const [nodDurumu, setNodDurumu] = useState("");
 
     // IHC State
-    const [cd117, setCd117] = useState("Pozitif");
-    const [dog1, setDog1] = useState("Pozitif");
-    const [sdha, setSdha] = useState("İntakt");
-    const [sdhb, setSdhb] = useState("İntakt");
-    const [braf, setBraf] = useState("Negatif");
-    const [cd34, setCd34] = useState("Pozitif");
-    const [sma, setSma] = useState("Negatif");
-    const [desmin, setDesmin] = useState("Negatif");
-    const [s100, setS100] = useState("Negatif");
+    const [cd117, setCd117] = useState("");
+    const [dog1, setDog1] = useState("");
+    const [sdha, setSdha] = useState("");
+    const [sdhb, setSdhb] = useState("");
+    const [braf, setBraf] = useState("");
+    const [cd34, setCd34] = useState("");
+    const [sma, setSma] = useState("");
+    const [desmin, setDesmin] = useState("");
+    const [s100, setS100] = useState("");
     const [ki67, setKi67] = useState("");
     const [copied, setCopied] = useState(false);
 
     // Calculations
-    const sizeNum = useMemo(() => toNumber(enBuyukCm), [enBuyukCm]);
-    const mitozNum = useMemo(() => toNumber(mitoz), [mitoz]);
+    const sizeNum = useMemo(() => {
+        const value = toNumber(enBuyukCm);
+        return value !== undefined && value >= 0 ? value : undefined;
+    }, [enBuyukCm]);
+    const mitozNum = useMemo(() => toMitosisCount(mitoz), [mitoz]);
     const pT = useMemo(() => pTFromSize(sizeNum, neoTedaviVar), [sizeNum, neoTedaviVar]);
     const grade = useMemo(() => gradeFromMitotic(mitozNum), [mitozNum]);
-    const risk = useMemo(() => riskFrom(sizeNum, mitozNum, yerlesim), [sizeNum, mitozNum, yerlesim]);
+    const risk = useMemo(() => riskFrom(sizeNum, mitozNum, yerlesim, neoTedaviVar === true), [sizeNum, mitozNum, yerlesim, neoTedaviVar]);
+    const riskCategory = risk.category;
+    const riskNote = riskAssessmentNote(risk);
 
     // Report Generation
     const rapor = useMemo(() => {
@@ -90,12 +99,15 @@ export default function GistRaporlama() {
         return generateGistReport(data);
     }, [histoTip, sizeNum, lx, wx, hx, sinir, odak, yerlesim, mitozNum, nekrozVar, nekrozYuzde, neoTedaviVar, canliTumorYuzde, cerrahiMetin, nodDurumu, cd117, dog1, sdha, sdhb, braf, cd34, sma, desmin, s100, ki67]);
 
-    const handleCopy = () => {
-        if (navigator.clipboard) {
-            navigator.clipboard.writeText(rapor);
+    const handleCopy = async () => {
+        if (!rapor || !navigator.clipboard) return;
+        try {
+            await navigator.clipboard.writeText(rapor);
             setCopied(true);
             toast.success("GİST rapor şablonu panoya kopyalandı.");
             setTimeout(() => setCopied(false), 2000);
+        } catch {
+            toast.error("Rapor panoya kopyalanamadı.");
         }
     };
 
@@ -168,7 +180,7 @@ export default function GistRaporlama() {
                                 <h1 style={{ fontSize: '28px', fontWeight: '700', color: '#ffffff', marginBottom: '8px' }}>
                                     GİST Raporlama
                                 </h1>
-                                <p style={{ fontSize: '14px', color: '#94a3b8' }}>CAP GIST Protokolü (4.3.0.0) Uyumlu Akıllı Şablon</p>
+                                <p style={{ fontSize: '14px', color: '#94a3b8' }}>GİST rapor taslağı • Risk kaynağı: {CAP_GIST_RISK_REFERENCE}</p>
                             </div>
                             <div style={{
                                 backgroundColor: 'rgba(255,255,255,0.1)',
@@ -181,7 +193,7 @@ export default function GistRaporlama() {
                                 gap: '8px'
                             }}>
                                 <Info size={14} />
-                                <span>v2.3 Stable</span>
+                                <span>v2.4</span>
                             </div>
                         </div>
                     </div>
@@ -229,7 +241,8 @@ export default function GistRaporlama() {
                                             {HISTO_TIP_OPTS.map(opt => (
                                                 <button
                                                     key={opt}
-                                                    onClick={() => setHistoTip(opt)}
+                                                    aria-pressed={histoTip === opt}
+                                                    onClick={() => setHistoTip(histoTip === opt ? "" : opt)}
                                                     style={{
                                                         ...baseButtonStyle,
                                                         backgroundColor: histoTip === opt ? '#eff6ff' : '#ffffff',
@@ -274,7 +287,8 @@ export default function GistRaporlama() {
                                             {YERLEŞIM_OPTS.map(opt => (
                                                 <button
                                                     key={opt}
-                                                    onClick={() => setYerlesim(opt)}
+                                                    aria-pressed={yerlesim === opt}
+                                                    onClick={() => setYerlesim(yerlesim === opt ? "" : opt)}
                                                     style={yerlesim === opt ? {
                                                         ...activeButtonStyle,
                                                         backgroundColor: '#6366f1',
@@ -387,7 +401,8 @@ export default function GistRaporlama() {
                                                 {SINIR_OPTS.map(opt => (
                                                     <button
                                                         key={opt}
-                                                        onClick={() => setSinir(opt)}
+                                                        aria-pressed={sinir === opt}
+                                                        onClick={() => setSinir(sinir === opt ? "" : opt)}
                                                         style={sinir === opt ? activeButtonStyle : inactiveButtonStyle}
                                                     >
                                                         {opt}
@@ -409,7 +424,8 @@ export default function GistRaporlama() {
                                                 {ODAK_OPTS.map(opt => (
                                                     <button
                                                         key={opt}
-                                                        onClick={() => setOdak(opt)}
+                                                        aria-pressed={odak === opt}
+                                                        onClick={() => setOdak(odak === opt ? "" : opt)}
                                                         style={odak === opt ? activeButtonStyle : inactiveButtonStyle}
                                                     >
                                                         {opt}
@@ -446,107 +462,39 @@ export default function GistRaporlama() {
                                     <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#0f172a' }}>Ek Özellikler</h3>
                                 </div>
                                 <div style={{ padding: '24px' }}>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
-                                        <div style={{
-                                            backgroundColor: '#f8fafc',
-                                            border: '1px solid #e2e8f0',
-                                            borderRadius: '12px',
-                                            padding: '20px',
-                                            display: 'flex',
-                                            justifyContent: 'space-between',
-                                            alignItems: 'center'
-                                        }}>
-                                            <div>
-                                                <div style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a', marginBottom: '4px' }}>Nekroz</div>
-                                                <div style={{ fontSize: '12px', color: '#64748b' }}>Tümörde nekroz varlığı</div>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+                                        {[
+                                            { id: 'gist-nekroz', label: 'Nekroz', status: nekrozVar, setStatus: setNekrozVar, percentage: nekrozYuzde, setPercentage: setNekrozYuzde, percentageLabel: 'Nekroz yüzdesi' },
+                                            { id: 'gist-neoadjuvan', label: 'Neoadjuvan tedavi', status: neoTedaviVar, setStatus: setNeoTedaviVar, percentage: canliTumorYuzde, setPercentage: setCanliTumorYuzde, percentageLabel: 'Canlı tümör yüzdesi' },
+                                        ].map(({ id, label, status, setStatus, percentage, setPercentage, percentageLabel }) => (
+                                            <div key={id} style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '16px' }}>
+                                                <label htmlFor={id} style={{ display: 'block', fontSize: '14px', fontWeight: '700', color: '#0f172a', marginBottom: '8px' }}>{label}</label>
+                                                <select
+                                                    id={id}
+                                                    value={status === undefined ? "" : status ? "yes" : "no"}
+                                                    onChange={(e) => {
+                                                        const choice = e.target.value;
+                                                        setStatus(choice === "" ? undefined : choice === "yes");
+                                                        if (choice !== "yes") setPercentage("");
+                                                    }}
+                                                    style={inputStyle}
+                                                >
+                                                    <option value="">Belirtilmedi</option>
+                                                    <option value="yes">Var</option>
+                                                    <option value="no">Yok</option>
+                                                </select>
+                                                {status === true && (
+                                                    <label style={{ display: 'block', fontSize: '12px', color: '#475569', marginTop: '8px' }}>
+                                                        {percentageLabel}
+                                                        <input type="text" inputMode="decimal" value={percentage} onChange={(e) => setPercentage(e.target.value)} style={inputStyle} />
+                                                    </label>
+                                                )}
                                             </div>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                                {nekrozVar && <input type="text" placeholder="%" value={nekrozYuzde} onChange={(e) => setNekrozYuzde(e.target.value)} style={{ ...inputStyle, width: '80px', textAlign: 'center' }} />}
-                                                <label style={{ position: 'relative', display: 'inline-block', width: '48px', height: '24px' }}>
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={nekrozVar}
-                                                        onChange={(e) => setNekrozVar(e.target.checked)}
-                                                        style={{ opacity: 0, width: 0, height: 0 }}
-                                                    />
-                                                    <span style={{
-                                                        position: 'absolute',
-                                                        cursor: 'pointer',
-                                                        top: 0,
-                                                        left: 0,
-                                                        right: 0,
-                                                        bottom: 0,
-                                                        backgroundColor: nekrozVar ? '#2563eb' : '#cbd5e1',
-                                                        transition: '0.3s',
-                                                        borderRadius: '24px',
-                                                    }}>
-                                                        <span style={{
-                                                            position: 'absolute',
-                                                            content: '',
-                                                            height: '18px',
-                                                            width: '18px',
-                                                            left: nekrozVar ? '26px' : '3px',
-                                                            bottom: '3px',
-                                                            backgroundColor: 'white',
-                                                            transition: '0.3s',
-                                                            borderRadius: '50%',
-                                                        }} />
-                                                    </span>
-                                                </label>
-                                            </div>
-                                        </div>
-                                        <div style={{
-                                            backgroundColor: '#f8fafc',
-                                            border: '1px solid #e2e8f0',
-                                            borderRadius: '12px',
-                                            padding: '20px',
-                                            display: 'flex',
-                                            justifyContent: 'space-between',
-                                            alignItems: 'center'
-                                        }}>
-                                            <div>
-                                                <div style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a', marginBottom: '4px' }}>Neoadjuvan</div>
-                                                <div style={{ fontSize: '12px', color: '#64748b' }}>Tedavi sonrası</div>
-                                            </div>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                                {neoTedaviVar && <input type="text" placeholder="Canlı %" value={canliTumorYuzde} onChange={(e) => setCanliTumorYuzde(e.target.value)} style={{ ...inputStyle, width: '96px', textAlign: 'center' }} />}
-                                                <label style={{ position: 'relative', display: 'inline-block', width: '48px', height: '24px' }}>
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={neoTedaviVar}
-                                                        onChange={(e) => setNeoTedaviVar(e.target.checked)}
-                                                        style={{ opacity: 0, width: 0, height: 0 }}
-                                                    />
-                                                    <span style={{
-                                                        position: 'absolute',
-                                                        cursor: 'pointer',
-                                                        top: 0,
-                                                        left: 0,
-                                                        right: 0,
-                                                        bottom: 0,
-                                                        backgroundColor: neoTedaviVar ? '#2563eb' : '#cbd5e1',
-                                                        transition: '0.3s',
-                                                        borderRadius: '24px',
-                                                    }}>
-                                                        <span style={{
-                                                            position: 'absolute',
-                                                            content: '',
-                                                            height: '18px',
-                                                            width: '18px',
-                                                            left: neoTedaviVar ? '26px' : '3px',
-                                                            bottom: '3px',
-                                                            backgroundColor: 'white',
-                                                            transition: '0.3s',
-                                                            borderRadius: '50%',
-                                                        }} />
-                                                    </span>
-                                                </label>
-                                            </div>
-                                        </div>
+                                        ))}
                                     </div>
                                     <div style={{ display: 'grid', gap: '16px' }}>
                                         <div>
-                                            <label style={{
+                                            <label htmlFor="gist-cerrahi-sinirlar" style={{
                                                 display: 'block',
                                                 fontSize: '11px',
                                                 fontWeight: '700',
@@ -556,6 +504,7 @@ export default function GistRaporlama() {
                                                 marginBottom: '8px'
                                             }}>Cerrahi Sınırlar</label>
                                             <textarea
+                                                id="gist-cerrahi-sinirlar"
                                                 value={cerrahiMetin}
                                                 onChange={(e) => setCerrahiMetin(e.target.value)}
                                                 rows={2}
@@ -567,7 +516,7 @@ export default function GistRaporlama() {
                                             />
                                         </div>
                                         <div>
-                                            <label style={{
+                                            <label htmlFor="gist-lenf-nodlari" style={{
                                                 display: 'block',
                                                 fontSize: '11px',
                                                 fontWeight: '700',
@@ -577,6 +526,7 @@ export default function GistRaporlama() {
                                                 marginBottom: '8px'
                                             }}>Lenf Nodları</label>
                                             <textarea
+                                                id="gist-lenf-nodlari"
                                                 value={nodDurumu}
                                                 onChange={(e) => setNodDurumu(e.target.value)}
                                                 rows={2}
@@ -642,7 +592,8 @@ export default function GistRaporlama() {
                                                     {item.options.map(opt => (
                                                         <button
                                                             key={opt}
-                                                            onClick={() => item.setter(opt)}
+                                                            aria-pressed={item.value === opt}
+                                                            onClick={() => item.setter(item.value === opt ? "" : opt)}
                                                             style={{
                                                                 ...baseButtonStyle,
                                                                 padding: '8px 12px',
@@ -701,14 +652,17 @@ export default function GistRaporlama() {
                                 <div style={{
                                     ...cardStyle,
                                     border: '2px solid',
-                                    borderColor: risk === 'Yüksek' ? '#fca5a5' : risk === 'Orta' ? '#fdba74' : risk === 'Düşük' || risk === 'Çok düşük' ? '#86efac' : '#e2e8f0',
-                                    backgroundColor: risk === 'Yüksek' ? '#fef2f2' : risk === 'Orta' ? '#fff7ed' : risk === 'Düşük' || risk === 'Çok düşük' ? '#f0fdf4' : '#ffffff',
+                                    borderColor: riskCategory === 'Yüksek' ? '#fca5a5' : riskCategory === 'Orta' ? '#fdba74' : riskCategory === 'Düşük' || riskCategory === 'Çok düşük' ? '#86efac' : '#e2e8f0',
+                                    backgroundColor: riskCategory === 'Yüksek' ? '#fef2f2' : riskCategory === 'Orta' ? '#fff7ed' : riskCategory === 'Düşük' || riskCategory === 'Çok düşük' ? '#f0fdf4' : '#ffffff',
                                 }}>
                                     <div style={{ padding: '24px', textAlign: 'center' }}>
                                         <h3 style={{ fontSize: '11px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '1px', color: '#64748b', marginBottom: '24px' }}>Sonuç Paneli</h3>
                                         <div style={{ marginBottom: '16px', padding: '20px', backgroundColor: 'rgba(255,255,255,0.6)', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.05)' }}>
-                                            <div style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', color: '#64748b', marginBottom: '8px' }}>Risk</div>
-                                            <div style={{ fontSize: '24px', fontWeight: '900', color: '#0f172a' }}>{risk || '-'}</div>
+                                            <div style={{ fontSize: '11px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', color: '#64748b', marginBottom: '8px' }}>Progresyon riski</div>
+                                            <div style={{ fontSize: '24px', fontWeight: '900', color: '#0f172a' }} aria-live="polite">{riskCategory ?? 'Hesaplanmadı'}</div>
+                                            {riskNote && <p style={{ fontSize: '12px', color: '#475569', marginTop: '8px' }}>{riskNote}</p>}
+                                            <p style={{ fontSize: '12px', color: '#475569', marginTop: '8px' }}>Primer rezeksiyon verilerine dayanır; SDH kayıplı GİST’te öngörü sınırlıdır.</p>
+                                            <a href={CAP_GIST_RISK_URL} target="_blank" rel="noopener noreferrer" style={{ fontSize: '12px', color: '#1d4ed8', textDecoration: 'underline' }}>{CAP_GIST_RISK_REFERENCE}</a>
                                         </div>
                                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                                             <div style={{ padding: '20px', backgroundColor: 'rgba(255,255,255,0.6)', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.05)' }}>
@@ -762,16 +716,19 @@ export default function GistRaporlama() {
                                             fontFamily: 'monospace',
                                             margin: 0
                                         }}>
-                                            {rapor}
+                                            {rapor || "Rapor önizlemesi için olgu bulgularını girin."}
                                         </pre>
                                         <button
+                                            type="button"
                                             onClick={handleCopy}
+                                            disabled={!rapor}
                                             style={{
                                                 ...baseButtonStyle,
                                                 position: 'absolute',
                                                 bottom: '36px',
                                                 right: '36px',
-                                                backgroundColor: copied ? '#10b981' : '#2563eb',
+                                                backgroundColor: !rapor ? '#64748b' : copied ? '#10b981' : '#2563eb',
+                                                cursor: rapor ? 'pointer' : 'not-allowed',
                                                 color: '#ffffff',
                                                 borderColor: copied ? '#10b981' : '#2563eb',
                                                 boxShadow: '0 4px 6px rgba(0,0,0,0.2)',

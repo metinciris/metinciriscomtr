@@ -5,9 +5,12 @@ export const HISTO_TIP_OPTS = [
 ];
 
 export const YERLEŞIM_OPTS = [
-    "Mide", "Duedonum", "Jejenum/İleum", "Rektum", "Kolon", "Özofagus",
+    "Mide", "Duodenum", "Jejunum/İleum", "Rektum", "Kolon", "Özofagus",
     "Omentum", "Mezenter", "Retroperiton", "Periton", "Karaciğer", "Pankreas",
-];
+] as const;
+
+export const CAP_GIST_RISK_REFERENCE = "CAP GİST 4.4.0.0, Not D, Tablo 1";
+export const CAP_GIST_RISK_URL = "https://www.cap.org/wp-content/uploads/2026/09/GIST_4.4.0.0.REL_CAPCP.pdf?download=true#page=12";
 
 export const SINIR_OPTS = ["Ekspansil", "İnfiltratif"];
 export const ODAK_OPTS = ["Unifokal", "Multifokal"];
@@ -22,9 +25,9 @@ export interface GistData {
     odak: string;
     yerlesim: string;
     mitozNum: number | undefined;
-    nekrozVar: boolean;
+    nekrozVar: boolean | undefined;
     nekrozYuzde: number | undefined;
-    neoTedaviVar: boolean;
+    neoTedaviVar: boolean | undefined;
     canliTumorYuzde: number | undefined;
     cerrahiMetin: string;
     nodDurumu: string;
@@ -47,15 +50,20 @@ export function formatNumber(n: any, digits = 1) {
     return val.toLocaleString("tr-TR", { maximumFractionDigits: digits, minimumFractionDigits: digits });
 }
 
-export function toNumber(n: any) {
-    if (n === undefined || n === null || n === "") return undefined;
-    if (typeof n === "number") return n;
-    const v = parseFloat(String(n).replace(",", "."));
-    return Number.isNaN(v) ? undefined : v;
+export function toNumber(input: string) {
+    const trimmed = input.trim();
+    if (!/^[+-]?(?:\d+(?:[.,]\d*)?|[.,]\d+)$/.test(trimmed)) return undefined;
+    const value = Number(trimmed.replace(",", "."));
+    return Number.isFinite(value) ? value : undefined;
 }
 
-export function pTFromSize(cm: number | undefined, neoadjuvan: boolean) {
-    if (!cm && cm !== 0) return "";
+export function toMitosisCount(input: string) {
+    const value = toNumber(input);
+    return value !== undefined && Number.isSafeInteger(value) && value >= 0 ? value : undefined;
+}
+
+export function pTFromSize(cm: number | undefined, neoadjuvan: boolean | undefined) {
+    if ((!cm && cm !== 0) || neoadjuvan === undefined) return "";
     let cat = "";
     if (cm === 0) cat = "pT0";
     else if (cm <= 2) cat = "pT1";
@@ -70,65 +78,115 @@ export function gradeFromMitotic(mitosPer5mm2: number | undefined) {
     return mitosPer5mm2 <= 5 ? "G1; low grade" : "G2; high grade";
 }
 
-export function riskFrom(sizeCm: number | undefined, mitos: number | undefined, site: string) {
-    if (sizeCm === undefined || mitos === undefined || !site) return "Belirsiz";
-    const highMitos = mitos > 5;
-    const gastric = site === "Mide";
-    const smallBowel = site === "Jejenum/İleum" || site === "Duedonum";
-    const colorectal = site === "Rektum" || site === "Kolon";
-    const s = sizeCm;
-    const band = s <= 2 ? 1 : s <= 5 ? 2 : s <= 10 ? 3 : 4;
+type RiskCategory = "Yok" | "Çok düşük" | "Düşük" | "Orta" | "Yüksek";
+type CapSite = "Mide" | "Duodenum" | "Jejunum/İleum" | "Rektum";
+type RiskAssessment =
+    | { kind: "direct" | "proxy"; category: RiskCategory }
+    | { kind: "missing" | "invalid" | "insufficient" | "postTreatment"; category: null };
 
-    if (gastric) return !highMitos ? (band === 1 ? "Çok düşük" : band === 2 ? "Düşük" : band === 3 ? "Orta" : "Yüksek") : (band === 1 ? "Orta" : band === 2 ? "Orta" : "Yüksek");
-    if (smallBowel || colorectal) return !highMitos ? (band === 1 ? "Düşük" : band === 2 ? "Orta" : "Yüksek") : "Yüksek";
-    return highMitos || band >= 3 ? "Yüksek" : band === 2 ? "Orta" : "Düşük";
+// CAP Not D, Tablo 1. Sütunlar: ≤2, >2–≤5, >5–≤10, >10 cm.
+// null = ilgili yerleşime özgü veri yetersiz, "Yok" = tablodaki ayrı risk kategorisi.
+const CAP_RISK_MATRIX = {
+    lowMitosis: {
+        Mide: ["Yok", "Çok düşük", "Düşük", "Orta"],
+        Duodenum: ["Yok", "Düşük", null, "Yüksek"],
+        "Jejunum/İleum": ["Yok", "Düşük", "Orta", "Yüksek"],
+        Rektum: ["Yok", "Düşük", null, "Yüksek"],
+    },
+    highMitosis: {
+        Mide: ["Yok", "Orta", "Yüksek", "Yüksek"],
+        Duodenum: [null, "Yüksek", null, "Yüksek"],
+        "Jejunum/İleum": ["Yüksek", "Yüksek", "Yüksek", "Yüksek"],
+        Rektum: ["Yüksek", "Yüksek", null, "Yüksek"],
+    },
+} as const satisfies Record<string, Record<CapSite, readonly (RiskCategory | null)[]>>;
+
+export function riskFrom(sizeCm: number | undefined, mitos: number | undefined, site: string, postTreatment = false): RiskAssessment {
+    if (postTreatment) return { kind: "postTreatment", category: null };
+    if (sizeCm === undefined || mitos === undefined || !site.trim()) return { kind: "missing", category: null };
+    const trimmedSite = site.trim();
+    const normalizedSite = trimmedSite === "Duedonum" ? "Duodenum" : trimmedSite === "Jejenum/İleum" ? "Jejunum/İleum" : trimmedSite;
+    if (!Number.isFinite(sizeCm) || sizeCm <= 0 || !Number.isSafeInteger(mitos) || mitos < 0
+        || !YERLEŞIM_OPTS.some(option => option === normalizedSite)) {
+        return { kind: "invalid", category: null };
+    }
+    const row = CAP_RISK_MATRIX[mitos > 5 ? "highMitosis" : "lowMitosis"];
+    const band = sizeCm <= 2 ? 0 : sizeCm <= 5 ? 1 : sizeCm <= 10 ? 2 : 3;
+    if (!Object.prototype.hasOwnProperty.call(row, normalizedSite)) return { kind: "proxy", category: row["Jejunum/İleum"][band] };
+    const category = row[normalizedSite as CapSite][band];
+    return category === null ? { kind: "insufficient", category: null } : { kind: "direct", category };
+}
+
+export function riskAssessmentNote(risk: RiskAssessment): string {
+    if (risk.kind === "proxy") return "Yerleşim tabloda yok; jejunum/ileum ölçütleri kullanıldı, yerleşime özgü sonuç değildir.";
+    if (risk.kind === "insufficient") return "Bu yerleşim ve ölçümler için tabloda veri yetersiz; otomatik kategori atanmadı. Jejunum/ileum ölçütleri uzman değerlendirmesinde dikkate alınabilir.";
+    if (risk.kind === "postTreatment") return "Neoadjuvan tedavi sonrası ölçümlerden otomatik kategori atanmadı.";
+    if (risk.category === "Yok") return "Tablo kategorisidir; bireysel riskin sıfır olduğunu göstermez.";
+    return "";
 }
 
 export function generateGistReport(data: GistData): string {
     const lines: string[] = [];
-    if (data.histoTip) lines.push(`Histolojik Tip: ${data.histoTip}`);
+    const addFinding = (label: string, value: string) => {
+        const trimmed = value.trim();
+        if (trimmed) lines.push(`${label}: ${trimmed}`);
+    };
+    addFinding("Histolojik Tip", data.histoTip);
 
-    const ebc = formatNumber(data.enBuyukCm);
+    // 2,01/5,01/10,01 gibi ölçümler, risk sınırının diğer tarafına yuvarlanmamalı.
+    const ebc = data.enBuyukCm?.toLocaleString("tr-TR", { minimumFractionDigits: 1, maximumFractionDigits: 20 });
     if (ebc) lines.push(`En büyük tümör boyutu: ${ebc} cm`);
 
     const L = formatNumber(data.lx), W = formatNumber(data.wx), H = formatNumber(data.hx);
     if (L || W || H) lines.push(`Tümör boyutları: ${L || "?"} x ${W || "?"} x ${H || "?"} cm`);
 
-    if (data.sinir) lines.push(`Tümör sınırları: ${data.sinir}`);
-    if (data.odak) lines.push(`Tümör odağı: ${data.odak}`);
-    if (data.yerlesim) lines.push(`Tümör yerleşimi: ${data.yerlesim}`);
+    addFinding("Tümör sınırları", data.sinir);
+    addFinding("Tümör odağı", data.odak);
+    addFinding("Tümör yerleşimi", data.yerlesim);
 
     if (data.mitozNum !== undefined) lines.push(`Mitotik oran: ${formatNumber(data.mitozNum, 0)} mitoz/5mm²`);
 
-    lines.push(data.nekrozVar ? `Nekroz: Var${data.nekrozYuzde !== undefined ? ` (%${formatNumber(data.nekrozYuzde, 0)})` : ""}` : "Nekroz: Yok");
+    if (data.nekrozVar === true) {
+        lines.push(`Nekroz: Var${data.nekrozYuzde !== undefined ? ` (%${formatNumber(data.nekrozYuzde, 0)})` : ""}`);
+    } else if (data.nekrozVar === false) {
+        lines.push("Nekroz: Yok");
+    }
 
-    if (data.neoTedaviVar) lines.push(`Neoadjuvan tedavi vardır. Canlı tümör yüzdesi: ${data.canliTumorYuzde !== undefined ? `%${formatNumber(data.canliTumorYuzde, 0)}` : "belirtilmemiş"}.`);
+    if (data.neoTedaviVar === true) {
+        const percentage = data.canliTumorYuzde !== undefined
+            ? ` Canlı tümör yüzdesi: %${formatNumber(data.canliTumorYuzde, 0)}.`
+            : "";
+        lines.push(`Neoadjuvan tedavi vardır.${percentage}`);
+    } else if (data.neoTedaviVar === false) {
+        lines.push("Neoadjuvan tedavi: Yok");
+    }
 
-    if (data.cerrahiMetin) lines.push(`Cerrahi sınırlar: ${data.cerrahiMetin}`);
-    if (data.nodDurumu) lines.push(`Bölgesel lenf nodları durumu: ${data.nodDurumu}`);
+    addFinding("Cerrahi sınırlar", data.cerrahiMetin);
+    addFinding("Bölgesel lenf nodları durumu", data.nodDurumu);
 
     const grade = gradeFromMitotic(data.mitozNum);
     if (grade) lines.push(`Histolojik Grade: ${grade}`);
 
-    const risk = riskFrom(data.enBuyukCm, data.mitozNum, data.yerlesim);
-    if (risk) lines.push(`Risk değerlendirmesi: ${risk}`);
+    const risk = riskFrom(data.enBuyukCm, data.mitozNum, data.yerlesim, data.neoTedaviVar === true);
+    const riskNote = riskAssessmentNote(risk);
+    if (risk.category || riskNote) {
+        lines.push(`Risk değerlendirmesi (${CAP_GIST_RISK_REFERENCE}): ${[risk.category, riskNote].filter(Boolean).join(" | ")}`);
+    }
 
     const pT = pTFromSize(data.enBuyukCm, data.neoTedaviVar);
     if (pT) lines.push(`pT kategori: ${pT}`);
 
-    lines.push(
-        `C-KİT (CD117): ${data.cd117}`,
-        `DOG1 (ANO1): ${data.dog1}`,
-        `SDHA: ${data.sdha}`,
-        `SDHB: ${data.sdhb}`,
-        `BRAF: ${data.braf}`,
-        `CD34: ${data.cd34}`,
-        `SMA: ${data.sma}`,
-        `Desmin: ${data.desmin}`,
-        `S-100: ${data.s100}`
-    );
+    addFinding("C-KİT (CD117)", data.cd117);
+    addFinding("DOG1 (ANO1)", data.dog1);
+    addFinding("SDHA", data.sdha);
+    addFinding("SDHB", data.sdhb);
+    addFinding("BRAF", data.braf);
+    addFinding("CD34", data.cd34);
+    addFinding("SMA", data.sma);
+    addFinding("Desmin", data.desmin);
+    addFinding("S-100", data.s100);
 
-    if (data.ki67) lines.push(`Ki-67: %${data.ki67}`);
+    if (data.ki67.trim()) lines.push(`Ki-67: %${data.ki67.trim()}`);
 
     return lines.join("\n");
 }
