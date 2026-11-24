@@ -201,7 +201,7 @@
   flex-direction: column;
   justify-content: space-between;
   min-height: 110px;
-  cursor: default;
+  cursor: pointer;
   transition:
     background 0.6s ease,
     box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
@@ -327,6 +327,7 @@
 
 /* Varsayılan simge animasyonu (yumuşak yukarı–aşağı) */
 .home-weather-icon {
+  display: inline-block;
   font-size: 3rem;
   line-height: 1;
   transform: translateY(-2px);
@@ -407,7 +408,7 @@
 }
 
 /* ---- TIKLAMA ANİMASYONU (HIZLI ÇIK, SÜZÜLEREK İN) ---- */
-.home-weather-tile:active .home-weather-icon {
+.home-weather-icon.home-weather-bounce {
   animation: weather-bounce-click 1.1s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -418,8 +419,76 @@
   75%  { transform: translateY(-8px) scale(1.02); }
   100% { transform: translateY(-2px) scale(1); }
 }
+/* Weather effects are behind all Home content, never above cards.
+   Two repeated CSS textures, no additional requests or JS frame loop. */
+.home-weather-scene {
+  position: relative;
+  isolation: isolate;
+}
+.home-weather-content {
+  position: relative;
+  z-index: 1;
+}
+.home-precipitation {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.home-precipitation::before,
+.home-precipitation::after {
+  content: '';
+  position: absolute;
+  inset: -150px -100px 0;
+  background-repeat: repeat;
+  pointer-events: none;
+}
+.home-precipitation-snow::before {
+  background-image: radial-gradient(circle at 12px 17px, #fff 0 2px, #a5b8cf 2.2px, transparent 2.9px),
+                    radial-gradient(circle at 46px 60px, #fff 0 1px, #b3c5d9 1.2px, transparent 1.8px);
+  background-size: 83px 101px;
+  opacity: .72;
+  animation: home-snow-far 12s linear infinite;
+}
+.home-precipitation-snow::after {
+  background-image: radial-gradient(circle at 25px 34px, #fff 0 3px, #a9bcd3 3.2px, transparent 4px);
+  background-size: 137px 149px;
+  opacity: .85;
+  animation: home-snow-near 8s linear infinite;
+}
+@keyframes home-snow-far {
+  from { transform: translate(0, 0); }
+  to { transform: translate(0, 101px); }
+}
+@keyframes home-snow-near {
+  from { transform: translate(0, 0); }
+  to { transform: translate(0, 149px); }
+}
+.home-precipitation-rain::before,
+.home-precipitation-rain::after {
+  background-image: linear-gradient(105deg, transparent 46%, rgba(63, 104, 151, .5) 48%, rgba(63, 104, 151, .5) 51%, transparent 53%);
+  background-size: 37px 83px;
+  opacity: .25;
+  animation: home-rain-fall .9s linear infinite;
+}
+.home-precipitation-rain::after {
+  background-size: 53px 83px;
+  opacity: .12;
+  animation-duration: 1.4s;
+}
+@keyframes home-rain-fall {
+  from { transform: translateY(0); }
+  to { transform: translateY(83px); }
+}
+.home-weather-tile:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: 3px;
+}
+
 /* Kullanıcının azaltılmış hareket tercihini korur. */
 @media (prefers-reduced-motion: reduce) {
+  .home-precipitation { display: none; }
   .metro-tile, .metro-tile *, .home-weather-tile, .home-weather-tile * {
     animation: none !important;
     transition: none !important;

@@ -92,23 +92,11 @@ export function Home({ onNavigate }: HomeProps) {
 
   /* ── Hava durumu (Isparta) – Open-Meteo ── */
   const weather = useWeather();
-  const weatherIconRef = React.useRef<HTMLSpanElement>(null);
-  const weatherBounceRef = React.useRef<Animation | null>(null);
-
-  const bounceWeatherIcon = () => {
-    const icon = weatherIconRef.current;
-    if (!icon || typeof icon.animate !== 'function' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    weatherBounceRef.current?.cancel();
-    weatherBounceRef.current = icon.animate([
-      { transform: 'translateY(-2px) scale(1)', offset: 0 },
-      { transform: 'translateY(-45px) scale(1.25)', offset: 0.25 },
-      { transform: 'translateY(0px) scale(0.9)', offset: 0.55 },
-      { transform: 'translateY(-8px) scale(1.02)', offset: 0.75 },
-      { transform: 'translateY(-2px) scale(1)', offset: 1 },
-    ], { duration: 1100, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' });
-  };
-
-  React.useEffect(() => () => weatherBounceRef.current?.cancel(), []);
+  // Remount only the icon so every click restarts the full CSS animation.
+  const [weatherBounce, setWeatherBounce] = React.useState(0);
+  const bounceWeatherIcon = () => setWeatherBounce(value => value + 1);
+  const precipitation = weather.variant === 'snow' ? 'snow' :
+    weather.variant === 'rain' || weather.variant === 'storm' ? 'rain' : null;
 
   /* ── Son kullanılan araçlar ── */
   const { recentPages } = useRecentPages();
@@ -179,7 +167,9 @@ export function Home({ onNavigate }: HomeProps) {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 transition-colors duration-300">
+    <div className="home-weather-scene min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 transition-colors duration-300">
+      {precipitation && <div className={`home-precipitation home-precipitation-${precipitation}`} aria-hidden="true" />}
+      <div className="home-weather-content">
       <PageContainer>
 
         {/* ══════════ KİMLİK ALANI (üst tanıtım) ══════════ */}
@@ -317,13 +307,22 @@ export function Home({ onNavigate }: HomeProps) {
               />
 
               {/* Hava Durumu */}
-              <div className={`home-weather-tile home-weather-${weather.variant}`} onClick={bounceWeatherIcon}>
+              <div className={`home-weather-tile home-weather-${weather.variant}`}
+                role="button" tabIndex={0}
+                aria-label={`Isparta hava durumu, ${weather.temp !== null ? weather.temp + ' derece' : 'yükleniyor'}. Simgeyi hareket ettir.`}
+                onClick={bounceWeatherIcon}
+                onKeyDown={event => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    if (!event.repeat) bounceWeatherIcon();
+                  }
+                }}>
                 <div className="home-weather-header">
                   <span className="home-weather-city">ISPARTA</span>
                   <span className="home-weather-updated">{weatherUpdated}</span>
                 </div>
                 <div className="home-weather-main">
-                  <span ref={weatherIconRef} className="home-weather-icon">{weather.icon}</span>
+                  <span key={weatherBounce} className={`home-weather-icon${weatherBounce > 0 ? ' home-weather-bounce' : ''}`}>{weather.icon}</span>
                   <span className="home-weather-temp">
                     {weather.temp !== null ? `${weather.temp}°` : '--'}
                   </span>
@@ -491,6 +490,7 @@ export function Home({ onNavigate }: HomeProps) {
 
         </div>
       </PageContainer>
+      </div>
     </div>
   );
 }
