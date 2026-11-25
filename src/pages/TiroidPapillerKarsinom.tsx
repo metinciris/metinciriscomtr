@@ -12,39 +12,27 @@ import {
     TUMOR_LOCATION_EXAMPLES,
     CAPSULE_ET_OPTIONS,
     STRAP_OPTIONS,
+    createEmptyTumor,
+    createEmptyLymphNode,
+    hasThyroidFocusDiagnosis,
+    hasThyroidFocusInput,
+    hasValidLymphNodeCounts,
+    requiresMarginsLine,
+    syncTumorDerivedFields,
     generateThyroidReport
 } from '../core/calculators/tiroidPapiller';
 
 export function TiroidPapillerKarsinom() {
     // --- State ---
-    const [specimenType, setSpecimenType] = useState<string>('Total Tiroidektomi');
-    const [tumors, setTumors] = useState<Tumor[]>([
-        {
-            id: 1,
-            location: '',
-            size: '',
-            sample: '',
-            subtypes: ['Klasik papiller karsinom'],
-            encapsulation: 'Yoktur',
-            capsuleEtOptions: ['Tiroid dışı invazyon yoktur'],
-            strapMuscle: '',
-            lvInvasion: 'yoktur',
-            lymphaticInvasion: false,
-            angioinvasion: false,
-            perineuralInvasion: false,
-            mitoticActivity: '0',
-            necrosis: false,
-            includeMarginsLine: false,
-            marginsTumorPresent: false,
-            marginsNote: ''
-        }
-    ]);
+    const [specimenType, setSpecimenType] = useState('');
+    const [tumors, setTumors] = useState<Tumor[]>(() => [createEmptyTumor(1)]);
     const [lymphNodes, setLymphNodes] = useState<LymphNode[]>([]);
-    const [backgroundThyroid, setBackgroundThyroid] = useState<string[]>(['Nodüler guatr']);
+    const [backgroundThyroid, setBackgroundThyroid] = useState<string[]>([]);
     const [freeNote, setFreeNote] = useState<string>('');
     
     const [activeTumorId, setActiveTumorId] = useState<number | null>(1);
     const [copied, setCopied] = useState<boolean>(false);
+    const nextEntryId = useRef(2);
 
     // --- Highlighting States ---
     const [highlightedLines, setHighlightedLines] = useState<Record<string, number>>({});
@@ -127,27 +115,8 @@ export function TiroidPapillerKarsinom() {
 
     // --- Actions ---
     const addTumor = () => {
-        const newId = Date.now();
-        const newTumor: Tumor = {
-            id: newId,
-            location: '',
-            size: '',
-            sample: '',
-            subtypes: ['Klasik papiller karsinom'],
-            encapsulation: 'Yoktur',
-            capsuleEtOptions: ['Tiroid dışı invazyon yoktur'],
-            strapMuscle: '',
-            lvInvasion: 'yoktur',
-            lymphaticInvasion: false,
-            angioinvasion: false,
-            perineuralInvasion: false,
-            mitoticActivity: '0',
-            necrosis: false,
-            includeMarginsLine: false,
-            marginsTumorPresent: false,
-            marginsNote: ''
-        };
-        setTumors([...tumors, newTumor]);
+        const newId = nextEntryId.current++;
+        setTumors(prev => [...prev, createEmptyTumor(newId)]);
         setActiveTumorId(newId);
         markFieldChanged(`tumor-add-${newId}`);
         toast.success("Yeni Tümör Odağı Eklendi");
@@ -166,59 +135,24 @@ export function TiroidPapillerKarsinom() {
         }
     };
 
-    const updateTumor = (id: number, field: keyof Tumor, value: any) => {
+    const updateTumor = <K extends keyof Tumor,>(id: number, field: K, value: Tumor[K]) => {
         markFieldChanged(`tumor-${id}-${String(field)}`);
         setTumors(prev => prev.map(t => {
-            if (t.id === id) {
-                const updated = { ...t, [field]: value } as Tumor;
-
-                // Sync logic
-                if (field === 'capsuleEtOptions') {
-                    const opts = value as string[];
-                    // Prevent both "invazyon var" and "invazyon yok" from being selected together
-                    let finalOpts = [...opts];
-                    if (opts.includes('Tiroid dışı invazyon vardır')) {
-                        finalOpts = finalOpts.filter(x => x !== 'Tiroid dışı invazyon yoktur');
-                    }
-                    if (opts.includes('Tiroid dışı invazyon yoktur')) {
-                        finalOpts = finalOpts.filter(x => x !== 'Tiroid dışı invazyon vardır');
-                    }
-                    if (!finalOpts.length) {
-                        finalOpts = ['Tiroid dışı invazyon yoktur'];
-                    }
-                    updated.capsuleEtOptions = finalOpts;
-                }
-
-                // If no invasion, clear strap muscle
-                if (!updated.capsuleEtOptions.includes('Tiroid dışı invazyon vardır')) {
-                    updated.strapMuscle = '';
-                }
-
-                // Auto-include margins if there's invasion/adhesion
-                const hasAdhesion = updated.capsuleEtOptions.includes('Tiroid dışı invazyon vardır') || 
-                                    updated.capsuleEtOptions.includes('Tiroid kapsülüne yapışıktır');
-                const hasStrap = !!(updated.strapMuscle && updated.strapMuscle.trim());
-                if (hasAdhesion || hasStrap) {
-                    updated.includeMarginsLine = true;
-                }
-
-                return updated;
+            if (t.id !== id) return t;
+            const updated = { ...t, [field]: value };
+            syncTumorDerivedFields(updated);
+            if (!updated.includeMarginsLine) {
+                updated.marginsTumorPresent = null;
+                updated.marginsNote = '';
             }
-            return t;
+            if (updated.marginsTumorPresent !== true) updated.marginsNote = '';
+            return updated;
         }));
     };
 
     const addLymphNode = () => {
-        const newId = Date.now();
-        setLymphNodes([...lymphNodes, {
-            id: newId,
-            location: '',
-            metastatic: 0,
-            total: 1,
-            metastaticTumorSize: '',
-            ene: false,
-            eneSize: ''
-        }]);
+        const newId = nextEntryId.current++;
+        setLymphNodes(prev => [...prev, createEmptyLymphNode(newId)]);
         markFieldChanged(`ln-add-${newId}`);
         toast.success("Lenf Nodu Grubu Eklendi");
     };
@@ -228,7 +162,7 @@ export function TiroidPapillerKarsinom() {
         toast.success("Lenf Nodu Grubu Silindi");
     };
 
-    const updateLymphNode = (id: number, field: keyof LymphNode, value: any) => {
+    const updateLymphNode = <K extends keyof LymphNode,>(id: number, field: K, value: LymphNode[K]) => {
         markFieldChanged(`ln-${id}-${String(field)}`);
         setLymphNodes(prev => prev.map(ln => {
             if (ln.id === id) {
@@ -236,7 +170,7 @@ export function TiroidPapillerKarsinom() {
                 // If metastatic is 0 or less, clear ENE and tumor size fields
                 if (field === 'metastatic' && Number(value) <= 0) {
                     updated.metastaticTumorSize = '';
-                    updated.ene = false;
+                    updated.ene = null;
                     updated.eneSize = '';
                 }
                 if (field === 'ene' && !value) {
@@ -259,30 +193,11 @@ export function TiroidPapillerKarsinom() {
 
     const resetAll = () => {
         if (window.confirm("Tüm formu sıfırlamak istediğinize emin misiniz?")) {
-            setSpecimenType('Total Tiroidektomi');
-            setTumors([
-                {
-                    id: 1,
-                    location: '',
-                    size: '',
-                    sample: '',
-                    subtypes: ['Klasik papiller karsinom'],
-                    encapsulation: 'Yoktur',
-                    capsuleEtOptions: ['Tiroid dışı invazyon yoktur'],
-                    strapMuscle: '',
-                    lvInvasion: 'yoktur',
-                    lymphaticInvasion: false,
-                    angioinvasion: false,
-                    perineuralInvasion: false,
-                    mitoticActivity: '0',
-                    necrosis: false,
-                    includeMarginsLine: false,
-                    marginsTumorPresent: false,
-                    marginsNote: ''
-                }
-            ]);
+            setSpecimenType('');
+            setTumors([createEmptyTumor(1)]);
             setLymphNodes([]);
-            setBackgroundThyroid(['Nodüler guatr']);
+            setBackgroundThyroid([]);
+            setCopied(false);
             setFreeNote('');
             setActiveTumorId(1);
             toast.success("Form Sıfırlandı");
@@ -290,6 +205,7 @@ export function TiroidPapillerKarsinom() {
     };
 
     const copyToClipboard = async () => {
+        if (!reportText) return;
         try {
             await navigator.clipboard.writeText(reportText);
             setCopied(true);
@@ -409,6 +325,7 @@ export function TiroidPapillerKarsinom() {
                                     <div className="md:col-span-1">
                                         <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Materyal Tipi</label>
                                         <select
+                                            aria-label="Materyal tipi"
                                             value={specimenType}
                                             onChange={(e) => {
                                                 setSpecimenType(e.target.value);
@@ -416,6 +333,7 @@ export function TiroidPapillerKarsinom() {
                                             }}
                                             className={getFieldClass('specimenType')}
                                         >
+                                            <option value="">Seçilmedi</option>
                                             <option value="Total Tiroidektomi">Total Tiroidektomi</option>
                                             <option value="Konsültasyon, Total tiroidektomi">Konsültasyon, Total tiroidektomi</option>
                                         </select>
@@ -503,8 +421,10 @@ export function TiroidPapillerKarsinom() {
                                                             <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Çap (mm)</label>
                                                             <input
                                                                 type="number"
+                                                                aria-label="Odak çapı (mm)"
                                                                 value={tumor.size}
                                                                 min="0"
+                                                                step="any"
                                                                 onChange={(e) => updateTumor(tumor.id, 'size', e.target.value === '' ? '' : Number(e.target.value))}
                                                                 placeholder="mm"
                                                                 className={getFieldClass(`tumor-${tumor.id}-size`)}
@@ -526,14 +446,19 @@ export function TiroidPapillerKarsinom() {
                                                     <div>
                                                         <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Histolojik Alt Tip</label>
                                                         <select
-                                                            value={tumor.subtypes[0]}
-                                                            onChange={(e) => updateTumor(tumor.id, 'subtypes', [e.target.value])}
+                                                            aria-label="Histolojik alt tip"
+                                                            value={tumor.subtypes[0] ?? ''}
+                                                            onChange={(e) => updateTumor(tumor.id, 'subtypes', e.target.value ? [e.target.value] : [])}
                                                             className={getFieldClass(`tumor-${tumor.id}-subtypes`)}
                                                         >
+                                                            <option value="">Seçilmedi</option>
                                                             {HISTOLOGIC_SUBTYPES.map(sub => (
                                                                 <option key={sub} value={sub}>{sub}</option>
                                                             ))}
                                                         </select>
+                                                        {hasThyroidFocusInput(tumor) && !hasThyroidFocusDiagnosis(tumor) && (
+                                                            <p className="mt-1 text-xs text-amber-800" role="status">Tanı seçilene kadar bu odak rapora ve odak sayısına eklenmez.</p>
+                                                        )}
                                                     </div>
 
                                                     {/* Binary Flags with Compact Toggles */}
@@ -620,35 +545,40 @@ export function TiroidPapillerKarsinom() {
                                                     <div className="grid grid-cols-3 gap-2">
                                                         <div>
                                                             <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Perinöral Inv.</label>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => updateTumor(tumor.id, 'perineuralInvasion', !tumor.perineuralInvasion)}
-                                                                className={`${getToggleClass(`tumor-${tumor.id}-perineuralInvasion`, tumor.perineuralInvasion, true)} ${
-                                                                    tumor.perineuralInvasion ? 'bg-red-100 text-red-800 border-red-300' : ''
-                                                                }`}
+                                                            <select
+                                                                aria-label="Perinöral invazyon"
+                                                                value={tumor.perineuralInvasion === null ? '' : String(tumor.perineuralInvasion)}
+                                                                onChange={e => updateTumor(tumor.id, 'perineuralInvasion', e.target.value === '' ? null : e.target.value === 'true')}
+                                                                className={getFieldClass(`tumor-${tumor.id}-perineuralInvasion`)}
                                                             >
-                                                                {tumor.perineuralInvasion ? 'Var' : 'Yok'}
-                                                            </button>
+                                                                <option value="">Seçilmedi</option>
+                                                                <option value="false">Yok</option>
+                                                                <option value="true">Var</option>
+                                                            </select>
                                                         </div>
                                                         <div>
                                                             <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Nekroz</label>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => updateTumor(tumor.id, 'necrosis', !tumor.necrosis)}
-                                                                className={`${getToggleClass(`tumor-${tumor.id}-necrosis`, tumor.necrosis, true)} ${
-                                                                    tumor.necrosis ? 'bg-red-100 text-red-800 border-red-300' : ''
-                                                                }`}
+                                                            <select
+                                                                aria-label="Nekroz"
+                                                                value={tumor.necrosis === null ? '' : String(tumor.necrosis)}
+                                                                onChange={e => updateTumor(tumor.id, 'necrosis', e.target.value === '' ? null : e.target.value === 'true')}
+                                                                className={getFieldClass(`tumor-${tumor.id}-necrosis`)}
                                                             >
-                                                                {tumor.necrosis ? 'Var' : 'Yok'}
-                                                            </button>
+                                                                <option value="">Seçilmedi</option>
+                                                                <option value="false">Yok</option>
+                                                                <option value="true">Var</option>
+                                                            </select>
                                                         </div>
                                                         <div>
                                                             <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Mitotik Oran</label>
                                                             <input
-                                                                type="text"
+                                                                type="number"
+                                                                aria-label="Mitotik oran"
+                                                                min="0"
+                                                                step="1"
                                                                 value={tumor.mitoticActivity}
-                                                                onChange={(e) => updateTumor(tumor.id, 'mitoticActivity', e.target.value.replace(/[^0-9]/g, ''))}
-                                                                placeholder="0"
+                                                                onChange={(e) => updateTumor(tumor.id, 'mitoticActivity', e.target.value)}
+                                                                placeholder="—"
                                                                 className={getFieldClass(`tumor-${tumor.id}-mitoticActivity`)}
                                                             />
                                                         </div>
@@ -679,6 +609,8 @@ export function TiroidPapillerKarsinom() {
                                                                         onChange={(e) => {
                                                                             let next = [...tumor.capsuleEtOptions];
                                                                             if (e.target.checked) {
+                                                                                if (opt === 'Tiroid dışı invazyon vardır') next = next.filter(x => x !== 'Tiroid dışı invazyon yoktur');
+                                                                                if (opt === 'Tiroid dışı invazyon yoktur') next = next.filter(x => x !== 'Tiroid dışı invazyon vardır');
                                                                                 next.push(opt);
                                                                             } else {
                                                                                 next = next.filter(x => x !== opt);
@@ -731,11 +663,12 @@ export function TiroidPapillerKarsinom() {
                                                             <button
                                                                 type="button"
                                                                 onClick={() => updateTumor(tumor.id, 'includeMarginsLine', !tumor.includeMarginsLine)}
+                                                                disabled={requiresMarginsLine(tumor)}
                                                                 className={`px-2 py-0.5 text-[10px] font-bold rounded border transition-all ${
                                                                     tumor.includeMarginsLine ? 'bg-indigo-100 border-indigo-200 text-indigo-700' : 'bg-slate-100 border-slate-200 text-slate-400'
                                                                 }`}
                                                             >
-                                                                {tumor.includeMarginsLine ? 'Eklenecek' : 'Eklenmeyecek'}
+                                                                {tumor.includeMarginsLine ? 'Sınır alanı açık' : 'Sınır alanı kapalı'}
                                                             </button>
                                                         </div>
 
@@ -814,7 +747,7 @@ export function TiroidPapillerKarsinom() {
                                 ) : (
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {lymphNodes.map((ln, idx) => {
-                                            const hasMetastasis = ln.metastatic > 0;
+                                            const hasMetastasis = typeof ln.metastatic === 'number' && ln.metastatic > 0;
                                             return (
                                                 <div 
                                                     key={ln.id} 
@@ -860,9 +793,10 @@ export function TiroidPapillerKarsinom() {
                                                                 <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Metastatik</label>
                                                                 <input
                                                                     type="number"
+                                                                    aria-label="Metastatik lenf nodu sayısı"
                                                                     value={ln.metastatic}
                                                                     min="0"
-                                                                    onChange={(e) => updateLymphNode(ln.id, 'metastatic', Number(e.target.value))}
+                                                                    onChange={(e) => updateLymphNode(ln.id, 'metastatic', e.target.value === '' ? '' : Number(e.target.value))}
                                                                     className={getFieldClass(`ln-${ln.id}-metastatic`)}
                                                                 />
                                                             </div>
@@ -870,20 +804,25 @@ export function TiroidPapillerKarsinom() {
                                                                 <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Toplam</label>
                                                                 <input
                                                                     type="number"
+                                                                    aria-label="Toplam lenf nodu sayısı"
                                                                     value={ln.total}
                                                                     min="1"
-                                                                    onChange={(e) => updateLymphNode(ln.id, 'total', Number(e.target.value))}
+                                                                    onChange={(e) => updateLymphNode(ln.id, 'total', e.target.value === '' ? '' : Number(e.target.value))}
                                                                     className={getFieldClass(`ln-${ln.id}-total`)}
                                                                 />
                                                             </div>
                                                         </div>
 
+                                                        {!hasValidLymphNodeCounts(ln) && (
+                                                            <p className="text-xs text-amber-800" role="status">Bu grup, toplam ve metastatik lenf nodu sayıları geçerli olduğunda rapora eklenir.</p>
+                                                        )}
+
                                                         {/* Metastaz Bulguları (Çap, ENE) - Sadece metastatik varsa */}
-                                                        {ln.metastatic > 0 && (
+                                                        {hasMetastasis && (
                                                             <div className="bg-white border border-red-100 p-2.5 rounded-lg space-y-3">
                                                                 <div>
                                                                     <label className="block text-[10px] font-bold text-slate-500 mb-1">
-                                                                        {ln.metastatic > 1 ? 'En Büyük Metastaz Çapı (mm)' : 'Metastaz Çapı (mm)'}
+                                                                        {Number(ln.metastatic) > 1 ? 'En Büyük Metastaz Çapı (mm)' : 'Metastaz Çapı (mm)'}
                                                                     </label>
                                                                     <input
                                                                         type="number"
@@ -897,13 +836,16 @@ export function TiroidPapillerKarsinom() {
 
                                                                 <div className="flex items-center justify-between border-t border-slate-100 pt-2">
                                                                     <label className="text-xs font-bold text-slate-700">Ekstranodal Yayılım (ENE)</label>
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={() => updateLymphNode(ln.id, 'ene', !ln.ene)}
-                                                                        className={getToggleClass(`ln-${ln.id}-ene`, ln.ene, true)}
+                                                                    <select
+                                                                        aria-label="Ekstranodal yayılım (ENE)"
+                                                                        value={ln.ene === null ? '' : String(ln.ene)}
+                                                                        onChange={e => updateLymphNode(ln.id, 'ene', e.target.value === '' ? null : e.target.value === 'true')}
+                                                                        className={getFieldClass(`ln-${ln.id}-ene`)}
                                                                     >
-                                                                        {ln.ene ? 'Var' : 'Yok'}
-                                                                    </button>
+                                                                        <option value="">Seçilmedi</option>
+                                                                        <option value="false">Yok</option>
+                                                                        <option value="true">Var</option>
+                                                                    </select>
                                                                 </div>
 
                                                                 {ln.ene && (
@@ -982,7 +924,7 @@ export function TiroidPapillerKarsinom() {
                                     ref={reportRef} 
                                     className="flex-1 p-5 overflow-y-auto bg-white font-mono text-[13px] leading-relaxed text-slate-800 max-h-[60vh] lg:max-h-[68vh]"
                                 >
-                                    {reportText.split('\n').map((line, i) => {
+                                    {!reportText ? <p className="text-slate-500">Rapora eklenecek bir bulgu henüz girilmedi.</p> : reportText.split('\n').map((line, i) => {
                                         const isHighlighted = highlightedLines[line] !== undefined;
                                         
                                         return (
@@ -1001,7 +943,8 @@ export function TiroidPapillerKarsinom() {
                                 <div className="p-4 bg-slate-50 border-t border-slate-100">
                                     <button
                                         onClick={copyToClipboard}
-                                        className="w-full flex items-center justify-center gap-2.5 py-3 bg-indigo-600 hover:bg-emerald-600 hover:shadow-emerald-100 text-white rounded-xl font-bold transition-all shadow-lg shadow-indigo-150 active:scale-98 group cursor-pointer"
+                                        disabled={!reportText}
+                                        className="w-full flex items-center justify-center gap-2.5 py-3 bg-indigo-600 hover:bg-emerald-600 hover:shadow-emerald-100 text-white rounded-xl font-bold transition-all shadow-lg shadow-indigo-150 active:scale-98 group cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                                     >
                                         <Copy className="w-4.5 h-4.5 group-hover:scale-110 transition-transform" />
                                         Raporu Kopyala
