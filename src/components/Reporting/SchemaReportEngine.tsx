@@ -16,9 +16,10 @@ const STAGING_REGISTRY: Record<string, StagingFn> = {
 
 interface SchemaReportEngineProps {
   schema: ReportSchema;
+  sectionNotes?: Readonly<Record<string, React.ReactNode>>;
 }
 
-export const SchemaReportEngine: React.FC<SchemaReportEngineProps> = ({ schema }) => {
+export const SchemaReportEngine: React.FC<SchemaReportEngineProps> = ({ schema, sectionNotes }) => {
   const {
     values,
     updateValue,
@@ -195,6 +196,7 @@ export const SchemaReportEngine: React.FC<SchemaReportEngineProps> = ({ schema }
                 <h2 className="text-base font-bold text-sky-900 border-b border-slate-200 pb-2.5">
                   {section.baslik}
                 </h2>
+                {sectionNotes?.[section.id]}
                 <div className="grid grid-cols-1 gap-4 pt-1">
                   {section.alanlar.map((field) => {
                     if (!evaluateVisibility(field.gorunurKosul, values)) return null;
