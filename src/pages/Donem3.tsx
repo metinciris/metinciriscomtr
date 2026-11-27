@@ -43,7 +43,7 @@ export function Donem3() {
         {
           name: 'İskemik Kalp Hastalıkları Patolojisi / Valvüler Kalp Hastalıkları Patolojisi / Kardiyomyopatilerin Patolojisi',
           links: [
-            'https://www.dropbox.com/scl/fo/ux2nae6xf2vc09m63jwwj/AOpUCZo5fxLmMzqO8sL4tro/T%C4%B1p%203/3.%20kurul?dl=0&preview=Patoloji+-+Kalp+iskemik+-+kapak+hastal%C4%B1klar%C4%B1.pptx&rlkey=4z1tpnwnam9pxt0vo2no8t8v6&subfolder_nav_tracking=1'
+            'https://www.dropbox.com/scl/fo/g2byq3cbd333zo9duvava/ALYFbj0UTjZAxYPwZSf3e6I?rlkey=envumw2urj2m8lj8xwgm9odec&st=9r98w4vx&dl=0'
           ]
         }
       ],
