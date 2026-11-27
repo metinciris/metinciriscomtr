@@ -100,7 +100,7 @@ export function Donem3() {
         {
           name: 'SSS\'nin Vasküler Hastalıklarının Patolojisi',
           links: [
-            'https://www.dropbox.com/scl/fo/ux2nae6xf2vc09m63jwwj/AFShcT9sdh048Ve5pBaNufE/T%C4%B1p%203/6.%20kurul?dl=0&preview=SSS%E2%80%99nin+Vask%C3%BCler+Hastal%C4%B1klar%C4%B1n%C4%B1n+ve+anomalilerin+Patolojisi.pptx&rlkey=4z1tpnwnam9pxt0vo2no8t8v6&subfolder_nav_tracking=1'
+            'https://www.dropbox.com/scl/fo/ux2nae6xf2vc09m63jwwj/AKakaFwLhQRhbpNosJAOO9s/T%C4%B1p%203/6.%20kurul/SSS%E2%80%99nin%20Vask%C3%BCler%20Hastal%C4%B1klar%C4%B1n%C4%B1n%20ve%20anomalilerin%20Patolojisi.pptx?rlkey=4z1tpnwnam9pxt0vo8t8v6&e=1&dl=0'
           ]
         },
         {
