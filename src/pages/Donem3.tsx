@@ -37,7 +37,7 @@ export function Donem3() {
         {
           name: 'Nazal Kavite, Paranazal Sinüsler, Nazofarenks ve Larenks Patolojisi',
           links: [
-            'https://www.dropbox.com/scl/fo/ux2nae6xf2vc09m63jwwj/APBFoS7MSB2ub-F1EcoWhZs/T%C4%B1p%203/3.%20kurul/Nazal%20Kavite%2C%20Paranazal%20Sin%C3%BCsler%2C%20Nazofarenks%20ve%20Larinks%20Patolojisi?dl=0&preview=Ba%C5%9F+Boyun+Patolojisi.pptx&rlkey=4z1tpnwnam9pxt0vo2no8t8v6&subfolder_nav_tracking=1'
+            'https://www.dropbox.com/scl/fo/xk8pu8ii410escfan68ro/AMksg-k_elowbQWX0QbHXxU?rlkey=4xz1dnn6h2bb21h5jzpwfrxis&st=t614wvge&dl=0'
           ]
         },
         {
